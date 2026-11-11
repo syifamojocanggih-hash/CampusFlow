@@ -91,3 +91,4 @@ authRouter.post("/demo", async (_req, res) => {
   const token = signAuthToken({ sub: demoUser.id, email: demoUser.email });
   sendSuccess(res, { token, user: sanitizeUser(demoUser) });
 });
+

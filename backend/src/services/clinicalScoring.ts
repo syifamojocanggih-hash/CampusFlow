@@ -108,3 +108,4 @@ export function evaluate24HourTriad(input: TriadEvaluationInput): TriadEvaluatio
     sedentaryRiskStatus,
   };
 }
+

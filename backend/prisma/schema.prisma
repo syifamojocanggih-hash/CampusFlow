@@ -139,3 +139,4 @@ model AiCoachingInsight {
 
   @@index([userId, createdAt])
 }
+

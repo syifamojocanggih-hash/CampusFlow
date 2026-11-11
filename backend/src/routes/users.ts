@@ -69,3 +69,4 @@ visionRouter.patch("/baseline", requireAuth, async (req: AuthenticatedRequest, r
   });
   sendSuccess(res, updated);
 });
+

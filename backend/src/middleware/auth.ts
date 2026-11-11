@@ -35,3 +35,4 @@ export function requireAuth(req: AuthenticatedRequest, _res: Response, next: Nex
     throw new AppError(401, "UNAUTHORIZED", "Token tidak valid atau sudah kedaluwarsa.");
   }
 }
+

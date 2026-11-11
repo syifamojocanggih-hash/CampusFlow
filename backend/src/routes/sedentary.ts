@@ -60,3 +60,4 @@ sedentaryRouter.get("/sessions", requireAuth, async (req: AuthenticatedRequest, 
 
   sendSuccess(res, sessions);
 });
+

@@ -16,3 +16,4 @@
   "include": ["src/**/*.ts", "../shared/contracts/**/*.ts"],
   "exclude": ["node_modules", "dist", "prisma"]
 }
+

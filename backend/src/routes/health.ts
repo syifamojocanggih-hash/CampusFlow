@@ -10,3 +10,4 @@ healthRouter.get("/", (_req, res) => {
     uptimeSec: Math.round(process.uptime()),
   });
 });
+

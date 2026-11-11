@@ -98,3 +98,4 @@ aiCoachRouter.patch("/:id/complete", requireAuth, async (req: AuthenticatedReque
 
   sendSuccess(res, updated);
 });
+

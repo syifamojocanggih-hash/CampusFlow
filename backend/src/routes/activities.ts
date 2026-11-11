@@ -84,3 +84,4 @@ activitiesRouter.get("/", requireAuth, async (req: AuthenticatedRequest, res) =>
     },
   });
 });
+

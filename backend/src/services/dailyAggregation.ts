@@ -54,3 +54,4 @@ export async function syncDailyWellbeingAggregates(userId: string, dateInput: st
     },
   });
 }
+

@@ -43,3 +43,4 @@ notificationsRouter.post("/test", requireAuth, async (req: AuthenticatedRequest,
   );
   sendSuccess(res, result);
 });
+

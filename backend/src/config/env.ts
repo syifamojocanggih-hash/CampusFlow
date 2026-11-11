@@ -17,3 +17,4 @@ export const env = envSchema.parse(process.env);
 export const allowedCorsOrigins = env.CORS_ORIGIN.split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+

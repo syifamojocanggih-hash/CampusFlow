@@ -6,3 +6,4 @@ const app = createApp();
 app.listen(env.PORT, () => {
   console.log(`[CampusFlow Backend] API berjalan di http://localhost:${env.PORT}/api/v1`);
 });
+

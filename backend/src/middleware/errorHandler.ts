@@ -37,3 +37,4 @@ export function errorHandler(
   console.error("[CampusFlow API Error]", err);
   sendError(res, 500, "INTERNAL_ERROR", "Terjadi kesalahan pada server internal.");
 }
+

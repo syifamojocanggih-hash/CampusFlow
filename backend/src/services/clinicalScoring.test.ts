@@ -67,3 +67,4 @@ test("evaluate24HourTriad menilai 3 pilar dan risiko duduk statis tinggi", () =>
   assert.equal(highRisk.triadPillarsMet, 0);
   assert.equal(highRisk.sedentaryRiskStatus, "HIGH_SEDENTARY_RISK");
 });
+
