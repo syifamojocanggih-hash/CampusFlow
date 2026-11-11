@@ -100,7 +100,7 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
 
 - `GET /api/v1/ai-coach/status` — Mengecek apakah server Ollama lokal aktif dan `OLLAMA_MODEL` sudah ter-pull (`/api/tags`).
 - `GET /api/v1/ai-coach/history?limit=20` — Mengambil daftar riwayat insight AI Coach terbaru (maksimal 50).
-- `POST /api/v1/ai-coach/generate` — Mengumpulkan telemetri 7 hari terakhir, memanggil `ollamaCoach.ts`, menyimpan ke `AiCoachingInsight`, dan mengembalikan insight *(rate limit: 10 req/menit)*.
+- `POST /api/v1/ai-coach/generate` — Mengumpulkan telemetri 7 hari terakhir (+ status belum check-in `pss4TotalScore = null`, riwayat skip `AiCoachingInsight`, serta opsional body `{ notes?: string }`), memanggil `ollamaCoach.ts` dengan *rule guard* + `allowedRanges`, menyimpan ke `AiCoachingInsight`, dan mengembalikan 5 field kontrak beserta metadata `generationSource`, `model`, dan `escalationFlag` *(rate limit: 10 req/menit)*.
 - `GET /api/v1/ai-coach/latest` — Mengembalikan insight terbaru pengguna.
 - `PATCH /api/v1/ai-coach/:id/complete` — Menandai aksi AI Coach selesai + menambah `+50 XP`.
 - `GET /api/v1/notifications/vapid-public-key` — Mengambil `publicKey` VAPID & status konfigurasi Web Push server.

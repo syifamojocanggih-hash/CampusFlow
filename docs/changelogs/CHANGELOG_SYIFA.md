@@ -21,6 +21,16 @@
 
 ---
 
+## [2026-11-12] — Penguatan Safety Guardrail AI Coach: Rule-Lock, Eskalasi PSS-4 >= 10, `pss4=null`, & Adaptasi Skip -40% (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
+- **Ringkasan:** Mengadopsi aturan keselamatan, nada bahasa Indonesia empatik non-diagnosis, anti-halusinasi sitasi, dan batas target `allowedRanges` ke `backend/ollama/Modelfile` serta `ollamaCoach.ts` sambil menjaga kompatibilitas penuh skema `AiCoachingInsightDTO` (`INTERFACES.md`); menambahkan eskalasi `PSS-4 >= 10` / kata kunci darurat (`escalationFlag`), pembedaan belum check-in harian (`pss4TotalScore = null`) + agregasi live `getDailyActivityAndSedentaryTotals` di route `POST /api/v1/ai-coach/generate`, penurunan target bertahap maks `-40%` saat skip berulang (`computeCoachConstraints`), serta memperluas suite uji `ollamaCoach.test.ts`, `app.test.ts`, dan 10 skenario live `scripts/eval-ollama.ts`.
+- **Daftar File Diubah:**
+  - `backend/ollama/Modelfile`, `backend/scripts/eval-ollama.ts`
+  - `backend/src/services/ollamaCoach.ts`, `backend/src/services/ollamaCoach.test.ts`
+  - `backend/src/routes/aiCoach.ts`, `backend/src/app.test.ts`
+  - `docs/backend/LLM_AI_COACH.md`, `docs/backend/API_SPECIFICATION.md`
+- **Verifikasi:** `npm --prefix backend run ollama:create` sukses, `npm --prefix backend run ollama:eval` lolos 10/10 skenario klinis live (`OLLAMA_LOCAL`), `smoke-api.ps1` lolos 10/10 endpoint live terhadap MySQL + `campusflow-coach`, `npm --prefix backend run typecheck`, `build`, `test` (21/21 lolos), dan `npm run guard` hijau.
+
 ## [2026-11-12] — Custom Model `campusflow-coach` (`Modelfile`), Guard Prioritas Klinis, & Evaluasi Live Ollama (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
 - **Ringkasan:** Menautkan backend ke model Ollama lokal `campusflow-coach` (`FROM qwen2.5:3b`) dengan parameter konservatif (`temperature 0.15`, `top_p 0.85`, `repeat_penalty 1.1`, `num_ctx 4096`), aturan prioritas klinis 5 tingkat Martín-Rodríguez & González-Prieto (2026), dan contoh *few-shot* terstruktur di `backend/ollama/Modelfile`; mengekstrak `evaluateClinicalRuleFlags` di `ollamaCoach.ts` untuk mengirimkan sinyal batas klinis deterministik bersamaan dengan telemetri 7 hari; memperbarui `env.ts`, `.env.example`, serta menambahkan skrip `ollama:create` dan `ollama:eval` (`scripts/eval-ollama.ts`), isolasi mock `:11434` di `app.test.ts`, dan pembaruan dokumentasi backend.
