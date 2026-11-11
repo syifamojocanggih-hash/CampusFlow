@@ -79,6 +79,19 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   const [calibrationProgress, setCalibrationProgress] = useState<number>(0);
   const [calibrationCount, setCalibrationCount] = useState<number>(0);
 
+  // Synchronized refs for the requestAnimationFrame inference loop (prevents stale closure bugs)
+  const isCalibratingRef = useRef<boolean>(false);
+  const baselineRef = useRef<PostureBaseline | null>(baseline);
+  const isBreakLockedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    isCalibratingRef.current = isCalibrating;
+  }, [isCalibrating]);
+
+  useEffect(() => {
+    baselineRef.current = baseline;
+  }, [baseline]);
+
   // Active Session State
   const [sessionActive, setSessionActive] = useState<boolean>(false);
   const [sittingSeconds, setSittingSeconds] = useState<number>(0);
@@ -100,6 +113,10 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   const [standAwayDurationSecs, setStandAwayDurationSecs] = useState<number>(0);
   const [isHoldingStretch, setIsHoldingStretch] = useState<boolean>(false);
   const [breakSuccessToast, setBreakSuccessToast] = useState<boolean>(false);
+
+  useEffect(() => {
+    isBreakLockedRef.current = isBreakLocked;
+  }, [isBreakLocked]);
 
   // Thresholds based on mode
   const sittingLimitSeconds = demoMode ? 15 : CLINICAL_CONSTANTS.ISOTEMPORAL_WORK_BOUT_MINS * 60;
@@ -294,7 +311,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           const rawLandmarks = results.landmarks[0] as NormalizedLandmark[];
 
           // 1. Calibration branch
-          if (isCalibrating) {
+          if (isCalibratingRef.current) {
             const calRes = calibratorRef.current.addFrame(rawLandmarks);
             setCalibrationCount(calRes.collected);
             setCalibrationProgress(calRes.progress);
@@ -305,15 +322,18 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
             if (calibratorRef.current.isComplete()) {
               const newBaseline = calibratorRef.current.finalize();
+              baselineRef.current = newBaseline;
               setBaseline(newBaseline);
+              isCalibratingRef.current = false;
               setIsCalibrating(false);
               setSessionActive(true);
               sessionStartTimeRef.current = new Date();
             }
           }
           // 2. Monitoring or Break Mode branch
-          else if (baseline) {
-            const evalResult = evaluatePostureFrame(rawLandmarks, baseline);
+          else if (baselineRef.current) {
+            const currentBaseline = baselineRef.current;
+            const evalResult = evaluatePostureFrame(rawLandmarks, currentBaseline);
             const smoothedMetrics = smootherRef.current.smooth(evalResult.metrics);
             const finalEval: PostureEvaluationResult = {
               ...evalResult,
@@ -327,7 +347,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
             // Determine overlay color
             let skeletonColor = "#2563EB"; // Upright Blue
-            if (isBreakLocked && finalEval.isOverheadStretchValid) {
+            if (isBreakLockedRef.current && finalEval.isOverheadStretchValid) {
               skeletonColor = "#22C55E"; // Active Break Green
             } else if (
               finalEval.isSlouching ||
@@ -374,11 +394,13 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     calibratorRef.current.reset();
     setCalibrationCount(0);
     setCalibrationProgress(0);
+    isCalibratingRef.current = true;
     setIsCalibrating(true);
   };
 
   const handleRecalibrate = () => {
     clearBaselineFromStorage();
+    baselineRef.current = null;
     setBaseline(null);
     setSessionActive(false);
     handleStartCalibration();
@@ -663,7 +685,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             </div>
             <h4 className="font-heading font-bold text-base">Kalibrasi Baseline Duduk Tegak</h4>
             <p className="text-xs text-slate-300 max-w-sm mt-1 mb-4">
-              Duduk tegak, rileks, dan tatap lurus ke depan selama 5 detik (100 frame valid).
+              Duduk tegak, rileks, dan tatap lurus ke depan (hanya butuh kepala &amp; bahu).
             </p>
             <div className="w-64 bg-slate-700 h-2.5 rounded-full overflow-hidden mb-2">
               <div
@@ -671,9 +693,16 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 style={{ width: `${calibrationProgress * 100}%` }}
               />
             </div>
-            <span className="text-xs font-mono text-blue-300">
-              {calibrationCount} / 100 Frame ({Math.round(calibrationProgress * 100)}%)
-            </span>
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-xs font-mono text-blue-300 font-semibold">
+                {calibrationCount} / 60 Frame ({Math.round(calibrationProgress * 100)}%)
+              </span>
+              <span className="text-[11px] text-slate-300">
+                {calibrationCount > 0
+                  ? "Bahu terdeteksi! Tahan posisi tegak..."
+                  : "Pastikan kedua bahu terlihat di layar..."}
+              </span>
+            </div>
           </div>
         )}
 

@@ -47,8 +47,8 @@ export const POSE_LANDMARK_INDICES = {
 } as const;
 
 export const VISION_THRESHOLDS = {
-  MIN_CALIBRATION_VISIBILITY: 0.6,
-  MIN_PRESENT_VISIBILITY: 0.55,
+  MIN_CALIBRATION_VISIBILITY: 0.45,
+  MIN_PRESENT_VISIBILITY: 0.4,
   SLOUCH_NECK_RATIO: 0.78,
   SLOUCH_TORSO_ANGLE_DIFF_DEG: 15.0,
   SLOUCH_SHOULDER_DROP_Y: 0.08,
@@ -58,7 +58,7 @@ export const VISION_THRESHOLDS = {
   STAND_UP_SHOULDER_DELTA_Y: 0.2,
   ABSENT_VISIBILITY_THRESHOLD: 0.25,
   EMA_ALPHA: 0.25,
-  CALIBRATION_TARGET_FRAMES: 100,
+  CALIBRATION_TARGET_FRAMES: 60,
 } as const;
 
 export const POSTURE_BASELINE_STORAGE_KEY = "campusflow_posture_baseline";
@@ -98,6 +98,7 @@ export function extractFrameBaseline(landmarks: NormalizedLandmark[]): {
   neckVerticalDist: number;
   torsoNeckAngle: number;
 } | null {
+  const nose = landmarks[POSE_LANDMARK_INDICES.NOSE];
   const leftEar = landmarks[POSE_LANDMARK_INDICES.LEFT_EAR];
   const rightEar = landmarks[POSE_LANDMARK_INDICES.RIGHT_EAR];
   const leftSh = landmarks[POSE_LANDMARK_INDICES.LEFT_SHOULDER];
@@ -105,7 +106,7 @@ export function extractFrameBaseline(landmarks: NormalizedLandmark[]): {
   const leftHip = landmarks[POSE_LANDMARK_INDICES.LEFT_HIP];
   const rightHip = landmarks[POSE_LANDMARK_INDICES.RIGHT_HIP];
 
-  if (!leftEar || !rightEar || !leftSh || !rightSh) {
+  if (!leftSh || !rightSh) {
     return null;
   }
 
@@ -120,14 +121,23 @@ export function extractFrameBaseline(landmarks: NormalizedLandmark[]): {
 
   const shoulderWidth = calcDistance2D(leftSh, rightSh);
   const shoulderY = (leftSh.y + rightSh.y) / 2;
-  const earY = (leftEar.y + rightEar.y) / 2;
+
+  // Gunakan telinga jika terlihat, fallback ke hidung jika tertutup rambut/headset/bayangan
+  const hasEars =
+    leftEar &&
+    rightEar &&
+    (leftEar.visibility ?? 1) > 0.35 &&
+    (rightEar.visibility ?? 1) > 0.35;
+
+  const earY = hasEars ? (leftEar.y + rightEar.y) / 2 : (nose?.y ?? shoulderY - 0.15);
+  const earX = hasEars ? (leftEar.x + rightEar.x) / 2 : (nose?.x ?? (leftSh.x + rightSh.x) / 2);
   const neckVerticalDist = Math.max(0.05, shoulderY - earY);
 
-  const midEar: NormalizedLandmark = { x: (leftEar.x + rightEar.x) / 2, y: earY, z: 0 };
+  const midEar: NormalizedLandmark = { x: earX, y: earY, z: 0 };
   const midSh: NormalizedLandmark = { x: (leftSh.x + rightSh.x) / 2, y: shoulderY, z: 0 };
 
   let torsoNeckAngle = 180;
-  if (leftHip && rightHip) {
+  if (leftHip && rightHip && (leftHip.visibility ?? 0) > 0.25 && (rightHip.visibility ?? 0) > 0.25) {
     const midHip: NormalizedLandmark = {
       x: (leftHip.x + rightHip.x) / 2,
       y: (leftHip.y + rightHip.y) / 2,
