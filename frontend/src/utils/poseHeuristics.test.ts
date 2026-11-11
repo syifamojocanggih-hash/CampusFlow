@@ -7,6 +7,8 @@ import {
   calcAngleDegrees,
   calcDistance2D,
   evaluatePostureFrame,
+  estimateMonitorDistanceCm,
+  calculatePostureHealthScore,
   type NormalizedLandmark,
 } from "./poseHeuristics.ts";
 
@@ -127,5 +129,23 @@ test("PostureEmaSmoother blends frames with alpha 0.25", () => {
   assert.equal(second.neckRatio, 0.9);
   assert.equal(second.depthRatio, 1.1);
   assert.equal(second.shoulderTiltDeg, 4);
+});
+
+test("estimateMonitorDistanceCm & calculatePostureHealthScore work accurately", () => {
+  const ideal = estimateMonitorDistanceCm(1.0, 60);
+  assert.equal(ideal.distanceCm, 60);
+  assert.equal(ideal.status, "IDEAL");
+
+  const tooClose = estimateMonitorDistanceCm(1.5, 60);
+  assert.equal(tooClose.distanceCm, 40);
+  assert.equal(tooClose.status, "TERLALU_DEKAT");
+
+  const score100 = calculatePostureHealthScore(50, 50);
+  assert.equal(score100.score, 100);
+  assert.equal(score100.grade, "SANGAT_BAIK");
+
+  const score50 = calculatePostureHealthScore(25, 50);
+  assert.equal(score50.score, 50);
+  assert.equal(score50.grade, "PERLU_PERBAIKAN");
 });
 

@@ -439,3 +439,42 @@ export function evaluatePostureFrame(
     },
   };
 }
+
+/**
+ * Estimasi jarak fisik mata ke layar monitor dalam Centimeter (cm)
+ * berdasarkan rasio lebar bahu aktual terhadap baseline (standar ergonomis OSHA 50-70 cm).
+ */
+export function estimateMonitorDistanceCm(
+  depthRatio: number,
+  baseDistanceCm: number = 60
+): { distanceCm: number; status: "TERLALU_DEKAT" | "IDEAL" | "JAUH" } {
+  const safeDepth = Math.max(0.5, Math.min(2.5, depthRatio));
+  const estimatedCm = Math.round(baseDistanceCm / safeDepth);
+
+  if (depthRatio >= VISION_THRESHOLDS.TOO_CLOSE_DEPTH_RATIO || estimatedCm < 48) {
+    return { distanceCm: estimatedCm, status: "TERLALU_DEKAT" };
+  }
+  if (depthRatio <= 0.85 || estimatedCm > 75) {
+    return { distanceCm: estimatedCm, status: "JAUH" };
+  }
+  return { distanceCm: estimatedCm, status: "IDEAL" };
+}
+
+/**
+ * Menghitung Skor Kesehatan Postur Dinamis (0 - 100%)
+ */
+export function calculatePostureHealthScore(
+  goodSeconds: number,
+  totalSeconds: number
+): { score: number; grade: "SANGAT_BAIK" | "BAIK" | "PERLU_PERBAIKAN" } {
+  if (totalSeconds <= 0) {
+    return { score: 100, grade: "SANGAT_BAIK" };
+  }
+  const ratio = Math.max(0, Math.min(1, goodSeconds / totalSeconds));
+  const score = Math.round(ratio * 100);
+
+  if (score >= 85) return { score, grade: "SANGAT_BAIK" };
+  if (score >= 65) return { score, grade: "BAIK" };
+  return { score, grade: "PERLU_PERBAIKAN" };
+}
+

@@ -19,13 +19,20 @@ import {
   Check,
   Flame,
   UserCheck,
+  Volume2,
+  VolumeX,
+  Ruler,
+  Award,
 } from "lucide-react";
+import { sound } from "@/utils/audioFeedback";
 import {
   BaselineCalibrator,
   PostureEmaSmoother,
   evaluatePostureFrame,
   loadBaselineFromStorage,
   clearBaselineFromStorage,
+  estimateMonitorDistanceCm,
+  calculatePostureHealthScore,
   type NormalizedLandmark,
   type PostureEvaluationResult,
 } from "@/utils/poseHeuristics";
@@ -96,10 +103,18 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   // Active Session State
   const [sessionActive, setSessionActive] = useState<boolean>(false);
   const [sittingSeconds, setSittingSeconds] = useState<number>(0);
+  const [goodPostureSeconds, setGoodPostureSeconds] = useState<number>(0);
+  const [isMuted, setIsMuted] = useState<boolean>(sound.getMuted());
   const [postureState, setPostureState] = useState<PostureEvaluationResult | null>(null);
   const [poorPostureDurationSecs, setPoorPostureDurationSecs] = useState<number>(0);
   const [showWarningToast, setShowWarningToast] = useState<boolean>(false);
   const [warningMessage, setWarningMessage] = useState<string>("");
+
+  const toggleMute = () => {
+    const next = !isMuted;
+    setIsMuted(next);
+    sound.setMuted(next);
+  };
 
   // Statistics
   const [slouchCount, setSlouchCount] = useState<number>(0);
@@ -329,6 +344,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               setIsCalibrating(false);
               setSessionActive(true);
               sessionStartTimeRef.current = new Date();
+              sound.playCalibrationSuccess();
             }
           }
           // 2. Monitoring or Break Mode branch
@@ -407,6 +423,8 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     baselineRef.current = null;
     setBaseline(null);
     setSessionActive(false);
+    setSittingSeconds(0);
+    setGoodPostureSeconds(0);
     handleStartCalibration();
   };
 
@@ -417,6 +435,13 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     const timer = setInterval(() => {
       const ps = postureStateRef.current;
       if (!ps) return;
+
+      // Slouch & Warning evaluation
+      const hasPoorPosture =
+        ps.isPresent &&
+        (ps.isSlouching ||
+          ps.isTooClose ||
+          ps.isLeaningAsymmetric);
 
       // Sitting timer increments when user is present
       if (ps.isPresent && !ps.isStandingUp) {
@@ -432,20 +457,20 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           }
           return next;
         });
-      }
 
-      // Slouch & Warning evaluation
-      const hasPoorPosture =
-        ps.isPresent &&
-        (ps.isSlouching ||
-          ps.isTooClose ||
-          ps.isLeaningAsymmetric);
+        if (!hasPoorPosture) {
+          setGoodPostureSeconds((prev) => prev + 1);
+        }
+      }
 
       if (hasPoorPosture) {
         setPoorPostureDurationSecs((prev) => {
           const next = prev + 1;
           if (next >= slouchWarningTriggerSeconds) {
             setShowWarningToast(true);
+            if (next === slouchWarningTriggerSeconds || next % 8 === 0) {
+              sound.playSlouchWarning();
+            }
             if (ps.isTooClose) {
               setWarningMessage("Peringatan: Jarak mata terlalu dekat dengan monitor (<50 cm).");
               setTooCloseCount((c) => c + 1);
@@ -490,6 +515,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           const nextHold = Number((hold + 0.1).toFixed(1));
           if (nextHold >= targetHoldSeconds) {
             // Completed 1 rep!
+            sound.playRepComplete();
             setBreakRepsCompleted((reps) => {
               const nextReps = reps + 1;
               if (nextReps >= targetReps) {
@@ -528,9 +554,11 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
   // Complete Active Break & Emit Session Payload
   const completeActiveBreak = (verificationType: "POSE_CAMERA_AI" | "MANUAL_LOG") => {
+    sound.playBreakUnlocked();
     setIsBreakLocked(false);
     setBreakSuccessToast(true);
     setSittingSeconds(0);
+    setGoodPostureSeconds(0);
     setBreakRepsCompleted(0);
     setCurrentRepHoldSeconds(0);
     setStandAwayDurationSecs(0);
@@ -606,8 +634,22 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           </div>
         </div>
 
-        {/* DEMO MODE TOGGLE SWITCH & RECALIBRATE */}
-        <div className="flex items-center gap-3">
+        {/* DEMO MODE TOGGLE SWITCH, AUDIO & RECALIBRATE */}
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+          {/* Audio Feedback Toggle */}
+          <button
+            onClick={toggleMute}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+              isMuted
+                ? "bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200"
+                : "bg-blue-50 text-primary border-blue-200 hover:bg-blue-100 shadow-xs"
+            }`}
+            title={isMuted ? "Aktifkan Audio Synthesizer" : "Bisukan Audio Feedback"}
+          >
+            {isMuted ? <VolumeX className="w-3.5 h-3.5 text-slate-400" /> : <Volume2 className="w-3.5 h-3.5 text-primary" />}
+            <span className="hidden sm:inline">{isMuted ? "Muted" : "Audio"}</span>
+          </button>
+
           {/* Demo Mode Switch */}
           <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
             <Sliders className="w-4 h-4 text-slate-500" />
@@ -751,27 +793,52 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
         {/* Corner HUD Metrics Badge */}
         {baseline && !isCalibrating && (
-          <div className="absolute top-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white rounded-xl px-3 py-2 text-[11px] font-mono space-y-1 border border-white/10">
-            <div className="flex items-center gap-2">
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  postureState?.isPresent ? "bg-emerald-400 animate-ping" : "bg-rose-400"
-                }`}
-              />
-              <span className="font-sans font-semibold">
-                {postureState?.isPresent ? "Terdeteksi Aktif" : "Tidak Terdeteksi"}
-              </span>
+          <div className="absolute top-3 left-3 z-10 bg-black/65 backdrop-blur-md text-white rounded-xl px-3.5 py-2.5 text-[11px] font-mono space-y-1.5 border border-white/10 shadow-lg">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    postureState?.isPresent ? "bg-emerald-400 animate-ping" : "bg-rose-400"
+                  }`}
+                />
+                <span className="font-sans font-semibold text-xs">
+                  {postureState?.isPresent ? "Terdeteksi Aktif" : "Tidak Terdeteksi"}
+                </span>
+              </div>
+              {postureState?.isPresent && (
+                <span className="text-[10px] font-sans px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 font-bold">
+                  Skor: {calculatePostureHealthScore(goodPostureSeconds, sittingSeconds).score}%
+                </span>
+              )}
             </div>
             {postureState?.isPresent && (
               <>
-                <div className="text-slate-300">
-                  Leher: <span className="text-blue-300 font-bold">{postureState.metrics.neckRatio}x</span> (Min 0.78)
+                <div className="text-slate-300 flex items-center justify-between gap-3">
+                  <span>Jarak Monitor:</span>
+                  {(() => {
+                    const dist = estimateMonitorDistanceCm(postureState.metrics.depthRatio);
+                    return (
+                      <span
+                        className={`font-bold ${
+                          dist.status === "TERLALU_DEKAT"
+                            ? "text-rose-400"
+                            : dist.status === "JAUH"
+                            ? "text-amber-300"
+                            : "text-emerald-300"
+                        }`}
+                      >
+                        ~{dist.distanceCm} cm ({dist.status === "TERLALU_DEKAT" ? "Dekat" : dist.status === "JAUH" ? "Jauh" : "Ideal"})
+                      </span>
+                    );
+                  })()}
                 </div>
-                <div className="text-slate-300">
-                  Jarak: <span className="text-blue-300 font-bold">{postureState.metrics.depthRatio}x</span> (Max 1.28)
+                <div className="text-slate-300 flex items-center justify-between gap-3">
+                  <span>Rasio Leher:</span>
+                  <span className="text-blue-300 font-bold">{postureState.metrics.neckRatio}x (Min 0.78)</span>
                 </div>
-                <div className="text-slate-300">
-                  Miring: <span className="text-blue-300 font-bold">{postureState.metrics.shoulderTiltDeg}&deg;</span> (Max 12&deg;)
+                <div className="text-slate-300 flex items-center justify-between gap-3">
+                  <span>Kemiringan:</span>
+                  <span className="text-blue-300 font-bold">{postureState.metrics.shoulderTiltDeg}&deg; (Max 12&deg;)</span>
                 </div>
               </>
             )}
@@ -821,27 +888,101 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
         )}
       </div>
 
-      {/* Stats Summary Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200">
+      {/* Stats Summary Bar & Live Ergonomic Metrics */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
+        {/* Card 1: Ergonomic Health Score */}
+        {(() => {
+          const health = calculatePostureHealthScore(goodPostureSeconds, sittingSeconds);
+          const gradeColor =
+            health.grade === "SANGAT_BAIK"
+              ? "text-emerald-600 bg-emerald-50 border-emerald-200"
+              : health.grade === "BAIK"
+              ? "text-blue-600 bg-blue-50 border-blue-200"
+              : "text-amber-600 bg-amber-50 border-amber-200";
+          const gradeText =
+            health.grade === "SANGAT_BAIK"
+              ? "Sangat Baik"
+              : health.grade === "BAIK"
+              ? "Baik"
+              : "Perlu Latihan";
+
+          return (
+            <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 font-medium">Skor Postur</span>
+                <Award className="w-4 h-4 text-primary" />
+              </div>
+              <div className="my-1.5 flex items-baseline justify-between">
+                <span className="text-xl font-extrabold text-slate-800 font-mono">
+                  {health.score}%
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${gradeColor}`}>
+                  {gradeText}
+                </span>
+              </div>
+              <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
+                <div
+                  className="bg-primary h-full transition-all duration-300"
+                  style={{ width: `${health.score}%` }}
+                />
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Card 2: Distance Estimator in cm */}
+        {(() => {
+          const dist = estimateMonitorDistanceCm(postureState?.metrics.depthRatio ?? 1);
+          const isWarn = dist.status === "TERLALU_DEKAT";
+          const isFar = dist.status === "JAUH";
+
+          return (
+            <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 font-medium">Jarak Monitor</span>
+                <Ruler className="w-4 h-4 text-slate-400" />
+              </div>
+              <div className="my-1.5">
+                <div className={`text-xl font-extrabold font-mono ${isWarn ? "text-rose-600" : isFar ? "text-amber-600" : "text-emerald-600"}`}>
+                  ~{dist.distanceCm} cm
+                </div>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  {isWarn ? "Terlalu Dekat (<50cm)" : isFar ? "Jauh (>75cm)" : "Ideal (50-70cm)"}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Card 3: Slouch Incident */}
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between">
           <div className="text-slate-500 font-medium">Insiden Slouch</div>
-          <div className="text-lg font-bold text-amber-600 mt-0.5">{slouchCount} kali</div>
-        </div>
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-          <div className="text-slate-500 font-medium">Mata Terlalu Dekat</div>
-          <div className="text-lg font-bold text-amber-600 mt-0.5">{tooCloseCount} kali</div>
-        </div>
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-          <div className="text-slate-500 font-medium">Batas Sesi Kerja</div>
-          <div className="text-lg font-bold text-primary mt-0.5">
-            {demoMode ? "15 Detik (Demo)" : "50 Menit (ISO)"}
+          <div className="my-1.5">
+            <div className="text-xl font-extrabold text-amber-600 font-mono">{slouchCount} kali</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">Bahu turun / leher maju</div>
           </div>
         </div>
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-          <div className="text-slate-500 font-medium">Status Sesi</div>
-          <div className="text-lg font-bold text-emerald-600 mt-0.5 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            {sessionActive ? "Aktif" : "Menunggu"}
+
+        {/* Card 4: Proximity Incident */}
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between">
+          <div className="text-slate-500 font-medium">Mata Terlalu Dekat</div>
+          <div className="my-1.5">
+            <div className="text-xl font-extrabold text-amber-600 font-mono">{tooCloseCount} kali</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">Eye-strain proximity</div>
+          </div>
+        </div>
+
+        {/* Card 5: Work Bout & Session Status */}
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between col-span-2 sm:col-span-1">
+          <div className="text-slate-500 font-medium">Batas &amp; Status</div>
+          <div className="my-1.5">
+            <div className="text-base font-bold text-slate-800">
+              {demoMode ? "15s (Demo)" : "50m (ISO)"}
+            </div>
+            <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              {sessionActive ? `Aktif (${formatTime(sittingSeconds)})` : "Menunggu"}
+            </div>
           </div>
         </div>
       </div>
