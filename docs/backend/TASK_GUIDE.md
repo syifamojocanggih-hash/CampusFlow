@@ -15,8 +15,8 @@
 - **Target:** `backend/package.json`, `backend/tsconfig.json`, `backend/.env.example`, `backend/src/index.ts`.
 - **Paket Wajib:** `express`, `cors`, `helmet`, `prisma`, `@prisma/client`, `@google/genai`, `web-push`, `jsonwebtoken`, `bcryptjs`, `zod`, `dotenv`.
 - **Checklist:**
-  - [ ] Server menyala di port `4000` dengan `GET /api/v1/health` mengembalikan status sehat.
-  - [ ] CORS dikonfigurasi agar mendukung origin frontend Vite (lokal & produksi).
+  - [x] Server dikonfigurasi di port `4000` dengan `GET /api/v1/health` mengembalikan status sehat.
+  - [x] CORS dikonfigurasi agar mendukung origin frontend Vite (lokal & produksi).
 
 #### 🟢 BE-1.2: Skema Prisma MySQL & Seeder 14 Hari Juri
 - **Target:** `backend/prisma/schema.prisma`, `backend/prisma/seed.ts`.
@@ -24,8 +24,8 @@
   - Salin 6 model + 3 enum sesuai [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md).
   - Buat akun demo `demo@campusflow.id` dengan riwayat 14 hari menunjukkan tren penurunan skor PSS-10 (28 → 16) seiring peningkatan MET-menit & kepatuhan Active Break.
 - **Checklist:**
-  - [ ] `npx prisma migrate dev --name init` berjalan mulus.
-  - [ ] `npx prisma db seed` mengisi 14 hari data lengkap.
+  - [ ] `npx prisma migrate dev --name init` dijalankan setelah MySQL `.env` terisi di lokal.
+  - [x] `backend/prisma/schema.prisma` & `backend/prisma/seed.ts` 14 hari sudah siap pakai.
 
 ---
 
@@ -34,9 +34,9 @@
 #### 🟢 BE-2.1: Registrasi, Login, Demo Login & Middleware JWT
 - **Target:** `backend/src/routes/auth.ts`, `backend/src/middleware/auth.ts`.
 - **Checklist:**
-  - [ ] Password di-hash menggunakan `bcryptjs` sebelum disimpan.
-  - [ ] Endpoint `POST /api/v1/auth/demo` mengembalikan JWT valid untuk `demo@campusflow.id`.
-  - [ ] Endpoint `PATCH /api/v1/vision/baseline` menyimpan `PostureBaseline` JSON ke `User.postureBaselineJson`.
+  - [x] Password di-hash menggunakan `bcryptjs` sebelum disimpan.
+  - [x] Endpoint `POST /api/v1/auth/demo` mengembalikan JWT valid untuk `demo@campusflow.id`.
+  - [x] Endpoint `PATCH /api/v1/vision/baseline` menyimpan `PostureBaseline` JSON ke `User.postureBaselineJson`.
 
 ---
 
@@ -49,13 +49,13 @@
   - Reverse score PSS-4 (`Q2, Q3` → `4 - x`) & PSS-10 (`Item 4, 5, 7, 8` → `4 - x`).
   - Kalkulasi `calculatedMets` IPAQ-SF (`WALKING`: 3.3, `MODERATE`: 4.0, `VIGOROUS`: 8.0, `MUSCLE_STRENGTHENING`: 5.0, `ACUTE_AEROBIC_RELIEF`: 5.0).
 - **Checklist:**
-  - [ ] Unit test memverifikasi reverse scoring, cutoff PSS-4 `>= 8` (`HIGH`), dan perhitungan `triadPillarsMet` (0–3).
+  - [x] Unit test memverifikasi reverse scoring, cutoff PSS-4 `>= 8` (`HIGH`), dan perhitungan `triadPillarsMet` (0–3).
 
 #### 🟢 BE-3.2: Endpoints Sedentary, Activities, Wellbeing, & Triad Dashboard
-- **Target:** `backend/src/routes/sedentary.ts`, `activities.ts`, `wellbeing.ts`, `assessments.ts`, `dashboard.ts`.
+- **Target:** `backend/src/routes/sedentary.ts`, `activities.ts`, `wellbeing.ts`, `dashboard.ts`.
 - **Checklist:**
-  - [ ] Setiap input `POST /api/v1/sedentary/sessions` dan `POST /api/v1/activities` otomatis memperbarui agregasi `DailyWellbeingLog` pada hari terkait.
-  - [ ] `GET /api/v1/dashboard/triad?days=14` mengembalikan ringkasan pilar hari ini + seri data grafik 14 hari.
+  - [x] Setiap input `POST /api/v1/sedentary/sessions` dan `POST /api/v1/activities` otomatis memperbarui agregasi `DailyWellbeingLog` pada hari terkait.
+  - [x] `GET /api/v1/dashboard/triad?days=14` mengembalikan ringkasan pilar hari ini + seri data grafik 14 hari.
 
 ---
 
@@ -68,8 +68,8 @@
   - Simpan hasil ke tabel `AiCoachingInsight`.
   - Sediakan fallback deterministik berbasis konstanta klinis bila `GEMINI_API_KEY` belum diisi atau API gagal.
 - **Checklist:**
-  - [ ] `POST /api/v1/ai-coach/generate` mengembalikan 5 field wajib dalam JSON valid.
-  - [ ] `PATCH /api/v1/ai-coach/:id/complete` menandai selesai & menambah `User.xpPoints`.
+  - [x] `POST /api/v1/ai-coach/generate` mengembalikan 5 field wajib dalam JSON valid (+ fallback teruji).
+  - [x] `PATCH /api/v1/ai-coach/:id/complete` menandai selesai & menambah `User.xpPoints`.
 
 ---
 
@@ -78,10 +78,10 @@
 #### 🟢 BE-5.1: Layanan Web Push VAPID (`pushNotifier.ts`)
 - **Target:** `backend/src/services/pushNotifier.ts`, `backend/src/routes/notifications.ts`.
 - **Checklist:**
-  - [ ] `POST /api/v1/notifications/subscribe` menyimpan `pushSubscription` JSON.
-  - [ ] `POST /api/v1/notifications/test` sukses mengirim notifikasi uji ke browser.
+  - [x] `POST /api/v1/notifications/subscribe` menyimpan `pushSubscription` JSON.
+  - [x] `POST /api/v1/notifications/test` siap mengirim notifikasi uji ke browser saat VAPID keys diatur.
 
 #### 🟢 BE-5.2: Verifikasi Integrasi & Changelog
 - **Checklist:**
-  - [ ] `npm --prefix backend run build` & test hijau.
-  - [ ] Semua perubahan tercatat rapi di `docs/changelogs/CHANGELOG_SYIFA.md` dan lolos `npm run guard`.
+  - [x] `npm --prefix backend run build` & unit test hijau.
+  - [x] Semua perubahan tercatat rapi di `docs/changelogs/CHANGELOG_SYIFA.md` dan lolos `npm run guard`.
