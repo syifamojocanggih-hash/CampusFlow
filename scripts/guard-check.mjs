@@ -15,10 +15,31 @@ function refExists(ref) {
   }
 }
 
+function isAncestor(ancestor, descendant) {
+  try {
+    execFileSync("git", ["merge-base", "--is-ancestor", ancestor, descendant], {
+      stdio: "ignore",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolveDefaultBase() {
+  const hasOriginMain = refExists("origin/main");
+  const hasLocalMain = refExists("main");
+  if (hasOriginMain && hasLocalMain) {
+    // Jika local main lebih baru daripada origin/main (belum di-push), pakai main.
+    // Jika origin/main lebih baru daripada local main (hasil fetch), pakai origin/main.
+    return isAncestor("origin/main", "main") ? "main" : "origin/main";
+  }
+  return hasOriginMain ? "origin/main" : "main";
+}
+
 const args = process.argv.slice(2);
 const branch = args[0] || runGit(["rev-parse", "--abbrev-ref", "HEAD"]);
-const defaultBase = refExists("origin/main") ? "origin/main" : "main";
-const base = args[1] || defaultBase;
+const base = args[1] || resolveDefaultBase();
 const headRef = args[2] || "HEAD";
 
 const ROLE_CONFIG = {
