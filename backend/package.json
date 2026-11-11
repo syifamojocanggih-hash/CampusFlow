@@ -10,13 +10,12 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/backend/src/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test src/services/clinicalScoring.test.ts src/services/geminiCoach.test.ts src/app.test.ts",
+    "test": "node --test src/services/clinicalScoring.test.ts src/services/ollamaCoach.test.ts src/app.test.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@google/genai": "^1.0.0",
     "@prisma/client": "^6.6.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",

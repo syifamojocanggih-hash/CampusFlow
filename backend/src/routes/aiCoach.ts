@@ -2,7 +2,7 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.ts";
 import { AppError, sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
-import { generateClinicalWellbeingInsight } from "../services/geminiCoach.ts";
+import { generateClinicalWellbeingInsight } from "../services/ollamaCoach.ts";
 
 export const aiCoachRouter = Router();
 
@@ -45,7 +45,7 @@ aiCoachRouter.post("/generate", requireAuth, async (req: AuthenticatedRequest, r
     latestPss10Score: latestAssessment?.totalScore ?? null,
   };
 
-  const { insight, source } = await generateClinicalWellbeingInsight(telemetryInput);
+  const { insight, source, model } = await generateClinicalWellbeingInsight(telemetryInput);
 
   const saved = await prisma.aiCoachingInsight.create({
     data: {
@@ -58,7 +58,7 @@ aiCoachRouter.post("/generate", requireAuth, async (req: AuthenticatedRequest, r
     },
   });
 
-  sendSuccess(res, { ...saved, generationSource: source }, 201);
+  sendSuccess(res, { ...saved, generationSource: source, model }, 201);
 });
 
 aiCoachRouter.get("/latest", requireAuth, async (req: AuthenticatedRequest, res) => {

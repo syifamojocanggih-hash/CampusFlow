@@ -13,7 +13,7 @@
 
 #### 🟢 BE-1.1: Setup Express + TypeScript + Env Config
 - **Target:** `backend/package.json`, `backend/tsconfig.json`, `backend/.env.example`, `backend/src/index.ts`.
-- **Paket Wajib:** `express`, `cors`, `helmet`, `prisma`, `@prisma/client`, `@google/genai`, `web-push`, `jsonwebtoken`, `bcryptjs`, `zod`, `dotenv`.
+- **Paket Wajib:** `express`, `cors`, `helmet`, `prisma`, `@prisma/client`, `web-push`, `jsonwebtoken`, `bcryptjs`, `zod`, `dotenv` *(LLM memakai Ollama lokal via native `fetch`, tanpa SDK API berbayar)*.
 - **Checklist:**
   - [x] Server dikonfigurasi di port `4000` dengan `GET /api/v1/health` mengembalikan status sehat.
   - [x] CORS dikonfigurasi agar mendukung origin frontend Vite (lokal & produksi).
@@ -59,14 +59,14 @@
 
 ---
 
-### TAHAP 4: Agentic AI Coach (Google Gemini 2.5 Flash)
+### TAHAP 4: Agentic AI Coach (Ollama Lokal)
 
-#### 🟢 BE-4.1: Implementasi `geminiCoach.ts` & Endpoint Insight
-- **Target:** `backend/src/services/geminiCoach.ts`, `backend/src/routes/aiCoach.ts`.
+#### 🟢 BE-4.1: Implementasi `ollamaCoach.ts` & Endpoint Insight
+- **Target:** `backend/src/services/ollamaCoach.ts`, `backend/src/routes/aiCoach.ts`.
 - **Spesifikasi:**
-  - Gunakan `@google/genai` model `gemini-2.5-flash` dengan `responseSchema` JSON terstruktur (lihat [`LLM_AI_COACH.md`](LLM_AI_COACH.md)).
+  - Panggil endpoint lokal `OLLAMA_BASE_URL/api/chat` dengan parameter `format` JSON Schema terstruktur (lihat [`LLM_AI_COACH.md`](LLM_AI_COACH.md)).
   - Simpan hasil ke tabel `AiCoachingInsight`.
-  - Sediakan fallback deterministik berbasis konstanta klinis bila `GEMINI_API_KEY` belum diisi atau API gagal.
+  - Sediakan fallback deterministik berbasis konstanta klinis bila server Ollama lokal belum menyala atau timeout.
 - **Checklist:**
   - [x] `POST /api/v1/ai-coach/generate` mengembalikan 5 field wajib dalam JSON valid (+ fallback teruji).
   - [x] `PATCH /api/v1/ai-coach/:id/complete` menandai selesai & menambah `User.xpPoints`.

@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { z } from "zod";
 import type { DominantMediator } from "../../../shared/contracts/index.ts";
 import { env } from "../config/env.ts";
 
@@ -31,6 +31,43 @@ export interface GeneratedInsight {
   scientificCitationNote: string;
 }
 
+const VALID_MEDIATORS = [
+  "SEDENTARY_OVERLOAD",
+  "SLEEP_MEDIATION_DEFICIT",
+  "LOW_MVPA_VOLUME",
+  "EXAM_ACUTE_STRESS",
+  "OPTIMAL_BALANCE",
+] as const;
+
+const insightOutputSchema = z.object({
+  dominantMediator: z.enum(VALID_MEDIATORS),
+  diagnosisSummary: z.string().min(10),
+  isotemporalActionPlan: z.string().min(10),
+  recommendedMetsToday: z.coerce.number().int().min(50).max(2000),
+  scientificCitationNote: z.string().min(5),
+});
+
+const OLLAMA_RESPONSE_FORMAT = {
+  type: "object",
+  properties: {
+    dominantMediator: {
+      type: "string",
+      enum: [...VALID_MEDIATORS],
+    },
+    diagnosisSummary: { type: "string" },
+    isotemporalActionPlan: { type: "string" },
+    recommendedMetsToday: { type: "integer" },
+    scientificCitationNote: { type: "string" },
+  },
+  required: [
+    "dominantMediator",
+    "diagnosisSummary",
+    "isotemporalActionPlan",
+    "recommendedMetsToday",
+    "scientificCitationNote",
+  ],
+} as const;
+
 const SYSTEM_INSTRUCTION = `Anda adalah Clinical Academic Wellbeing AI Coach di dalam aplikasi CampusFlow PWA.
 Seluruh analisis dan rekomendasi Anda WAJIB didasarkan pada bukti ilmiah dari kajian sistematis
 Martín-Rodríguez & González-Prieto (2026):
@@ -43,16 +80,14 @@ hubungan aktivitas fisik & stres). Sarankan jalan cepat/aerobik ringan 20-30 men
 (pukul 16.00-17.30) untuk menurunkan latensi tidur malam.
 3. Jika pengguna gagal memenuhi ketiga pilar 24-Hour Movement Guidelines (triadPillarsMet == 0),
 peringatkan lonjakan risiko stres/depresi (Zhang et al., 2024: OR = 3.4) dan berikan target bertahap.
-Gunakan bahasa Indonesia yang empatik, suportif bagi mahasiswa, namun tegas secara ilmiah.`;
+Gunakan bahasa Indonesia yang empatik, suportif bagi mahasiswa, namun tegas secara ilmiah.
+Jawab HANYA dengan JSON valid sesuai skema.`;
 
-/** Fallback klinis deterministik bila GEMINI_API_KEY belum diisi atau API gagal dihubungi. */
+/** Fallback klinis deterministik bila server Ollama lokal belum menyala atau gagal merespons. */
 export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): GeneratedInsight {
   const { today } = input;
 
-  if (
-    (today.sleepHours < 7.0 || today.sleepQualityScore <= 2) &&
-    today.pss4TotalScore >= 8
-  ) {
+  if ((today.sleepHours < 7.0 || today.sleepQualityScore <= 2) && today.pss4TotalScore >= 8) {
     return {
       dominantMediator: "SLEEP_MEDIATION_DEFICIT",
       diagnosisSummary: `Skor stres harian PSS-4 Anda (${today.pss4TotalScore}/16) meningkat bersamaan dengan durasi tidur ${today.sleepHours} jam (kualitas ${today.sleepQualityScore}/5). Defisit tidur melemahkan pemulihan stres akademik harian Anda.`,
@@ -64,7 +99,10 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
     };
   }
 
-  if (today.totalSedentaryHours >= 9.0 || (today.totalSedentaryHours > 6 && today.mvpaPerSedentaryRatio < 25)) {
+  if (
+    today.totalSedentaryHours >= 9.0 ||
+    (today.totalSedentaryHours > 6 && today.mvpaPerSedentaryRatio < 25)
+  ) {
     return {
       dominantMediator: "SEDENTARY_OVERLOAD",
       diagnosisSummary: `Waktu duduk statis tercatat ${today.totalSedentaryHours.toFixed(1)} jam dengan rasio gerak ${today.mvpaPerSedentaryRatio} menit per jam duduk. Beban duduk panjang tanpa jeda memicu ketegangan otot dan kelelahan mental.`,
@@ -111,75 +149,61 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
   };
 }
 
-/** Menghasilkan rekomendasi personal menggunakan Gemini 2.5 Flash Structured Output dengan fallback aman. */
+/** Menghasilkan insight klinis dari server Ollama lokal (`/api/chat` JSON Schema) dengan fallback aman. */
 export async function generateClinicalWellbeingInsight(
-  userTelemetry7Days: Telemetry7DaysInput
-): Promise<{ insight: GeneratedInsight; source: "GEMINI_2_5_FLASH" | "CLINICAL_FALLBACK" }> {
-  if (!env.GEMINI_API_KEY) {
-    return {
-      insight: buildDeterministicFallbackInsight(userTelemetry7Days),
-      source: "CLINICAL_FALLBACK",
-    };
-  }
+  userTelemetry7Days: Telemetry7DaysInput,
+  fetchFn: typeof fetch = fetch
+): Promise<{
+  insight: GeneratedInsight;
+  source: "OLLAMA_LOCAL" | "CLINICAL_FALLBACK";
+  model: string;
+}> {
+  const endpoint = `${env.OLLAMA_BASE_URL.replace(/\/+$/, "")}/api/chat`;
 
   try {
-    const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: JSON.stringify(userTelemetry7Days),
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            dominantMediator: {
-              type: Type.STRING,
-              description:
-                "Kode pemicu utama: SEDENTARY_OVERLOAD | SLEEP_MEDIATION_DEFICIT | LOW_MVPA_VOLUME | EXAM_ACUTE_STRESS | OPTIMAL_BALANCE",
-            },
-            diagnosisSummary: {
-              type: Type.STRING,
-              description:
-                "Analisis 2-3 kalimat yang menjelaskan kaitan data duduk, langkah, dan tidur pengguna terhadap skor stresnya.",
-            },
-            isotemporalActionPlan: {
-              type: Type.STRING,
-              description:
-                "Instruksi aksi fisik spesifik berdurasi 10-20 menit yang dapat dilakukan hari ini di lingkungan kampus/kos.",
-            },
-            recommendedMetsToday: {
-              type: Type.INTEGER,
-              description: "Target angka MET-menit harian yang disarankan (misal: 250).",
-            },
-            scientificCitationNote: {
-              type: Type.STRING,
-              description:
-                "Kutipan singkat studi pendukung dari jurnal (contoh: 'Berdasarkan protokol substitusi isotemporal Su et al., 2022').",
-            },
+    const response = await fetchFn(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(env.OLLAMA_TIMEOUT_MS),
+      body: JSON.stringify({
+        model: env.OLLAMA_MODEL,
+        stream: false,
+        format: OLLAMA_RESPONSE_FORMAT,
+        options: { temperature: 0.2 },
+        messages: [
+          { role: "system", content: SYSTEM_INSTRUCTION },
+          {
+            role: "user",
+            content: `Analisis data telemetri mahasiswa 7 hari berikut dan berikan rekomendasi JSON terstruktur:\n${JSON.stringify(
+              userTelemetry7Days
+            )}`,
           },
-          required: [
-            "dominantMediator",
-            "diagnosisSummary",
-            "isotemporalActionPlan",
-            "recommendedMetsToday",
-            "scientificCitationNote",
-          ],
-        },
-      },
+        ],
+      }),
     });
 
-    const parsed = JSON.parse(response.text || "{}") as GeneratedInsight;
-    if (!parsed.dominantMediator || !parsed.diagnosisSummary || !parsed.isotemporalActionPlan) {
-      throw new Error("Struktur JSON Gemini tidak lengkap.");
+    if (!response.ok) {
+      throw new Error(`Ollama HTTP ${response.status}`);
     }
-    return { insight: parsed, source: "GEMINI_2_5_FLASH" };
+
+    const rawBody = (await response.json()) as {
+      message?: { content?: string };
+      response?: string;
+    };
+    const rawJsonText = rawBody.message?.content ?? rawBody.response ?? "";
+    const parsed = insightOutputSchema.parse(JSON.parse(rawJsonText));
+
+    return {
+      insight: parsed,
+      source: "OLLAMA_LOCAL",
+      model: env.OLLAMA_MODEL,
+    };
   } catch (err) {
-    console.warn("[Gemini Coach Fallback]", err);
+    console.warn("[Ollama Coach Fallback]", err instanceof Error ? err.message : err);
     return {
       insight: buildDeterministicFallbackInsight(userTelemetry7Days),
       source: "CLINICAL_FALLBACK",
+      model: env.OLLAMA_MODEL,
     };
   }
 }
-

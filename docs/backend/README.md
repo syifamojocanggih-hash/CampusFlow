@@ -9,11 +9,11 @@
 
 ## 1. Mandat & Ruang Lingkup Kerja Syifa
 
-Syifa bertanggung jawab membangun seluruh layanan server, database relasional klinis, mesin skoring, notifikasi Web Push, dan orkestrasi **Agentic AI Coach (Gemini 2.5 Flash)**:
+Syifa bertanggung jawab membangun seluruh layanan server, database relasional klinis, mesin skoring, notifikasi Web Push, dan orkestrasi **Agentic AI Coach (Ollama Lokal)**:
 - **Express + TypeScript Server (`backend/src/`):** Routing `/api/v1/*`, middleware autentikasi JWT + `bcryptjs`, validasi input, dan amplop respons standar `{ data, meta }`.
 - **Database MySQL + Prisma ORM (`backend/prisma/`):** Mengelola 6 tabel (`User`, `SedentarySession`, `PhysicalActivity`, `DailyWellbeingLog`, `ClinicalAssessment`, `AiCoachingInsight`) dan `seed.ts` berisi data demo 14 hari (`demo@campusflow.id`).
-- **Clinical Scoring Service (`clinicalScoring.ts`):** Menerapkan konstanta literatur Martín-Rodríguez & González-Prieto (2026), *reverse scoring* PSS-4 & PSS-10, kualitas tidur PSQI, kalkulasi MET-menit IPAQ-SF, dan skor kepatuhan *24-Hour Movement Triad*.
-- **Agentic Wellbeing AI Coach (`geminiCoach.ts`):** Mengintegrasikan `@google/genai` (`gemini-2.5-flash`) dengan `responseSchema` terstruktur serta fallback deterministik bila API timeout/limit.
+- **Clinical Scoring Service (`clinicalScoring.ts`):** Menerapkan konstanta literatur Martín-Rodríguez & González-Prieto (2026), *reverse scoring* PSS-4 & PSS-10, kualitas tidur PSQI, kalkulasi MET-menit IPAQ-SF, streak harian, dan skor kepatuhan *24-Hour Movement Triad*.
+- **Agentic Wellbeing AI Coach (`ollamaCoach.ts`):** Mengintegrasikan **Ollama lokal** (`/api/chat` dengan `format` JSON Schema terstruktur, tanpa API key eksternal) serta fallback deterministik bila Ollama belum menyala.
 - **Web Push Notification (`pushNotifier.ts`):** Pengiriman notifikasi intervensi duduk melalui `web-push` (VAPID keys).
 
 ---
@@ -23,7 +23,7 @@ Syifa bertanggung jawab membangun seluruh layanan server, database relasional kl
 1. Seluruh kode server dan `package.json` / `package-lock.json` berada di dalam `backend/` (terpisah total dari `frontend/`).
 2. Setiap commit/push di branch `backend` **WAJIB** menambah entri baru di [`CHANGELOG_SYIFA.md`](../changelogs/CHANGELOG_SYIFA.md).
 3. Apabila mendesak harus menyentuh file di luar `backend/` atau `docs/backend/` (misalnya mengubah kontrak `shared/` atau helper di `frontend/`), **diperbolehkan** asalkan mencatat tag **`[CROSS-SCOPE]`**, path lengkap file, dan alasannya di `CHANGELOG_SYIFA.md`.
-4. `GEMINI_API_KEY`, `VAPID_PRIVATE_KEY`, `JWT_SECRET`, dan `DATABASE_URL` hanya disimpan di `backend/.env` (dilarang keras diekspos ke client atau di-commit ke Git).
+4. `DATABASE_URL`, `JWT_SECRET`, `OLLAMA_BASE_URL`, dan `VAPID_PRIVATE_KEY` disimpan di `backend/.env` (dilarang keras diekspos ke client atau di-commit ke Git).
 
 ---
 

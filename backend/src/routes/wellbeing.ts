@@ -8,6 +8,7 @@ import {
   calculatePss4Score,
   classifyPss10Severity,
   classifyPss4Severity,
+  computeConsecutiveStreakDays,
   evaluate24HourTriad,
 } from "../services/clinicalScoring.ts";
 import { getDailyActivityAndSedentaryTotals } from "../services/dailyAggregation.ts";
@@ -80,7 +81,28 @@ wellbeingRouter.post("/daily", requireAuth, async (req: AuthenticatedRequest, re
     },
   });
 
-  sendSuccess(res, { ...saved, sedentaryRiskStatus: triad.sedentaryRiskStatus }, 201);
+  const allRecentLogs = await prisma.dailyWellbeingLog.findMany({
+    where: { userId },
+    select: { logDate: true },
+    orderBy: { logDate: "desc" },
+    take: 60,
+  });
+  const anchorDate = allRecentLogs[0]?.logDate ?? logDate;
+  const currentStreakDays = computeConsecutiveStreakDays(
+    allRecentLogs.map((item) => item.logDate),
+    anchorDate
+  );
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { currentStreakDays },
+  });
+
+  sendSuccess(
+    res,
+    { ...saved, sedentaryRiskStatus: triad.sedentaryRiskStatus, currentStreakDays },
+    201
+  );
 });
 
 assessmentsRouter.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {

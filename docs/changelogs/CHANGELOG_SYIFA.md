@@ -21,6 +21,17 @@
 
 ---
 
+## [2026-11-11] — Migrasi AI Coach ke Ollama Lokal (Tanpa API Key) & Auto-Increment Streak Harian (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-3.1`, `BE-3.2`, `BE-4.1`
+- **Ringkasan:** Mengganti provider AI Coach dari Google Gemini Cloud API ke **Ollama Lokal** (`OLLAMA_BASE_URL` + `OLLAMA_MODEL` via `/api/chat` JSON Schema terstruktur + fallback klinis deterministik di `ollamaCoach.ts`, menghapus `@google/genai`), serta menambahkan perhitungan otomatis `currentStreakDays` yang idempoten saat check-in `POST /api/v1/wellbeing/daily`.
+- **Daftar File Diubah:**
+  - `backend/src/services/ollamaCoach.ts`, `backend/src/services/ollamaCoach.test.ts` *(menggantikan `geminiCoach.ts` & `geminiCoach.test.ts`)*
+  - `backend/src/config/env.ts`, `backend/.env.example`, `backend/package.json`, `backend/package-lock.json`
+  - `backend/src/services/clinicalScoring.ts`, `backend/src/services/clinicalScoring.test.ts`
+  - `backend/src/routes/wellbeing.ts`, `backend/src/routes/aiCoach.ts`, `backend/src/app.test.ts`, `backend/prisma/seed.ts`
+  - `docs/backend/README.md`, `docs/backend/TASK_GUIDE.md`, `docs/backend/LLM_AI_COACH.md`, `docs/backend/SETUP.md`
+- **Verifikasi:** `npm --prefix backend run typecheck`, `npm --prefix backend run build`, `npm --prefix backend test` (15/15 test lolos), dan `npm run guard`.
+
 ## [2026-11-11] — Perbaikan Agregasi Triad Hari Ini, Endpoint Helper, Route Tests (`app.test.ts`), & Smoke Script (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-3.2`, `BE-5.1`, `BE-5.2`
 - **Ringkasan:** Memperbaiki `dashboard.ts` & `dailyAggregation.ts` agar progres duduk & MVPA hari ini langsung tampil meski user belum mengisi check-in PSS-4 harian; menambahkan JSON 404 handler di `app.ts`, `GET /api/v1/assessments`, `GET /api/v1/notifications/vapid-public-key`, dan `DELETE /api/v1/notifications/subscribe`; serta menambahkan tes integrasi HTTP otomatis (`src/app.test.ts`) dan skrip smoke test PowerShell (`scripts/smoke-api.ps1`).

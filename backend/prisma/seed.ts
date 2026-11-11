@@ -28,7 +28,7 @@ async function main() {
       name: "Mahasiswa Demo CampusFlow",
       nim: "4.33.24.0.01",
       department: "Teknik Informatika",
-      currentStreakDays: 7,
+      currentStreakDays: 14,
       xpPoints: 420,
     },
     create: {
@@ -38,7 +38,7 @@ async function main() {
       passwordHash,
       department: "Teknik Informatika",
       weeklyMetsTarget: 1500,
-      currentStreakDays: 7,
+      currentStreakDays: 14,
       xpPoints: 420,
     },
   });

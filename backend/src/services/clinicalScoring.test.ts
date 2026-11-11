@@ -6,6 +6,7 @@ import {
   calculatePss4Score,
   classifyPss10Severity,
   classifyPss4Severity,
+  computeConsecutiveStreakDays,
   evaluate24HourTriad,
   isSleepGuidelineMet,
 } from "./clinicalScoring.ts";
@@ -66,5 +67,28 @@ test("evaluate24HourTriad menilai 3 pilar dan risiko duduk statis tinggi", () =>
   });
   assert.equal(highRisk.triadPillarsMet, 0);
   assert.equal(highRisk.sedentaryRiskStatus, "HIGH_SEDENTARY_RISK");
+});
+
+test("computeConsecutiveStreakDays menghitung streak beruntun dan bersifat idempoten", () => {
+  const d = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
+  const anchor = d("2026-11-11");
+
+  // 3 hari beruntun (9, 10, 11) + tanggal duplikat 11 -> tetap 3
+  assert.equal(
+    computeConsecutiveStreakDays(
+      [d("2026-11-09"), d("2026-11-10"), d("2026-11-11"), d("2026-11-11")],
+      anchor
+    ),
+    3
+  );
+
+  // Ada hari bolong (10 terlewat) -> streak dari tanggal 11 menjadi 1
+  assert.equal(
+    computeConsecutiveStreakDays([d("2026-11-08"), d("2026-11-09"), d("2026-11-11")], anchor),
+    1
+  );
+
+  // Belum ada log di tanggal anchor -> 0
+  assert.equal(computeConsecutiveStreakDays([d("2026-11-10")], anchor), 0);
 });
 

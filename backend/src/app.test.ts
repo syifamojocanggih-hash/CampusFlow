@@ -113,18 +113,31 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
           ...args.create,
         }),
         findUnique: async () => null,
-        findMany: async () => [
-          {
-            logDate: new Date("2026-11-11T00:00:00.000Z"),
-            totalSedentaryHours: 5.0,
-            totalMvpaMinutes: 35,
-            mvpaPerSedentaryRatio: 7.0,
-            sleepHours: 6.0,
-            sleepQualityScore: 2,
-            pss4TotalScore: 11,
-            triadPillarsMet: 1,
-          },
-        ],
+        findMany: async (args?: { orderBy?: { logDate?: "asc" | "desc" } }) => {
+          const rows = [
+            {
+              logDate: new Date("2026-11-11T00:00:00.000Z"),
+              totalSedentaryHours: 5.0,
+              totalMvpaMinutes: 35,
+              mvpaPerSedentaryRatio: 7.0,
+              sleepHours: 6.0,
+              sleepQualityScore: 2,
+              pss4TotalScore: 11,
+              triadPillarsMet: 1,
+            },
+            {
+              logDate: new Date("2026-11-10T00:00:00.000Z"),
+              totalSedentaryHours: 6.0,
+              totalMvpaMinutes: 30,
+              mvpaPerSedentaryRatio: 5.0,
+              sleepHours: 7.0,
+              sleepQualityScore: 3,
+              pss4TotalScore: 7,
+              triadPillarsMet: 2,
+            },
+          ];
+          return args?.orderBy?.logDate === "asc" ? [...rows].reverse() : rows;
+        },
       },
       clinicalAssessment: {
         findFirst: async () => null,
@@ -185,11 +198,12 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
         }),
       });
       const validJson = (await validWellbeing.json()) as {
-        data: { pss4TotalScore: number; stressRiskLevel: string };
+        data: { pss4TotalScore: number; stressRiskLevel: string; currentStreakDays: number };
       };
       assert.equal(validWellbeing.status, 201);
       assert.equal(validJson.data.pss4TotalScore, 11);
       assert.equal(validJson.data.stressRiskLevel, "HIGH");
+      assert.equal(validJson.data.currentStreakDays, 2);
 
       // 5. Submit aktivitas fisik -> hitung METs otoritatif
       const actRes = await fetch(`${baseUrl}/activities`, {

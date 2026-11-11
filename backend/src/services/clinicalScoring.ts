@@ -109,3 +109,20 @@ export function evaluate24HourTriad(input: TriadEvaluationInput): TriadEvaluatio
   };
 }
 
+/**
+ * Menghitung jumlah hari check-in berturut-turut mundur dari tanggal jangkar (anchorDate).
+ * Bersifat idempoten bila pengguna memperbarui log di hari yang sama.
+ */
+export function computeConsecutiveStreakDays(logDates: Date[], anchorDate: Date): number {
+  const dateKeys = new Set(logDates.map((d) => d.toISOString().slice(0, 10)));
+  let streak = 0;
+  const cursor = new Date(anchorDate);
+  cursor.setUTCHours(0, 0, 0, 0);
+
+  while (dateKeys.has(cursor.toISOString().slice(0, 10))) {
+    streak += 1;
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
+  }
+  return streak;
+}
+
