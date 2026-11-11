@@ -142,3 +142,4 @@ test("calcEyeAspectRatio menghitung rasio bukaan mata", () => {
   const ear = calcEyeAspectRatio(face);
   assert.equal(ear, 0.3);
 });
+

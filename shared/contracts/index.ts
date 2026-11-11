@@ -180,3 +180,4 @@ export interface AiCoachingInsightDTO {
   scientificCitationNote: string;
   isCompleted: boolean;
 }
+
