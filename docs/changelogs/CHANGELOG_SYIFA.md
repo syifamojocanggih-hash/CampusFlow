@@ -21,6 +21,16 @@
 
 ---
 
+## [2026-11-12] — Custom Model `campusflow-coach` (`Modelfile`), Guard Prioritas Klinis, & Evaluasi Live Ollama (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
+- **Ringkasan:** Menautkan backend ke model Ollama lokal `campusflow-coach` (`FROM qwen2.5:3b`) dengan parameter konservatif (`temperature 0.15`, `top_p 0.85`, `repeat_penalty 1.1`, `num_ctx 4096`), aturan prioritas klinis 5 tingkat Martín-Rodríguez & González-Prieto (2026), dan contoh *few-shot* terstruktur di `backend/ollama/Modelfile`; mengekstrak `evaluateClinicalRuleFlags` di `ollamaCoach.ts` untuk mengirimkan sinyal batas klinis deterministik bersamaan dengan telemetri 7 hari; memperbarui `env.ts`, `.env.example`, serta menambahkan skrip `ollama:create` dan `ollama:eval` (`scripts/eval-ollama.ts`), isolasi mock `:11434` di `app.test.ts`, dan pembaruan dokumentasi backend.
+- **Daftar File Diubah:**
+  - `backend/ollama/Modelfile`, `backend/scripts/eval-ollama.ts`
+  - `backend/src/services/ollamaCoach.ts`, `backend/src/services/ollamaCoach.test.ts`
+  - `backend/src/config/env.ts`, `backend/.env.example`, `backend/package.json`, `backend/src/app.test.ts`
+  - `docs/backend/LLM_AI_COACH.md`, `docs/backend/SETUP.md`, `docs/backend/TASK_GUIDE.md`
+- **Verifikasi:** `npm --prefix backend run ollama:create` berhasil, `npm --prefix backend run ollama:eval` lolos 7/7 skenario klinis live (`OLLAMA_LOCAL`), `smoke-api.ps1` lolos 10/10 endpoint live terhadap MySQL + `campusflow-coach`, `npm --prefix backend run typecheck`, `build`, `test` (18/18 lolos), dan `npm run guard` hijau.
+
 ## [2026-11-11] — Rate Limiter, History AI Coach, Hapus Data Privasi, & Graceful Shutdown (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
 - **Ringkasan:** Menambahkan `createRateLimiter` pada `/api/v1/auth` dan `POST /api/v1/ai-coach/generate` (`429 RATE_LIMITED`), endpoint `GET /api/v1/ai-coach/history`, endpoint privasi `DELETE /api/v1/users/me/data`, graceful shutdown (`SIGINT`/`SIGTERM` + `prisma.$disconnect()`) di `index.ts`, skrip `start:prod`, serta menyelaraskan deskripsi Ollama di `docs/backend/README.md`.

@@ -14,7 +14,9 @@
     "test": "node --test src/services/clinicalScoring.test.ts src/services/ollamaCoach.test.ts src/middleware/rateLimit.test.ts src/app.test.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "ollama:create": "ollama create campusflow-coach -f ollama/Modelfile",
+    "ollama:eval": "tsx scripts/eval-ollama.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",

@@ -61,15 +61,16 @@
 
 ### TAHAP 4: Agentic AI Coach (Ollama Lokal)
 
-#### 🟢 BE-4.1: Implementasi `ollamaCoach.ts` & Endpoint Insight
-- **Target:** `backend/src/services/ollamaCoach.ts`, `backend/src/routes/aiCoach.ts`.
+#### 🟢 BE-4.1: Implementasi `ollamaCoach.ts`, Model Kustom `campusflow-coach`, & Endpoint Insight
+- **Target:** `backend/src/services/ollamaCoach.ts`, `backend/src/routes/aiCoach.ts`, `backend/ollama/Modelfile`, `backend/scripts/eval-ollama.ts`.
 - **Spesifikasi:**
-  - Panggil endpoint lokal `OLLAMA_BASE_URL/api/chat` dengan parameter `format` JSON Schema terstruktur (lihat [`LLM_AI_COACH.md`](LLM_AI_COACH.md)).
+  - Panggil endpoint lokal `OLLAMA_BASE_URL/api/chat` menuju model kustom `campusflow-coach` (`Modelfile` dari `qwen2.5:3b`) dengan parameter `format` JSON Schema terstruktur & `evaluateClinicalRuleFlags` (lihat [`LLM_AI_COACH.md`](LLM_AI_COACH.md)).
   - Simpan hasil ke tabel `AiCoachingInsight`.
   - Sediakan fallback deterministik berbasis konstanta klinis bila server Ollama lokal belum menyala atau timeout.
 - **Checklist:**
   - [x] `POST /api/v1/ai-coach/generate` mengembalikan 5 field wajib dalam JSON valid (+ fallback teruji).
   - [x] `PATCH /api/v1/ai-coach/:id/complete` menandai selesai & menambah `User.xpPoints`.
+  - [x] Model kustom `campusflow-coach` dibuat via `npm run ollama:create` dan lolos uji 7 skenario klinis live via `npm run ollama:eval`.
 
 ---
 

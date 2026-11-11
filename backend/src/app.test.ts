@@ -7,6 +7,7 @@ import { prisma } from "./lib/prisma.ts";
 let server: Server;
 let baseUrl = "";
 const DEMO_USER_ID = "demo-user-test-id";
+const originalFetch = globalThis.fetch;
 
 /** Mengganti sementara model delegate Prisma (Proxy) selama eksekusi tes lalu mengembalikannya. */
 async function withStubbedPrisma(
@@ -36,6 +37,15 @@ async function withStubbedPrisma(
 }
 
 before(async () => {
+  // Isolasi tes route dari server Ollama eksternal agar deterministik di CI & lokal
+  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    if (url.includes(":11434")) {
+      throw new Error("Simulated offline Ollama for deterministic route test");
+    }
+    return originalFetch(input, init);
+  }) as typeof fetch;
+
   await new Promise<void>((resolve) => {
     server = createApp().listen(0, () => {
       const address = server.address();
@@ -48,6 +58,7 @@ before(async () => {
 });
 
 after(async () => {
+  globalThis.fetch = originalFetch;
   await new Promise<void>((resolve, reject) => {
     server.close((err) => (err ? reject(err) : resolve()));
   });

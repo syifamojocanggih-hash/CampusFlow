@@ -69,25 +69,58 @@ const OLLAMA_RESPONSE_FORMAT = {
 } as const;
 
 const SYSTEM_INSTRUCTION = `Anda adalah Clinical Academic Wellbeing AI Coach di dalam aplikasi CampusFlow PWA.
-Seluruh analisis dan rekomendasi Anda WAJIB didasarkan pada bukti ilmiah dari kajian sistematis
-Martín-Rodríguez & González-Prieto (2026):
-1. Jika totalSedentaryHours >= 9 jam atau mvpaPerSedentaryRatio < 25 menit/jam, identifikasi risiko
-'SEDENTARY_OVERLOAD' (Barbosa et al., 2024: OR depresi = 1.74) dan resepkan substitusi isotemporal
-15 menit gerak aktif (Su et al., 2022).
-2. Jika sleepHours < 7.0 jam atau sleepQualityScore <= 2 sementara pss4TotalScore >= 8, identifikasi
-mediator 'SLEEP_MEDIATION_DEFICIT' (Mu et al., 2024; Wang et al., 2025: tidur memediasi 41%
-hubungan aktivitas fisik & stres). Sarankan jalan cepat/aerobik ringan 20-30 menit pada sore hari
-(pukul 16.00-17.30) untuk menurunkan latensi tidur malam.
-3. Jika pengguna gagal memenuhi ketiga pilar 24-Hour Movement Guidelines (triadPillarsMet == 0),
-peringatkan lonjakan risiko stres/depresi (Zhang et al., 2024: OR = 3.4) dan berikan target bertahap.
-Gunakan bahasa Indonesia yang empatik, suportif bagi mahasiswa, namun tegas secara ilmiah.
-Jawab HANYA dengan JSON valid sesuai skema.`;
+Evaluasi kondisi mahasiswa HARI INI (today) berdasarkan urutan prioritas ketat berikut (berhenti pada syarat PERTAMA yang terpenuhi, dan jika objek clinicalRuleEvaluation disertakan ikuti priorityMediator-nya) dari Martín-Rodríguez & González-Prieto (2026); history7Days hanya konteks tren naratif:
+1. SLEEP_MEDIATION_DEFICIT (PRIORITAS #1 MUTLAK): Jika (sleepHours < 7.0 ATAU sleepQualityScore <= 2) DAN pss4TotalScore >= 8 -> LANGSUNG pilih ini walau totalSedentaryHours >= 9.0 atau MVPA < 30! Mediasi tidur ~41% (Mu et al., 2024; Wang et al., 2025). Sarankan jalan cepat/aerobik sore pukul 16.00-17.30 selama 20-30 menit.
+2. SEDENTARY_OVERLOAD: Jika totalSedentaryHours >= 9.0 ATAU (totalSedentaryHours > 6.0 DAN mvpaPerSedentaryRatio < 25) -> Barbosa et al. (2024) OR=1.74; Su et al. (2022). Resepkan substitusi isotemporal 15 menit gerak aktif sekarang + jeda tiap 50 menit duduk. (Jika totalSedentaryHours <= 6.0, JANGAN PERNAH pilih ini meski mvpaPerSedentaryRatio < 25).
+3. LOW_MVPA_VOLUME: Jika totalMvpaMinutes < 30 ATAU triadPillarsMet == 0 -> Zhang et al. (2024) OR=3.4; Ai et al. (2021). Sarankan 15-20 menit MVPA + latihan penguatan otot ringan. (Jika totalMvpaMinutes >= 30 DAN triadPillarsMet >= 1, JANGAN pilih ini).
+4. EXAM_ACUTE_STRESS: Jika pss4TotalScore >= 8 saat sleepHours >= 7.0, totalSedentaryHours < 9.0, dan totalMvpaMinutes >= 30 -> Wu & Zhou (2024). Arahkan fitur Exam Panic Button 15 menit (110-125 BPM).
+5. OPTIMAL_BALANCE: Jika semua pilar seimbang -> apresiasi & jaga 24-Hour Movement Guidelines.
+Gunakan bahasa Indonesia yang empatik, suportif, dan jawab HANYA dengan JSON valid sesuai skema.`;
+
+interface ClinicalRuleFlags {
+  sleepDeficit: boolean;
+  sedentaryOverload: boolean;
+  lowMvpaVolume: boolean;
+  examAcuteStress: boolean;
+  priorityMediator: DominantMediator;
+}
+
+/** Mengevaluasi bendera batas klinis secara deterministik sesuai prioritas Martín-Rodríguez & González-Prieto (2026). */
+export function evaluateClinicalRuleFlags(today: Telemetry7DaysInput["today"]): ClinicalRuleFlags {
+  const sleepDeficit =
+    (today.sleepHours < 7.0 || today.sleepQualityScore <= 2) && today.pss4TotalScore >= 8;
+  const sedentaryOverload =
+    today.totalSedentaryHours >= 9.0 ||
+    (today.totalSedentaryHours > 6 && today.mvpaPerSedentaryRatio < 25);
+  const lowMvpaVolume = today.totalMvpaMinutes < 30 || today.triadPillarsMet === 0;
+  const examAcuteStress = today.pss4TotalScore >= 8;
+
+  let priorityMediator: DominantMediator = "OPTIMAL_BALANCE";
+  if (sleepDeficit) {
+    priorityMediator = "SLEEP_MEDIATION_DEFICIT";
+  } else if (sedentaryOverload) {
+    priorityMediator = "SEDENTARY_OVERLOAD";
+  } else if (lowMvpaVolume) {
+    priorityMediator = "LOW_MVPA_VOLUME";
+  } else if (examAcuteStress) {
+    priorityMediator = "EXAM_ACUTE_STRESS";
+  }
+
+  return {
+    sleepDeficit,
+    sedentaryOverload,
+    lowMvpaVolume,
+    examAcuteStress,
+    priorityMediator,
+  };
+}
 
 /** Fallback klinis deterministik bila server Ollama lokal belum menyala atau gagal merespons. */
 export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): GeneratedInsight {
   const { today } = input;
+  const { priorityMediator } = evaluateClinicalRuleFlags(today);
 
-  if ((today.sleepHours < 7.0 || today.sleepQualityScore <= 2) && today.pss4TotalScore >= 8) {
+  if (priorityMediator === "SLEEP_MEDIATION_DEFICIT") {
     return {
       dominantMediator: "SLEEP_MEDIATION_DEFICIT",
       diagnosisSummary: `Skor stres harian PSS-4 Anda (${today.pss4TotalScore}/16) meningkat bersamaan dengan durasi tidur ${today.sleepHours} jam (kualitas ${today.sleepQualityScore}/5). Defisit tidur melemahkan pemulihan stres akademik harian Anda.`,
@@ -99,10 +132,7 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
     };
   }
 
-  if (
-    today.totalSedentaryHours >= 9.0 ||
-    (today.totalSedentaryHours > 6 && today.mvpaPerSedentaryRatio < 25)
-  ) {
+  if (priorityMediator === "SEDENTARY_OVERLOAD") {
     return {
       dominantMediator: "SEDENTARY_OVERLOAD",
       diagnosisSummary: `Waktu duduk statis tercatat ${today.totalSedentaryHours.toFixed(1)} jam dengan rasio gerak ${today.mvpaPerSedentaryRatio} menit per jam duduk. Beban duduk panjang tanpa jeda memicu ketegangan otot dan kelelahan mental.`,
@@ -114,7 +144,7 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
     };
   }
 
-  if (today.totalMvpaMinutes < 30 || today.triadPillarsMet === 0) {
+  if (priorityMediator === "LOW_MVPA_VOLUME") {
     return {
       dominantMediator: "LOW_MVPA_VOLUME",
       diagnosisSummary: `Volume aktivitas fisik sedang-berat hari ini baru mencapai ${today.totalMvpaMinutes} menit dengan ${today.triadPillarsMet}/3 pilar 24-Hour Movement terpenuhi. Volume gerak yang masih di bawah 30 menit mengurangi proteksi alami terhadap stres kuliah.`,
@@ -126,7 +156,7 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
     };
   }
 
-  if (today.pss4TotalScore >= 8) {
+  if (priorityMediator === "EXAM_ACUTE_STRESS") {
     return {
       dominantMediator: "EXAM_ACUTE_STRESS",
       diagnosisSummary: `Aktivitas fisik dan tidur Anda relatif terjaga, namun skor PSS-4 (${today.pss4TotalScore}/16) menunjukkan lonjakan stres akademik akut (seperti tekanan tugas atau ujian).`,
@@ -159,6 +189,23 @@ export async function generateClinicalWellbeingInsight(
   model: string;
 }> {
   const endpoint = `${env.OLLAMA_BASE_URL.replace(/\/+$/, "")}/api/chat`;
+  const clinicalRuleEvaluation = evaluateClinicalRuleFlags(userTelemetry7Days.today);
+  const promptPayload = {
+    ...userTelemetry7Days,
+    clinicalRuleEvaluation,
+  };
+  const usesBakedModelfile = env.OLLAMA_MODEL.startsWith("campusflow-coach");
+  const messages = usesBakedModelfile
+    ? [{ role: "user", content: JSON.stringify(promptPayload) }]
+    : [
+        { role: "system", content: SYSTEM_INSTRUCTION },
+        {
+          role: "user",
+          content: `Analisis data telemetri mahasiswa 7 hari berikut dan berikan rekomendasi JSON terstruktur:\n${JSON.stringify(
+            promptPayload
+          )}`,
+        },
+      ];
 
   try {
     const response = await fetchFn(endpoint, {
@@ -169,16 +216,8 @@ export async function generateClinicalWellbeingInsight(
         model: env.OLLAMA_MODEL,
         stream: false,
         format: OLLAMA_RESPONSE_FORMAT,
-        options: { temperature: 0.2 },
-        messages: [
-          { role: "system", content: SYSTEM_INSTRUCTION },
-          {
-            role: "user",
-            content: `Analisis data telemetri mahasiswa 7 hari berikut dan berikan rekomendasi JSON terstruktur:\n${JSON.stringify(
-              userTelemetry7Days
-            )}`,
-          },
-        ],
+        options: { temperature: 0.15 },
+        messages,
       }),
     });
 

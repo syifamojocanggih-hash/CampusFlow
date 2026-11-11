@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   buildDeterministicFallbackInsight,
   checkOllamaStatus,
+  evaluateClinicalRuleFlags,
   generateClinicalWellbeingInsight,
   type Telemetry7DaysInput,
 } from "./ollamaCoach.ts";
@@ -105,7 +106,10 @@ test("checkOllamaStatus melaporkan status model lokal dari /api/tags dan menanga
   const onlineFetch = (async () =>
     new Response(
       JSON.stringify({
-        models: [{ name: "llama3.2:latest" }, { name: "qwen2.5:7b" }],
+        models: [
+          { name: "campusflow-coach:latest" },
+          { name: "qwen2.5:3b" },
+        ],
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     )) as typeof fetch;
@@ -113,7 +117,10 @@ test("checkOllamaStatus melaporkan status model lokal dari /api/tags dan menanga
   const onlineStatus = await checkOllamaStatus(onlineFetch);
   assert.equal(onlineStatus.reachable, true);
   assert.equal(onlineStatus.modelInstalled, true);
-  assert.deepEqual(onlineStatus.availableModels, ["llama3.2:latest", "qwen2.5:7b"]);
+  assert.deepEqual(onlineStatus.availableModels, [
+    "campusflow-coach:latest",
+    "qwen2.5:3b",
+  ]);
 
   const offlineFetch = (async () => {
     throw new Error("ECONNREFUSED");
@@ -121,5 +128,33 @@ test("checkOllamaStatus melaporkan status model lokal dari /api/tags dan menanga
   const offlineStatus = await checkOllamaStatus(offlineFetch);
   assert.equal(offlineStatus.reachable, false);
   assert.equal(offlineStatus.modelInstalled, false);
+});
+
+test("evaluateClinicalRuleFlags memisahkan batas sedentary <= 6 jam vs prioritas defisit tidur", () => {
+  const lowMvpaNotSedentary = evaluateClinicalRuleFlags({
+    totalSedentaryHours: 4.5,
+    totalMvpaMinutes: 10,
+    mvpaPerSedentaryRatio: 2.22,
+    sleepHours: 7.5,
+    sleepQualityScore: 4,
+    pss4TotalScore: 5,
+    triadPillarsMet: 2,
+  });
+  assert.equal(lowMvpaNotSedentary.sedentaryOverload, false);
+  assert.equal(lowMvpaNotSedentary.lowMvpaVolume, true);
+  assert.equal(lowMvpaNotSedentary.priorityMediator, "LOW_MVPA_VOLUME");
+
+  const overlapPriority = evaluateClinicalRuleFlags({
+    totalSedentaryHours: 9.2,
+    totalMvpaMinutes: 12,
+    mvpaPerSedentaryRatio: 1.3,
+    sleepHours: 5.0,
+    sleepQualityScore: 1,
+    pss4TotalScore: 13,
+    triadPillarsMet: 0,
+  });
+  assert.equal(overlapPriority.sleepDeficit, true);
+  assert.equal(overlapPriority.sedentaryOverload, true);
+  assert.equal(overlapPriority.priorityMediator, "SLEEP_MEDIATION_DEFICIT");
 });
 
