@@ -9,7 +9,7 @@
 
 ## Tahap 2 — Mesin AI Vision (`main`) & Clinical Scoring + LLM (`backend`) (Hari 2–3)
 - [ ] Implementasi `poseHeuristics.ts`, kalibrasi baseline 5 detik, dan pengunduhan `pose_landmarker_lite.task` lokal (`Ibra` di `main`, diturunkan ke `frontend`).
-- [ ] Implementasi endpoint Auth JWT, `clinicalScoring.ts` (PSS-4/10, PSQI, IPAQ METs, Triad), dan `geminiCoach.ts` (`Syifa` di `backend`).
+- [ ] Implementasi endpoint Auth JWT, `clinicalScoring.ts` (PSS-4/10, PSQI, IPAQ METs, Triad), dan `ollamaCoach.ts` (`Syifa` di `backend`).
 
 ## Tahap 3 — Antarmuka PWA, Sensor Pedometer, & Integrasi (Hari 4–5)
 - [ ] Bangun `VisionGuard.tsx`, `ActiveBreakModal.tsx`, `TriadDashboard.tsx`, `PedometerCard.tsx` (`pedometerSensor.ts`), `PanicReliefMode.tsx`, dan form kuesioner (`Tiara` + `Ibra` di `frontend`).

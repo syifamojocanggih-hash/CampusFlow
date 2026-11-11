@@ -8,7 +8,7 @@
 | **Landasan Literatur Utama** | Martín-Rodríguez, A., & González-Prieto, N. (2026). *Influence of physical activity on perceived stress and mental health in university students: a systematic review*. Frontiers in Sports and Active Living, 7:1710832. (PROSPERO: CRD420251179614) |
 | **Target Kompetisi** | Techcomfest 2027 Politeknik Negeri Semarang — Sub-Tema 3: *Smart Lifestyle & Digital Wellbeing* (SDG 3) |
 | **Arsitektur Repositori** | Monorepo (`frontend/` React + Vite PWA & `backend/` Node.js + Express + Prisma ORM + `shared/`) sesuai Bab G.7 Rulebook |
-| **Mesin AI & Sensor** | 1) MediaPipe Tasks Vision (33 Pose Landmarks + 478 Face Landmarks via WebGL/WASM)<br>2) HTML5 `DeviceMotionEvent` (3-Axis Accelerometer Peak Detection)<br>3) Google Gemini API (`gemini-2.5-flash` Structured JSON Coaching) |
+| **Mesin AI & Sensor** | 1) MediaPipe Tasks Vision (33 Pose Landmarks + 478 Face Landmarks via WebGL/WASM)<br>2) HTML5 `DeviceMotionEvent` (3-Axis Accelerometer Peak Detection)<br>3) Ollama Lokal (`OLLAMA_MODEL` via `/api/chat` Structured JSON + Fallback Klinis) |
 | **Versi Dokumen** | Versi 3.0 — *Engineering Blueprint & Complete Application Building Guide* |
 
 ---
@@ -23,7 +23,7 @@ CampusFlow adalah Progressive Web Application (PWA) lintas perangkat (laptop dan
 | **Validasi Jeda Aktif** | Tombol *Snooze* atau *Dismiss* yang mudah dimatikan tanpa beranjak dari kursi. | **Pose-Verified Anti-Cheat Break:** Layar terkunci hingga kamera memverifikasi 3 gerakan peregangan fisik & berdiri melalui koordinat $(x, y, z)$ tubuh. |
 | **Pencatatan Aktivitas Fisik** | Input teks manual yang subjektif dan rawan lupa. | Kuantifikasi otomatis via Web Sensor API (Accelerometer 3-sumbu) yang mengonversi frekuensi langkah (*cadence*) menjadi satuan klinis MET-menit/minggu (IPAQ-SF). |
 | **Pendekatan Penurunan Stres** | Hanya menyuruh olahraga tanpa memedulikan jam tidur atau durasi layar. | Pendekatan Sinergis **24-Hour Movement Guidelines**: Menggabungkan MVPA + Kualitas Tidur (PSQI) + Pembatasan *Sedentary Time* ($\text{OR} = 3.4\times$ proteksi depresi). |
-| **Umpan Balik Kesehatan** | Notifikasi teks statis yang repetitif. | Analisis multivariat oleh Agentic AI Coach (`gemini-2.5-flash`) yang memetakan korelasi skor PSS-4/PSS-10 terhadap defisit tidur dan defisit gerak. |
+| **Umpan Balik Kesehatan** | Notifikasi teks statis yang repetitif. | Analisis multivariat oleh Agentic AI Coach (Ollama lokal) yang memetakan korelasi skor PSS-4/PSS-10 terhadap defisit tidur dan defisit gerak. |
 
 ---
 
@@ -109,9 +109,9 @@ Enam model inti: `User`, `SedentarySession`, `PhysicalActivity`, `DailyWellbeing
 
 ---
 
-## Bagian 08 — Orkestrasi Agentic Wellbeing AI Coach (Google Gemini API)
+## Bagian 08 — Orkestrasi Agentic Wellbeing AI Coach (Ollama Lokal)
 
-Backend menggunakan `@google/genai` model `gemini-2.5-flash` dengan `responseMimeType: "application/json"` dan `responseSchema` ketat yang mengembalikan `dominantMediator`, `diagnosisSummary`, `isotemporalActionPlan`, `recommendedMetsToday`, dan `scientificCitationNote`. Spesifikasi lengkap tersedia di [`docs/backend/LLM_AI_COACH.md`](../backend/LLM_AI_COACH.md).
+Backend memanggil server **Ollama lokal** (`OLLAMA_BASE_URL/api/chat`) dengan parameter `format` JSON Schema ketat dan validasi Zod yang mengembalikan `dominantMediator`, `diagnosisSummary`, `isotemporalActionPlan`, `recommendedMetsToday`, dan `scientificCitationNote` (dengan fallback deterministik bila Ollama belum aktif). Spesifikasi lengkap tersedia di [`docs/backend/LLM_AI_COACH.md`](../backend/LLM_AI_COACH.md).
 
 ---
 

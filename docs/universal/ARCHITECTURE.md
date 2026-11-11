@@ -36,8 +36,8 @@ CampusFlow membagi pemrosesan menjadi empat lapis terpisah agar pemrosesan citra
 └───────────────────────────────────────┬──────────────────────────────────────┘
                                         │ Telemetry 7 Hari + Prompt Klinis
 ┌───────────────────────────────────────▼──────────────────────────────────────┐
-│ LAPIS 4 — AGENTIC WELLBEING AI COACH (Google Gemini 2.5 Flash)               │
-│  • @google/genai dengan responseSchema JSON terstruktur                      │
+│ LAPIS 4 — AGENTIC WELLBEING AI COACH (Ollama Lokal /api/chat + Fallback)     │
+│  • format JSON Schema ketat (tanpa API key berbayar / data keluar cloud)     │
 │  • Mengidentifikasi mediator dominan (SLEEP_MEDIATION_DEFICIT, dll.)         │
 │  • Menghasilkan resep substitusi isotemporal 10–20 menit + sitasi ilmiah     │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -60,7 +60,7 @@ CampusFlow membagi pemrosesan menjadi empat lapis terpisah agar pemrosesan citra
 3. **Check-in Stres & AI Coach:**
    - Mahasiswa mengisi **PSS-4 Harian** + kualitas tidur (`POST /api/v1/wellbeing/daily`).
    - Backend menghitung skor terbalik (*reverse scoring*), rasio `mvpaPerSedentaryRatio`, dan jumlah pilar *24-Hour Movement* (0–3).
-   - Ketika mahasiswa membuka **AI Coach** (`POST /api/v1/ai-coach/generate`), backend merangkum data 7 hari ke Gemini 2.5 Flash dan menyimpan hasilnya di tabel `AiCoachingInsight`.
+   - Ketika mahasiswa membuka **AI Coach** (`POST /api/v1/ai-coach/generate`), backend merangkum data 7 hari ke server Ollama lokal (`OLLAMA_BASE_URL/api/chat`) dengan fallback klinis otomatis dan menyimpan hasilnya di tabel `AiCoachingInsight`.
 
 ---
 
