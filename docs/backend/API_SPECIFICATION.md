@@ -45,6 +45,9 @@ Mengembalikan riwayat aktivitas `days` hari terakhir plus agregasi:
 Menyimpan log harian tidur + durasi layar non-akademik + jawaban PSS-4 `[q1, q2, q3, q4]`.
 - **Response `201`:** Mengembalikan record `DailyWellbeingLog` lengkap beserta `pss4TotalScore`, `triadPillarsMet` (0–3), dan `stressRiskLevel`.
 
+### `GET /api/v1/assessments` *(JWT Required)*
+Mengambil riwayat 20 asesmen klinis mingguan (`PSS_10`) terbaru milik pengguna.
+
 ### `POST /api/v1/assessments/pss10` *(JWT Required)*
 Menyimpan asesmen mingguan PSS-10 (`rawAnswers` array 10 elemen `0..4`).
 - **Response `201`:** `{ data: { id, totalScore, severityLevel, assessmentDate }, meta }`
@@ -95,5 +98,7 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
 - `POST /api/v1/ai-coach/generate` — Mengumpulkan telemetri 7 hari terakhir, memanggil `geminiCoach.ts`, menyimpan ke `AiCoachingInsight`, dan mengembalikan insight.
 - `GET /api/v1/ai-coach/latest` — Mengembalikan insight terbaru pengguna.
 - `PATCH /api/v1/ai-coach/:id/complete` — Menandai aksi AI Coach selesai + menambah `+50 XP`.
+- `GET /api/v1/notifications/vapid-public-key` — Mengambil `publicKey` VAPID & status konfigurasi Web Push server.
 - `POST /api/v1/notifications/subscribe` — Menyimpan subscription VAPID Web Push.
+- `DELETE /api/v1/notifications/subscribe` — Menghapus subscription Web Push pengguna.
 - `POST /api/v1/notifications/test` — Mengirim notifikasi uji Web Push.

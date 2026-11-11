@@ -21,6 +21,15 @@
 
 ---
 
+## [2026-11-11] — Perbaikan Agregasi Triad Hari Ini, Endpoint Helper, Route Tests (`app.test.ts`), & Smoke Script (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-3.2`, `BE-5.1`, `BE-5.2`
+- **Ringkasan:** Memperbaiki `dashboard.ts` & `dailyAggregation.ts` agar progres duduk & MVPA hari ini langsung tampil meski user belum mengisi check-in PSS-4 harian; menambahkan JSON 404 handler di `app.ts`, `GET /api/v1/assessments`, `GET /api/v1/notifications/vapid-public-key`, dan `DELETE /api/v1/notifications/subscribe`; serta menambahkan tes integrasi HTTP otomatis (`src/app.test.ts`) dan skrip smoke test PowerShell (`scripts/smoke-api.ps1`).
+- **Daftar File Diubah:**
+  - `backend/src/services/dailyAggregation.ts`, `backend/src/routes/dashboard.ts`, `backend/src/routes/wellbeing.ts`, `backend/src/routes/notifications.ts`, `backend/src/app.ts`
+  - `backend/src/app.test.ts`, `backend/scripts/smoke-api.ps1`, `backend/package.json`
+  - `docs/backend/API_SPECIFICATION.md`
+- **Verifikasi:** `npm --prefix backend run typecheck`, `npm --prefix backend run build`, `npm --prefix backend test` (12/12 test lolos), dan `npm run guard`.
+
 ## [2026-11-11] — Setup Fondasi Backend Express, Prisma MySQL, Clinical Scoring, & Gemini AI Coach (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-1.1`, `BE-1.2`, `BE-2.1`, `BE-3.1`, `BE-3.2`, `BE-4.1`, `BE-5.1`, `BE-5.2`
 - **Ringkasan:** Membangun fondasi lengkap server `backend/` (Express 5 + TypeScript), skema database Prisma MySQL (6 tabel, 3 enum) + seeder 14 hari akun demo `demo@campusflow.id`, autentikasi JWT (`bcryptjs`), layanan `clinicalScoring.ts` (PSS-4/10 reverse scoring, PSQI tidur, IPAQ-SF METs, 24-Hour Movement Triad), orkestrasi `geminiCoach.ts` (`gemini-2.5-flash` Structured Output + fallback klinis deterministik), Web Push VAPID (`pushNotifier.ts`), dan seluruh route `/api/v1/*`.

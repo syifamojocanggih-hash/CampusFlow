@@ -10,7 +10,7 @@ import {
   classifyPss4Severity,
   evaluate24HourTriad,
 } from "../services/clinicalScoring.ts";
-import { toUtcDateOnly } from "../services/dailyAggregation.ts";
+import { getDailyActivityAndSedentaryTotals } from "../services/dailyAggregation.ts";
 
 export const wellbeingRouter = Router();
 export const assessmentsRouter = Router();
@@ -36,22 +36,9 @@ const pss10Schema = z.object({
 wellbeingRouter.post("/daily", requireAuth, async (req: AuthenticatedRequest, res) => {
   const body = dailyWellbeingSchema.parse(req.body);
   const userId = req.user!.sub;
-  const logDate = toUtcDateOnly(body.logDate);
-  const dayEnd = new Date(logDate.getTime() + 24 * 60 * 60 * 1000);
 
-  const [sedentaryAgg, activityAgg] = await Promise.all([
-    prisma.sedentarySession.aggregate({
-      where: { userId, startTime: { gte: logDate, lt: dayEnd } },
-      _sum: { durationMinutes: true },
-    }),
-    prisma.physicalActivity.aggregate({
-      where: { userId, activityDate: logDate },
-      _sum: { durationMinutes: true },
-    }),
-  ]);
-
-  const totalSedentaryHours = Number(((sedentaryAgg._sum.durationMinutes ?? 0) / 60).toFixed(2));
-  const totalMvpaMinutes = activityAgg._sum.durationMinutes ?? 0;
+  const { dayStart: logDate, totalSedentaryHours, totalMvpaMinutes } =
+    await getDailyActivityAndSedentaryTotals(userId, body.logDate);
 
   const pss4TotalScore = calculatePss4Score(body.pss4Answers);
   const stressRiskLevel = classifyPss4Severity(pss4TotalScore);
@@ -96,6 +83,15 @@ wellbeingRouter.post("/daily", requireAuth, async (req: AuthenticatedRequest, re
   sendSuccess(res, { ...saved, sedentaryRiskStatus: triad.sedentaryRiskStatus }, 201);
 });
 
+assessmentsRouter.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const assessments = await prisma.clinicalAssessment.findMany({
+    where: { userId: req.user!.sub },
+    orderBy: { assessmentDate: "desc" },
+    take: 20,
+  });
+  sendSuccess(res, assessments);
+});
+
 assessmentsRouter.post("/pss10", requireAuth, async (req: AuthenticatedRequest, res) => {
   const body = pss10Schema.parse(req.body);
   const totalScore = calculatePss10Score(body.rawAnswers);
@@ -114,4 +110,3 @@ assessmentsRouter.post("/pss10", requireAuth, async (req: AuthenticatedRequest, 
 
   sendSuccess(res, assessment, 201);
 });
-

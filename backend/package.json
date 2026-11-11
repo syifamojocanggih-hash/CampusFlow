@@ -10,7 +10,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/backend/src/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test src/services/clinicalScoring.test.ts src/services/geminiCoach.test.ts",
+    "test": "node --test src/services/clinicalScoring.test.ts src/services/geminiCoach.test.ts src/app.test.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts"

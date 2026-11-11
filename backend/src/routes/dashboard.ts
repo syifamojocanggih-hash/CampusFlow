@@ -4,6 +4,10 @@ import { prisma } from "../lib/prisma.ts";
 import { AppError, sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
 import { evaluate24HourTriad } from "../services/clinicalScoring.ts";
+import {
+  getDailyActivityAndSedentaryTotals,
+  toUtcDateOnly,
+} from "../services/dailyAggregation.ts";
 
 export const dashboardRouter = Router();
 
@@ -11,15 +15,14 @@ dashboardRouter.get("/triad", requireAuth, async (req: AuthenticatedRequest, res
   const userId = req.user!.sub;
   const days = Math.min(30, Math.max(1, Number(req.query.days ?? 14)));
 
-  const sinceHistory = new Date();
-  sinceHistory.setUTCHours(0, 0, 0, 0);
+  const todayDate = toUtcDateOnly(new Date());
+  const sinceHistory = new Date(todayDate);
   sinceHistory.setUTCDate(sinceHistory.getUTCDate() - (days - 1));
 
-  const since7Days = new Date();
-  since7Days.setUTCHours(0, 0, 0, 0);
+  const since7Days = new Date(todayDate);
   since7Days.setUTCDate(since7Days.getUTCDate() - 6);
 
-  const [user, logs, weeklyActivities] = await Promise.all([
+  const [user, logs, weeklyActivities, todayTotals] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId } }),
     prisma.dailyWellbeingLog.findMany({
       where: { userId, logDate: { gte: sinceHistory } },
@@ -28,17 +31,22 @@ dashboardRouter.get("/triad", requireAuth, async (req: AuthenticatedRequest, res
     prisma.physicalActivity.findMany({
       where: { userId, activityDate: { gte: since7Days } },
     }),
+    getDailyActivityAndSedentaryTotals(userId, todayDate),
   ]);
 
   if (!user) throw new AppError(404, "NOT_FOUND", "Pengguna tidak ditemukan.");
 
-  const latestLog = logs.at(-1);
+  const todayKey = todayDate.toISOString().slice(0, 10);
+  const todayLog = logs.find((log) => log.logDate.toISOString().slice(0, 10) === todayKey);
+
+  const todaySedentaryHours = todayLog?.totalSedentaryHours ?? todayTotals.totalSedentaryHours;
+  const todayMvpaMinutes = todayLog?.totalMvpaMinutes ?? todayTotals.totalMvpaMinutes;
   const todayEval = evaluate24HourTriad({
-    totalMvpaMinutes: latestLog?.totalMvpaMinutes ?? 0,
-    sleepHours: latestLog?.sleepHours ?? 0,
-    sleepQualityScore: latestLog?.sleepQualityScore ?? 3,
-    totalSedentaryHours: latestLog?.totalSedentaryHours ?? 0,
-    nonAcademicScreenHours: latestLog?.nonAcademicScreenHours ?? 0,
+    totalMvpaMinutes: todayMvpaMinutes,
+    sleepHours: todayLog?.sleepHours ?? 0,
+    sleepQualityScore: todayLog?.sleepQualityScore ?? 1,
+    totalSedentaryHours: todaySedentaryHours,
+    nonAcademicScreenHours: todayLog?.nonAcademicScreenHours ?? 0,
   });
 
   const weeklyMetsTotal = Number(
@@ -52,15 +60,16 @@ dashboardRouter.get("/triad", requireAuth, async (req: AuthenticatedRequest, res
 
   sendSuccess(res, {
     today: {
-      totalSedentaryHours: latestLog?.totalSedentaryHours ?? 0,
-      totalMvpaMinutes: latestLog?.totalMvpaMinutes ?? 0,
+      totalSedentaryHours: todaySedentaryHours,
+      totalMvpaMinutes: todayMvpaMinutes,
       mvpaPerSedentaryRatio: todayEval.mvpaPerSedentaryRatio,
-      sleepHours: latestLog?.sleepHours ?? 0,
-      nonAcademicScreenHours: latestLog?.nonAcademicScreenHours ?? 0,
-      pss4TotalScore: latestLog?.pss4TotalScore ?? 0,
-      triadPillarsMet: latestLog?.triadPillarsMet ?? 0,
-      stressRiskLevel: latestLog?.stressRiskLevel ?? "LOW",
+      sleepHours: todayLog?.sleepHours ?? 0,
+      nonAcademicScreenHours: todayLog?.nonAcademicScreenHours ?? 0,
+      pss4TotalScore: todayLog?.pss4TotalScore ?? 0,
+      triadPillarsMet: todayLog ? todayLog.triadPillarsMet : todayEval.triadPillarsMet,
+      stressRiskLevel: todayLog?.stressRiskLevel ?? "LOW",
       sedentaryRiskStatus: todayEval.sedentaryRiskStatus,
+      hasDailyCheckIn: Boolean(todayLog),
     },
     weeklySummary: {
       weeklyMetsTotal,
@@ -80,4 +89,3 @@ dashboardRouter.get("/triad", requireAuth, async (req: AuthenticatedRequest, res
     })),
   });
 });
-

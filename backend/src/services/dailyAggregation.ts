@@ -8,12 +8,15 @@ export function toUtcDateOnly(input: string | Date): Date {
   return new Date(`${isoDay}T00:00:00.000Z`);
 }
 
-/** Mengagregasi ulang total sedentary, MVPA, rasio, dan skor Triad pada log harian terkait. */
-export async function syncDailyWellbeingAggregates(userId: string, dateInput: string | Date) {
+/** Mengambil total durasi duduk (jam) dan MVPA (menit) untuk tanggal UTC tertentu. */
+export async function getDailyActivityAndSedentaryTotals(
+  userId: string,
+  dateInput: string | Date
+): Promise<{ dayStart: Date; totalSedentaryHours: number; totalMvpaMinutes: number }> {
   const dayStart = toUtcDateOnly(dateInput);
   const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
 
-  const [sedentaryAgg, activityAgg, existingLog] = await Promise.all([
+  const [sedentaryAgg, activityAgg] = await Promise.all([
     prisma.sedentarySession.aggregate({
       where: { userId, startTime: { gte: dayStart, lt: dayEnd } },
       _sum: { durationMinutes: true },
@@ -22,15 +25,23 @@ export async function syncDailyWellbeingAggregates(userId: string, dateInput: st
       where: { userId, activityDate: dayStart },
       _sum: { durationMinutes: true },
     }),
-    prisma.dailyWellbeingLog.findUnique({
-      where: { userId_logDate: { userId, logDate: dayStart } },
-    }),
   ]);
 
-  const totalSedentaryHours = Number(
-    ((sedentaryAgg._sum.durationMinutes ?? 0) / 60).toFixed(2)
-  );
-  const totalMvpaMinutes = activityAgg._sum.durationMinutes ?? 0;
+  return {
+    dayStart,
+    totalSedentaryHours: Number(((sedentaryAgg._sum.durationMinutes ?? 0) / 60).toFixed(2)),
+    totalMvpaMinutes: activityAgg._sum.durationMinutes ?? 0,
+  };
+}
+
+/** Mengagregasi ulang total sedentary, MVPA, rasio, dan skor Triad pada log harian terkait. */
+export async function syncDailyWellbeingAggregates(userId: string, dateInput: string | Date) {
+  const { dayStart, totalSedentaryHours, totalMvpaMinutes } =
+    await getDailyActivityAndSedentaryTotals(userId, dateInput);
+
+  const existingLog = await prisma.dailyWellbeingLog.findUnique({
+    where: { userId_logDate: { userId, logDate: dayStart } },
+  });
 
   if (!existingLog) {
     return null;
@@ -54,4 +65,3 @@ export async function syncDailyWellbeingAggregates(userId: string, dateInput: st
     },
   });
 }
-

@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { allowedCorsOrigins } from "./config/env.ts";
+import { AppError } from "./lib/response.ts";
 import { errorHandler } from "./middleware/errorHandler.ts";
 import { activitiesRouter } from "./routes/activities.ts";
 import { aiCoachRouter } from "./routes/aiCoach.ts";
@@ -42,6 +43,10 @@ export function createApp() {
   app.use("/api/v1/dashboard", dashboardRouter);
   app.use("/api/v1/ai-coach", aiCoachRouter);
   app.use("/api/v1/notifications", notificationsRouter);
+
+  app.use((req, _res, next) => {
+    next(new AppError(404, "NOT_FOUND", `Endpoint '${req.method} ${req.originalUrl}' tidak ditemukan.`));
+  });
 
   app.use(errorHandler);
   return app;
