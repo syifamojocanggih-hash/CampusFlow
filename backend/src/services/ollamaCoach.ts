@@ -207,3 +207,50 @@ export async function generateClinicalWellbeingInsight(
     };
   }
 }
+
+export interface OllamaStatusResult {
+  reachable: boolean;
+  baseUrl: string;
+  configuredModel: string;
+  modelInstalled: boolean;
+  availableModels: string[];
+}
+
+/** Mengecek apakah server Ollama lokal aktif dan model yang dikonfigurasi sudah ter-pull. */
+export async function checkOllamaStatus(
+  fetchFn: typeof fetch = fetch
+): Promise<OllamaStatusResult> {
+  const baseUrl = env.OLLAMA_BASE_URL.replace(/\/+$/, "");
+  try {
+    const response = await fetchFn(`${baseUrl}/api/tags`, {
+      method: "GET",
+      signal: AbortSignal.timeout(2500),
+    });
+    if (!response.ok) {
+      throw new Error(`Ollama status HTTP ${response.status}`);
+    }
+    const json = (await response.json()) as { models?: Array<{ name?: string }> };
+    const availableModels = (json.models ?? [])
+      .map((item) => item.name ?? "")
+      .filter(Boolean);
+    const modelInstalled = availableModels.some(
+      (name) => name === env.OLLAMA_MODEL || name.startsWith(`${env.OLLAMA_MODEL}:`)
+    );
+    return {
+      reachable: true,
+      baseUrl,
+      configuredModel: env.OLLAMA_MODEL,
+      modelInstalled,
+      availableModels,
+    };
+  } catch {
+    return {
+      reachable: false,
+      baseUrl,
+      configuredModel: env.OLLAMA_MODEL,
+      modelInstalled: false,
+      availableModels: [],
+    };
+  }
+}
+

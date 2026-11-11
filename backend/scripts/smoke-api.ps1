@@ -80,7 +80,12 @@ Assert-Step "7. GET /dashboard/triad?days=14" {
   Invoke-RestMethod -Uri "$BaseUrl/dashboard/triad?days=14" -Headers $headers
 } | Out-Null
 
-$ai = Assert-Step "8. POST /ai-coach/generate" {
+$ollama = Assert-Step "8a. GET /ai-coach/status (Cek Ollama Lokal)" {
+  Invoke-RestMethod -Uri "$BaseUrl/ai-coach/status" -Headers $headers
+}
+Write-Host "   -> Ollama Reachable: $($ollama.data.reachable) | Model ($($ollama.data.configuredModel)) Installed: $($ollama.data.modelInstalled)" -ForegroundColor Yellow
+
+$ai = Assert-Step "8b. POST /ai-coach/generate" {
   Invoke-RestMethod -Uri "$BaseUrl/ai-coach/generate" -Method POST -Headers $headers
 }
 Write-Host "   -> AI Mediator: $($ai.data.dominantMediator) (Source: $($ai.data.generationSource))" -ForegroundColor Yellow

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildDeterministicFallbackInsight,
+  checkOllamaStatus,
   generateClinicalWellbeingInsight,
   type Telemetry7DaysInput,
 } from "./ollamaCoach.ts";
@@ -99,3 +100,26 @@ test("generateClinicalWellbeingInsight jatuh ke CLINICAL_FALLBACK saat Ollama lo
   assert.equal(result.source, "CLINICAL_FALLBACK");
   assert.equal(result.insight.dominantMediator, "SLEEP_MEDIATION_DEFICIT");
 });
+
+test("checkOllamaStatus melaporkan status model lokal dari /api/tags dan menangani kondisi offline", async () => {
+  const onlineFetch = (async () =>
+    new Response(
+      JSON.stringify({
+        models: [{ name: "llama3.2:latest" }, { name: "qwen2.5:7b" }],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    )) as typeof fetch;
+
+  const onlineStatus = await checkOllamaStatus(onlineFetch);
+  assert.equal(onlineStatus.reachable, true);
+  assert.equal(onlineStatus.modelInstalled, true);
+  assert.deepEqual(onlineStatus.availableModels, ["llama3.2:latest", "qwen2.5:7b"]);
+
+  const offlineFetch = (async () => {
+    throw new Error("ECONNREFUSED");
+  }) as typeof fetch;
+  const offlineStatus = await checkOllamaStatus(offlineFetch);
+  assert.equal(offlineStatus.reachable, false);
+  assert.equal(offlineStatus.modelInstalled, false);
+});
+

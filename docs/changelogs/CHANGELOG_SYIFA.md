@@ -21,6 +21,15 @@
 
 ---
 
+## [2026-11-11] — Endpoint Diagnostik Status Ollama Lokal (`GET /api/v1/ai-coach/status`) (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-4.1`
+- **Ringkasan:** Menambahkan `checkOllamaStatus` di `ollamaCoach.ts` dan endpoint `GET /api/v1/ai-coach/status` untuk memeriksa koneksi Ollama lokal & ketersediaan model sebelum memanggil `/ai-coach/generate`, serta memperbarui `smoke-api.ps1` & `API_SPECIFICATION.md`.
+- **Daftar File Diubah:**
+  - `backend/src/services/ollamaCoach.ts`, `backend/src/services/ollamaCoach.test.ts`
+  - `backend/src/routes/aiCoach.ts`, `backend/scripts/smoke-api.ps1`
+  - `docs/backend/API_SPECIFICATION.md`
+- **Verifikasi:** `npm --prefix backend run typecheck`, `npm --prefix backend run build`, `npm --prefix backend test` (16/16 test lolos), dan `npm run guard`.
+
 ## [2026-11-11] — Migrasi AI Coach ke Ollama Lokal (Tanpa API Key) & Auto-Increment Streak Harian (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-3.1`, `BE-3.2`, `BE-4.1`
 - **Ringkasan:** Mengganti provider AI Coach dari Google Gemini Cloud API ke **Ollama Lokal** (`OLLAMA_BASE_URL` + `OLLAMA_MODEL` via `/api/chat` JSON Schema terstruktur + fallback klinis deterministik di `ollamaCoach.ts`, menghapus `@google/genai`), serta menambahkan perhitungan otomatis `currentStreakDays` yang idempoten saat check-in `POST /api/v1/wellbeing/daily`.

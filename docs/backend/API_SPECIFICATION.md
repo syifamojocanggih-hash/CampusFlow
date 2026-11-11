@@ -95,7 +95,8 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
 
 ## 4. Endpoints AI Coach & Web Push
 
-- `POST /api/v1/ai-coach/generate` — Mengumpulkan telemetri 7 hari terakhir, memanggil `geminiCoach.ts`, menyimpan ke `AiCoachingInsight`, dan mengembalikan insight.
+- `GET /api/v1/ai-coach/status` — Mengecek apakah server Ollama lokal aktif dan `OLLAMA_MODEL` sudah ter-pull (`/api/tags`).
+- `POST /api/v1/ai-coach/generate` — Mengumpulkan telemetri 7 hari terakhir, memanggil `ollamaCoach.ts`, menyimpan ke `AiCoachingInsight`, dan mengembalikan insight.
 - `GET /api/v1/ai-coach/latest` — Mengembalikan insight terbaru pengguna.
 - `PATCH /api/v1/ai-coach/:id/complete` — Menandai aksi AI Coach selesai + menambah `+50 XP`.
 - `GET /api/v1/notifications/vapid-public-key` — Mengambil `publicKey` VAPID & status konfigurasi Web Push server.

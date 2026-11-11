@@ -2,9 +2,17 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.ts";
 import { AppError, sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
-import { generateClinicalWellbeingInsight } from "../services/ollamaCoach.ts";
+import {
+  checkOllamaStatus,
+  generateClinicalWellbeingInsight,
+} from "../services/ollamaCoach.ts";
 
 export const aiCoachRouter = Router();
+
+aiCoachRouter.get("/status", requireAuth, async (_req, res) => {
+  const status = await checkOllamaStatus();
+  sendSuccess(res, status);
+});
 
 aiCoachRouter.post("/generate", requireAuth, async (req: AuthenticatedRequest, res) => {
   const userId = req.user!.sub;
