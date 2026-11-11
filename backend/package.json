@@ -2,15 +2,16 @@
   "name": "@campusflow/backend",
   "private": true,
   "version": "1.0.0",
-  "description": "CampusFlow Backend API, Clinical Scoring Engine, Prisma MySQL, & Gemini AI Coach",
+  "description": "CampusFlow Backend API, Clinical Scoring Engine, Prisma MySQL, & Ollama Local AI Coach",
   "type": "module",
   "main": "dist/backend/src/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/backend/src/index.js",
+    "start:prod": "npx prisma migrate deploy && node dist/backend/src/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test src/services/clinicalScoring.test.ts src/services/ollamaCoach.test.ts src/app.test.ts",
+    "test": "node --test src/services/clinicalScoring.test.ts src/services/ollamaCoach.test.ts src/middleware/rateLimit.test.ts src/app.test.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts"

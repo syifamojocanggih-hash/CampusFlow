@@ -20,6 +20,9 @@ Login standar atau masuk instan sebagai akun demo `demo@campusflow.id`.
 Menyimpan hasil kalibrasi postur 5 detik (`PostureBaseline`) ke `User.postureBaselineJson`.
 - **Request:** `{ shoulderWidth, shoulderY, neckVerticalDist, torsoNeckAngle, timestamp }`
 
+### `DELETE /api/v1/users/me/data` *(JWT Required)*
+Menghapus seluruh log sesi duduk, aktivitas fisik, wellbeing harian, asesmen PSS-10, dan insight AI milik akun terkait serta mereset `streak`, `xpPoints`, baseline, & push subscription (kontrol privasi di Pengaturan).
+
 ---
 
 ## 2. Endpoints Telemetri Duduk & Aktivitas Fisik
@@ -96,7 +99,8 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
 ## 4. Endpoints AI Coach & Web Push
 
 - `GET /api/v1/ai-coach/status` — Mengecek apakah server Ollama lokal aktif dan `OLLAMA_MODEL` sudah ter-pull (`/api/tags`).
-- `POST /api/v1/ai-coach/generate` — Mengumpulkan telemetri 7 hari terakhir, memanggil `ollamaCoach.ts`, menyimpan ke `AiCoachingInsight`, dan mengembalikan insight.
+- `GET /api/v1/ai-coach/history?limit=20` — Mengambil daftar riwayat insight AI Coach terbaru (maksimal 50).
+- `POST /api/v1/ai-coach/generate` — Mengumpulkan telemetri 7 hari terakhir, memanggil `ollamaCoach.ts`, menyimpan ke `AiCoachingInsight`, dan mengembalikan insight *(rate limit: 10 req/menit)*.
 - `GET /api/v1/ai-coach/latest` — Mengembalikan insight terbaru pengguna.
 - `PATCH /api/v1/ai-coach/:id/complete` — Menandai aksi AI Coach selesai + menambah `+50 XP`.
 - `GET /api/v1/notifications/vapid-public-key` — Mengambil `publicKey` VAPID & status konfigurasi Web Push server.

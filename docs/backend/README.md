@@ -33,5 +33,5 @@ Syifa bertanggung jawab membangun seluruh layanan server, database relasional kl
 2. [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md): Kode skema Prisma MySQL lengkap dan skenario seed 14 hari.
 3. [`API_SPECIFICATION.md`](API_SPECIFICATION.md): Rincian payload setiap endpoint `/api/v1/*`.
 4. [`CLINICAL_SCORING.md`](CLINICAL_SCORING.md): Butir kuesioner PSS-4/10, rumus reverse score, METs, dan konstanta klinis.
-5. [`LLM_AI_COACH.md`](LLM_AI_COACH.md): Implementasi Gemini 2.5 Flash Structured Output & prompt sistem.
+5. [`LLM_AI_COACH.md`](LLM_AI_COACH.md): Implementasi Ollama Lokal Structured JSON & prompt sistem.
 6. [`SETUP.md`](SETUP.md): Panduan instalasi lokal MySQL, migrasi Prisma, & generate VAPID keys.

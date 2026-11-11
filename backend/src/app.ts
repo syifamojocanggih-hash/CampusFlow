@@ -4,6 +4,7 @@ import helmet from "helmet";
 import { allowedCorsOrigins } from "./config/env.ts";
 import { AppError } from "./lib/response.ts";
 import { errorHandler } from "./middleware/errorHandler.ts";
+import { createRateLimiter } from "./middleware/rateLimit.ts";
 import { activitiesRouter } from "./routes/activities.ts";
 import { aiCoachRouter } from "./routes/aiCoach.ts";
 import { authRouter } from "./routes/auth.ts";
@@ -32,8 +33,15 @@ export function createApp() {
   );
   app.use(express.json({ limit: "1mb" }));
 
+  const authLimiter = createRateLimiter({
+    windowMs: 60_000,
+    maxRequests: 30,
+    keyPrefix: "auth",
+    message: "Terlalu banyak percobaan autentikasi. Coba lagi dalam 1 menit.",
+  });
+
   app.use("/api/v1/health", healthRouter);
-  app.use("/api/v1/auth", authRouter);
+  app.use("/api/v1/auth", authLimiter, authRouter);
   app.use("/api/v1/users", usersRouter);
   app.use("/api/v1/vision", visionRouter);
   app.use("/api/v1/sedentary", sedentaryRouter);

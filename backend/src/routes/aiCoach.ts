@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.ts";
 import { AppError, sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
+import { createRateLimiter } from "../middleware/rateLimit.ts";
 import {
   checkOllamaStatus,
   generateClinicalWellbeingInsight,
@@ -9,12 +10,33 @@ import {
 
 export const aiCoachRouter = Router();
 
+const aiGenerateLimiter = createRateLimiter({
+  windowMs: 60_000,
+  maxRequests: 10,
+  keyPrefix: "ai-coach-generate",
+  message: "Terlalu banyak permintaan analisis AI Coach. Tunggu sebentar sebelum mencoba lagi.",
+});
+
 aiCoachRouter.get("/status", requireAuth, async (_req, res) => {
   const status = await checkOllamaStatus();
   sendSuccess(res, status);
 });
 
-aiCoachRouter.post("/generate", requireAuth, async (req: AuthenticatedRequest, res) => {
+aiCoachRouter.get("/history", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const limit = Math.min(50, Math.max(1, Number(req.query.limit ?? 20)));
+  const history = await prisma.aiCoachingInsight.findMany({
+    where: { userId: req.user!.sub },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+  sendSuccess(res, history);
+});
+
+aiCoachRouter.post(
+  "/generate",
+  requireAuth,
+  aiGenerateLimiter,
+  async (req: AuthenticatedRequest, res) => {
   const userId = req.user!.sub;
   const since7Days = new Date();
   since7Days.setUTCHours(0, 0, 0, 0);

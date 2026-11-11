@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.ts";
@@ -58,6 +59,28 @@ usersRouter.patch("/me/settings", requireAuth, async (req: AuthenticatedRequest,
     },
   });
   sendSuccess(res, updated);
+});
+
+usersRouter.delete("/me/data", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const userId = req.user!.sub;
+  await prisma.$transaction([
+    prisma.sedentarySession.deleteMany({ where: { userId } }),
+    prisma.physicalActivity.deleteMany({ where: { userId } }),
+    prisma.dailyWellbeingLog.deleteMany({ where: { userId } }),
+    prisma.clinicalAssessment.deleteMany({ where: { userId } }),
+    prisma.aiCoachingInsight.deleteMany({ where: { userId } }),
+    prisma.user.update({
+      where: { id: userId },
+      data: {
+        postureBaselineJson: Prisma.DbNull,
+        pushSubscription: Prisma.DbNull,
+        currentStreakDays: 0,
+        xpPoints: 0,
+      },
+    }),
+  ]);
+
+  sendSuccess(res, { cleared: true });
 });
 
 visionRouter.patch("/baseline", requireAuth, async (req: AuthenticatedRequest, res) => {

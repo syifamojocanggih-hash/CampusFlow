@@ -21,6 +21,15 @@
 
 ---
 
+## [2026-11-11] — Rate Limiter, History AI Coach, Hapus Data Privasi, & Graceful Shutdown (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
+- **Ringkasan:** Menambahkan `createRateLimiter` pada `/api/v1/auth` dan `POST /api/v1/ai-coach/generate` (`429 RATE_LIMITED`), endpoint `GET /api/v1/ai-coach/history`, endpoint privasi `DELETE /api/v1/users/me/data`, graceful shutdown (`SIGINT`/`SIGTERM` + `prisma.$disconnect()`) di `index.ts`, skrip `start:prod`, serta menyelaraskan deskripsi Ollama di `docs/backend/README.md`.
+- **Daftar File Diubah:**
+  - `backend/src/middleware/rateLimit.ts`, `backend/src/middleware/rateLimit.test.ts`
+  - `backend/src/routes/aiCoach.ts`, `backend/src/routes/users.ts`, `backend/src/app.ts`, `backend/src/index.ts`, `backend/src/app.test.ts`, `backend/package.json`
+  - `docs/backend/README.md`, `docs/backend/API_SPECIFICATION.md`
+- **Verifikasi:** `npm --prefix backend run typecheck`, `npm --prefix backend run build`, `npm --prefix backend test` (17/17 test lolos), dan `npm run guard`.
+
 ## [2026-11-11] — Setup Database MySQL `campusflow`, Migrasi Awal Prisma, Seed 14 Hari, & Live Smoke Test (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-1.2`, `BE-5.2`
 - **Ringkasan:** Membuat database MySQL `campusflow`, menghasilkan migrasi awal Prisma (`20261111151343_init`), menjalankan seed 14 hari akun demo (`demo@campusflow.id`), serta memverifikasi 11 langkah live API melalui `scripts/smoke-api.ps1` terhadap server Express dan MySQL nyata.

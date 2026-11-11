@@ -99,6 +99,7 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
       },
       sedentarySession: {
         aggregate: async () => ({ _sum: { durationMinutes: 300 } }),
+        deleteMany: async () => ({ count: 1 }),
       },
       physicalActivity: {
         aggregate: async () => ({ _sum: { durationMinutes: 35 } }),
@@ -106,6 +107,7 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
           id: "act-1",
           ...args.data,
         }),
+        deleteMany: async () => ({ count: 1 }),
       },
       dailyWellbeingLog: {
         upsert: async (args: { create: Record<string, unknown> }) => ({
@@ -113,6 +115,7 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
           ...args.create,
         }),
         findUnique: async () => null,
+        deleteMany: async () => ({ count: 1 }),
         findMany: async (args?: { orderBy?: { logDate?: "asc" | "desc" } }) => {
           const rows = [
             {
@@ -141,6 +144,7 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
       },
       clinicalAssessment: {
         findFirst: async () => null,
+        deleteMany: async () => ({ count: 1 }),
       },
       aiCoachingInsight: {
         create: async (args: { data: Record<string, unknown> }) => ({
@@ -149,7 +153,16 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
           isCompleted: false,
           ...args.data,
         }),
+        findMany: async () => [
+          {
+            id: "insight-1",
+            dominantMediator: "SLEEP_MEDIATION_DEFICIT",
+            isCompleted: false,
+          },
+        ],
+        deleteMany: async () => ({ count: 1 }),
       },
+      $transaction: (async (ops: unknown[]) => ops) as unknown as Record<string, unknown>,
     },
     async () => {
       // 1. Login akun demo
@@ -222,7 +235,7 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
       assert.equal(actRes.status, 201);
       assert.equal(actJson.data.calculatedMets, 100);
 
-      // 6. Generate AI Coach -> fallback klinis deterministik saat tanpa GEMINI_API_KEY
+      // 6. Generate AI Coach -> fallback klinis deterministik saat Ollama lokal offline
       const aiRes = await fetch(`${baseUrl}/ai-coach/generate`, {
         method: "POST",
         headers: authHeaders,
@@ -233,6 +246,21 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
       assert.equal(aiRes.status, 201);
       assert.equal(aiJson.data.dominantMediator, "SLEEP_MEDIATION_DEFICIT");
       assert.ok(aiJson.data.recommendedMetsToday > 0);
+
+      // 7. Ambil riwayat AI Coach
+      const aiHistRes = await fetch(`${baseUrl}/ai-coach/history`, { headers: authHeaders });
+      const aiHistJson = (await aiHistRes.json()) as { data: unknown[] };
+      assert.equal(aiHistRes.status, 200);
+      assert.equal(aiHistJson.data.length, 1);
+
+      // 8. Hapus data privasi pengguna (DELETE /users/me/data)
+      const clearRes = await fetch(`${baseUrl}/users/me/data`, {
+        method: "DELETE",
+        headers: authHeaders,
+      });
+      const clearJson = (await clearRes.json()) as { data: { cleared: boolean } };
+      assert.equal(clearRes.status, 200);
+      assert.equal(clearJson.data.cleared, true);
     }
   );
 });
