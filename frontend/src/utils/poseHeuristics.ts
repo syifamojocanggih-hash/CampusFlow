@@ -54,7 +54,7 @@ export const VISION_THRESHOLDS = {
   SLOUCH_SHOULDER_DROP_Y: 0.08,
   TOO_CLOSE_DEPTH_RATIO: 1.28,
   ASYMMETRIC_TILT_DEG: 12.0,
-  OVERHEAD_ELBOW_MIN_DEG: 140,
+  OVERHEAD_ELBOW_MIN_DEG: 120,
   STAND_UP_SHOULDER_DELTA_Y: 0.2,
   ABSENT_VISIBILITY_THRESHOLD: 0.25,
   EMA_ALPHA: 0.25,
@@ -409,8 +409,10 @@ export function evaluatePostureFrame(
 
   const isOverheadStretchValid =
     hasArms &&
-    leftWrist.y < nose.y &&
-    rightWrist.y < nose.y &&
+    (leftWrist.y < nose.y || leftWrist.y < 0.3) &&
+    (rightWrist.y < nose.y || rightWrist.y < 0.3) &&
+    leftWrist.y < leftSh.y &&
+    rightWrist.y < rightSh.y &&
     leftElbowAngle > VISION_THRESHOLDS.OVERHEAD_ELBOW_MIN_DEG &&
     rightElbowAngle > VISION_THRESHOLDS.OVERHEAD_ELBOW_MIN_DEG;
 
