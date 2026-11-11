@@ -1,14 +1,23 @@
 import { Router } from "express";
+import { z } from "zod";
 import { prisma } from "../lib/prisma.ts";
 import { AppError, sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
 import { createRateLimiter } from "../middleware/rateLimit.ts";
+import {
+  getDailyActivityAndSedentaryTotals,
+  toUtcDateOnly,
+} from "../services/dailyAggregation.ts";
 import {
   checkOllamaStatus,
   generateClinicalWellbeingInsight,
 } from "../services/ollamaCoach.ts";
 
 export const aiCoachRouter = Router();
+
+const generateCoachBodySchema = z.object({
+  notes: z.string().trim().max(500).optional(),
+});
 
 const aiGenerateLimiter = createRateLimiter({
   windowMs: 60_000,
@@ -38,11 +47,23 @@ aiCoachRouter.post(
   aiGenerateLimiter,
   async (req: AuthenticatedRequest, res) => {
   const userId = req.user!.sub;
-  const since7Days = new Date();
-  since7Days.setUTCHours(0, 0, 0, 0);
+  let userNotes: string | null = null;
+  if (req.body && typeof req.body === "object" && Object.keys(req.body).length > 0) {
+    const parsedBody = generateCoachBodySchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      throw new AppError(400, "VALIDATION_ERROR", "Format input catatan AI Coach tidak valid.", {
+        issues: parsedBody.error.flatten(),
+      });
+    }
+    userNotes = parsedBody.data.notes ?? null;
+  }
+
+  const todayStart = toUtcDateOnly(new Date());
+  const todayIso = todayStart.toISOString().slice(0, 10);
+  const since7Days = new Date(todayStart);
   since7Days.setUTCDate(since7Days.getUTCDate() - 6);
 
-  const [logs, latestAssessment] = await Promise.all([
+  const [logs, latestAssessment, recentInsights, todayTotals] = await Promise.all([
     prisma.dailyWellbeingLog.findMany({
       where: { userId, logDate: { gte: since7Days } },
       orderBy: { logDate: "asc" },
@@ -51,18 +72,38 @@ aiCoachRouter.post(
       where: { userId },
       orderBy: { assessmentDate: "desc" },
     }),
+    prisma.aiCoachingInsight.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+    getDailyActivityAndSedentaryTotals(userId, todayStart),
   ]);
 
-  const latest = logs.at(-1);
+  const todayLog = logs.find((log) => log.logDate.toISOString().slice(0, 10) === todayIso);
+  const totalSedentaryHours = Math.max(
+    todayTotals.totalSedentaryHours,
+    todayLog?.totalSedentaryHours ?? 0
+  );
+  const totalMvpaMinutes = Math.max(
+    todayTotals.totalMvpaMinutes,
+    todayLog?.totalMvpaMinutes ?? 0
+  );
+  const mvpaPerSedentaryRatio =
+    todayLog?.mvpaPerSedentaryRatio ??
+    (totalSedentaryHours > 0
+      ? Number((totalMvpaMinutes / totalSedentaryHours).toFixed(2))
+      : totalMvpaMinutes);
+
   const telemetryInput = {
     today: {
-      totalSedentaryHours: latest?.totalSedentaryHours ?? 0,
-      totalMvpaMinutes: latest?.totalMvpaMinutes ?? 0,
-      mvpaPerSedentaryRatio: latest?.mvpaPerSedentaryRatio ?? 0,
-      sleepHours: latest?.sleepHours ?? 7,
-      sleepQualityScore: latest?.sleepQualityScore ?? 3,
-      pss4TotalScore: latest?.pss4TotalScore ?? 4,
-      triadPillarsMet: latest?.triadPillarsMet ?? 0,
+      totalSedentaryHours,
+      totalMvpaMinutes,
+      mvpaPerSedentaryRatio,
+      sleepHours: todayLog ? todayLog.sleepHours : null,
+      sleepQualityScore: todayLog ? todayLog.sleepQualityScore : null,
+      pss4TotalScore: todayLog ? todayLog.pss4TotalScore : null,
+      triadPillarsMet: todayLog ? todayLog.triadPillarsMet : 0,
     },
     history7Days: logs.map((log) => ({
       logDate: log.logDate.toISOString().slice(0, 10),
@@ -73,9 +114,17 @@ aiCoachRouter.post(
       triadPillarsMet: log.triadPillarsMet,
     })),
     latestPss10Score: latestAssessment?.totalScore ?? null,
+    userNotes,
+    recentInsights: recentInsights.map((item) => ({
+      isCompleted: Boolean(item.isCompleted),
+      recommendedMetsToday:
+        typeof item.recommendedMetsToday === "number" ? item.recommendedMetsToday : undefined,
+      createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : undefined,
+    })),
   };
 
-  const { insight, source, model } = await generateClinicalWellbeingInsight(telemetryInput);
+  const { insight, source, model, escalationFlag } =
+    await generateClinicalWellbeingInsight(telemetryInput);
 
   const saved = await prisma.aiCoachingInsight.create({
     data: {
@@ -88,7 +137,7 @@ aiCoachRouter.post(
     },
   });
 
-  sendSuccess(res, { ...saved, generationSource: source, model }, 201);
+  sendSuccess(res, { ...saved, generationSource: source, model, escalationFlag }, 201);
 });
 
 aiCoachRouter.get("/latest", requireAuth, async (req: AuthenticatedRequest, res) => {

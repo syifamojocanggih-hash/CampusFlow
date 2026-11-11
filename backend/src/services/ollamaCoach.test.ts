@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   buildDeterministicFallbackInsight,
   checkOllamaStatus,
+  computeCoachConstraints,
   evaluateClinicalRuleFlags,
   generateClinicalWellbeingInsight,
   type Telemetry7DaysInput,
@@ -156,5 +157,100 @@ test("evaluateClinicalRuleFlags memisahkan batas sedentary <= 6 jam vs prioritas
   assert.equal(overlapPriority.sleepDeficit, true);
   assert.equal(overlapPriority.sedentaryOverload, true);
   assert.equal(overlapPriority.priorityMediator, "SLEEP_MEDIATION_DEFICIT");
+});
+
+test("evaluateClinicalRuleFlags memisahkan pss4 null (belum check-in) dan mendeteksi eskalasi darurat", () => {
+  const missingCheckIn = evaluateClinicalRuleFlags({
+    totalSedentaryHours: 4.0,
+    totalMvpaMinutes: 10,
+    mvpaPerSedentaryRatio: 2.5,
+    sleepHours: null,
+    sleepQualityScore: null,
+    pss4TotalScore: null,
+    triadPillarsMet: 0,
+  });
+  assert.equal(missingCheckIn.missingDailyCheckIn, true);
+  assert.equal(missingCheckIn.escalationFlag, false);
+  assert.equal(missingCheckIn.dominantMediator, "LOW_MVPA_VOLUME");
+
+  const fallbackMissing = buildDeterministicFallbackInsight({
+    today: {
+      totalSedentaryHours: 4.0,
+      totalMvpaMinutes: 10,
+      mvpaPerSedentaryRatio: 2.5,
+      sleepHours: null,
+      sleepQualityScore: null,
+      pss4TotalScore: null,
+      triadPillarsMet: 0,
+    },
+    history7Days: [],
+  });
+  assert.match(fallbackMissing.diagnosisSummary, /check-in/i);
+
+  const distressByNotes = evaluateClinicalRuleFlags(
+    {
+      totalSedentaryHours: 5.0,
+      totalMvpaMinutes: 35,
+      mvpaPerSedentaryRatio: 7.0,
+      sleepHours: 7.5,
+      sleepQualityScore: 4,
+      pss4TotalScore: 6,
+      triadPillarsMet: 3,
+    },
+    { userNotes: "Hari ini cemas berlebihan dan terasa tidak sanggup belajar" }
+  );
+  assert.equal(distressByNotes.escalationFlag, true);
+  assert.deepEqual(distressByNotes.flags, []);
+  assert.equal(distressByNotes.dominantMediator, "OPTIMAL_BALANCE");
+});
+
+test("computeCoachConstraints & guardrails mengunci dominantMediator, allowedRanges, dan batas skip -40%", async () => {
+  const constraints = computeCoachConstraints("LOW_MVPA_VOLUME", false, [
+    { isCompleted: false, recommendedMetsToday: 220 },
+    { isCompleted: false, recommendedMetsToday: 220 },
+    { isCompleted: false, recommendedMetsToday: 220 },
+  ]);
+  assert.equal(constraints.skipAdaptation.applied, true);
+  assert.equal(constraints.skipAdaptation.consecutiveSkips, 3);
+  assert.ok(constraints.allowedRanges.metsRange[0] >= Math.round(220 * 0.6));
+
+  // Mock LLM sengaja mengembalikan mediator salah & METs di luar rentang -> wajib dikunci guardrail
+  const rogueFetch = (async () =>
+    new Response(
+      JSON.stringify({
+        message: {
+          content: JSON.stringify({
+            dominantMediator: "SEDENTARY_OVERLOAD",
+            diagnosisSummary: "Bebanmu berat hari ini.",
+            isotemporalActionPlan: "Lari kencang 45 menit sekarang.",
+            recommendedMetsToday: 900,
+            scientificCitationNote: "Wu & Zhou (2024) mendukung relaksasi.",
+          }),
+        },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    )) as typeof fetch;
+
+  const guarded = await generateClinicalWellbeingInsight(
+    {
+      today: {
+        totalSedentaryHours: 5.0,
+        totalMvpaMinutes: 35,
+        mvpaPerSedentaryRatio: 7.0,
+        sleepHours: 7.0,
+        sleepQualityScore: 3,
+        pss4TotalScore: 12,
+        triadPillarsMet: 3,
+      },
+      history7Days: [],
+    },
+    rogueFetch
+  );
+
+  assert.equal(guarded.escalationFlag, true);
+  assert.equal(guarded.insight.dominantMediator, "EXAM_ACUTE_STRESS");
+  assert.ok(guarded.insight.recommendedMetsToday <= 160);
+  assert.match(guarded.insight.diagnosisSummary, /konselor/i);
+  assert.doesNotMatch(guarded.insight.isotemporalActionPlan, /lari kencang/i);
 });
 

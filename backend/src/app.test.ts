@@ -128,9 +128,14 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
         findUnique: async () => null,
         deleteMany: async () => ({ count: 1 }),
         findMany: async (args?: { orderBy?: { logDate?: "asc" | "desc" } }) => {
+          const now = new Date();
+          const todayIso = now.toISOString().slice(0, 10);
+          const yest = new Date(now);
+          yest.setUTCDate(yest.getUTCDate() - 1);
+          const yesterdayIso = yest.toISOString().slice(0, 10);
           const rows = [
             {
-              logDate: new Date("2026-11-11T00:00:00.000Z"),
+              logDate: new Date(`${todayIso}T00:00:00.000Z`),
               totalSedentaryHours: 5.0,
               totalMvpaMinutes: 35,
               mvpaPerSedentaryRatio: 7.0,
@@ -140,7 +145,7 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
               triadPillarsMet: 1,
             },
             {
-              logDate: new Date("2026-11-10T00:00:00.000Z"),
+              logDate: new Date(`${yesterdayIso}T00:00:00.000Z`),
               totalSedentaryHours: 6.0,
               totalMvpaMinutes: 30,
               mvpaPerSedentaryRatio: 5.0,
@@ -252,11 +257,12 @@ test("Alur lengkap Auth Demo -> Wellbeing PSS-4 -> Activities -> AI Coach (mocke
         headers: authHeaders,
       });
       const aiJson = (await aiRes.json()) as {
-        data: { dominantMediator: string; recommendedMetsToday: number };
+        data: { dominantMediator: string; recommendedMetsToday: number; escalationFlag: boolean };
       };
       assert.equal(aiRes.status, 201);
       assert.equal(aiJson.data.dominantMediator, "SLEEP_MEDIATION_DEFICIT");
-      assert.ok(aiJson.data.recommendedMetsToday > 0);
+      assert.equal(aiJson.data.escalationFlag, true);
+      assert.ok(aiJson.data.recommendedMetsToday >= 80 && aiJson.data.recommendedMetsToday <= 160);
 
       // 7. Ambil riwayat AI Coach
       const aiHistRes = await fetch(`${baseUrl}/ai-coach/history`, { headers: authHeaders });
@@ -281,4 +287,66 @@ test("GET /notifications/vapid-public-key mengembalikan status konfigurasi VAPID
   const json = (await res.json()) as { data: { configured: boolean } };
   assert.equal(res.status, 200);
   assert.equal(typeof json.data.configured, "boolean");
+});
+
+test("POST /ai-coach/generate menangani belum check-in harian (pss4=null) & catatan darurat", async () => {
+  const demoUser = {
+    id: DEMO_USER_ID,
+    name: "Mahasiswa Demo",
+    nim: "4.33.24.0.01",
+    email: "demo@campusflow.id",
+    passwordHash: "hashed",
+    department: "Teknik Informatika",
+    weeklyMetsTarget: 1500,
+    postureBaselineJson: null,
+    pushSubscription: null,
+    currentStreakDays: 0,
+    xpPoints: 0,
+    createdAt: new Date(),
+  };
+
+  await withStubbedPrisma(
+    {
+      user: { findUnique: async () => demoUser },
+      dailyWellbeingLog: { findMany: async () => [] },
+      clinicalAssessment: { findFirst: async () => null },
+      sedentarySession: { aggregate: async () => ({ _sum: { durationMinutes: 240 } }) },
+      physicalActivity: { aggregate: async () => ({ _sum: { durationMinutes: 10 } }) },
+      aiCoachingInsight: {
+        findMany: async () => [],
+        create: async (args: { data: Record<string, unknown> }) => ({
+          id: "insight-missing-checkin",
+          createdAt: new Date().toISOString(),
+          isCompleted: false,
+          ...args.data,
+        }),
+      },
+    },
+    async () => {
+      const loginRes = await fetch(`${baseUrl}/auth/demo`, { method: "POST" });
+      const { data: loginData } = (await loginRes.json()) as { data: { token: string } };
+      const res = await fetch(`${baseUrl}/ai-coach/generate`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${loginData.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ notes: "Merasa cemas berlebihan menjelang deadline" }),
+      });
+      const json = (await res.json()) as {
+        data: {
+          dominantMediator: string;
+          diagnosisSummary: string;
+          escalationFlag: boolean;
+          recommendedMetsToday: number;
+        };
+      };
+      assert.equal(res.status, 201);
+      assert.equal(json.data.dominantMediator, "LOW_MVPA_VOLUME");
+      assert.equal(json.data.escalationFlag, true);
+      assert.match(json.data.diagnosisSummary, /check-in/i);
+      assert.match(json.data.diagnosisSummary, /konselor/i);
+      assert.ok(json.data.recommendedMetsToday <= 160);
+    }
+  );
 });
