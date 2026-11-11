@@ -18,3 +18,11 @@
 ---
 
 <!-- Tambahkan entri baru Ibra di bawah garis ini (urutan terbaru di atas) -->
+
+## [2026-11-11] — Implementasi Kontrak Bersama & Modul Inti Vision AI (Branch: `main`)
+- **ID Tugas / Referensi:** `LEAD-1.1`, `VIS-1.1`, `VIS-1.2`
+- **Ringkasan:** Membangun modul kontrak TypeScript & konstanta klinis di `shared/contracts/index.ts`, serta implementasi inti heuristik MediaPipe (`poseHeuristics.ts`: baseline 5 detik, evaluasi slouch/proximity/tilt/stretch/standup, `PostureEmaSmoother`, `calcEyeAspectRatio`) lengkap dengan unit test Node native.
+- **Daftar File Diubah:**
+  - `shared/contracts/index.ts`, `shared/vision/poseHeuristics.ts`, `shared/vision/poseHeuristics.test.ts`, `shared/package.json`, `shared/README.md`
+  - `package.json`, `README.md`, `docs/vision/TASK_GUIDE.md`
+- **Verifikasi:** `npm run test:shared` (5/5 unit test lolos) dan diturunkan ke branch `backend` & `frontend`.

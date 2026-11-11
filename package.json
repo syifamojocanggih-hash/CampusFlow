@@ -9,6 +9,7 @@
   "scripts": {
     "prepare": "git config core.hooksPath .githooks || true",
     "guard": "node scripts/guard-check.mjs",
+    "test:shared": "node --test shared/vision/poseHeuristics.test.ts",
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
     "build:backend": "npm --prefix backend run build",

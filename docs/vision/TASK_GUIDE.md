@@ -11,7 +11,7 @@
 ### 🟢 LEAD-1.1: Sinkronisasi Kontrak Bersama (`shared/contracts/`)
 - **Target:** Mendefinisikan tipe TypeScript bersama (`PostureBaseline`, `PostureEvaluationResult`, `ActivityIntensity`, `StressSeverity`, `AiCoachingInsightDTO`) dari [`INTERFACES.md`](../universal/INTERFACES.md) di `shared/contracts/` agar langsung diturunkan ke `backend` dan `frontend`.
 - **Checklist:**
-  - [ ] Kontrak tipe siap dipakai oleh `backend` dan `frontend` tanpa duplikasi definisi.
+  - [x] Kontrak tipe siap dipakai oleh `backend` dan `frontend` tanpa duplikasi definisi (`shared/contracts/index.ts`).
 
 ### 🟢 LEAD-1.2: Review PR & Audit `[CROSS-SCOPE]`
 - **Checklist:**
@@ -26,13 +26,13 @@
 ### 🟢 VIS-1.1: Implementasi Modul Heuristik Kinematika (`poseHeuristics.ts`)
 - **Target:** `shared/vision/poseHeuristics.ts` (dan uji unit untuk sudut siku, kalibrasi baseline, slouching, proximity, asymmetric tilt, overhead stretch, dan stand-up).
 - **Checklist:**
-  - [ ] `computePostureBaseline` mengembalikan `null` jika `visibility < 0.6`.
-  - [ ] `evaluatePostureFrame` akurat membedakan duduk tegak vs membungkuk (`neckRatio < 0.78`).
+  - [x] `computePostureBaseline` mengembalikan `null` jika `visibility < 0.6`.
+  - [x] `evaluatePostureFrame` akurat membedakan duduk tegak vs membungkuk (`neckRatio < 0.78`).
 
 ### 🟢 VIS-1.2: Filter Smoothing EMA ($\alpha = 0.25$) & EAR Kedipan Mata
 - **Target:** Menambahkan *Exponential Moving Average* ($\alpha = 0.25$) pada evaluasi 2 Hz (500 ms) agar metrik tidak melonjak akibat noise webcam, serta perhitungan *Eye Aspect Ratio* (EAR) dari `FaceMesh [33, 160, 158, 133, 153, 144]`.
 - **Checklist:**
-  - [ ] Metrik stabil tanpa *flicker* pada toast peringatan postur.
+  - [x] Metrik stabil tanpa *flicker* pada toast peringatan postur (`PostureEmaSmoother` & `calcEyeAspectRatio`).
 
 ### 🟢 VIS-1.3: Hosting Lokal Bobot Model MediaPipe (`pose_landmarker_lite.task`)
 - **Target:** Menyediakan model resmi `pose_landmarker_lite.task` (~5.5 MB) secara lokal di `frontend/public/models/` (atau panduan skrip unduh) agar pemuatan instan tanpa CORS/ketergantungan internet saat demo.

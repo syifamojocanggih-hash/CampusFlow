@@ -142,7 +142,7 @@ CampusFlow menerapkan prinsip **On-Device Edge Privacy**:
 - **Node.js:** Versi `20.x` atau lebih baru
 - **npm:** Versi `10.x` atau lebih baru
 - **Database:** MySQL 8.x (lokal, Docker, atau TiDB Cloud)
-- **Git:** Minimal versi `2.30` (disarankan menggunakan *Git Bash* di Windows untuk menjalankan hook & script `.sh`)
+- **Git:** Minimal versi `2.30` (skrip `npm run guard` berjalan lintas platform via Node.js di PowerShell/CMD/Terminal; Git for Windows otomatis menjalankan `.githooks/pre-push`)
 
 ### Langkah Instalasi & Menjalankan
 
@@ -173,8 +173,9 @@ CampusFlow menerapkan prinsip **On-Device Edge Privacy**:
    npm run dev                   # Gunakan HTTPS lokal (@vitejs/plugin-basic-ssl / ngrok) untuk uji sensor HP
    ```
 
-4. **Verifikasi Guard Changelog & Batas Scope Sebelum Push:**
+4. **Verifikasi Guard Changelog & Unit Test Vision Sebelum Push:**
    ```bash
+   npm run test:shared
    npm run guard
    ```
 
