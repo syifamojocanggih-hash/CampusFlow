@@ -24,8 +24,8 @@
   - Salin 6 model + 3 enum sesuai [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md).
   - Buat akun demo `demo@campusflow.id` dengan riwayat 14 hari menunjukkan tren penurunan skor PSS-10 (28 → 16) seiring peningkatan MET-menit & kepatuhan Active Break.
 - **Checklist:**
-  - [ ] `npx prisma migrate dev --name init` dijalankan setelah MySQL `.env` terisi di lokal.
-  - [x] `backend/prisma/schema.prisma` & `backend/prisma/seed.ts` 14 hari sudah siap pakai.
+  - [x] `npx prisma migrate dev --name init` dijalankan ke MySQL lokal (`campusflow` + `backend/prisma/migrations/`).
+  - [x] `backend/prisma/schema.prisma` & `backend/prisma/seed.ts` 14 hari sudah ter-seed ke MySQL.
 
 ---
 

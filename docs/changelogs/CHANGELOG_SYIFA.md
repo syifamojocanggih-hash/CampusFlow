@@ -21,6 +21,14 @@
 
 ---
 
+## [2026-11-11] — Setup Database MySQL `campusflow`, Migrasi Awal Prisma, Seed 14 Hari, & Live Smoke Test (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-1.2`, `BE-5.2`
+- **Ringkasan:** Membuat database MySQL `campusflow`, menghasilkan migrasi awal Prisma (`20261111151343_init`), menjalankan seed 14 hari akun demo (`demo@campusflow.id`), serta memverifikasi 11 langkah live API melalui `scripts/smoke-api.ps1` terhadap server Express dan MySQL nyata.
+- **Daftar File Diubah:**
+  - `backend/prisma/migrations/20261111151343_init/migration.sql`, `backend/prisma/migrations/migration_lock.toml`
+  - `docs/backend/TASK_GUIDE.md`
+- **Verifikasi:** `npx prisma migrate dev`, `npx prisma db seed`, `npm --prefix backend test` (16/16 lolos), `smoke-api.ps1` (11/11 langkah HTTP live lolos), dan `npm run guard`.
+
 ## [2026-11-11] — Endpoint Diagnostik Status Ollama Lokal (`GET /api/v1/ai-coach/status`) (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-4.1`
 - **Ringkasan:** Menambahkan `checkOllamaStatus` di `ollamaCoach.ts` dan endpoint `GET /api/v1/ai-coach/status` untuk memeriksa koneksi Ollama lokal & ketersediaan model sebelum memanggil `/ai-coach/generate`, serta memperbarui `smoke-api.ps1` & `API_SPECIFICATION.md`.
