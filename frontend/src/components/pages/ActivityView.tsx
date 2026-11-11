@@ -1,83 +1,85 @@
 import React, { useState } from "react";
-import { Footprints, Activity, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
+import { PedometerCard } from "@/components/sensor/PedometerCard";
+import { api } from "@/lib/api";
+import type { ActivityIntensity } from "@/types";
 
 export const ActivityView: React.FC = () => {
-  const [steps, setSteps] = useState(3420);
-  const [tracking, setTracking] = useState(false);
+  const [manualIntensity, setManualIntensity] = useState<ActivityIntensity>("MUSCLE_STRENGTHENING");
+  const [manualDuration, setManualDuration] = useState(30);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+
+  const handleSaveManual = async () => {
+    try {
+      setIsSubmitting(true);
+      await api.submitPhysicalActivity({
+        activityDate: new Date().toISOString().split("T")[0],
+        intensityType: manualIntensity,
+        durationMinutes: manualDuration,
+        source: "MANUAL_LOG",
+        notes: `Input manual via CampusFlow web form (${manualIntensity})`,
+      });
+      setSubmitMessage("Aktivitas berhasil tersimpan! (+50 XP)");
+      setTimeout(() => setSubmitMessage(null), 3500);
+    } catch (err) {
+      console.error("Gagal menyimpan aktivitas manual:", err);
+      alert("Gagal menyimpan aktivitas.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-xl mx-auto">
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-              <Footprints className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold font-heading text-textMain">
-                Pelacak Aktivitas (Pedometer HP)
-              </h2>
-              <p className="text-xs text-slate-500">
-                HTML5 DeviceMotionEvent 3-Axis DSP &amp; Konversi METs (IPAQ-SF).
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* 3-Axis DSP Pedometer Card */}
+      <PedometerCard />
 
-        {/* MET & Step Progress Ring UI */}
-        <div className="flex flex-col items-center justify-center py-6 bg-slate-50 rounded-2xl border border-slate-100 mb-6">
-          <div className="relative w-44 h-44 flex flex-col items-center justify-center rounded-full border-8 border-emerald-500/20">
-            <Activity className="w-6 h-6 text-emerald-600 mb-1" />
-            <span className="text-3xl font-extrabold text-textMain sensor-num">
-              {steps.toLocaleString()}
-            </span>
-            <span className="text-xs text-slate-500">Langkah Hari Ini</span>
-            <span className="mt-1 text-[11px] font-semibold text-emerald-600 bg-emerald-100/70 px-2 py-0.5 rounded-full">
-              ~240 MET-menit
-            </span>
-          </div>
-
-          <button
-            onClick={() => {
-              setTracking(!tracking);
-              if (!tracking) setSteps((s) => s + 25);
-            }}
-            className={`mt-6 text-xs font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-xs flex items-center gap-2 ${
-              tracking
-                ? "bg-amber-600 text-white hover:bg-amber-700"
-                : "bg-emerald-600 text-white hover:bg-emerald-700"
-            }`}
-          >
-            {tracking ? "Hentikan Pelacak Gerak" : "Aktifkan Pelacak Langkah (Sensor HP)"}
-          </button>
-        </div>
-
-        {/* Fallback Form Manual Input MSE */}
-        <div className="border-t border-slate-100 pt-5 space-y-3">
+      {/* Fallback Form Manual Input MSE */}
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+        <div>
           <h3 className="font-semibold text-xs text-slate-500 uppercase tracking-wider">
             Input Aktivitas Manual / Muscle-Strengthening (MSE)
           </h3>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 mt-1">
             Untuk mahasiswa di PC desktop atau latihan beban tanpa membawa ponsel:
           </p>
+        </div>
+
+        {submitMessage && (
+          <div className="p-3 bg-emerald-50 text-emerald-800 text-xs rounded-xl border border-emerald-200 font-medium">
+            {submitMessage}
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-2">
+          <select
+            value={manualIntensity}
+            onChange={(e) => setManualIntensity(e.target.value as ActivityIntensity)}
+            className="text-xs border border-slate-200 rounded-lg px-3 py-2 flex-1 bg-white focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="MUSCLE_STRENGTHENING">Muscle-Strengthening Exercise (5.0 METs)</option>
+            <option value="WALKING">Jalan Kaki Kampus (3.3 METs)</option>
+            <option value="MODERATE">Olahraga Sedang / Bersepeda (4.0 METs)</option>
+            <option value="VIGOROUS">Lari Cepat / Olahraga Berat (8.0 METs)</option>
+            <option value="ACUTE_AEROBIC_RELIEF">Panic Relief Aerobik Akut (5.0 METs)</option>
+          </select>
           <div className="flex gap-2">
-            <select className="text-xs border border-slate-200 rounded-lg px-3 py-2 flex-1 bg-white">
-              <option>Muscle-Strengthening Exercise (5.0 METs)</option>
-              <option>Jalan Kaki Kampus (3.3 METs)</option>
-              <option>Olahraga Sedang / Bersepeda (4.0 METs)</option>
-              <option>Lari Cepat / Olahraga Berat (8.0 METs)</option>
-            </select>
             <input
               type="number"
               placeholder="Menit"
-              defaultValue={30}
-              className="text-xs border border-slate-200 rounded-lg px-3 py-2 w-20 text-center"
+              value={manualDuration}
+              onChange={(e) => setManualDuration(Number(e.target.value))}
+              min={1}
+              max={360}
+              className="text-xs border border-slate-200 rounded-lg px-3 py-2 w-20 text-center focus:outline-hidden focus:ring-2 focus:ring-primary/20"
             />
             <button
-              onClick={() => alert("Aktivitas tersimpan (+XP)")}
-              className="bg-primary hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-lg flex items-center gap-1 transition-colors"
+              onClick={handleSaveManual}
+              disabled={isSubmitting}
+              className="bg-primary hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium px-4 py-2 rounded-lg flex items-center gap-1 transition-colors shrink-0"
             >
-              <PlusCircle className="w-4 h-4" /> Simpan
+              <PlusCircle className="w-4 h-4" /> {isSubmitting ? "Menyimpan..." : "Simpan"}
             </button>
           </div>
         </div>
@@ -85,4 +87,3 @@ export const ActivityView: React.FC = () => {
     </div>
   );
 };
-

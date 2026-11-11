@@ -7,6 +7,7 @@ import {
   Bot,
   History,
   Settings,
+  FlaskConical,
 } from "lucide-react";
 import type { TabKey } from "@/types";
 
@@ -23,6 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const navItems: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
+    { key: "vision-lab", label: "Vision Lab", icon: <FlaskConical className="w-5 h-5" /> },
     { key: "focus", label: "Vision Focus", icon: <Eye className="w-5 h-5" /> },
     { key: "activity", label: "Aktivitas", icon: <Footprints className="w-5 h-5" /> },
     { key: "checkin", label: "Check-in", icon: <ClipboardCheck className="w-5 h-5" /> },

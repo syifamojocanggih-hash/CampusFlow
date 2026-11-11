@@ -8,6 +8,7 @@ import { CheckinView } from "@/components/pages/CheckinView";
 import { CoachView } from "@/components/pages/CoachView";
 import { HistoryView } from "@/components/pages/HistoryView";
 import { SettingsView } from "@/components/pages/SettingsView";
+import { VisionLabView } from "@/components/pages/VisionLabView";
 import { api } from "@/lib/api";
 import type { TabKey, UserProfileDTO } from "@/types";
 
@@ -53,6 +54,7 @@ export function App() {
                 onNavigateToFocus={() => setActiveTab("focus")}
               />
             )}
+            {activeTab === "vision-lab" && <VisionLabView />}
             {activeTab === "focus" && <FocusView />}
             {activeTab === "activity" && <ActivityView />}
             {activeTab === "checkin" && <CheckinView />}

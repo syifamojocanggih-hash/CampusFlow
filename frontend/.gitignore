@@ -1,0 +1,8 @@
+# MediaPipe offline assets
+public/models/*.task
+public/wasm/*
+
+# Build outputs
+dist/
+.vite/
+
