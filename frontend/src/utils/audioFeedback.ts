@@ -158,3 +158,4 @@ class SoundSynthesizer {
 }
 
 export const sound = new SoundSynthesizer();
+
