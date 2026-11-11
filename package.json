@@ -1,0 +1,19 @@
+{
+  "name": "campusflow-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "CampusFlow — AI-Driven Active Wellbeing & Stress Management PWA (Techcomfest 2027)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
+    "guard": "node scripts/guard-check.mjs",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "test:backend": "npm --prefix backend test",
+    "test:frontend": "npm --prefix frontend test"
+  }
+}

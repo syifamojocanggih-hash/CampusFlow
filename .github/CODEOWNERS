@@ -1,0 +1,23 @@
+# CODEOWNERS — CampusFlow Monorepo
+# Aturan peninjau otomatis saat Pull Request menuju main
+
+# Project Leader, Vision AI, & Universal Architecture (main) — Ibra
+* @flyingdutchman
+/DESIGN.md @flyingdutchman
+/README.md @flyingdutchman
+/shared/ @flyingdutchman
+/docs/universal/ @flyingdutchman
+/docs/vision/ @flyingdutchman
+/scripts/ @flyingdutchman
+/.github/ @flyingdutchman
+
+# Backend & LLM (branch backend) — Syifa
+/backend/ @syifamojocanggih-hash
+/docs/backend/ @syifamojocanggih-hash
+/docs/changelogs/CHANGELOG_SYIFA.md @syifamojocanggih-hash
+
+# Frontend & PWA (branch frontend) — Tiara & Ibra
+/frontend/ @mutiaradewanda @flyingdutchman
+/docs/frontend/ @mutiaradewanda @flyingdutchman
+/docs/changelogs/CHANGELOG_TIARA.md @mutiaradewanda
+/docs/changelogs/CHANGELOG_IBRA.md @flyingdutchman
