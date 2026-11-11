@@ -44,6 +44,7 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
+          maximumFileSizeToCacheInBytes: 15 * 1024 * 1024, // 15 MiB to allow offline WASM and MediaPipe models
           runtimeCaching: [
             {
               // Cache Google Fonts

@@ -16,5 +16,13 @@ export type UserResponse = ApiSuccessEnvelope<UserProfileDTO>;
 export type TriadDashboardResponse = ApiSuccessEnvelope<TriadDashboardDTO>;
 export type AiCoachInsightResponse = ApiSuccessEnvelope<AiCoachingInsightDTO>;
 
-export type TabKey = "dashboard" | "focus" | "activity" | "checkin" | "coach" | "history" | "settings";
+export type TabKey =
+  | "dashboard"
+  | "focus"
+  | "activity"
+  | "checkin"
+  | "coach"
+  | "history"
+  | "settings"
+  | "vision-lab";
 
