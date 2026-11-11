@@ -19,6 +19,14 @@
 
 <!-- Tambahkan entri baru Ibra di bawah garis ini (urutan terbaru di atas) -->
 
+## [2026-11-11] — Penambahan Template `.env.example` & Panduan Onboarding AI di README (Branch: `main`)
+- **ID Tugas / Referensi:** `LEAD-1.2`
+- **Ringkasan:** Menambahkan `backend/.env.example` dan `frontend/.env.example` sebagai template environment siap pakai, serta memperbarui `README.md` dan `docs/frontend/SETUP.md` dengan rincian tabel `.env` dan prompt onboarding cepat untuk AI assistant setiap anggota.
+- **Daftar File Diubah:**
+  - `backend/.env.example`, `frontend/.env.example`
+  - `README.md`, `docs/frontend/SETUP.md`
+- **Verifikasi:** Lolos validasi tautan Markdown dan diturunkan ke branch `backend` & `frontend`.
+
 ## [2026-11-11] — Implementasi Kontrak Bersama & Modul Inti Vision AI (Branch: `main`)
 - **ID Tugas / Referensi:** `LEAD-1.1`, `VIS-1.1`, `VIS-1.2`
 - **Ringkasan:** Membangun modul kontrak TypeScript & konstanta klinis di `shared/contracts/index.ts`, serta implementasi inti heuristik MediaPipe (`poseHeuristics.ts`: baseline 5 detik, evaluasi slouch/proximity/tilt/stretch/standup, `PostureEmaSmoother`, `calcEyeAspectRatio`) lengkap dengan unit test Node native.

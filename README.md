@@ -156,28 +156,77 @@ CampusFlow menerapkan prinsip **On-Device Edge Privacy**:
    - Gunakan `backend` untuk layanan server & LLM (**Syifa**).
    - Gunakan `frontend` untuk aplikasi web PWA & UI (**Tiara** / kolaborasi **Ibra**).
 
-2. **Setup & Jalankan Backend (Branch `backend` / folder `backend/`):**
+2. **Konfigurasi Environment Variables (`.env`):**
+   Salin file template `.env.example` yang sudah tersedia di masing-masing folder (`backend/.env` dan `frontend/.env.local` tidak di-commit ke Git karena sudah diabaikan oleh `.gitignore`):
+
    ```bash
+   # Linux / macOS / Git Bash
+   cp backend/.env.example backend/.env
+   cp frontend/.env.example frontend/.env.local
+   ```
+   ```powershell
+   # Windows PowerShell
+   Copy-Item backend/.env.example backend/.env
+   Copy-Item frontend/.env.example frontend/.env.local
+   ```
+
+   **Rincian Variabel `backend/.env` *(khusus server & LLM)*:**
+
+   | Variabel | Wajib | Contoh / Cara Mendapatkan |
+   |---|---|---|
+   | `PORT` | Ya | `4000` (port default Express REST API) |
+   | `DATABASE_URL` | Ya | `"mysql://root:password@localhost:3306/campusflow"` |
+   | `JWT_SECRET` | Ya | String acak minimal 32 karakter (mis. `openssl rand -hex 32`) |
+   | `GEMINI_API_KEY` | Disarankan | Kunci API dari [Google AI Studio](https://aistudio.google.com/apikey) *(jika kosong, gunakan fallback deterministik saat dev)* |
+   | `VAPID_PUBLIC_KEY` & `VAPID_PRIVATE_KEY` | Opsional (Web Push) | Generate lewat `npx web-push generate-vapid-keys` |
+   | `VAPID_SUBJECT` | Opsional (Web Push) | `"mailto:admin@campusflow.id"` |
+   | `CORS_ORIGIN` | Ya | `"http://localhost:5173,https://localhost:5173"` |
+
+   **Rincian Variabel `frontend/.env.local` *(khusus client PWA)*:**
+
+   | Variabel | Wajib | Contoh / Keterangan |
+   |---|---|---|
+   | `VITE_API_BASE_URL` | Ya | `"http://localhost:4000/api/v1"` |
+   | `VITE_USE_MOCK` | Ya | `"true"` saat UI dev mandiri (`MOCK_DATA.md`), ubah ke `"false"` saat terhubung ke backend asli |
+   | `VITE_VAPID_PUBLIC_KEY` | Opsional | Samakan dengan `VAPID_PUBLIC_KEY` backend (**jangan pernah taruh private key di frontend**) |
+   | `VITE_DEMO_MODE` | Opsional | `"false"` (ubah ke `"true"` untuk mempercepat jeda duduk 50 menit → 15 detik saat demo) |
+
+   > ⚠️ **Keamanan Env:** DILARANG menaruh `GEMINI_API_KEY`, `DATABASE_URL`, `JWT_SECRET`, atau `VAPID_PRIVATE_KEY` di `frontend/.env.local` (semua variabel `VITE_*` terbuka di browser).
+
+3. **Setup & Jalankan Backend (Branch `backend` / folder `backend/`):**
+   ```bash
+   git checkout backend
    cd backend
    npm install
-   cp .env.example .env          # Isi DATABASE_URL, JWT_SECRET, GEMINI_API_KEY, VAPID_KEYS
    npx prisma migrate dev --name init
    npx prisma db seed            # Mengisi akun demo & riwayat 14 hari
    npm run dev
    ```
 
-3. **Setup & Jalankan Frontend PWA (Branch `frontend` / folder `frontend/`):**
+4. **Setup & Jalankan Frontend PWA (Branch `frontend` / folder `frontend/`):**
    ```bash
+   git checkout frontend
    cd frontend
    npm install
    npm run dev                   # Gunakan HTTPS lokal (@vitejs/plugin-basic-ssl / ngrok) untuk uji sensor HP
    ```
 
-4. **Verifikasi Guard Changelog & Unit Test Vision Sebelum Push:**
+5. **Verifikasi Guard Changelog & Unit Test Vision Sebelum Push:**
    ```bash
    npm run test:shared
    npm run guard
    ```
+
+### Panduan Cepat Onboarding AI Coding Assistant (Untuk Setiap Anggota)
+
+Jika masing-masing anggota menggunakan AI coding assistant setelah `git clone`, arahkan AI Anda sesuai branch tugas agar langsung menyiapkan `.env` dan bekerja bebas konflik:
+
+- **Ibra (`@flyingdutchman` — Branch `main` / Project Leader & Vision AI):**
+  > *"Checkout branch `main`, aktifkan `git config core.hooksPath .githooks`, baca `DESIGN.md`, `docs/vision/VISION_SPEC.md`, dan `docs/vision/TASK_GUIDE.md`. Pastikan `npm run test:shared` lolos, dan catat semua perubahan di `docs/changelogs/CHANGELOG_IBRA.md`."*
+- **Syifa (`@syifamojocanggih-hash` — Branch `backend` / Backend & LLM):**
+  > *"Checkout branch `backend` dan `git merge origin/main`, aktifkan `git config core.hooksPath .githooks`, salin `backend/.env.example` ke `backend/.env` dan bantu saya isi variabelnya. Baca `docs/backend/README.md`, `docs/backend/TASK_GUIDE.md`, `docs/backend/DATABASE_SCHEMA.md`, serta `docs/universal/INTERFACES.md`. Setiap perubahan wajib dicatat di `docs/changelogs/CHANGELOG_SYIFA.md` dan lolos `npm run guard`."*
+- **Tiara (`@mutiaradewanda` — Branch `frontend` / Frontend & PWA):**
+  > *"Checkout branch `frontend` dan `git merge origin/main`, aktifkan `git config core.hooksPath .githooks`, salin `frontend/.env.example` ke `frontend/.env.local` (set `VITE_USE_MOCK=true` bila backend belum jalan). Baca `docs/frontend/README.md`, `docs/frontend/TASK_GUIDE.md`, `docs/frontend/DESIGN_SYSTEM.md`, dan `docs/universal/INTERFACES.md`. Setiap perubahan wajib dicatat di `docs/changelogs/CHANGELOG_TIARA.md` dan lolos `npm run guard`."*
 
 ---
 
@@ -192,8 +241,10 @@ CampusFlow/
 ├── package.json                       # [main] Skrip helper root (tanpa shared package-lock.json)
 ├── shared/                            # [main -> diturunkan] Kontrak TypeScript & modul inti Vision
 ├── backend/                           # [branch: backend] Express + Prisma MySQL + Gemini AI Coach
+│   ├── .env.example                   # [main -> diturunkan] Template env backend
 │   └── (package.json & package-lock.json mandiri)
 ├── frontend/                          # [branch: frontend] React 18 + Vite + Tailwind + PWA + MediaPipe UI
+│   ├── .env.example                   # [main -> diturunkan] Template env frontend
 │   └── (package.json & package-lock.json mandiri)
 ├── docs/
 │   ├── README.md                      # [main] Indeks dokumentasi & matriks wewenang

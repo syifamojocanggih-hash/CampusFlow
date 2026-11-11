@@ -14,9 +14,18 @@ git merge origin/main          # tarik modul shared/vision & kontrak terbaru dar
 
 cd frontend
 npm install
-cp .env.example .env.local     # atur VITE_API_BASE_URL & VITE_USE_MOCK
+cp .env.example .env.local     # atau PowerShell: Copy-Item .env.example .env.local
 npm run dev
 ```
+
+### Variabel `frontend/.env.local`
+```env
+VITE_API_BASE_URL="http://localhost:4000/api/v1"
+VITE_USE_MOCK="true"
+VITE_VAPID_PUBLIC_KEY=""
+VITE_DEMO_MODE="false"
+```
+> Dilarang menaruh secret (`GEMINI_API_KEY`, `DATABASE_URL`, `VAPID_PRIVATE_KEY`) di file `frontend/.env.local`.
 
 ---
 
