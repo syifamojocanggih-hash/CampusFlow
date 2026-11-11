@@ -390,6 +390,29 @@ export interface GenerateInsightOptions {
   enforceGuardrails?: boolean;
 }
 
+function buildActiveDirectives(
+  evaluation: ClinicalRuleFlags,
+  skipAdaptation: SkipAdaptationSummary
+): string[] {
+  const directives: string[] = [];
+  if (evaluation.escalationFlag) {
+    directives.push(
+      "ESKALASI_AKTIF: WAJIB tulis kalimat penutup ini di diagnosisSummary: 'Kalau rasanya terus menumpuk, nggak apa-apa cerita ke konselor kampus.' dan isi isotemporalActionPlan hanya dengan relaksasi ringan."
+    );
+  }
+  if (evaluation.missingDailyCheckIn) {
+    directives.push(
+      "BELUM_CHECKIN_HARIAN: WAJIB tutup diagnosisSummary dengan kalimat: 'Jangan lupa lengkapi check-in harian di aplikasi ya supaya rekomendasinya makin pas.'"
+    );
+  }
+  if (skipAdaptation.applied) {
+    directives.push(
+      "ADAPTASI_SKIP: turunkan target ke rentang ringan dalam allowedRanges (penurunan wajar maks -40%)."
+    );
+  }
+  return directives;
+}
+
 /** Menghasilkan insight klinis dari server Ollama lokal (`/api/chat` JSON Schema) dengan fallback aman. */
 export async function generateClinicalWellbeingInsight(
   userTelemetry7Days: Telemetry7DaysInput,
@@ -413,13 +436,11 @@ export async function generateClinicalWellbeingInsight(
     evaluation.escalationFlag,
     userTelemetry7Days.recentInsights
   );
+  const activeDirectives = buildActiveDirectives(evaluation, skipAdaptation);
 
   const endpoint = `${env.OLLAMA_BASE_URL.replace(/\/+$/, "")}/api/chat`;
   const promptPayload = {
-    today: userTelemetry7Days.today,
-    history7Days: userTelemetry7Days.history7Days,
-    latestPss10Score: userTelemetry7Days.latestPss10Score ?? null,
-    userNotes: userTelemetry7Days.userNotes ?? null,
+    activeDirectives,
     clinicalRuleEvaluation: {
       dominantMediator: evaluation.dominantMediator,
       priorityMediator: evaluation.priorityMediator,
@@ -429,6 +450,10 @@ export async function generateClinicalWellbeingInsight(
     },
     allowedRanges,
     skipAdaptation,
+    today: userTelemetry7Days.today,
+    history7Days: userTelemetry7Days.history7Days,
+    latestPss10Score: userTelemetry7Days.latestPss10Score ?? null,
+    userNotes: userTelemetry7Days.userNotes ?? null,
   };
 
   const usesBakedModelfile = env.OLLAMA_MODEL.startsWith("campusflow-coach");
@@ -453,7 +478,7 @@ export async function generateClinicalWellbeingInsight(
         model: env.OLLAMA_MODEL,
         stream: false,
         format: OLLAMA_RESPONSE_FORMAT,
-        options: { temperature: 0.15 },
+        options: { temperature: 0 },
         messages,
       }),
     });
