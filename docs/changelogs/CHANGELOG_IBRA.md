@@ -19,6 +19,14 @@
 
 <!-- Tambahkan entri baru Ibra di bawah garis ini (urutan terbaru di atas) -->
 
+## [2026-11-11] — Penyelarasan Dokumentasi Global & Kontrak ke Ollama Lokal (Branch: `main`)
+- **ID Tugas / Referensi:** `LEAD-1.3`
+- **Ringkasan:** Menyelaraskan seluruh dokumentasi global (`README.md`, `DESIGN.md`, `docs/README.md`, `docs/universal/*`, `docs/frontend/*`, `backend/.env.example`, `frontend/.env.example`) dari Google Gemini API menjadi **Ollama Lokal** (`/api/chat` JSON Schema + fallback klinis deterministik) sesuai implementasi backend tanpa API key eksternal.
+- **Daftar File Diubah:**
+  - `README.md`, `DESIGN.md`, `backend/.env.example`, `frontend/.env.example`, `docs/README.md`
+  - `docs/universal/*`, `docs/frontend/PAGES_AND_FLOWS.md`, `docs/frontend/README.md`, `docs/frontend/SETUP.md`
+- **Verifikasi:** Nol referensi Gemini tersisa pada kontrak aktif, validasi tautan Markdown lolos, dan diturunkan ke `frontend` & `backend` tanpa konflik.
+
 ## [2026-11-11] — Penambahan Template `.env.example` & Panduan Onboarding AI di README (Branch: `main`)
 - **ID Tugas / Referensi:** `LEAD-1.2`
 - **Ringkasan:** Menambahkan `backend/.env.example` dan `frontend/.env.example` sebagai template environment siap pakai, serta memperbarui `README.md` dan `docs/frontend/SETUP.md` dengan rincian tabel `.env` dan prompt onboarding cepat untuk AI assistant setiap anggota.

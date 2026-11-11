@@ -57,7 +57,7 @@ Berbeda dari sistem kaku yang melarang total perubahan lintas folder, CampusFlow
 |---|---|
 | **Vision AI (`main`/`shared`) ↔ Frontend (`frontend`)** | Vision Engine hanya mengeluarkan objek numerik `PostureBaseline` & `PostureEvaluationResult` (lihat [`INTERFACES.md`](INTERFACES.md) §1). Dilarang mengirim blob gambar/video webcam ke API backend. |
 | **Frontend (`frontend`) ↔ Backend (`backend`)** | Komunikasi hanya melalui endpoint REST `/api/v1/*` dengan amplop JSON standar `{"data": ..., "meta": ...}` atau `{"error": ...}`. Frontend dilarang mengimpor `@prisma/client` atau menyentuh MySQL langsung. |
-| **Backend (`backend`) ↔ Gemini LLM** | `GEMINI_API_KEY` dan `VAPID_PRIVATE_KEY` **HARUS** berada di `backend/.env` (server-side only). Dilarang keras menaruh API key di `frontend/` (`VITE_*`). |
+| **Backend (`backend`) ↔ Ollama Lokal LLM** | `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `JWT_SECRET`, dan `VAPID_PRIVATE_KEY` **HARUS** berada di `backend/.env` (server-side only). Dilarang keras menaruh kredensial server di `frontend/` (`VITE_*`). |
 | **Skoring Klinis** | Perhitungan *reverse score* PSS-4/PSS-10, METs IPAQ-SF, dan 24-Hour Triad dilakukan secara otoritatif di backend (`clinicalScoring.ts`); frontend hanya menampilkan hasil atau perkiraan lokal sementara saat offline. |
 
 ---
@@ -68,5 +68,5 @@ Berbeda dari sistem kaku yang melarang total perubahan lintas folder, CampusFlow
 |---|---|---|
 | **Izin webcam ditolak / laptop tanpa kamera** | `VisionGuard` nonaktif secara anggun; mode Pedometer & Kuesioner tetap berjalan normal. | Aplikasi tetap bisa dipakai penuh untuk pelacakan aktivitas & AI Coach. |
 | **Browser desktop tanpa `DeviceMotionEvent`** | `PedometerCard` menampilkan form input aktivitas manual + tipe MSE. | Aktivitas fisik dan MET-menit tetap tercatat. |
-| **Gemini API timeout / limit kuota** | Backend mengembalikan insight fallback deterministik berbasis konstanta klinis + mencatat log error. | Halaman AI Coach tidak crash (zero blank screen). |
+| **Server Ollama lokal offline / timeout** | Backend mengembalikan insight fallback deterministik berbasis konstanta klinis + mencatat log warning. | Halaman AI Coach tidak crash (zero blank screen). |
 | **Koneksi internet terputus** | Frontend menyimpan sementara log di LocalStorage/IndexedDB dan menyinkronkan ulang saat online; file `.task` MediaPipe tersaji dari Cache Storage PWA. | Pemantauan postur dan pencatatan sesi tetap berjalan. |

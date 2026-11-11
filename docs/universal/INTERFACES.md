@@ -41,7 +41,7 @@
 | `VALIDATION_ERROR` | 400 | Input tidak sesuai skema atau di luar rentang klinis |
 | `UNAUTHORIZED` | 401 | Token JWT tidak ada, tidak valid, atau kedaluwarsa |
 | `NOT_FOUND` | 404 | Resource pengguna / sesi tidak ditemukan |
-| `AI_COACH_FALLBACK` | 200 / 502 | Gemini API gagal; backend memberi fallback deterministik atau error terstruktur |
+| `AI_COACH_FALLBACK` | 200 / 502 | Server Ollama lokal offline/timeout; backend memberi fallback deterministik atau error terstruktur |
 | `INTERNAL_ERROR` | 500 | Kesalahan server internal |
 
 ---
@@ -168,7 +168,7 @@ export interface PedometerSampleResult {
 
 ---
 
-## 4. Kontrak 4: Agentic AI Coach (`backend` ↔ Gemini 2.5 Flash ↔ `frontend`)
+## 4. Kontrak 4: Agentic AI Coach (`backend` ↔ Ollama Lokal ↔ `frontend`)
 
 - `POST /api/v1/ai-coach/generate` — Menganalisis `userTelemetry7Days` (log 7 hari terakhir + sesi duduk + aktivitas fisik + PSS-10 terbaru).
 - `GET /api/v1/ai-coach/latest` — Mengambil insight terbaru.

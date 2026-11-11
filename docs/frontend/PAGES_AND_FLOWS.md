@@ -15,7 +15,7 @@
 | 5 | **Active Break Modal** | *(Overlay di `/focus`)* | Layar kunci peregangan anti-cheat saat waktu duduk melewati ambang batas (50 menit / 15 detik pada `DEMO_MODE`). |
 | 6 | **Pelacak Aktivitas Fisik (Mobile)** | `/activity` | `PedometerCard` dengan Progress Ring MET harian, cadence SPM live, plus form input manual/MSE untuk desktop. |
 | 7 | **Kuesioner Harian / Mingguan** | `/checkin` | Input cepat PSS-4 + tidur harian (30 detik) dan evaluasi mingguan PSS-10. |
-| 8 | **AI Coach** | `/coach` | Rekomendasi aksi fisik personal dari Gemini 2.5 Flash berbasis data 7 hari terakhir + sitasi ilmiah & tombol aksi selesai. |
+| 8 | **AI Coach** | `/coach` | Rekomendasi aksi fisik personal dari Ollama lokal berbasis data 7 hari terakhir + sitasi ilmiah & tombol aksi selesai. |
 | 9 | **Riwayat & Statistik** | `/history` | Grafik tren mingguan/bulanan (Recharts) untuk 3 pilar, riwayat sesi duduk, streak, & XP. |
 | 10 | **Pengaturan** | `/settings` | Kelola izin kamera/sensor, notifikasi Web Push, target MET mingguan, privasi data, & toggle `DEMO_MODE`. |
 

@@ -6,7 +6,7 @@
 
 [![Architecture: 3-Branch Monorepo](https://img.shields.io/badge/Architecture-3--Branch%20Monorepo-2563EB.svg)](#7-struktur-monorepo--pembagian-kerja)
 [![Vision: On-Device MediaPipe](https://img.shields.io/badge/AI%20Vision-On--Device%20WebGL%2FWASM-0EA5A4.svg)](#4-arsitektur-privasi--keamanan-data)
-[![AI Coach: Gemini 2.5 Flash](https://img.shields.io/badge/AI%20Coach-Gemini%202.5%20Flash%20JSON-22C55E.svg)](#35-agentic-wellbeing-ai-coach--exam-panic-button)
+[![AI Coach: Ollama Local JSON](https://img.shields.io/badge/AI%20Coach-Ollama%20Local%20JSON-22C55E.svg)](#35-agentic-wellbeing-ai-coach--exam-panic-button)
 [![Zero-Conflict Changelogs](https://img.shields.io/badge/Workflow-Per--User%20Changelog%20Guard-F59E0B.svg)](#7-struktur-monorepo--pembagian-kerja)
 
 ---
@@ -38,7 +38,7 @@ Mahasiswa menghabiskan rata-rata **8–10 jam per hari** dalam posisi duduk stat
 
 Aplikasi pengingat biasa gagal mengatasi masalah ini karena bersifat pasif: tombol *snooze* dapat ditekan tanpa mahasiswa beranjak dari kursi, pencatatan aktivitas masih manual dan subjektif, serta intervensi olahraga sering mengabaikan kualitas tidur dan durasi layar.
 
-**CampusFlow** hadir sebagai solusi PWA lintas perangkat (laptop + smartphone) yang memantau dan mengintervensi tiga pilar kesehatan harian mahasiswa secara terukur: **Postur & Waktu Duduk (Vision Guard)**, **Aktivitas Fisik Otomatis (Pedometer METs)**, serta **Stres & Tidur (PSS + Gemini AI Coach)**.
+**CampusFlow** hadir sebagai solusi PWA lintas perangkat (laptop + smartphone) yang memantau dan mengintervensi tiga pilar kesehatan harian mahasiswa secara terukur: **Postur & Waktu Duduk (Vision Guard)**, **Aktivitas Fisik Otomatis (Pedometer METs)**, serta **Stres & Tidur (PSS + Ollama Local AI Coach)**.
 
 ---
 
@@ -62,7 +62,7 @@ Setiap ambang batas dan aturan bisnis di CampusFlow diturunkan langsung dari buk
                                   CAMPUSFLOW PWA
   ┌──────────────────┬──────────────────┬──────────────────┬──────────────────┐
      VISION GUARD       ACTIVE BREAK        PEDOMETER HP       CLINICAL AI COACH
-   (33 Pose + EAR)    (Anti-Cheat Lock)   (3-Axis DSP METs)   (PSS + Gemini 2.5)
+   (33 Pose + EAR)    (Anti-Cheat Lock)   (3-Axis DSP METs)   (PSS + Ollama LLM)
           │                  │                   │                    │
           ▼ [ ON-DEVICE WASM ]                   ▼ [ WEB SENSOR ]     ▼ [ PRISMA + LLM ]
               [ PRIVACY-FIRST: CITRA KAMERA TIDAK PERNAH DIUNGGAH KE SERVER ]
@@ -92,7 +92,7 @@ Setiap ambang batas dan aturan bisnis di CampusFlow diturunkan langsung dari buk
 - **Indeks Kualitas Tidur (Adaptasi PSQI):** Menghitung durasi tidur malam, latensi tidur, dan skor kesegaran bangun pagi (target optimal $7.0\text{–}9.0$ jam dan skor $\ge 3$).
 
 ### 3.5. Agentic Wellbeing AI Coach & Exam Panic Button
-- **Google Gemini 2.5 Flash (`@google/genai`) Structured JSON Output:** Menganalisis telemetri 7 hari terakhir pengguna untuk menghasilkan `dominantMediator`, `diagnosisSummary`, `isotemporalActionPlan`, `recommendedMetsToday`, dan `scientificCitationNote` yang dikunci pada literatur klinis.
+- **Ollama Lokal (`OLLAMA_BASE_URL/api/chat`) Structured JSON Output:** Menganalisis telemetri 7 hari terakhir pengguna secara lokal (tanpa API key berbayar/cloud) untuk menghasilkan `dominantMediator`, `diagnosisSummary`, `isotemporalActionPlan`, `recommendedMetsToday`, dan `scientificCitationNote` yang dikunci pada literatur klinis, dengan fallback deterministik bila server Ollama belum aktif.
 - **Exam Panic Button (15 Menit):** Mode darurat kecemasan ujian berbasis studi Wu & Zhou (2024) yang memandu latihan aerobik akut $110\text{–}125\text{ BPM}$ selama 15 menit.
 
 ### 3.6. Akun Demo & Mode Presentasi Juri
@@ -118,12 +118,12 @@ CampusFlow menerapkan prinsip **On-Device Edge Privacy**:
                                                                           │
 [ SENSOR HP 3-AXIS ] ──► [ DSP PEDOMETER DI BROWSER ] ────────────────────┼──► [ EXPRESS REST API ] ──► [ MYSQL (PRISMA) ]
                                                                           │
-[ KUESIONER PSS/PSQI ] ──► [ HTTPS / TLS + JWT + BCRYPT ] ────────────────┘          └─► [ GEMINI 2.5 FLASH API ]
+[ KUESIONER PSS/PSQI ] ──► [ HTTPS / TLS + JWT + BCRYPT ] ────────────────┘          └─► [ OLLAMA LOKAL API ]
 ```
 
 1. **Zero Video/Image Upload:** Frame video webcam diproses 100% lokal di browser (WebGL/WASM). Tidak ada gambar atau rekaman video yang pernah dikirim ke server — hanya koordinat ringkas kalibrasi dan metrik durasi duduk/slouch.
 2. **Aset Model Lokal:** Bobot model `pose_landmarker_lite.task` disajikan dari `frontend/public/models/` dan di-cache via PWA Workbox agar tetap berjalan cepat dan privat.
-3. **Keamanan Kredensial & API Key:** Kata sandi di-hash dengan `bcryptjs`, sesi dilindungi JWT, dan kunci rahasia (`GEMINI_API_KEY`, `VAPID_KEYS`, `DATABASE_URL`) hanya disimpan di `.env` sisi server.
+3. **Keamanan Kredensial & Privasi Lokal:** Kata sandi di-hash dengan `bcryptjs`, sesi dilindungi JWT, inferensi LLM berjalan di server Ollama lokal (data tidak dikirim ke AI cloud), dan kunci rahasia (`JWT_SECRET`, `VAPID_PRIVATE_KEY`, `DATABASE_URL`) hanya disimpan di `.env` sisi server.
 
 ---
 
@@ -177,7 +177,9 @@ CampusFlow menerapkan prinsip **On-Device Edge Privacy**:
    | `PORT` | Ya | `4000` (port default Express REST API) |
    | `DATABASE_URL` | Ya | `"mysql://root:password@localhost:3306/campusflow"` |
    | `JWT_SECRET` | Ya | String acak minimal 32 karakter (mis. `openssl rand -hex 32`) |
-   | `GEMINI_API_KEY` | Disarankan | Kunci API dari [Google AI Studio](https://aistudio.google.com/apikey) *(jika kosong, gunakan fallback deterministik saat dev)* |
+   | `OLLAMA_BASE_URL` | Ya | `"http://localhost:11434"` (URL server Ollama lokal — tanpa API key eksternal) |
+   | `OLLAMA_MODEL` | Ya | `"llama3.2"` (atau model lokal lain yang sudah di-pull via `ollama pull`) |
+   | `OLLAMA_TIMEOUT_MS` | Opsional | `30000` (batas tunggu ms sebelum fallback klinis deterministik aktif) |
    | `VAPID_PUBLIC_KEY` & `VAPID_PRIVATE_KEY` | Opsional (Web Push) | Generate lewat `npx web-push generate-vapid-keys` |
    | `VAPID_SUBJECT` | Opsional (Web Push) | `"mailto:admin@campusflow.id"` |
    | `CORS_ORIGIN` | Ya | `"http://localhost:5173,https://localhost:5173"` |
@@ -191,7 +193,7 @@ CampusFlow menerapkan prinsip **On-Device Edge Privacy**:
    | `VITE_VAPID_PUBLIC_KEY` | Opsional | Samakan dengan `VAPID_PUBLIC_KEY` backend (**jangan pernah taruh private key di frontend**) |
    | `VITE_DEMO_MODE` | Opsional | `"false"` (ubah ke `"true"` untuk mempercepat jeda duduk 50 menit → 15 detik saat demo) |
 
-   > ⚠️ **Keamanan Env:** DILARANG menaruh `GEMINI_API_KEY`, `DATABASE_URL`, `JWT_SECRET`, atau `VAPID_PRIVATE_KEY` di `frontend/.env.local` (semua variabel `VITE_*` terbuka di browser).
+   > ⚠️ **Keamanan Env:** DILARANG menaruh `DATABASE_URL`, `JWT_SECRET`, atau `VAPID_PRIVATE_KEY` di `frontend/.env.local` (semua variabel `VITE_*` terbuka di browser).
 
 3. **Setup & Jalankan Backend (Branch `backend` / folder `backend/`):**
    ```bash
@@ -240,7 +242,7 @@ CampusFlow/
 ├── DESIGN.md                          # [main] Master Design, PRD Summary & Aturan Batas User
 ├── package.json                       # [main] Skrip helper root (tanpa shared package-lock.json)
 ├── shared/                            # [main -> diturunkan] Kontrak TypeScript & modul inti Vision
-├── backend/                           # [branch: backend] Express + Prisma MySQL + Gemini AI Coach
+├── backend/                           # [branch: backend] Express + Prisma MySQL + Ollama AI Coach
 │   ├── .env.example                   # [main -> diturunkan] Template env backend
 │   └── (package.json & package-lock.json mandiri)
 ├── frontend/                          # [branch: frontend] React 18 + Vite + Tailwind + PWA + MediaPipe UI
@@ -250,7 +252,7 @@ CampusFlow/
 │   ├── README.md                      # [main] Indeks dokumentasi & matriks wewenang
 │   ├── universal/                     # [main -> diturunkan] PRD, Arsitektur, Kontrak, Git Workflow, ADR
 │   ├── vision/                        # [main -> diturunkan] Spesifikasi & tugas AI Vision (Ibra)
-│   ├── backend/                       # [branch: backend] Spesifikasi DB, API, Scoring, Gemini LLM (Syifa)
+│   ├── backend/                       # [branch: backend] Spesifikasi DB, API, Scoring, Ollama LLM (Syifa)
 │   ├── frontend/                      # [branch: frontend] Design System, Alur Layar, Pedometer, Mock (Tiara)
 │   └── changelogs/                    # [TERPISAH PER USER — Anti-Konflik saat Merge!]
 │       ├── CHANGELOG_IBRA.md          # Catatan perubahan Ibra (@flyingdutchman)
@@ -284,7 +286,7 @@ CampusFlow/
 | **Mobile Motion Sensor** | HTML5 `DeviceMotionEvent` (3-Axis Accelerometer) | Pedometer independen orientasi & kalkulasi otomatis MET-menit IPAQ-SF |
 | **Visualisasi & Ikon** | Recharts & Lucide React | Grafik tren 24-Hour Triad, Progress Ring, & ikonografi bebas lisensi |
 | **Backend & Database** | Node.js, Express, TypeScript, Prisma ORM, MySQL | REST API `/api/v1/*`, kalkulator klinis PSS/PSQI/METs, Web Push VAPID |
-| **Agentic AI Coach** | Google Gemini API (`@google/genai`, `gemini-2.5-flash`) | Analisis multivariat 7 hari dengan Structured JSON Output |
+| **Agentic AI Coach** | Ollama Lokal (`OLLAMA_MODEL`, `/api/chat` JSON Schema) | Analisis multivariat 7 hari lokal dengan Structured JSON Output + fallback klinis |
 | **Keamanan & Autentikasi** | JWT (`jsonwebtoken`), `bcryptjs`, HTTPS/TLS | Autentikasi mahasiswa, enkripsi password, & izin sensor/kamera |
 
 ---
@@ -297,7 +299,7 @@ Proyek **CampusFlow** dikembangkan untuk **Techcomfest 2027** oleh:
 |---|---|---|---|---|
 | **Ibra** | `@flyingdutchman` | **Project Leader & Vision AI Engineer** | `main` *(+ kolaborasi `frontend`)* | Kepemimpinan proyek, arsitektur & kontrak `main`, AI Vision MediaPipe (33 Pose + 478 Face Landmarks, kalibrasi 5 detik, heuristik postur & anti-cheat), integrasi PR |
 | **Mutiara Dewanda Prisvilla (Tiara)** | `@mutiaradewanda` | **Frontend & PWA Experience Engineer** | `frontend` | Antarmuka React 18 + Tailwind PWA, Triad Dashboard, Active Break UI, Pedometer 3-sumbu, Kuesioner PSS/PSQI, AI Coach UI, Panic Relief Mode |
-| **Ahmad Syifa'ul Falakhul Khayyi (Syifa)** | `@syifamojocanggih-hash` | **Backend & LLM Engineer** | `backend` | Server Express TS, Skema Prisma MySQL & 14-day seed, Clinical Scoring (PSS-4/10, PSQI, IPAQ METs), Agentic AI Coach Gemini 2.5 Flash, Web Push VAPID |
+| **Ahmad Syifa'ul Falakhul Khayyi (Syifa)** | `@syifamojocanggih-hash` | **Backend & LLM Engineer** | `backend` | Server Express TS, Skema Prisma MySQL & 14-day seed, Clinical Scoring (PSS-4/10, PSQI, IPAQ METs), Agentic AI Coach Ollama Lokal, Web Push VAPID |
 
 ---
 

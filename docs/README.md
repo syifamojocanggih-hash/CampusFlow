@@ -14,7 +14,7 @@ docs/
 │   ├── PRD.md                             <- Master PRD & Build Guide Versi 3.0 (Bagian 01–18)
 │   ├── ARCHITECTURE.md                    <- Arsitektur 4 lapis & pemrosesan on-device vs server
 │   ├── BOUNDARIES_AND_CONTRACTS.md        <- Aturan batas, hak akses fleksibel & protokol [CROSS-SCOPE]
-│   ├── INTERFACES.md                      <- Kontrak pasti DTO Vision, Sensor, REST API, & Gemini LLM
+│   ├── INTERFACES.md                      <- Kontrak pasti DTO Vision, Sensor, REST API, & Ollama LLM
 │   ├── GIT_WORKFLOW.md                    <- Alur 3 branch (main, backend, frontend) & anti-konflik
 │   ├── INTEGRATION_RUNBOOK.md             <- Prosedur sinkronisasi, verifikasi E2E demo juri, & rilis
 │   ├── DECISIONS.md                       <- Architecture Decision Records (ADR-001 s.d. ADR-007)
@@ -26,13 +26,13 @@ docs/
 │   └── TASK_GUIDE.md                      <- Checklist tugas LEAD-1.x & VIS-1.x
 │
 ├── backend/                               <- [BRANCH: backend] Backend & LLM (PIC: Syifa)
-│   ├── README.md                          <- Mandat & lingkup Backend + Gemini AI Coach
+│   ├── README.md                          <- Mandat & lingkup Backend + Ollama AI Coach
 │   ├── TASK_GUIDE.md                      <- Daftar tugas BE-1.x s.d. BE-5.x
 │   ├── DATABASE_SCHEMA.md                 <- Skema Prisma MySQL (6 tabel, enum, & seed 14 hari)
 │   ├── API_SPECIFICATION.md               <- Spesifikasi lengkap endpoint REST /api/v1/*
 │   ├── CLINICAL_SCORING.md                <- Rumus PSS-4/10 reverse-score, PSQI, IPAQ METs, & Triad
-│   ├── LLM_AI_COACH.md                    <- Integrasi @google/genai gemini-2.5-flash Structured JSON
-│   └── SETUP.md                           <- Panduan setup MySQL, Prisma migrate, & server lokal
+│   ├── LLM_AI_COACH.md                    <- Integrasi Ollama Lokal (/api/chat JSON Schema) & Fallback
+│   └── SETUP.md                           <- Panduan setup MySQL, Prisma migrate, Ollama, & server lokal
 │
 ├── frontend/                              <- [BRANCH: frontend] Frontend & PWA (PIC: Tiara + Ibra)
 │   ├── README.md                          <- Mandat Frontend & kolaborasi bebas antar-UI

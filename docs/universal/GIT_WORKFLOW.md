@@ -12,14 +12,14 @@ CampusFlow menggunakan tepat **3 branch permanen**:
 ```
 main            <- Branch utama: Fondasi arsitektur, kontrak, AI Vision (Ibra @flyingdutchman)
  │                 + Tempat integrasi rilis stabil dari backend & frontend
- ├──► backend   <- Diturunkan dari main: Backend & Gemini LLM (Syifa @syifamojocanggih-hash)
+ ├──► backend   <- Diturunkan dari main: Backend & Ollama LLM (Syifa @syifamojocanggih-hash)
  └──► frontend  <- Diturunkan dari main: Frontend PWA & Sensor (Tiara @mutiaradewanda + Ibra)
 ```
 
 | Branch | Pemilik Utama | Apa yang Dikerjakan di Branch Ini |
 |---|---|---|
 | `main` | **Ibra** (`@flyingdutchman`) | Setup awal, kontrak `docs/universal/`, spesifikasi & core **AI Vision** (`docs/vision/`, `shared/`), guard scripts, serta menerima PR dari `backend` & `frontend`. |
-| `backend` | **Syifa** (`@syifamojocanggih-hash`) | Server Express + Prisma MySQL, Clinical Scoring, Gemini 2.5 Flash AI Coach, Web Push VAPID (`backend/`, `docs/backend/`, `CHANGELOG_SYIFA.md`). |
+| `backend` | **Syifa** (`@syifamojocanggih-hash`) | Server Express + Prisma MySQL, Clinical Scoring, Ollama Lokal AI Coach, Web Push VAPID (`backend/`, `docs/backend/`, `CHANGELOG_SYIFA.md`). |
 | `frontend` | **Tiara** (`@mutiaradewanda`) *(dibantu Ibra bila perlu)* | Aplikasi React 18 + Vite + Tailwind PWA, UI VisionGuard, ActiveBreakModal, Pedometer, Kuesioner, Dashboard (`frontend/`, `docs/frontend/`, `CHANGELOG_TIARA.md` / `CHANGELOG_IBRA.md`). |
 
 ---
@@ -113,6 +113,6 @@ lingkup : vision | backend | llm | frontend | contracts | docs | ci
 
 Contoh:
 - `feat(vision): implement calcAngleDegrees and overhead stretch validation`
-- `feat(llm): integrate gemini-2.5-flash structured output coach`
+- `feat(llm): integrate local ollama structured output coach`
 - `feat(frontend): add pose_landmarker_lite.task offline PWA caching`
 - `docs(changelogs): log cross-scope interface field addition`

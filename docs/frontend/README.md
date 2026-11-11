@@ -27,7 +27,7 @@ Di dalam branch `frontend`:
 1. Seluruh dependensi frontend dipasang di dalam `frontend/` (`cd frontend && npm install`) agar `frontend/package-lock.json` terpisah dari `backend/package-lock.json`.
 2. Tarik pembaruan dari `main` (`git merge origin/main`) sebelum memulai sesi agar modul Vision (`shared/vision/`) dan kontrak `INTERFACES.md` selalu mutakhir.
 3. Bila mendesak harus mengubah file di luar `frontend/` atau `docs/frontend/`, **diperbolehkan** dengan syarat mencantumkan tag **`[CROSS-SCOPE]`**, path file, dan alasannya di Changelog pribadi.
-4. Dilarang menaruh `GEMINI_API_KEY` atau `VAPID_PRIVATE_KEY` di kode frontend (`VITE_*`).
+4. Dilarang menaruh `DATABASE_URL`, `JWT_SECRET`, atau `VAPID_PRIVATE_KEY` di kode frontend (`VITE_*`).
 
 ---
 

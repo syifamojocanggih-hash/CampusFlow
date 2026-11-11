@@ -19,9 +19,9 @@
 - **Keputusan:** Menggunakan stack TypeScript full-stack (`Express` + `Prisma` + `MySQL`) ketimbang BaaS/NoSQL.
 - **Rasional:** Skema relasional 6 tabel (`User`, `SedentarySession`, `PhysicalActivity`, `DailyWellbeingLog`, `ClinicalAssessment`, `AiCoachingInsight`) menjamin integritas data klinis, mendukung *seeding* 14 hari yang deterministik, dan memudahkan eksekusi aturan reverse-scoring di server.
 
-## ADR-004: Google Gemini 2.5 Flash dengan `responseSchema` Ketat
-- **Keputusan:** Menggunakan SDK `@google/genai` model `gemini-2.5-flash` dengan `responseMimeType: "application/json"` dan `responseSchema` eksplisit.
-- **Rasional:** Mengunci struktur output (`dominantMediator`, `diagnosisSummary`, `isotemporalActionPlan`, `recommendedMetsToday`, `scientificCitationNote`) agar UI Frontend tidak pernah rusak akibat format teks bebas LLM, sekaligus mengaitkan setiap rekomendasi ke literatur Martín-Rodríguez & González-Prieto (2026).
+## ADR-004: Ollama Lokal (`/api/chat` JSON Schema) + Fallback Klinis Deterministik
+- **Keputusan:** Menggunakan server **Ollama lokal** (`OLLAMA_BASE_URL/api/chat`) dengan parameter `format` JSON Schema + validasi Zod, dilengkapi fallback klinis deterministik bila Ollama offline.
+- **Rasional:** Menghilangkan ketergantungan pada API key cloud berbayar, menjaga privasi data psikologis mahasiswa tetap 100% lokal, serta tetap mengunci struktur output (`dominantMediator`, `diagnosisSummary`, `isotemporalActionPlan`, `recommendedMetsToday`, `scientificCitationNote`) berbasis literatur Martín-Rodríguez & González-Prieto (2026).
 
 ## ADR-005: Pemisahan `package-lock.json` & Changelog Per-User untuk 3-Branch Zero-Conflict
 - **Keputusan:** Memisahkan `backend/package-lock.json` dan `frontend/package-lock.json` (tanpa satu lockfile tunggal di root), serta memisahkan `CHANGELOG_IBRA.md`, `CHANGELOG_TIARA.md`, dan `CHANGELOG_SYIFA.md`.

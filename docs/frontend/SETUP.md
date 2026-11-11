@@ -25,7 +25,7 @@ VITE_USE_MOCK="true"
 VITE_VAPID_PUBLIC_KEY=""
 VITE_DEMO_MODE="false"
 ```
-> Dilarang menaruh secret (`GEMINI_API_KEY`, `DATABASE_URL`, `VAPID_PRIVATE_KEY`) di file `frontend/.env.local`.
+> Dilarang menaruh secret (`DATABASE_URL`, `JWT_SECRET`, `VAPID_PRIVATE_KEY`) di file `frontend/.env.local`.
 
 ---
 

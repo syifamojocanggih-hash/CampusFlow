@@ -9,7 +9,7 @@
 ## 1. Tujuan Dokumen Ini
 
 `DESIGN.md` adalah ringkasan desain sistem sekaligus peta kendali kolaborasi **CampusFlow** (*AI-Driven Active Wellbeing & Stress Management PWA*). Dokumen ini menjawab dua kebutuhan sekaligus:
-1. **Rancangan Teknis & Desain Produk** berdasarkan PRD Versi 3.0 (Vision AI MediaPipe, Pedometer 3-Sumbu IPAQ-SF, Rubrik Klinis PSS-4/PSS-10/PSQI, Prisma MySQL, Gemini 2.5 Flash AI Coach, serta UI/UX *Calm & Supportif*).
+1. **Rancangan Teknis & Desain Produk** berdasarkan PRD Versi 3.0 (Vision AI MediaPipe, Pedometer 3-Sumbu IPAQ-SF, Rubrik Klinis PSS-4/PSS-10/PSQI, Prisma MySQL, Ollama Lokal AI Coach, serta UI/UX *Calm & Supportif*).
 2. **Tata Kelola 3 Branch (`main`, `backend`, `frontend`) & Changelog Per-User** agar tiga pengembang (**Ibra**, **Tiara**, dan **Syifa**) dapat bekerja paralel dengan cepat, fleksibel bila diperlukan perubahan lintas file, dan **bebas konflik saat merge ke `main`**.
 
 ---
@@ -50,7 +50,7 @@
 | Kategori | Lokasi File / Direktori | Dibuat & Dikelola Di | Tujuan Desain Anti-Konflik |
 |---|---|---|---|
 | **Tier 1: Fondasi Master & Kontrak** *(Diturunkan ke Branch)* | `README.md`, `DESIGN.md`, `package.json`, `.gitignore`, `.gitattributes`, `.github/`, `.githooks/`, `scripts/`, `shared/`, `docs/README.md`, `docs/universal/*`, `docs/vision/*` | **`main`** (oleh **Ibra** `@flyingdutchman`) | Dibuat satu kali di `main` sebagai *Single Source of Truth*, lalu diturunkan ke `backend` dan `frontend`. Branch peran tidak membuat versi ganda dari file kontrak ini. |
-| **Tier 2A: Domain Backend & LLM** *(Eksklusif saat Merge)* | `backend/` *(termasuk `backend/package-lock.json`)*, `docs/backend/*` | **`backend`** (oleh **Syifa** `@syifamojocanggih-hash`) | Seluruh kode server Express, Prisma, Scoring, dan Gemini AI terisolasi di folder `backend/`. Tidak pernah bersentuhan dengan folder `frontend/`. |
+| **Tier 2A: Domain Backend & LLM** *(Eksklusif saat Merge)* | `backend/` *(termasuk `backend/package-lock.json`)*, `docs/backend/*` | **`backend`** (oleh **Syifa** `@syifamojocanggih-hash`) | Seluruh kode server Express, Prisma, Scoring, dan Ollama AI terisolasi di folder `backend/`. Tidak pernah bersentuhan dengan folder `frontend/`. |
 | **Tier 2B: Domain Frontend & PWA** *(Eksklusif saat Merge)* | `frontend/` *(termasuk `frontend/package-lock.json`)*, `docs/frontend/*` | **`frontend`** (oleh **Tiara** `@mutiaradewanda`, serta kolaborasi **Ibra** `@flyingdutchman`) | Seluruh komponen React, Tailwind, PWA, Pedometer, dan integrasi UI Vision terisolasi di folder `frontend/`. Tiara dan Ibra bebas berbagi kode di dalam `frontend/`. |
 | **Tier 3: Changelog Terpisah Per-User** *(Anti-Tabrakan Histori)* | `docs/changelogs/CHANGELOG_IBRA.md`<br>`docs/changelogs/CHANGELOG_TIARA.md`<br>`docs/changelogs/CHANGELOG_SYIFA.md` | Masing-masing pemilik di branch aktifnya | Setiap user hanya menulis di file Changelog miliknya sendiri. Saat `backend` dan `frontend` di-merge ke `main`, file changelog **tidak pernah bentrok**. |
 
@@ -66,7 +66,7 @@ Proyek ini menganut model **Fleksibel dengan Akuntabilitas Changelog**:
 1. **Zona Default Masing-Masing User:**
    - **Ibra (`@flyingdutchman`):** Memimpin `main`, bertanggung jawab atas **AI Vision** (`docs/vision/`, `shared/vision/`), kontrak universal (`docs/universal/`, `shared/contracts/`), dan meninjau integrasi PR. Juga berhak berkolaborasi langsung di `frontend` saat menyambungkan modul Vision ke UI.
    - **Tiara (`@mutiaradewanda`):** Bertanggung jawab penuh atas `frontend/` dan `docs/frontend/` di branch `frontend` (UI/UX, Dashboard, Pedometer, Kuesioner, AI Coach UI, PWA). Bebas berbagi modul di dalam `frontend/` bersama Ibra.
-   - **Syifa (`@syifamojocanggih-hash`):** Bertanggung jawab penuh atas `backend/` dan `docs/backend/` di branch `backend` (Express API, Prisma MySQL, Clinical Scoring, Gemini 2.5 Flash AI Coach, Web Push VAPID).
+   - **Syifa (`@syifamojocanggih-hash`):** Bertanggung jawab penuh atas `backend/` dan `docs/backend/` di branch `backend` (Express API, Prisma MySQL, Clinical Scoring, Ollama Lokal AI Coach, Web Push VAPID).
 
 2. **Boleh Mengubah File di Luar Zona Default (Aturan Fleksibel):**
    - Setiap anggota **diperbolehkan** mengubah file di luar zona default-nya jika memang mendesak atau dibutuhkan untuk menyelesaikan integrasi/bug.
@@ -107,8 +107,8 @@ Proyek ini menganut model **Fleksibel dengan Akuntabilitas Changelog**:
 │  • 24-Hour Movement Triad Calculator (MVPA + Tidur + Sedentary Ratio)     │
 │  • Web Push Notifier (VAPID) + JWT Auth (bcryptjs) + 14-Day Demo Seeder   │
 ├────────────────────────────────────────────────────────────────────────────┤
-│ LAPIS 4 — AGENTIC WELLBEING AI COACH (Google Gemini 2.5 Flash)             │
-│  • @google/genai Structured JSON Outputs (responseSchema ketat)            │
+│ LAPIS 4 — AGENTIC WELLBEING AI COACH (Ollama Lokal /api/chat JSON)        │
+│  • format JSON Schema ketat (tanpa API key berbayar / data keluar cloud)   │
 │  • System Prompt terkunci pada temuan Martín-Rodríguez & González-Prieto   │
 └────────────────────────────────────────────────────────────────────────────┘
 ```
