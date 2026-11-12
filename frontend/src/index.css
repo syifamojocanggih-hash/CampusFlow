@@ -78,6 +78,27 @@
   background: #E8E8E8;
   border-radius: 9999px;
 }
+
+/* Mobile Bottom Nav spring-bounce animation */
+@keyframes navPillBounce {
+  0% {
+    transform: scale(0.82, 0.82);
+  }
+  42% {
+    transform: scale(1.14, 0.90);
+  }
+  72% {
+    transform: scale(0.95, 1.05);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+.animate-nav-bounce {
+  animation: navPillBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #9A9A9A;
 }

@@ -28,6 +28,73 @@ interface TriadDashboardProps {
   onNavigateToFocus: () => void;
 }
 
+interface CircularProgressRingProps {
+  percentage: number;
+  strokeColor: string;
+  trackColor?: string;
+  icon: React.ReactNode;
+  size?: number;
+  strokeWidth?: number;
+  innerBg?: string;
+}
+
+const CircularProgressRing: React.FC<CircularProgressRingProps> = ({
+  percentage,
+  strokeColor,
+  trackColor = "#F6F6F6",
+  icon,
+  size = 54,
+  strokeWidth = 4.5,
+  innerBg = "bg-white",
+}) => {
+  const radius = (size - strokeWidth * 2) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const clamped = Math.max(0, Math.min(100, percentage));
+  const strokeDashoffset = circumference - (clamped / 100) * circumference;
+
+  return (
+    <div
+      className="relative shrink-0 flex items-center justify-center select-none"
+      style={{ width: size, height: size }}
+    >
+      <svg
+        width={size}
+        height={size}
+        className="-rotate-90 transform"
+      >
+        {/* Track circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={trackColor}
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        {/* Progress circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={strokeColor}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          fill="none"
+          className="transition-all duration-700 ease-out"
+        />
+      </svg>
+      {/* Center circle with supporting icon */}
+      <div
+        className={`absolute inset-0 m-auto w-7 h-7 rounded-full ${innerBg} flex items-center justify-center shadow-xs`}
+      >
+        {icon}
+      </div>
+    </div>
+  );
+};
+
 export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   onStartPanicRelief,
   onNavigateToFocus,
@@ -97,12 +164,12 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
       </div>
 
       {/* ========================================================
-          ROW OF 4 STAT CARDS (Pastel Palette Mix)
+          ROW OF 4 STAT CARDS (Pastel Palette with Circular Progress)
           ======================================================== */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Sedentary Hours (Pure White with Sky Blue icon) */}
+        {/* Card 1: Sedentary Hours */}
         <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-xs font-semibold text-[#9A9A9A]">Total Waktu Duduk</p>
               <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
@@ -110,9 +177,13 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 <span className="text-xs font-medium text-[#9A9A9A] ml-1">Jam</span>
               </h3>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
-              <Armchair className="w-5 h-5" />
-            </div>
+            <CircularProgressRing
+              percentage={Math.min(100, Math.round((today.totalSedentaryHours / 9.0) * 100))}
+              strokeColor="#BDE6F0"
+              trackColor="#F6F6F6"
+              innerBg="bg-[#F0F9FB]"
+              icon={<Armchair className="w-4 h-4 text-[#1A1A1A]" />}
+            />
           </div>
           <div className="mt-3 pt-2.5 border-t border-[#E8E8E8] flex items-center justify-between">
             <span className="text-[11px] text-[#9A9A9A]">Batas: &le; 9.0h</span>
@@ -122,7 +193,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
 
         {/* Card 2: Active Movement MVPA ("Breakfast" Mint Green Card) */}
         <div className="bg-[#CDE8B5] rounded-3xl p-4 sm:p-5 flex flex-col justify-between text-[#1A1A1A] shadow-softMint">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-xs font-semibold text-[#1A1A1A]/80">Gerak Aktif (MVPA)</p>
               <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
@@ -130,9 +201,13 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 <span className="text-xs font-medium text-[#1A1A1A]/80 ml-1">Mnt</span>
               </h3>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-white text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
-              <TrendingUp className="w-5 h-5" />
-            </div>
+            <CircularProgressRing
+              percentage={Math.min(100, Math.round((today.totalMvpaMinutes / 45) * 100))}
+              strokeColor="#1A1A1A"
+              trackColor="rgba(26,26,26,0.12)"
+              innerBg="bg-white"
+              icon={<TrendingUp className="w-4 h-4 text-[#1A1A1A]" />}
+            />
           </div>
           <div className="mt-3 pt-2.5 border-t border-[#1A1A1A]/10 flex items-center justify-between">
             <span className="text-[11px] font-semibold text-[#1A1A1A]/70">{today.mvpaPerSedentaryRatio} mnt/jam duduk</span>
@@ -142,9 +217,9 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           </div>
         </div>
 
-        {/* Card 3: Stress Score PSS-4 (Pure White with Peach Orange icon) */}
+        {/* Card 3: Stress Score PSS-4 */}
         <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-xs font-semibold text-[#9A9A9A]">Skor Stres PSS-4</p>
               <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
@@ -152,9 +227,13 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 <span className="text-xs font-medium text-[#9A9A9A] ml-1">/ 16</span>
               </h3>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-[#F9B99A] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
-              <Moon className="w-5 h-5" />
-            </div>
+            <CircularProgressRing
+              percentage={Math.min(100, Math.round((today.pss4TotalScore / 16) * 100))}
+              strokeColor="#F9B99A"
+              trackColor="#F6F6F6"
+              innerBg="bg-[#FDF4EF]"
+              icon={<Moon className="w-4 h-4 text-[#1A1A1A]" />}
+            />
           </div>
           <div className="mt-3 pt-2.5 border-t border-[#E8E8E8] flex items-center justify-between">
             <span className="text-[11px] text-[#9A9A9A]">Tidur: {today.sleepHours} jam</span>
@@ -164,16 +243,20 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
 
         {/* Card 4: Attendance & METs Target */}
         <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-xs font-semibold text-[#9A9A9A]">Pencapaian METs</p>
               <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
                 {Math.round((weeklySummary.weeklyMetsTotal / weeklySummary.weeklyMetsTarget) * 100)}%
               </h3>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-[#FFF29A] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
+            <CircularProgressRing
+              percentage={Math.min(100, Math.round((weeklySummary.weeklyMetsTotal / weeklySummary.weeklyMetsTarget) * 100))}
+              strokeColor="#FFE966"
+              trackColor="#F6F6F6"
+              innerBg="bg-[#FFFDF0]"
+              icon={<CheckCircle2 className="w-4 h-4 text-[#1A1A1A]" />}
+            />
           </div>
           <div className="mt-3 pt-2.5 border-t border-[#E8E8E8] flex items-center justify-between">
             <span className="text-[11px] text-[#9A9A9A]">{weeklySummary.weeklyMetsTotal}/{weeklySummary.weeklyMetsTarget} METs</span>

@@ -10,6 +10,7 @@ import {
 } from "@/mocks/campusflowMock";
 import type {
   UserResponse,
+  UserProfileDTO,
   TriadDashboardResponse,
   AiCoachInsightResponse,
   PostureBaseline,
@@ -66,9 +67,20 @@ class ApiClient {
   // --- Profile & Auth ---
   async getCurrentUser(): Promise<UserResponse> {
     if (USE_MOCK) {
-      // Ambil baseline lokal jika ada
+      // Ambil baseline & profil lokal jika ada
+      const savedProfile = localStorage.getItem("cf_user_profile");
       const savedBaseline = localStorage.getItem("cf_posture_baseline");
-      const user = { ...MOCK_USER };
+      const user: UserResponse = {
+        ...MOCK_USER,
+        data: { ...MOCK_USER.data },
+      };
+      if (savedProfile) {
+        try {
+          user.data = { ...user.data, ...JSON.parse(savedProfile) };
+        } catch {
+          // ignore
+        }
+      }
       if (savedBaseline) {
         try {
           user.data.postureBaselineJson = JSON.parse(savedBaseline);
@@ -79,6 +91,28 @@ class ApiClient {
       return user;
     }
     return this.request<UserResponse>("/users/me");
+  }
+
+  async updateUserProfile(payload: Partial<UserProfileDTO>): Promise<UserProfileDTO> {
+    const saved = localStorage.getItem("cf_user_profile");
+    let currentData = { ...MOCK_USER.data };
+    if (saved) {
+      try {
+        currentData = { ...currentData, ...JSON.parse(saved) };
+      } catch {
+        // ignore
+      }
+    }
+    const updated = { ...currentData, ...payload };
+    localStorage.setItem("cf_user_profile", JSON.stringify(updated));
+    if (USE_MOCK) {
+      return updated;
+    }
+    const res = await this.request<UserResponse>("/users/me", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    return res.data;
   }
 
   // --- Dashboard ---

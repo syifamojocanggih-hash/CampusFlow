@@ -21,6 +21,53 @@
 
 ---
 
+## [2026-11-12] — Penghapusan Tombol Logout Top Header & Halaman Atur Profil Pengguna (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.16`
+- **Ringkasan:** 
+  1. **Hapus Tombol Logout Top Header (Gambar 1):** Menghapus tombol logout pill yang berada di header atas desktop (`DesktopTopHeader`) sesuai tangkapan layar `media_1794488419546_2f780a2d.png`. Tombol keluar akun tetap tersedia secara terorganisir di bagian bawah desktop sidebar dan dropdown avatar mobile.
+  2. **Halaman Atur Profil Pengguna (`ProfileView.tsx`):**
+     - Membangun halaman baru `ProfileView.tsx` untuk mengelola data identitas mahasiswa (Nama Lengkap, NIM, Email, Program Studi, Semester).
+     - Menghadirkan kustomisasi warna latar avatar pastel (Soft Pink `#F7A8B0`, Sky Blue `#BDE6F0`, Mint Green `#CDE8B5`, Butter Yellow `#FFF29A`, Lavender `#C9B3E6`).
+     - Menyediakan panel target METs mingguan (dengan slider interaktif dan preset IPAQ-SF 600 - 2000 METs), durasi fokus duduk sebelum jeda (45/50/60 mnt), serta target tidur harian.
+     - Menampilkan kartu ringkasan gamifikasi (Streak aktif, Level 4 Habit Champion, XP terkumpul) dan status kalibrasi postur AI (*Vision Baseline*) dengan shortcut langsung menuju Vision Focus.
+     - Menyediakan tombol simpan profil yang langsung memperbarui state global dan tersimpan secara persisten di `localStorage`/API.
+  3. **Akses Navigasi Profil:**
+     - Tombol profil/avatar di `DesktopTopHeader` dan snippet profil di bawah `DesktopSidebar` kini dapat diklik untuk membuka halaman Atur Profil.
+     - Ditambahkan item "Atur Profil" pada dropdown profil di `MobileHeader`.
+     - Ditambahkan shortcut navigasi dari `SettingsView.tsx` menuju `ProfileView.tsx`.
+- **Daftar File Diubah:**
+  - `frontend/src/types/index.ts`
+  - `frontend/src/lib/api.ts`
+  - `frontend/src/components/pages/ProfileView.tsx` (baru)
+  - `frontend/src/components/Navbar.tsx`
+  - `frontend/src/components/pages/SettingsView.tsx`
+  - `frontend/src/App.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos (0 TypeScript errors).
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-12] — Tombol Logout Sidebar & Animasi Bouncing Navbar Bottom Mobile (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.15`
+- **Ringkasan:** 
+  1. **Tombol Logout (Gambar 1):** Mengubah tombol navigasi di bagian bawah sidebar desktop (`DesktopSidebar`) yang sebelumnya bertuliskan "Landing Page" menjadi tombol **"Log out" / "Keluar"** berikon `LogOut` dengan hover state warna merah lembut (`hover:bg-rose-50/70 hover:text-rose-600`), serta menyelaraskan tombol keluar pada header atas desktop dan dropdown avatar pengguna di mobile.
+  2. **Animasi Bouncing Pill Navbar Bawah Mobile (Gambar 2):** Mengubah perpindahan indikator aktif kuning (`#FFF29A`) pada `MobileBottomNav` menjadi sliding pill dinamis dengan transisi fisika pegas *overshoot* `cubic-bezier(0.34, 1.56, 0.64, 1)` dan efek memantul kenyal (*squash & stretch bounce*) melalui keyframe `@keyframes navPillBounce` (`.animate-nav-bounce`) setiap kali berpindah tab menu, disertai animasi ikon terangkat halus (`scale-110 -translate-y-0.5`).
+- **Daftar File Diubah:**
+  - `frontend/src/components/Navbar.tsx`
+  - `frontend/src/index.css`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
 ## [2026-11-12] — Transformasi Palet Warna Calorie Counter Pastel (Sky Blue, Mint Green, Butter Yellow, Peach, Soft Pink, Cloud Gray, & Ink Black) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.6`
 - **Ringkasan:** 

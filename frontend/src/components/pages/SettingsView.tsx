@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import { Settings, Shield, Sliders, Smartphone, Check } from "lucide-react";
+import { Settings, Shield, Sliders, Smartphone, Check, User } from "lucide-react";
 
-export const SettingsView: React.FC = () => {
+interface SettingsViewProps {
+  onNavigateToProfile?: () => void;
+}
+
+export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigateToProfile }) => {
   const [demoMode, setDemoMode] = useState(
     import.meta.env.VITE_DEMO_MODE === "true" || localStorage.getItem("cf_demo_mode") === "true"
   );
@@ -33,6 +37,32 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* User Profile Navigation Shortcut */}
+      {onNavigateToProfile && (
+        <div className="learnova-card p-5 border-[#E8E8E8] flex items-center justify-between gap-4 bg-white hover:border-[#BDE6F0] transition-colors">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-[#F7A8B0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs font-bold">
+              <User className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
+                Profil &amp; Target Wellbeing
+              </h3>
+              <p className="text-xs text-[#9A9A9A]">
+                Kelola identitas akademik, avatar, dan target METs mingguan Anda.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onNavigateToProfile}
+            className="px-4 py-2 rounded-xl text-xs font-bold text-[#1A1A1A] bg-[#FFF29A] hover:bg-[#FFE966] transition-all border border-[#FFE966] shadow-xs shrink-0"
+          >
+            Atur Profil &rarr;
+          </button>
+        </div>
+      )}
 
       {/* Demo Mode Toggle (Switch Card in Soft Butter Yellow) */}
       <div className="learnova-card p-6 bg-[#FFF29A]/40 border-[#FFF29A] space-y-3">

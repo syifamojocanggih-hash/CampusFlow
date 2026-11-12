@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { ClipboardCheck, Moon, Check, Sparkles, Smartphone } from "lucide-react";
 import { api } from "@/lib/api";
 
-export const CheckinView: React.FC = () => {
+interface CheckinViewProps {
+  embedded?: boolean;
+}
+
+export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) => {
   const [sleepHours, setSleepHours] = useState(7);
   const [screenHours, setScreenHours] = useState(4);
   const [answers, setAnswers] = useState<[number, number, number, number]>([2, 2, 2, 2]);
@@ -22,27 +26,29 @@ export const CheckinView: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto pb-10">
-      {/* Header */}
-      <div className="learnova-card p-6 border-[#E8E8E8] flex items-center justify-between">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
-            <ClipboardCheck className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
-                Check-in Harian
-              </h2>
-              <span className="text-[10px] bg-[#FFF29A] text-[#1A1A1A] font-extrabold px-2.5 py-0.5 rounded-full border border-[#FFE966]">
-                30 Detik
-              </span>
+      {/* Header (Hidden when embedded in unified Activity view) */}
+      {!embedded && (
+        <div className="learnova-card p-6 border-[#E8E8E8] flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+              <ClipboardCheck className="w-6 h-6" />
             </div>
-            <p className="text-xs text-[#9A9A9A] mt-0.5">
-              Skala stres klinis PSS-4 &amp; durasi tidur untuk input diagnosis AI Coach.
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
+                  Check-in Harian
+                </h2>
+                <span className="text-[10px] bg-[#FFF29A] text-[#1A1A1A] font-extrabold px-2.5 py-0.5 rounded-full border border-[#FFE966]">
+                  30 Detik
+                </span>
+              </div>
+              <p className="text-xs text-[#9A9A9A] mt-0.5">
+                Skala stres klinis PSS-4 &amp; durasi tidur untuk input diagnosis AI Coach.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {submitted ? (
         <div className="learnova-card p-8 text-center space-y-4 bg-[#CDE8B5]/30 border-[#CDE8B5]">

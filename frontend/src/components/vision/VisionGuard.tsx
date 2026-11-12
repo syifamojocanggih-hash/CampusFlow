@@ -23,6 +23,7 @@ import {
   VolumeX,
   Ruler,
   Award,
+  Users,
 } from "lucide-react";
 import { sound } from "@/utils/audioFeedback";
 import {
@@ -33,6 +34,8 @@ import {
   clearBaselineFromStorage,
   estimateMonitorDistanceCm,
   calculatePostureHealthScore,
+  selectPrimaryUserPose,
+  type TrackedPersonAnchor,
   type NormalizedLandmark,
   type PostureEvaluationResult,
 } from "@/utils/poseHeuristics";
@@ -74,12 +77,14 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   const calibratorRef = useRef<BaselineCalibrator>(new BaselineCalibrator());
   const smootherRef = useRef<PostureEmaSmoother>(new PostureEmaSmoother(0.25));
   const postureStateRef = useRef<PostureEvaluationResult | null>(null);
+  const lastTrackedAnchorRef = useRef<TrackedPersonAnchor | null>(null);
 
   // Configuration & Modes
   const [demoMode, setDemoMode] = useState<boolean>(true);
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const [cameraPermissionError, setCameraPermissionError] = useState<string | null>(null);
   const [hardwareDelegate, setHardwareDelegate] = useState<"GPU" | "CPU">("GPU");
+  const [bystanderCount, setBystanderCount] = useState<number>(0);
 
   // Calibration State
   const [baseline, setBaseline] = useState<PostureBaseline | null>(() => loadBaselineFromStorage());
@@ -178,7 +183,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                   delegate: "GPU",
                 },
                 runningMode: "VIDEO",
-                numPoses: 1,
+                numPoses: 3, // Mendeteksi multi-pose agar dapat mengisolasi pengguna utama dari orang di latar belakang
                 minPoseDetectionConfidence: 0.45,
                 minPosePresenceConfidence: 0.45,
                 minTrackingConfidence: 0.45,
@@ -192,7 +197,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                   delegate: "CPU",
                 },
                 runningMode: "VIDEO",
-                numPoses: 1,
+                numPoses: 3, // Mendeteksi multi-pose agar dapat mengisolasi pengguna utama dari orang di latar belakang
                 minPoseDetectionConfidence: 0.45,
                 minPosePresenceConfidence: 0.45,
                 minTrackingConfidence: 0.45,
@@ -294,7 +299,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   const drawSkeleton = useCallback(
     (
       ctx: CanvasRenderingContext2D,
-      landmarks: MpNormalizedLandmark[],
+      landmarks: (MpNormalizedLandmark | NormalizedLandmark)[],
       width: number,
       height: number,
       color: string
@@ -371,67 +376,81 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           const results = landmarker.detectForVideo(video, now);
 
           if (results.landmarks && results.landmarks.length > 0) {
-            const rawLandmarks = results.landmarks[0] as NormalizedLandmark[];
+            const allPoses = results.landmarks as unknown as NormalizedLandmark[][];
+            // Filter cerdas: Kunci pengguna utama (Primary User Lock-in) dan abaikan distraksi orang lain di latar belakang
+            const primarySelection = selectPrimaryUserPose(
+              allPoses,
+              lastTrackedAnchorRef.current,
+              baselineRef.current
+            );
 
-            // 1. Calibration branch
-            if (isCalibratingRef.current) {
-              const calRes = calibratorRef.current.addFrame(rawLandmarks);
-              setCalibrationCount(calRes.collected);
-              setCalibrationProgress(calRes.progress);
+            if (primarySelection) {
+              lastTrackedAnchorRef.current = primarySelection.newAnchor;
+              const rawLandmarks = primarySelection.primaryPose;
+              const secondaryCount = allPoses.length - 1;
+              setBystanderCount(secondaryCount);
 
-              if (ctx) {
-                drawSkeleton(ctx, results.landmarks[0], canvas.width, canvas.height, "#3B82F6");
+              // 1. Calibration branch
+              if (isCalibratingRef.current) {
+                const calRes = calibratorRef.current.addFrame(rawLandmarks);
+                setCalibrationCount(calRes.collected);
+                setCalibrationProgress(calRes.progress);
+
+                if (ctx) {
+                  drawSkeleton(ctx, rawLandmarks, canvas.width, canvas.height, "#3B82F6");
+                }
+
+                if (calibratorRef.current.isComplete()) {
+                  const newBaseline = calibratorRef.current.finalize();
+                  baselineRef.current = newBaseline;
+                  setBaseline(newBaseline);
+                  isCalibratingRef.current = false;
+                  setIsCalibrating(false);
+                  setSessionActive(true);
+                  sessionStartTimeRef.current = new Date();
+                  sound.playCalibrationSuccess();
+                }
               }
+              // 2. Monitoring or Break Mode branch
+              else if (baselineRef.current) {
+                const currentBaseline = baselineRef.current;
+                const evalResult = evaluatePostureFrame(rawLandmarks, currentBaseline);
+                const smoothedMetrics = smootherRef.current.smooth(evalResult.metrics);
+                const finalEval: PostureEvaluationResult = {
+                  ...evalResult,
+                  metrics: smoothedMetrics,
+                };
 
-              if (calibratorRef.current.isComplete()) {
-                const newBaseline = calibratorRef.current.finalize();
-                baselineRef.current = newBaseline;
-                setBaseline(newBaseline);
-                isCalibratingRef.current = false;
-                setIsCalibrating(false);
-                setSessionActive(true);
-                sessionStartTimeRef.current = new Date();
-                sound.playCalibrationSuccess();
-              }
-            }
-            // 2. Monitoring or Break Mode branch
-            else if (baselineRef.current) {
-              const currentBaseline = baselineRef.current;
-              const evalResult = evaluatePostureFrame(rawLandmarks, currentBaseline);
-              const smoothedMetrics = smootherRef.current.smooth(evalResult.metrics);
-              const finalEval: PostureEvaluationResult = {
-                ...evalResult,
-                metrics: smoothedMetrics,
-              };
+                setPostureState(finalEval);
+                postureStateRef.current = finalEval;
+                if (finalEval.isPresent) {
+                  neckRatioSamplesRef.current.push(smoothedMetrics.neckRatio);
+                }
 
-              setPostureState(finalEval);
-              postureStateRef.current = finalEval;
-              if (finalEval.isPresent) {
-                neckRatioSamplesRef.current.push(smoothedMetrics.neckRatio);
-              }
+                // Determine overlay color
+                let skeletonColor = "#2563EB"; // Upright Blue
+                if (isBreakLockedRef.current && finalEval.isOverheadStretchValid) {
+                  skeletonColor = "#22C55E"; // Active Break Green
+                } else if (
+                  finalEval.isSlouching ||
+                  finalEval.isTooClose ||
+                  finalEval.isLeaningAsymmetric
+                ) {
+                  skeletonColor = "#F59E0B"; // Warning Amber
+                }
 
-              // Determine overlay color
-              let skeletonColor = "#2563EB"; // Upright Blue
-              if (isBreakLockedRef.current && finalEval.isOverheadStretchValid) {
-                skeletonColor = "#22C55E"; // Active Break Green
-              } else if (
-                finalEval.isSlouching ||
-                finalEval.isTooClose ||
-                finalEval.isLeaningAsymmetric
-              ) {
-                skeletonColor = "#F59E0B"; // Warning Amber
-              }
-
-              if (ctx) {
-                drawSkeleton(ctx, results.landmarks[0], canvas.width, canvas.height, skeletonColor);
-              }
-            } else {
-              // No baseline yet, draw default blue skeleton
-              if (ctx) {
-                drawSkeleton(ctx, results.landmarks[0], canvas.width, canvas.height, "#3B82F6");
+                if (ctx) {
+                  drawSkeleton(ctx, rawLandmarks, canvas.width, canvas.height, skeletonColor);
+                }
+              } else {
+                // No baseline yet, draw default blue skeleton
+                if (ctx) {
+                  drawSkeleton(ctx, rawLandmarks, canvas.width, canvas.height, "#3B82F6");
+                }
               }
             }
           } else {
+            setBystanderCount(0);
             // No person visible
             if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (baselineRef.current) {
@@ -472,7 +491,9 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   const handleRecalibrate = () => {
     clearBaselineFromStorage();
     baselineRef.current = null;
+    lastTrackedAnchorRef.current = null;
     setBaseline(null);
+    setBystanderCount(0);
     setSessionActive(false);
     setSittingSeconds(0);
     setGoodPostureSeconds(0);
@@ -680,7 +701,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               </span>
             </div>
             <p className="text-xs text-[#9A9A9A]">
-              MediaPipe Pose Landmarker Lite &bull; 100% On-Device (Privasi Aman, Zero Upload)
+              MediaPipe Pose Landmarker &bull; 100% On-Device &bull; Multi-Person Filter (Anti-Distraksi Latar)
             </p>
           </div>
         </div>
@@ -857,9 +878,20 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 </span>
               </div>
               {postureState?.isPresent && (
-                <span className="text-[10px] font-sans px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 font-bold">
-                  Skor: {calculatePostureHealthScore(goodPostureSeconds, sittingSeconds).score}%
-                </span>
+                <div className="flex items-center gap-1.5">
+                  {bystanderCount > 0 && (
+                    <span
+                      className="text-[9px] font-sans px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-bold flex items-center gap-1"
+                      title="Sistem mengunci pengguna utama dan mengabaikan orang lain di latar belakang"
+                    >
+                      <Users className="w-2.5 h-2.5" />
+                      +{bystanderCount} Latar Diabaikan
+                    </span>
+                  )}
+                  <span className="text-[10px] font-sans px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 font-bold">
+                    Skor: {calculatePostureHealthScore(goodPostureSeconds, sittingSeconds).score}%
+                  </span>
+                </div>
               )}
             </div>
             {postureState?.isPresent && (

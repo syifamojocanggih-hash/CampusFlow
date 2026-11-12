@@ -9,6 +9,7 @@ import {
   evaluatePostureFrame,
   estimateMonitorDistanceCm,
   calculatePostureHealthScore,
+  selectPrimaryUserPose,
   type NormalizedLandmark,
 } from "./poseHeuristics.ts";
 
@@ -147,5 +148,21 @@ test("estimateMonitorDistanceCm & calculatePostureHealthScore work accurately", 
   const score50 = calculatePostureHealthScore(25, 50);
   assert.equal(score50.score, 50);
   assert.equal(score50.grade, "PERLU_PERBAIKAN");
+});
+
+test("selectPrimaryUserPose locks to foreground centered user over background bystander", () => {
+  const foregroundUser = createMockLandmarks({
+    [POSE_LANDMARK_INDICES.LEFT_SHOULDER]: { x: 0.35, y: 0.5, z: 0, visibility: 0.95 },
+    [POSE_LANDMARK_INDICES.RIGHT_SHOULDER]: { x: 0.65, y: 0.5, z: 0, visibility: 0.95 },
+  }); // shoulderWidth = 0.30, centered at 0.50
+
+  const backgroundBystander = createMockLandmarks({
+    [POSE_LANDMARK_INDICES.LEFT_SHOULDER]: { x: 0.10, y: 0.3, z: 0, visibility: 0.8 },
+    [POSE_LANDMARK_INDICES.RIGHT_SHOULDER]: { x: 0.18, y: 0.3, z: 0, visibility: 0.8 },
+  }); // shoulderWidth = 0.08, at x=0.14
+
+  const result = selectPrimaryUserPose([backgroundBystander, foregroundUser]);
+  assert.ok(result);
+  assert.equal(result.primaryIndex, 1); // Foreground user is locked!
 });
 

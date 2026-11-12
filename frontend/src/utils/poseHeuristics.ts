@@ -478,3 +478,105 @@ export function calculatePostureHealthScore(
   return { score, grade: "PERLU_PERBAIKAN" };
 }
 
+/**
+ * Titik jangkar spasial (spatial anchor) untuk pelacakan persisten pengguna utama.
+ */
+export interface TrackedPersonAnchor {
+  x: number;
+  y: number;
+  shoulderWidth: number;
+}
+
+/**
+ * Memilih pose pengguna utama (Primary User) saat banyak orang masuk ke dalam frame kamera.
+ * Mengeliminasi distraksi orang di latar belakang dengan memprioritaskan:
+ * 1. Skala bahu & kedekatan (pengguna di depan layar berukuran lebih besar daripada orang di latar).
+ * 2. Posisi sentral (pengguna meja belajar berada di dekat sumbu horizontal x ~ 0.5).
+ * 3. Kontinuitas temporal spasial (mencegah perpindahan ID ke orang lain yang melintas).
+ * 4. Kesesuaian baseline yang telah terkalibrasi.
+ */
+export function selectPrimaryUserPose(
+  poses: NormalizedLandmark[][],
+  lastTracked?: TrackedPersonAnchor | null,
+  baseline?: PostureBaseline | null
+): { primaryPose: NormalizedLandmark[]; primaryIndex: number; newAnchor: TrackedPersonAnchor } | null {
+  if (!poses || poses.length === 0) return null;
+
+  if (poses.length === 1) {
+    const p = poses[0];
+    const leftSh = p[POSE_LANDMARK_INDICES.LEFT_SHOULDER];
+    const rightSh = p[POSE_LANDMARK_INDICES.RIGHT_SHOULDER];
+    if (leftSh && rightSh) {
+      const sw = calcDistance2D(leftSh, rightSh);
+      const anchor: TrackedPersonAnchor = {
+        x: (leftSh.x + rightSh.x) / 2,
+        y: (leftSh.y + rightSh.y) / 2,
+        shoulderWidth: sw,
+      };
+      return { primaryPose: p, primaryIndex: 0, newAnchor: anchor };
+    }
+    return { primaryPose: p, primaryIndex: 0, newAnchor: { x: 0.5, y: 0.5, shoulderWidth: 0.3 } };
+  }
+
+  let bestIndex = 0;
+  let bestScore = -Infinity;
+  let bestAnchor: TrackedPersonAnchor = { x: 0.5, y: 0.5, shoulderWidth: 0.3 };
+
+  for (let idx = 0; idx < poses.length; idx++) {
+    const pose = poses[idx];
+    const leftSh = pose[POSE_LANDMARK_INDICES.LEFT_SHOULDER];
+    const rightSh = pose[POSE_LANDMARK_INDICES.RIGHT_SHOULDER];
+
+    if (!leftSh || !rightSh) continue;
+
+    const vis = ((leftSh.visibility ?? 1) + (rightSh.visibility ?? 1)) / 2;
+    if (vis < 0.25) continue; // Abaikan figur samar atau tertutup di latar belakang
+
+    const midX = (leftSh.x + rightSh.x) / 2;
+    const midY = (leftSh.y + rightSh.y) / 2;
+    const sw = calcDistance2D(leftSh, rightSh);
+
+    // 1. Ukuran/Kedekatan: Pengguna di depan monitor memiliki lebar bahu jauh lebih besar (~0.22 - 0.50 vs < 0.12)
+    const sizeScore = Math.min(1.0, sw / 0.32);
+
+    // 2. Sentrisitas: Pengguna duduk di tengah frame kamera (midX ~ 0.5)
+    const distCenter = Math.abs(midX - 0.5);
+    const centerScore = Math.max(0, 1.0 - distCenter * 2.2);
+
+    // 3. Kontinuitas Temporal: Mengunci orang yang sama dengan frame sebelumnya
+    let continuityScore = 0.5;
+    if (lastTracked) {
+      const posDist = Math.hypot(midX - lastTracked.x, midY - lastTracked.y);
+      const widthDiff = Math.abs(sw - lastTracked.shoulderWidth);
+      continuityScore = Math.max(0, 1.0 - posDist * 2.5 - widthDiff * 2.0);
+    }
+
+    // 4. Keselarasan Baseline: Jika sudah dikalibrasi, prioritaskan yang mirip ukuran baseline
+    let baselineScore = 0.5;
+    if (baseline) {
+      const bWidthDiff = Math.abs(sw - baseline.shoulderWidth) / baseline.shoulderWidth;
+      const bYDiff = Math.abs(midY - baseline.shoulderY);
+      baselineScore = Math.max(0, 1.0 - bWidthDiff * 1.5 - bYDiff * 2.0);
+    }
+
+    const totalScore =
+      sizeScore * 3.0 +
+      centerScore * 1.5 +
+      (lastTracked ? continuityScore * 4.0 : 0) +
+      (baseline ? baselineScore * 2.5 : 0) +
+      vis * 0.5;
+
+    if (totalScore > bestScore) {
+      bestScore = totalScore;
+      bestIndex = idx;
+      bestAnchor = { x: midX, y: midY, shoulderWidth: sw };
+    }
+  }
+
+  return {
+    primaryPose: poses[bestIndex],
+    primaryIndex: bestIndex,
+    newAnchor: bestAnchor,
+  };
+}
+

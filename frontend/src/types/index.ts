@@ -24,5 +24,6 @@ export type TabKey =
   | "coach"
   | "history"
   | "settings"
-  | "vision-lab";
+  | "vision-lab"
+  | "profile";
 
