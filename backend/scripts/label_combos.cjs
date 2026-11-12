@@ -1,24 +1,19 @@
 /**
- * label_combos.js
- * Langkah B — Jalankan tiap baris combos.jsonl lewat logika rule engine ASLI
- * CampusFlow (disalin persis dari evaluateClinicalRuleFlags & computeCoachConstraints
- * di backend/src/services/ollamaCoach.ts) supaya dominantMediator, allowedRanges,
- * dan rule flags akurat 100% sama dengan sistem produksi.
+ * label_combos.cjs
+ * Langkah B — Melabeli tiap baris combos.jsonl memakai logika rule engine ASLI
+ * CampusFlow (selaras 100% dengan evaluateClinicalRuleFlags & computeCoachConstraints
+ * di backend/src/services/ollamaCoach.ts).
  *
- * Cara jalankan (dari folder backend/scripts/):
- *   node label_combos.js
+ * Cara jalankan:
+ *   node backend/scripts/label_combos.cjs
  *
- * Input:  combos.jsonl        (hasil Langkah A)
- * Output: labeled_combos.jsonl
+ * Input:  backend/scripts/combos.jsonl
+ * Output: backend/scripts/labeled_combos.jsonl
  */
 
 const fs = require("fs");
+const path = require("path");
 const readline = require("readline");
-
-// ======================================================
-// DISALIN PERSIS dari ollamaCoach.ts — JANGAN ubah logikanya.
-// Kalau file ollamaCoach.ts berubah, update juga bagian ini.
-// ======================================================
 
 const MEDIATOR_BASE_RANGES = {
   SLEEP_MEDIATION_DEFICIT: { durationMinutesRange: [15, 30], metsRange: [180, 260] },
@@ -158,13 +153,29 @@ function computeCoachConstraints(mediator, escalationFlag, recentInsights) {
   };
 }
 
-// ======================================================
-// Proses utama: baca combos.jsonl baris per baris, label, tulis output
-// ======================================================
+function buildActiveDirectives(evaluation, skipAdaptation) {
+  const directives = [];
+  if (evaluation.escalationFlag) {
+    directives.push(
+      "ESKALASI_AKTIF: WAJIB tulis kalimat penutup ini di diagnosisSummary: 'Kalau rasanya terus menumpuk, nggak apa-apa cerita ke konselor kampus.' dan isi isotemporalActionPlan hanya dengan relaksasi ringan."
+    );
+  }
+  if (evaluation.missingDailyCheckIn) {
+    directives.push(
+      "BELUM_CHECKIN_HARIAN: WAJIB tutup diagnosisSummary dengan kalimat: 'Jangan lupa lengkapi check-in harian di aplikasi ya supaya rekomendasinya makin pas.'"
+    );
+  }
+  if (skipAdaptation.applied) {
+    directives.push(
+      "ADAPTASI_SKIP: turunkan target ke rentang ringan dalam allowedRanges (penurunan wajar maks -40%)."
+    );
+  }
+  return directives;
+}
 
 async function main() {
-  const inputPath = "combos.jsonl";
-  const outputPath = "labeled_combos.jsonl";
+  const inputPath = path.join(__dirname, "combos.jsonl");
+  const outputPath = path.join(__dirname, "labeled_combos.jsonl");
 
   if (!fs.existsSync(inputPath)) {
     console.error(`File '${inputPath}' tidak ditemukan. Jalankan generate_combos.py dulu.`);
@@ -181,22 +192,40 @@ async function main() {
   let total = 0;
   let escalationCount = 0;
   let missingCheckInCount = 0;
+  let skipAppliedCount = 0;
+  let outOfScopeCount = 0;
 
   for await (const line of rl) {
     if (!line.trim()) continue;
     const combo = JSON.parse(line);
     const today = combo.telemetry;
+    const scenarioType = combo.scenarioType || "wellbeing";
+    const userNotes = combo.userNotes ?? null;
+    const recentInsights = Array.isArray(combo.recentInsights) ? combo.recentInsights : [];
 
-    const evaluation = evaluateClinicalRuleFlags(today, { userNotes: null });
+    const evaluation =
+      scenarioType === "out_of_scope"
+        ? {
+            dominantMediator: "OPTIMAL_BALANCE",
+            priorityMediator: "OPTIMAL_BALANCE",
+            flags: [],
+            escalationFlag: false,
+            missingDailyCheckIn: false,
+          }
+        : evaluateClinicalRuleFlags(today, { userNotes });
     const { allowedRanges, skipAdaptation } = computeCoachConstraints(
       evaluation.dominantMediator,
       evaluation.escalationFlag,
-      []
+      recentInsights
     );
+    const activeDirectives =
+      scenarioType === "out_of_scope" ? [] : buildActiveDirectives(evaluation, skipAdaptation);
 
     const labeled = {
       id: combo.id,
+      scenarioType,
       telemetry: today,
+      userNotes,
       clinicalRuleEvaluation: {
         dominantMediator: evaluation.dominantMediator,
         priorityMediator: evaluation.priorityMediator,
@@ -206,17 +235,23 @@ async function main() {
       },
       allowedRanges,
       skipAdaptation,
+      activeDirectives,
     };
 
     outStream.write(JSON.stringify(labeled) + "\n");
 
     total += 1;
-    mediatorCount[evaluation.dominantMediator] = (mediatorCount[evaluation.dominantMediator] || 0) + 1;
-    if (evaluation.escalationFlag) escalationCount += 1;
-    if (evaluation.missingDailyCheckIn) missingCheckInCount += 1;
+    if (scenarioType === "out_of_scope") {
+      outOfScopeCount += 1;
+    } else {
+      mediatorCount[evaluation.dominantMediator] = (mediatorCount[evaluation.dominantMediator] || 0) + 1;
+      if (evaluation.escalationFlag) escalationCount += 1;
+      if (evaluation.missingDailyCheckIn) missingCheckInCount += 1;
+      if (skipAdaptation.applied) skipAppliedCount += 1;
+    }
   }
 
-  outStream.end();
+  await new Promise((resolve) => outStream.end(resolve));
 
   console.log(`Selesai. ${total} baris diberi label, ditulis ke '${outputPath}'`);
   console.log("\nDistribusi dominantMediator:");
@@ -225,6 +260,8 @@ async function main() {
   }
   console.log(`\nKasus escalationFlag=true: ${escalationCount}`);
   console.log(`Kasus missingDailyCheckIn=true: ${missingCheckInCount}`);
+  console.log(`Kasus skipAdaptation.applied=true: ${skipAppliedCount}`);
+  console.log(`Kasus out_of_scope: ${outOfScopeCount}`);
 }
 
 main();

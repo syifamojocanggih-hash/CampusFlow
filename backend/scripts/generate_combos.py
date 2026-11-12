@@ -1,84 +1,165 @@
 """
 generate_combos.py
-Langkah A — Generate kombinasi telemetri sintetis untuk dataset fine-tuning CampusFlow.
+Langkah A — Generate kombinasi telemetri sintetis yang konsisten secara fisiologis
+untuk dataset fine-tuning CampusFlow (termasuk skenario skipAdaptation, userNotes
+darurat, missingDailyCheckIn, dan out_of_scope murni).
 
 Cara jalankan:
-    py -3.12 generate_combos.py
+    py backend/scripts/generate_combos.py
 
 Output:
-    combos.jsonl  -> daftar kombinasi telemetri siap dipakai di Langkah B
-                     (nanti dijalankan lewat evaluateClinicalRuleFlags di Node.js
-                     untuk mendapatkan dominantMediator & label yang akurat)
+    backend/scripts/combos.jsonl
 """
 
-import itertools
 import json
 import random
+from pathlib import Path
 
-# ======================================================
-# 1. Definisikan rentang nilai yang mau divariasikan
-#    Sesuaikan angka-angka ini dengan allowedRanges di backend Anda
-# ======================================================
+OUT_PATH = Path(__file__).resolve().parent / "combos.jsonl"
 
-sleep_hours = [4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5]
-daily_steps = [1000, 1500, 3000, 5000, 7000, 9000, 12000, 15000]
-mvpa_minutes = [0, 5, 10, 20, 30, 45, 60, 90]
-sedentary_hours = [3, 4, 6, 8, 10, 12, 14]
-pss4_scores = [None, 0, 2, 4, 6, 8, 10, 12]  # None = belum check-in hari ini
+SEDENTARY_VALUES = [3.0, 4.0, 5.0, 5.5, 6.5, 7.5, 8.5, 9.5, 11.0, 13.0]
+MVPA_VALUES = [0, 5, 10, 15, 20, 25, 30, 35, 45, 60, 75, 90]
+SLEEP_VALUES = [4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5]
+PSS4_VALUES = [0, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14]
 
-# Field tambahan yang dibutuhkan evaluateClinicalRuleFlags
-# (ini input langsung, bukan hasil hitungan dari field lain)
-sleep_quality_scores = [0, 1, 2, 3, 4]          # <=2 dianggap kualitas tidur buruk
-mvpa_sedentary_ratios = [5, 15, 25, 35, 50, 70]  # <25 + sedentary>6 jam -> overload
-triad_pillars_met = [0, 1, 2, 3]                 # jumlah pilar (tidur/gerak/MVPA) terpenuhi
+DISTRESS_NOTES = [
+    "Hari ini merasa cemas berlebihan menghadapi ujian akhir.",
+    "Rasanya putus asa dan tidak sanggup mengejar semua deadline minggu ini.",
+    "Tiba-tiba panik berat sebelum presentasi kuliah besok.",
+    "Capek sekali dan merasa ga sanggup melanjutkan tugas hari ini.",
+]
 
-# ======================================================
-# 2. Buat semua kombinasi lalu ambil sample acak
-#    (kombinasi penuh bisa jutaan, kita tidak perlu semua)
-# ======================================================
+NEUTRAL_NOTES = [
+    None,
+    None,
+    None,
+    "Hari ini kuliah dari pagi sampai sore di gedung teknik.",
+    "Menyiapkan bahan presentasi kelompok di perpustakaan kampus.",
+]
 
-random.seed(42)  # supaya hasil reproducible setiap kali dijalankan
+OUT_OF_SCOPE_NOTES = [
+    "Bisa bantu jawab soal kalkulus integral nomor 5?",
+    "Tolong buatkan resep nasi goreng kampung yang enak.",
+    "Siapa presiden pertama Indonesia?",
+    "Jelaskan cara membuat API REST memakai Python FastAPI.",
+    "Berikan rekomendasi laptop gaming terbaik tahun ini.",
+    "Tolong terjemahkan paragraf bahasa Inggris ini ke Jepang.",
+    "Berapa harga saham BBCA hari ini?",
+    "Ceritakan sejarah singkat perang Diponegoro.",
+    "Bagaimana cara memperbaiki error git merge conflict?",
+    "Rekomendasi film horor Indonesia terbaik apa?",
+    "Buatkan puisi bertema hujan di malam hari.",
+    "Tolong hitung luas lingkaran dengan jari-jari 14 cm.",
+    "Apa perbedaan RAM DDR4 dan DDR5?",
+    "Siapa pemenang Piala Dunia terakhir?",
+    "Berikan ide judul skripsi tentang e-commerce.",
+]
 
-all_combos = list(itertools.product(
-    sleep_hours, daily_steps, mvpa_minutes, sedentary_hours, pss4_scores,
-    sleep_quality_scores, mvpa_sedentary_ratios, triad_pillars_met,
-))
 
-print(f"Total kombinasi penuh yang mungkin: {len(all_combos)}")
+def sample_sleep_quality(rng: random.Random, sleep_hours: float) -> int:
+    """Pilih skor kualitas tidur (1..5) yang masuk akal terhadap durasi tidur."""
+    if sleep_hours < 5.5:
+        return rng.choice([1, 1, 2, 2, 3])
+    if sleep_hours < 7.0:
+        return rng.choice([2, 2, 3, 3, 4])
+    return rng.choice([2, 3, 4, 4, 5])
 
-random.shuffle(all_combos)
 
-# Ambil sample lebih banyak dari target akhir (400-an), karena nanti
-# akan difilter lagi di Langkah B supaya distribusi mediator merata.
-SAMPLE_SIZE = 3000
-sampled = all_combos[:SAMPLE_SIZE]
+def compute_triad_pillars(sedentary: float, mvpa: int, sleep: float | None, sleep_q: int | None) -> int:
+    """Selaras dengan evaluate24HourTriad di clinicalScoring.ts."""
+    p1 = mvpa >= 30
+    p2 = sleep is not None and sleep_q is not None and 7.0 <= sleep <= 9.0 and sleep_q >= 3
+    p3 = sedentary < 9.0
+    return int(p1) + int(p2) + int(p3)
 
-# ======================================================
-# 3. Tulis ke file JSONL — satu kombinasi per baris
-#    Nama field dibuat PERSIS sama dengan Telemetry7DaysInput["today"]
-#    di ollamaCoach.ts, supaya Langkah B tinggal pakai langsung.
-# ======================================================
 
-output_path = "combos.jsonl"
+def make_telemetry_row(rng: random.Random, idx: int, *, force_exam_stress: bool = False, force_missing_checkin: bool = False) -> dict:
+    if force_exam_stress:
+        sedentary = rng.choice([3.0, 4.0, 5.0, 5.5, 6.0])
+        mvpa = rng.choice([30, 35, 45, 60])
+        sleep = rng.choice([7.0, 7.5, 8.0, 8.5])
+        sleep_q = rng.choice([3, 4, 5])
+        pss4 = rng.choice([8, 9, 10, 11, 12, 13])
+    elif force_missing_checkin:
+        sedentary = rng.choice(SEDENTARY_VALUES)
+        mvpa = rng.choice(MVPA_VALUES)
+        sleep = None
+        sleep_q = None
+        pss4 = None
+    else:
+        sedentary = rng.choice(SEDENTARY_VALUES)
+        mvpa = rng.choice(MVPA_VALUES)
+        if rng.random() < 0.12:
+            sleep, sleep_q, pss4 = None, None, None
+        else:
+            sleep = rng.choice(SLEEP_VALUES)
+            sleep_q = sample_sleep_quality(rng, sleep)
+            pss4 = rng.choice(PSS4_VALUES)
 
-with open(output_path, "w", encoding="utf-8") as f:
-    for i, (sleep, steps, mvpa, sedentary, pss4, sleep_q, ratio, triad) in enumerate(sampled):
-        record = {
-            "id": f"combo_{i:04d}",
-            "telemetry": {
-                "totalSedentaryHours": sedentary,
-                "totalMvpaMinutes": mvpa,
-                "mvpaPerSedentaryRatio": ratio,
-                "sleepHours": sleep,
-                "sleepQualityScore": sleep_q,
-                "pss4TotalScore": pss4,
-                "triadPillarsMet": triad,
-                # field tambahan, tidak dipakai rule engine tapi berguna
-                # untuk konteks teks naratif di Langkah C
-                "dailySteps": steps,
-            }
-        }
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    ratio = round(mvpa / sedentary, 2) if sedentary > 0 else float(mvpa)
+    steps = rng.randint(600, 2200) + mvpa * rng.randint(85, 115)
+    triad = compute_triad_pillars(sedentary, mvpa, sleep, sleep_q)
 
-print(f"Selesai. {len(sampled)} kombinasi ditulis ke '{output_path}'")
-print("Lanjut ke Langkah B: jalankan tiap baris lewat evaluateClinicalRuleFlags di Node.js")
+    # Tambahkan riwayat skip berulang pada ~18% baris supaya skipAdaptation terlatih nyata
+    recent_insights = []
+    if rng.random() < 0.18:
+        skips = rng.choice([2, 3, 4])
+        prev_mets = rng.choice([190, 200, 220, 240])
+        recent_insights = [{"isCompleted": False, "recommendedMetsToday": prev_mets} for _ in range(skips)]
+
+    # Tambahkan catatan darurat pada ~10% baris (jika bukan missing check-in) atau catatan netral
+    if pss4 is not None and rng.random() < 0.10:
+        user_notes = rng.choice(DISTRESS_NOTES)
+    else:
+        user_notes = rng.choice(NEUTRAL_NOTES)
+
+    return {
+        "id": f"combo_{idx:04d}",
+        "scenarioType": "wellbeing",
+        "telemetry": {
+            "totalSedentaryHours": sedentary,
+            "totalMvpaMinutes": mvpa,
+            "mvpaPerSedentaryRatio": ratio,
+            "sleepHours": sleep,
+            "sleepQualityScore": sleep_q,
+            "pss4TotalScore": pss4,
+            "triadPillarsMet": triad,
+            "dailySteps": steps,
+        },
+        "userNotes": user_notes,
+        "recentInsights": recent_insights,
+    }
+
+
+def main() -> None:
+    rng = random.Random(42)
+    records = []
+
+    # 2400 variasi umum, 350 EXAM_ACUTE_STRESS-eligible, 235 missingDailyCheckIn, 15 out_of_scope
+    idx = 0
+    for _ in range(2400):
+        records.append(make_telemetry_row(rng, idx))
+        idx += 1
+    for _ in range(350):
+        records.append(make_telemetry_row(rng, idx, force_exam_stress=True))
+        idx += 1
+    for _ in range(235):
+        records.append(make_telemetry_row(rng, idx, force_missing_checkin=True))
+        idx += 1
+    for note in OUT_OF_SCOPE_NOTES:
+        base = make_telemetry_row(rng, idx, force_exam_stress=False)
+        base["scenarioType"] = "out_of_scope"
+        base["userNotes"] = note
+        base["recentInsights"] = []
+        records.append(base)
+        idx += 1
+
+    with OUT_PATH.open("w", encoding="utf-8") as f:
+        for rec in records:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+    print(f"Selesai. {len(records)} kombinasi konsisten ditulis ke '{OUT_PATH}'")
+
+
+if __name__ == "__main__":
+    main()

@@ -385,9 +385,57 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
   return baseByMediator[evaluation.dominantMediator];
 }
 
+export type OllamaPromptMode = "auto" | "user-only" | "chatml";
+
 export interface GenerateInsightOptions {
   fetchFn?: typeof fetch;
   enforceGuardrails?: boolean;
+  model?: string;
+  promptMode?: OllamaPromptMode;
+}
+
+export interface OllamaChatMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+/** Mengirim permintaan chat terstruktur ke `/api/chat` Ollama dan memvalidasi JSON output 5 field resmi. */
+export async function callOllamaChatJson(
+  messages: OllamaChatMessage[],
+  options: {
+    fetchFn?: typeof fetch;
+    model?: string;
+    timeoutMs?: number;
+  } = {}
+): Promise<{ insight: GeneratedInsight; model: string }> {
+  const fetchFn = options.fetchFn ?? fetch;
+  const targetModel = options.model ?? env.OLLAMA_MODEL;
+  const endpoint = `${env.OLLAMA_BASE_URL.replace(/\/+$/, "")}/api/chat`;
+
+  const response = await fetchFn(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(options.timeoutMs ?? env.OLLAMA_TIMEOUT_MS),
+    body: JSON.stringify({
+      model: targetModel,
+      stream: false,
+      format: OLLAMA_RESPONSE_FORMAT,
+      options: { temperature: 0 },
+      messages,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Ollama HTTP ${response.status}`);
+  }
+
+  const rawBody = (await response.json()) as {
+    message?: { content?: string };
+    response?: string;
+  };
+  const rawJsonText = rawBody.message?.content ?? rawBody.response ?? "";
+  const insight = insightOutputSchema.parse(JSON.parse(rawJsonText));
+  return { insight, model: targetModel };
 }
 
 function buildActiveDirectives(
@@ -427,6 +475,12 @@ export async function generateClinicalWellbeingInsight(
     typeof fetchOrOptions === "function" ? fetchOrOptions : (fetchOrOptions.fetchFn ?? fetch);
   const enforceGuardrails =
     typeof fetchOrOptions === "function" ? true : (fetchOrOptions.enforceGuardrails ?? true);
+  const targetModel =
+    typeof fetchOrOptions === "function"
+      ? env.OLLAMA_MODEL
+      : (fetchOrOptions.model ?? env.OLLAMA_MODEL);
+  const promptMode: OllamaPromptMode =
+    typeof fetchOrOptions === "function" ? "auto" : (fetchOrOptions.promptMode ?? "auto");
 
   const evaluation = evaluateClinicalRuleFlags(userTelemetry7Days.today, {
     userNotes: userTelemetry7Days.userNotes,
@@ -438,7 +492,6 @@ export async function generateClinicalWellbeingInsight(
   );
   const activeDirectives = buildActiveDirectives(evaluation, skipAdaptation);
 
-  const endpoint = `${env.OLLAMA_BASE_URL.replace(/\/+$/, "")}/api/chat`;
   const promptPayload = {
     activeDirectives,
     clinicalRuleEvaluation: {
@@ -456,8 +509,10 @@ export async function generateClinicalWellbeingInsight(
     userNotes: userTelemetry7Days.userNotes ?? null,
   };
 
-  const usesBakedModelfile = env.OLLAMA_MODEL.startsWith("campusflow-coach");
-  const messages = usesBakedModelfile
+  const usesBakedModelfile =
+    promptMode === "user-only" ||
+    (promptMode === "auto" && targetModel.startsWith("campusflow-coach"));
+  const messages: OllamaChatMessage[] = usesBakedModelfile
     ? [{ role: "user", content: JSON.stringify(promptPayload) }]
     : [
         { role: "system", content: SYSTEM_INSTRUCTION },
@@ -470,29 +525,10 @@ export async function generateClinicalWellbeingInsight(
       ];
 
   try {
-    const response = await fetchFn(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal: AbortSignal.timeout(env.OLLAMA_TIMEOUT_MS),
-      body: JSON.stringify({
-        model: env.OLLAMA_MODEL,
-        stream: false,
-        format: OLLAMA_RESPONSE_FORMAT,
-        options: { temperature: 0 },
-        messages,
-      }),
+    const { insight: parsed } = await callOllamaChatJson(messages, {
+      fetchFn,
+      model: targetModel,
     });
-
-    if (!response.ok) {
-      throw new Error(`Ollama HTTP ${response.status}`);
-    }
-
-    const rawBody = (await response.json()) as {
-      message?: { content?: string };
-      response?: string;
-    };
-    const rawJsonText = rawBody.message?.content ?? rawBody.response ?? "";
-    const parsed = insightOutputSchema.parse(JSON.parse(rawJsonText));
     const finalInsight = enforceGuardrails
       ? enforceClinicalGuardrails(parsed, evaluation, allowedRanges)
       : parsed;
@@ -500,7 +536,7 @@ export async function generateClinicalWellbeingInsight(
     return {
       insight: finalInsight,
       source: "OLLAMA_LOCAL",
-      model: env.OLLAMA_MODEL,
+      model: targetModel,
       escalationFlag: evaluation.escalationFlag,
     };
   } catch (err) {
@@ -508,7 +544,7 @@ export async function generateClinicalWellbeingInsight(
     return {
       insight: buildDeterministicFallbackInsight(userTelemetry7Days),
       source: "CLINICAL_FALLBACK",
-      model: env.OLLAMA_MODEL,
+      model: targetModel,
       escalationFlag: evaluation.escalationFlag,
     };
   }
@@ -524,7 +560,8 @@ export interface OllamaStatusResult {
 
 /** Mengecek apakah server Ollama lokal aktif dan model yang dikonfigurasi sudah ter-pull. */
 export async function checkOllamaStatus(
-  fetchFn: typeof fetch = fetch
+  fetchFn: typeof fetch = fetch,
+  modelName: string = env.OLLAMA_MODEL
 ): Promise<OllamaStatusResult> {
   const baseUrl = env.OLLAMA_BASE_URL.replace(/\/+$/, "");
   try {
@@ -537,7 +574,7 @@ export async function checkOllamaStatus(
       return {
         reachable: false,
         baseUrl,
-        configuredModel: env.OLLAMA_MODEL,
+        configuredModel: modelName,
         modelInstalled: false,
         availableModels: [],
       };
@@ -548,13 +585,13 @@ export async function checkOllamaStatus(
       .map((item) => item.name ?? "")
       .filter(Boolean);
     const modelInstalled = availableModels.some(
-      (name) => name === env.OLLAMA_MODEL || name.startsWith(`${env.OLLAMA_MODEL}:`)
+      (name) => name === modelName || name.startsWith(`${modelName}:`)
     );
 
     return {
       reachable: true,
       baseUrl,
-      configuredModel: env.OLLAMA_MODEL,
+      configuredModel: modelName,
       modelInstalled,
       availableModels,
     };
@@ -562,7 +599,7 @@ export async function checkOllamaStatus(
     return {
       reachable: false,
       baseUrl,
-      configuredModel: env.OLLAMA_MODEL,
+      configuredModel: modelName,
       modelInstalled: false,
       availableModels: [],
     };

@@ -11,12 +11,14 @@
     "start": "node dist/backend/src/index.js",
     "start:prod": "npx prisma migrate deploy && node dist/backend/src/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test src/services/clinicalScoring.test.ts src/services/ollamaCoach.test.ts src/middleware/rateLimit.test.ts src/app.test.ts",
+    "test": "node --test src/services/clinicalScoring.test.ts src/services/ollamaCoach.test.ts src/middleware/rateLimit.test.ts src/app.test.ts scripts/eval-checks.test.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",
     "ollama:create": "ollama create campusflow-coach -f ollama/Modelfile",
-    "ollama:eval": "tsx scripts/eval-ollama.ts"
+    "ollama:eval": "tsx scripts/eval-ollama.ts",
+    "ollama:eval:val": "tsx scripts/eval-ollama.ts --suite val",
+    "ollama:eval:all": "tsx scripts/eval-ollama.ts --suite all"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",
