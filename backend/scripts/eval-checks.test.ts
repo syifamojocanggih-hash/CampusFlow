@@ -103,7 +103,7 @@ test("evaluateInsightResponse mendeteksi kegagalan penolakan out_of_scope", () =
   assert.ok(failedRefusal.failedRules.includes("outOfScopeRefusal"));
 });
 
-test("seluruh 38 baris target di balanced_dataset_narratives_val_messages.jsonl lolos validasi spesialis 100%", () => {
+test("seluruh baris target di balanced_dataset_narratives_val_messages.jsonl lolos validasi spesialis 100%", () => {
   const valPath = path.join(SCRIPT_DIR, "balanced_dataset_narratives_val_messages.jsonl");
   const rows = fs
     .readFileSync(valPath, "utf8")
@@ -111,7 +111,7 @@ test("seluruh 38 baris target di balanced_dataset_narratives_val_messages.jsonl 
     .filter(Boolean)
     .map((line) => JSON.parse(line));
 
-  assert.equal(rows.length, 38);
+  assert.ok(rows.length >= 38, `Jumlah baris val minimal 38, terbaca ${rows.length}`);
 
   const records: EvalItemRecord[] = [];
   for (let i = 0; i < rows.length; i += 1) {
@@ -160,6 +160,6 @@ test("seluruh 38 baris target di balanced_dataset_narratives_val_messages.jsonl 
     suite: "val",
   });
   const report = formatComparisonReport(summary, summary);
-  assert.match(report, /Specialist Full\s*\|\s*38\/38 \(100%\)/);
+  assert.match(report, new RegExp(`Specialist Full\\s*\\|\\s*${rows.length}/${rows.length} \\(100%\\)`));
 });
 

@@ -21,6 +21,19 @@
 
 ---
 
+## [2026-11-12] — Pipeline Fine-Tuning Dataset, Evaluator Spesialis LLM, & Guardrail Sitasi Deterministik (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
+- **Ringkasan:** Menambahkan pipeline pembuatan & balancing dataset fine-tuning (`generate_combos.py`, `label_combos.cjs`, `balance_dataset.cjs`, `generate_narratives.cjs`, `generate_out_of_scope.cjs`, `merge_out_of_scope.cjs`), memperluas evaluator `eval-ollama.ts` dan `eval-checks.ts` untuk skenario klinis + 43 baris validasi `val_messages.jsonl` + perbandingan before/after, menambahkan guardrail sitasi deterministik (`CITATION_BANK` & `pickCitation`) pada `ollamaCoach.ts` + skrip uji `test_guardrail.ts`, menyelaraskan `Modelfile` model `campusflow-coach-ft`, dan memperbarui `eval-checks.test.ts` agar menerima penambahan 5 baris validasi `out_of_scope` (43 baris).
+- **Daftar File Diubah:**
+  - `.gitignore`
+  - `backend/ollama/Modelfile`, `backend/ollama/Modelfile.backup`
+  - `backend/package.json`, `backend/src/services/ollamaCoach.ts`
+  - `backend/scripts/eval-checks.ts`, `backend/scripts/eval-checks.test.ts`, `backend/scripts/eval-ollama.ts`
+  - `backend/scripts/generate_combos.py`, `backend/scripts/label_combos.cjs`, `backend/scripts/balance_dataset.cjs`, `backend/scripts/few_shot_examples.cjs`, `backend/scripts/generate_narratives.cjs`, `backend/scripts/generate_out_of_scope.cjs`, `backend/scripts/merge_out_of_scope.cjs`, `backend/scripts/test_guardrail.ts`
+  - `backend/scripts/*.jsonl` (dataset kombinasi, narasi, train/val splits, `out_of_scope_extra.jsonl`, dan backup `.bak`)
+- **Catatan Cross-Scope:** `[CROSS-SCOPE] .gitignore` — menambahkan aturan `backend/ollama/*.gguf` agar binary model LLM lokal berukuran besar tidak ter-commit ke Git.
+- **Verifikasi:** `npm --prefix backend run typecheck`, `npm --prefix backend run build`, `npm --prefix backend test` (26/26 lolos), dan `npm run guard` (`pre-push`) hijau.
+
 ## [2026-11-12] — Penguatan Safety Guardrail AI Coach: Rule-Lock, Eskalasi PSS-4 >= 10, `pss4=null`, & Adaptasi Skip -40% (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
 - **Ringkasan:** Mengadopsi aturan keselamatan, nada bahasa Indonesia empatik non-diagnosis, anti-halusinasi sitasi, dan batas target `allowedRanges` ke `backend/ollama/Modelfile` serta `ollamaCoach.ts` sambil menjaga kompatibilitas penuh skema `AiCoachingInsightDTO` (`INTERFACES.md`); menambahkan eskalasi `PSS-4 >= 10` / kata kunci darurat (`escalationFlag`), pembedaan belum check-in harian (`pss4TotalScore = null`) + agregasi live `getDailyActivityAndSedentaryTotals` di route `POST /api/v1/ai-coach/generate`, penurunan target bertahap maks `-40%` saat skip berulang (`computeCoachConstraints`), serta memperluas suite uji `ollamaCoach.test.ts`, `app.test.ts`, dan 10 skenario live `scripts/eval-ollama.ts`.
