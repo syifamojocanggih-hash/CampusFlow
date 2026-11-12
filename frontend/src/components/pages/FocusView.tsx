@@ -1,41 +1,45 @@
 import React from "react";
-import { Eye, Shield, AlertCircle } from "lucide-react";
+import { Eye, ShieldCheck, Sparkles } from "lucide-react";
 import { VisionGuard } from "@/components/vision/VisionGuard";
 
 export const FocusView: React.FC = () => {
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Vision Guard Header */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-50 text-primary rounded-xl">
-              <Eye className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold font-heading text-textMain">
-                Sesi Belajar Aktif &amp; Vision Guard
-              </h2>
-              <p className="text-xs text-slate-500">
-                MediaPipe 33 Landmark Pose On-Device (Privasi 100% lokal, zero video upload).
-              </p>
-            </div>
+    <div className="space-y-6 max-w-4xl mx-auto pb-10">
+      {/* Header Banner */}
+      <div className="learnova-card p-6 border-[#E8E8E8] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+            <Eye className="w-6 h-6" />
           </div>
-          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-teal-50 text-teal-700 text-xs font-medium rounded-full border border-teal-200">
-            <Shield className="w-3.5 h-3.5" /> Zero Video Upload
-          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
+                Sesi Belajar &amp; Vision Guard
+              </h2>
+              <span className="text-[10px] bg-[#CDE8B5] text-[#1A1A1A] font-extrabold px-2.5 py-0.5 rounded-full border border-[#B6DF97]">
+                MediaPipe 33 Landmark
+              </span>
+            </div>
+            <p className="text-xs text-[#9A9A9A] mt-0.5">
+              Pemantauan postur tegak, pencegahan slouching, dan jeda peregangan anti-cheat.
+            </p>
+          </div>
         </div>
 
-        {/* Live VisionGuard Component */}
-        <VisionGuard />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF29A] text-[#1A1A1A] text-xs font-extrabold rounded-2xl border border-[#FFE966]">
+          <ShieldCheck className="w-4 h-4 text-[#1A1A1A]" /> Zero Video Upload
+        </span>
+      </div>
 
-        {/* Info Note */}
-        <div className="mt-4 flex items-start gap-2.5 text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
-          <AlertCircle className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-          <span>
-            Pada layar sempit smartphone (&lt; 640px), fitur Vision Guard secara otomatis dinonaktifkan secara anggun (graceful degradation) untuk menghemat baterai dan mengutamakan fitur Pedometer.
-          </span>
-        </div>
+      {/* Main Vision Guard Component */}
+      <VisionGuard />
+
+      {/* Notice info */}
+      <div className="learnova-card p-4 sm:p-5 flex items-start gap-3 text-xs text-[#1A1A1A] bg-[#F6F6F6] border-[#E8E8E8]">
+        <Sparkles className="w-4 h-4 text-[#1A1A1A] shrink-0 mt-0.5" />
+        <p className="leading-relaxed text-[#9A9A9A]">
+          Pada layar sempit smartphone (&lt; 640px) atau tanpa kamera depan, fitur kamera postur dinonaktifkan secara anggun (<em>graceful degradation</em>) agar pengguna dapat berfokus penuh pada pelacak langkah pedometer dan kuesioner.
+        </p>
       </div>
     </div>
   );

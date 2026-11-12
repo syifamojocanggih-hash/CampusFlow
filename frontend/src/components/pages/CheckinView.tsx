@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ClipboardCheck, Moon, Check } from "lucide-react";
+import { ClipboardCheck, Moon, Check, Sparkles, Smartphone } from "lucide-react";
 import { api } from "@/lib/api";
 
 export const CheckinView: React.FC = () => {
@@ -21,124 +21,155 @@ export const CheckinView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-xl mx-auto">
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 bg-teal-50 text-teal-600 rounded-xl">
+    <div className="space-y-6 max-w-2xl mx-auto pb-10">
+      {/* Header */}
+      <div className="learnova-card p-6 border-[#E8E8E8] flex items-center justify-between">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
             <ClipboardCheck className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold font-heading text-textMain">
-              Check-in Harian (30 Detik)
-            </h2>
-            <p className="text-xs text-slate-500">
-              Evaluasi PSS-4 &amp; Jam Tidur untuk diagnosis adaptif Gemini AI Coach.
+            <div className="flex items-center gap-2">
+              <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
+                Check-in Harian
+              </h2>
+              <span className="text-[10px] bg-[#FFF29A] text-[#1A1A1A] font-extrabold px-2.5 py-0.5 rounded-full border border-[#FFE966]">
+                30 Detik
+              </span>
+            </div>
+            <p className="text-xs text-[#9A9A9A] mt-0.5">
+              Skala stres klinis PSS-4 &amp; durasi tidur untuk input diagnosis AI Coach.
             </p>
           </div>
         </div>
+      </div>
 
-        {submitted ? (
-          <div className="text-center py-8 space-y-3 bg-teal-50/50 rounded-xl border border-teal-100 p-6">
-            <div className="w-12 h-12 bg-teal-600 text-white rounded-full flex items-center justify-center mx-auto">
-              <Check className="w-6 h-6" />
+      {submitted ? (
+        <div className="learnova-card p-8 text-center space-y-4 bg-[#CDE8B5]/30 border-[#CDE8B5]">
+          <div className="w-14 h-14 bg-[#CDE8B5] text-[#1A1A1A] rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+            <Check className="w-7 h-7" />
+          </div>
+          <h3 className="font-heading font-extrabold text-lg text-[#1A1A1A]">
+            Check-in Berhasil Disimpan!
+          </h3>
+          <p className="text-xs text-[#1A1A1A]/80 max-w-sm mx-auto leading-relaxed">
+            Data telemetri Anda telah diperbarui. Kunjungi tab <strong>AI Coach</strong> untuk melihat rekomendasi aksi fisik personal hari ini.
+          </p>
+          <button
+            onClick={() => setSubmitted(false)}
+            className="text-xs font-bold text-[#1A1A1A] underline pt-2"
+          >
+            Isi Ulang Formulir
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Card 1: Sleep Hours */}
+          <div className="learnova-card p-5 sm:p-6 space-y-4 border-[#E8E8E8]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-[#1A1A1A]">
+                <div className="w-8 h-8 rounded-xl bg-[#CDE8B5] text-[#1A1A1A] flex items-center justify-center">
+                  <Moon className="w-4 h-4" />
+                </div>
+                <span>Durasi Tidur Semalam (Target 7.0–9.0 Jam)</span>
+              </div>
+              <span className="font-heading font-extrabold text-lg text-[#1A1A1A] sensor-num">
+                {sleepHours} Jam
+              </span>
             </div>
-            <h3 className="font-bold text-textMain text-base">Check-in Berhasil Disimpan!</h3>
-            <p className="text-xs text-slate-600">
-              AI Coach telah memperbarui rekomendasi isotemporal harian Anda.
+            <input
+              type="range"
+              min="3"
+              max="12"
+              step="0.5"
+              value={sleepHours}
+              onChange={(e) => setSleepHours(parseFloat(e.target.value))}
+              className="w-full accent-[#1A1A1A] h-2 bg-[#F6F6F6] rounded-lg cursor-pointer"
+            />
+            <div className="flex justify-between text-[11px] text-[#9A9A9A]">
+              <span>Kurang (&lt; 7h)</span>
+              <span className="text-[#1A1A1A] font-extrabold">Optimal (7–9h)</span>
+              <span>Lebih (&gt; 9h)</span>
+            </div>
+          </div>
+
+          {/* Card 2: Recreational Screen Time */}
+          <div className="learnova-card p-5 sm:p-6 space-y-4 border-[#E8E8E8]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-[#1A1A1A]">
+                <div className="w-8 h-8 rounded-xl bg-[#FFF29A] text-[#1A1A1A] flex items-center justify-center">
+                  <Smartphone className="w-4 h-4" />
+                </div>
+                <span>Waktu Layar Non-Akademik / Hiburan</span>
+              </div>
+              <span className="font-heading font-extrabold text-lg text-[#1A1A1A] sensor-num">
+                {screenHours} Jam
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="12"
+              step="0.5"
+              value={screenHours}
+              onChange={(e) => setScreenHours(parseFloat(e.target.value))}
+              className="w-full accent-[#1A1A1A] h-2 bg-[#F6F6F6] rounded-lg cursor-pointer"
+            />
+            <p className="text-[11px] text-[#9A9A9A]">
+              Media sosial, game, atau video streaming di luar perkuliahan dan tugas kampus.
             </p>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Pertanyaan Tidur */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <Moon className="w-4 h-4 text-teal-600" />
-                <span>Berapa jam Anda tidur semalam?</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <input
-                  type="range"
-                  min="3"
-                  max="12"
-                  step="0.5"
-                  value={sleepHours}
-                  onChange={(e) => setSleepHours(parseFloat(e.target.value))}
-                  className="w-full accent-teal-600"
-                />
-                <span className="text-sm font-bold text-teal-800 w-16 text-right sensor-num">
-                  {sleepHours} Jam
-                </span>
-              </div>
-            </div>
 
-            {/* Durasi Layar Non-Akademik */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
-              <label className="text-xs font-semibold text-slate-700 block">
-                Estimasi waktu layar rekreasi / media sosial di luar kuliah/tugas:
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="range"
-                  min="0"
-                  max="12"
-                  step="0.5"
-                  value={screenHours}
-                  onChange={(e) => setScreenHours(parseFloat(e.target.value))}
-                  className="w-full accent-primary"
-                />
-                <span className="text-sm font-bold text-primary w-16 text-right sensor-num">
-                  {screenHours} Jam
-                </span>
-              </div>
-            </div>
-
-            {/* PSS-4 Skala Singkat */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Skala Stres PSS-4 (Dalam 24 Jam Terakhir)
+          {/* Card 3: PSS-4 Questionnaire */}
+          <div className="learnova-card p-5 sm:p-6 space-y-5 border-[#E8E8E8]">
+            <div className="flex items-center justify-between border-b border-[#E8E8E8] pb-3">
+              <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#1A1A1A]" />
+                Pertanyaan PSS-4 (24 Jam Terakhir)
               </h3>
-              {[
-                "1. Seberapa sering Anda merasa tidak mampu mengendalikan hal penting?",
-                "2. Seberapa sering Anda merasa yakin pada kemampuan mengatasi masalah pribadi? (Item Positif)",
-                "3. Seberapa sering Anda merasa segala hal berjalan sesuai keinginan? (Item Positif)",
-                "4. Seberapa sering Anda merasa kesulitan menumpuk begitu tinggi?",
-              ].map((q, idx) => (
-                <div key={idx} className="p-3 bg-slate-50 rounded-lg text-xs space-y-2">
-                  <p className="font-medium text-slate-700">{q}</p>
-                  <div className="flex justify-between gap-1">
-                    {[0, 1, 2, 3, 4].map((val) => (
-                      <button
-                        type="button"
-                        key={val}
-                        onClick={() => {
-                          const next = [...answers] as [number, number, number, number];
-                          next[idx] = val;
-                          setAnswers(next);
-                        }}
-                        className={`flex-1 py-1.5 rounded text-center font-medium transition-colors ${
-                          answers[idx] === val
-                            ? "bg-primary text-white font-bold"
-                            : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
-                        }`}
-                      >
-                        {val}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
+              <span className="text-[11px] text-[#9A9A9A] font-medium">Skala 0 (Tidak Pernah) - 4 (Sangat Sering)</span>
             </div>
+
+            {[
+              "1. Seberapa sering Anda merasa tidak mampu mengendalikan hal penting?",
+              "2. Seberapa sering Anda merasa yakin pada kemampuan mengatasi masalah pribadi? (Item Positif)",
+              "3. Seberapa sering Anda merasa segala hal berjalan sesuai keinginan? (Item Positif)",
+              "4. Seberapa sering Anda merasa kesulitan menumpuk begitu tinggi?",
+            ].map((q, idx) => (
+              <div key={idx} className="space-y-2.5 pt-1">
+                <p className="text-xs font-semibold text-[#1A1A1A] leading-snug">{q}</p>
+                <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                  {[0, 1, 2, 3, 4].map((val) => (
+                    <button
+                      type="button"
+                      key={val}
+                      onClick={() => {
+                        const next = [...answers] as [number, number, number, number];
+                        next[idx] = val;
+                        setAnswers(next);
+                      }}
+                      className={`py-2 rounded-xl text-center text-xs font-bold transition-all ${
+                        answers[idx] === val
+                          ? "bg-[#FFF29A] text-[#1A1A1A] font-extrabold border border-[#FFE966] shadow-softPill scale-102"
+                          : "bg-[#F6F6F6] border border-[#E8E8E8] text-[#1A1A1A] hover:bg-white"
+                      }`}
+                    >
+                      {val}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
 
             <button
               type="submit"
-              className="w-full bg-primary hover:bg-blue-700 text-white font-semibold text-sm py-3 rounded-xl transition-colors shadow-xs"
+              className="w-full mt-4 bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] font-extrabold text-xs sm:text-sm py-3.5 rounded-2xl transition-all shadow-softPill flex items-center justify-center gap-2 border border-[#FFE966]"
             >
-              Simpan Check-in &amp; Analisis AI Coach
+              Simpan &amp; Analisis Rekomendasi AI Coach
             </button>
-          </form>
-        )}
-      </div>
+          </div>
+        </form>
+      )}
     </div>
   );
 };
-

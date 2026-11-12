@@ -148,48 +148,80 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     async function initVision() {
       try {
         setIsInitializing(true);
-        const vision = await FilesetResolver.forVisionTasks("/wasm");
+
+        // 1. Resolve WASM files (Local first, fallback to CDN)
+        let vision;
+        try {
+          vision = await FilesetResolver.forVisionTasks("/wasm");
+        } catch (wasmErr) {
+          console.warn("[VisionGuard] Local /wasm failed, using CDN fallback:", wasmErr);
+          vision = await FilesetResolver.forVisionTasks(
+            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm"
+          );
+        }
         if (!isMounted) return;
 
-        let landmarker: PoseLandmarker;
-        try {
-          landmarker = await PoseLandmarker.createFromOptions(vision, {
-            baseOptions: {
-              modelAssetPath: "/models/pose_landmarker_lite.task",
-              delegate: "GPU",
-            },
-            runningMode: "VIDEO",
-            numPoses: 1,
-            minPoseDetectionConfidence: 0.5,
-            minPosePresenceConfidence: 0.5,
-            minTrackingConfidence: 0.5,
-          });
-          setHardwareDelegate("GPU");
-        } catch (gpuErr) {
-          console.warn("[VisionGuard] GPU delegate failed, falling back to CPU:", gpuErr);
-          landmarker = await PoseLandmarker.createFromOptions(vision, {
-            baseOptions: {
-              modelAssetPath: "/models/pose_landmarker_lite.task",
-              delegate: "CPU",
-            },
-            runningMode: "VIDEO",
-            numPoses: 1,
-            minPoseDetectionConfidence: 0.5,
-            minPosePresenceConfidence: 0.5,
-            minTrackingConfidence: 0.5,
-          });
-          setHardwareDelegate("CPU");
+        // 2. Load Model Asset (Local first, fallback to Google Storage CDN)
+        const modelCandidates = [
+          "/models/pose_landmarker_lite.task",
+          "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task",
+        ];
+
+        let landmarker: PoseLandmarker | null = null;
+        for (const modelAssetPath of modelCandidates) {
+          try {
+            // Prefer GPU delegate for smooth 24+ FPS, fallback to CPU
+            try {
+              landmarker = await PoseLandmarker.createFromOptions(vision, {
+                baseOptions: {
+                  modelAssetPath,
+                  delegate: "GPU",
+                },
+                runningMode: "VIDEO",
+                numPoses: 1,
+                minPoseDetectionConfidence: 0.45,
+                minPosePresenceConfidence: 0.45,
+                minTrackingConfidence: 0.45,
+              });
+              setHardwareDelegate("GPU");
+            } catch (gpuErr) {
+              console.warn("[VisionGuard] GPU delegate failed, trying CPU delegate:", gpuErr);
+              landmarker = await PoseLandmarker.createFromOptions(vision, {
+                baseOptions: {
+                  modelAssetPath,
+                  delegate: "CPU",
+                },
+                runningMode: "VIDEO",
+                numPoses: 1,
+                minPoseDetectionConfidence: 0.45,
+                minPosePresenceConfidence: 0.45,
+                minTrackingConfidence: 0.45,
+              });
+              setHardwareDelegate("CPU");
+            }
+            if (landmarker) {
+              break;
+            }
+          } catch (modelErr) {
+            console.warn(`[VisionGuard] Failed to load model from ${modelAssetPath}:`, modelErr);
+          }
+        }
+
+        if (!landmarker) {
+          throw new Error("Gagal menginisialisasi PoseLandmarker dari semua path model.");
         }
 
         if (isMounted) {
           landmarkerRef.current = landmarker;
           setIsInitializing(false);
-          startCamera();
+          await startCamera();
         }
       } catch (err: unknown) {
         console.error("[VisionGuard] Gagal menginisialisasi MediaPipe:", err);
         if (isMounted) {
-          setCameraPermissionError("Gagal memuat model MediaPipe Vision. Mode graceful degradation diaktifkan.");
+          setCameraPermissionError(
+            "Gagal memuat model MediaPipe Vision. Periksa koneksi atau izin kamera."
+          );
           setIsInitializing(false);
         }
       }
@@ -221,16 +253,25 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
       streamRef.current = stream;
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
+        const video = videoRef.current;
+        video.srcObject = stream;
+
+        const onReady = () => {
+          video.play().catch((err) => console.warn("[VisionGuard] video.play() notice:", err));
           startInferenceLoop();
         };
+
+        if (video.readyState >= 2) {
+          onReady();
+        } else {
+          video.onloadedmetadata = onReady;
+          video.onloadeddata = onReady;
+        }
       }
     } catch (err: unknown) {
       console.warn("[VisionGuard] Kamera tidak dapat diakses:", err);
       setCameraPermissionError(
-        "Izin akses kamera ditolak atau kamera tidak ditemukan. Anda tetap dapat menggunakan simulasi postur manual."
+        "Izin akses kamera ditolak atau kamera tidak ditemukan. Pastikan izin kamera aktif."
       );
     }
   };
@@ -303,6 +344,11 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   const startInferenceLoop = () => {
     if (!videoRef.current || !canvasRef.current || !landmarkerRef.current) return;
 
+    if (animationFrameIdRef.current) {
+      cancelAnimationFrame(animationFrameIdRef.current);
+      animationFrameIdRef.current = null;
+    }
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -311,99 +357,103 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     let lastVideoTime = -1;
 
     const processFrame = () => {
-      if (video.readyState >= 2 && video.currentTime !== lastVideoTime) {
-        lastVideoTime = video.currentTime;
+      try {
+        if (video.readyState >= 2 && video.currentTime !== lastVideoTime) {
+          lastVideoTime = video.currentTime;
 
-        // Resize canvas to match video
-        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-          canvas.width = video.videoWidth || 640;
-          canvas.height = video.videoHeight || 480;
-        }
-
-        const now = performance.now();
-        const results = landmarker.detectForVideo(video, now);
-
-        if (results.landmarks && results.landmarks.length > 0) {
-          const rawLandmarks = results.landmarks[0] as NormalizedLandmark[];
-
-          // 1. Calibration branch
-          if (isCalibratingRef.current) {
-            const calRes = calibratorRef.current.addFrame(rawLandmarks);
-            setCalibrationCount(calRes.collected);
-            setCalibrationProgress(calRes.progress);
-
-            if (ctx) {
-              drawSkeleton(ctx, results.landmarks[0], canvas.width, canvas.height, "#3B82F6");
-            }
-
-            if (calibratorRef.current.isComplete()) {
-              const newBaseline = calibratorRef.current.finalize();
-              baselineRef.current = newBaseline;
-              setBaseline(newBaseline);
-              isCalibratingRef.current = false;
-              setIsCalibrating(false);
-              setSessionActive(true);
-              sessionStartTimeRef.current = new Date();
-              sound.playCalibrationSuccess();
-            }
+          // Resize canvas to match video
+          if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
           }
-          // 2. Monitoring or Break Mode branch
-          else if (baselineRef.current) {
-            const currentBaseline = baselineRef.current;
-            const evalResult = evaluatePostureFrame(rawLandmarks, currentBaseline);
-            const smoothedMetrics = smootherRef.current.smooth(evalResult.metrics);
-            const finalEval: PostureEvaluationResult = {
-              ...evalResult,
-              metrics: smoothedMetrics,
-            };
 
-            setPostureState(finalEval);
-            postureStateRef.current = finalEval;
-            if (finalEval.isPresent) {
-              neckRatioSamplesRef.current.push(smoothedMetrics.neckRatio);
+          const now = performance.now();
+          const results = landmarker.detectForVideo(video, now);
+
+          if (results.landmarks && results.landmarks.length > 0) {
+            const rawLandmarks = results.landmarks[0] as NormalizedLandmark[];
+
+            // 1. Calibration branch
+            if (isCalibratingRef.current) {
+              const calRes = calibratorRef.current.addFrame(rawLandmarks);
+              setCalibrationCount(calRes.collected);
+              setCalibrationProgress(calRes.progress);
+
+              if (ctx) {
+                drawSkeleton(ctx, results.landmarks[0], canvas.width, canvas.height, "#3B82F6");
+              }
+
+              if (calibratorRef.current.isComplete()) {
+                const newBaseline = calibratorRef.current.finalize();
+                baselineRef.current = newBaseline;
+                setBaseline(newBaseline);
+                isCalibratingRef.current = false;
+                setIsCalibrating(false);
+                setSessionActive(true);
+                sessionStartTimeRef.current = new Date();
+                sound.playCalibrationSuccess();
+              }
             }
+            // 2. Monitoring or Break Mode branch
+            else if (baselineRef.current) {
+              const currentBaseline = baselineRef.current;
+              const evalResult = evaluatePostureFrame(rawLandmarks, currentBaseline);
+              const smoothedMetrics = smootherRef.current.smooth(evalResult.metrics);
+              const finalEval: PostureEvaluationResult = {
+                ...evalResult,
+                metrics: smoothedMetrics,
+              };
 
-            // Determine overlay color
-            let skeletonColor = "#2563EB"; // Upright Blue
-            if (isBreakLockedRef.current && finalEval.isOverheadStretchValid) {
-              skeletonColor = "#22C55E"; // Active Break Green
-            } else if (
-              finalEval.isSlouching ||
-              finalEval.isTooClose ||
-              finalEval.isLeaningAsymmetric
-            ) {
-              skeletonColor = "#F59E0B"; // Warning Amber
-            }
+              setPostureState(finalEval);
+              postureStateRef.current = finalEval;
+              if (finalEval.isPresent) {
+                neckRatioSamplesRef.current.push(smoothedMetrics.neckRatio);
+              }
 
-            if (ctx) {
-              drawSkeleton(ctx, results.landmarks[0], canvas.width, canvas.height, skeletonColor);
+              // Determine overlay color
+              let skeletonColor = "#2563EB"; // Upright Blue
+              if (isBreakLockedRef.current && finalEval.isOverheadStretchValid) {
+                skeletonColor = "#22C55E"; // Active Break Green
+              } else if (
+                finalEval.isSlouching ||
+                finalEval.isTooClose ||
+                finalEval.isLeaningAsymmetric
+              ) {
+                skeletonColor = "#F59E0B"; // Warning Amber
+              }
+
+              if (ctx) {
+                drawSkeleton(ctx, results.landmarks[0], canvas.width, canvas.height, skeletonColor);
+              }
+            } else {
+              // No baseline yet, draw default blue skeleton
+              if (ctx) {
+                drawSkeleton(ctx, results.landmarks[0], canvas.width, canvas.height, "#3B82F6");
+              }
             }
           } else {
-            // No baseline yet, draw default blue skeleton
-            if (ctx) {
-              drawSkeleton(ctx, results.landmarks[0], canvas.width, canvas.height, "#3B82F6");
+            // No person visible
+            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (baselineRef.current) {
+              const absentEval: PostureEvaluationResult = {
+                isPresent: false,
+                isSlouching: false,
+                isTooClose: false,
+                isLeaningAsymmetric: false,
+                isOverheadStretchValid: false,
+                isStandingUp: true,
+                metrics: { neckRatio: 1, depthRatio: 1, shoulderTiltDeg: 0 },
+              };
+              setPostureState(absentEval);
+              postureStateRef.current = absentEval;
             }
           }
-        } else {
-          // No person visible
-          if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-          if (baselineRef.current) {
-            const absentEval: PostureEvaluationResult = {
-              isPresent: false,
-              isSlouching: false,
-              isTooClose: false,
-              isLeaningAsymmetric: false,
-              isOverheadStretchValid: false,
-              isStandingUp: true,
-              metrics: { neckRatio: 1, depthRatio: 1, shoulderTiltDeg: 0 },
-            };
-            setPostureState(absentEval);
-            postureStateRef.current = absentEval;
-          }
         }
+      } catch (loopErr) {
+        console.warn("[VisionGuard] Error in processFrame:", loopErr);
+      } finally {
+        animationFrameIdRef.current = requestAnimationFrame(processFrame);
       }
-
-      animationFrameIdRef.current = requestAnimationFrame(processFrame);
     };
 
     animationFrameIdRef.current = requestAnimationFrame(processFrame);
@@ -416,6 +466,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     setCalibrationProgress(0);
     isCalibratingRef.current = true;
     setIsCalibrating(true);
+    startInferenceLoop();
   };
 
   const handleRecalibrate = () => {
@@ -614,21 +665,21 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
       )}
 
       {/* Vision Guard Header & Controls */}
-      <div className={`bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4 ${isBreakLocked ? "relative z-50" : ""}`}>
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-blue-50 text-primary rounded-xl">
+      <div className={`learnova-card p-5 sm:p-6 border-[#E8E8E8] flex flex-wrap items-center justify-between gap-4 ${isBreakLocked ? "relative z-50" : ""}`}>
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
             <Shield className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-heading font-bold text-base text-textMain">
+              <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
                 Vision Guard &amp; Anti-Cheat Break
               </h3>
-              <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-mono font-semibold">
+              <span className="text-[10px] bg-[#CDE8B5] text-[#1A1A1A] px-2.5 py-0.5 rounded-full font-bold border border-[#B6DF97]">
                 {hardwareDelegate} Acceleration
               </span>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#9A9A9A]">
               MediaPipe Pose Landmarker Lite &bull; 100% On-Device (Privasi Aman, Zero Upload)
             </p>
           </div>
@@ -641,19 +692,19 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             onClick={toggleMute}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
               isMuted
-                ? "bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200"
-                : "bg-blue-50 text-primary border-blue-200 hover:bg-blue-100 shadow-xs"
+                ? "bg-[#F6F6F6] text-[#9A9A9A] border-[#E8E8E8] hover:bg-[#E8E8E8]"
+                : "bg-[#FFF29A] text-[#1A1A1A] border-[#FFE966] shadow-xs"
             }`}
             title={isMuted ? "Aktifkan Audio Synthesizer" : "Bisukan Audio Feedback"}
           >
-            {isMuted ? <VolumeX className="w-3.5 h-3.5 text-slate-400" /> : <Volume2 className="w-3.5 h-3.5 text-primary" />}
+            {isMuted ? <VolumeX className="w-3.5 h-3.5 text-[#9A9A9A]" /> : <Volume2 className="w-3.5 h-3.5 text-[#1A1A1A]" />}
             <span className="hidden sm:inline">{isMuted ? "Muted" : "Audio"}</span>
           </button>
 
           {/* Demo Mode Switch */}
-          <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-            <Sliders className="w-4 h-4 text-slate-500" />
-            <span className="text-xs font-semibold text-slate-700">DEMO MODE</span>
+          <div className="flex items-center gap-2 bg-[#F6F6F6] px-3 py-1.5 rounded-xl border border-[#E8E8E8]">
+            <Sliders className="w-4 h-4 text-[#1A1A1A]" />
+            <span className="text-xs font-semibold text-[#1A1A1A]">DEMO MODE</span>
             <button
               onClick={() => {
                 setDemoMode(!demoMode);
@@ -661,7 +712,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 setPoorPostureDurationSecs(0);
               }}
               className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 ${
-                demoMode ? "bg-primary" : "bg-slate-300"
+                demoMode ? "bg-[#1A1A1A]" : "bg-[#E8E8E8]"
               }`}
               title={demoMode ? "Demo Mode (15 Detik Limit)" : "Mode Produksi (50 Menit Limit)"}
             >
@@ -671,7 +722,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 }`}
               />
             </button>
-            <span className="text-[11px] font-mono font-bold text-primary">
+            <span className="text-[11px] font-mono font-bold text-[#1A1A1A]">
               {demoMode ? "15s" : "50m"}
             </span>
           </div>
@@ -679,7 +730,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           {baseline && (
             <button
               onClick={handleRecalibrate}
-              className="text-xs text-slate-600 hover:text-primary px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center gap-1.5 transition-colors"
+              className="text-xs text-[#1A1A1A] hover:bg-[#E8E8E8] px-3 py-1.5 rounded-lg border border-[#E8E8E8] bg-[#F6F6F6] flex items-center gap-1.5 transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Kalibrasi Ulang
             </button>
@@ -895,10 +946,10 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           const health = calculatePostureHealthScore(goodPostureSeconds, sittingSeconds);
           const gradeColor =
             health.grade === "SANGAT_BAIK"
-              ? "text-emerald-600 bg-emerald-50 border-emerald-200"
+              ? "text-[#1A1A1A] bg-[#CDE8B5] border-[#B6DF97]"
               : health.grade === "BAIK"
-              ? "text-blue-600 bg-blue-50 border-blue-200"
-              : "text-amber-600 bg-amber-50 border-amber-200";
+              ? "text-[#1A1A1A] bg-[#FFF29A] border-[#FFE966]"
+              : "text-[#1A1A1A] bg-[#F7A8B0] border-[#DF7E89]";
           const gradeText =
             health.grade === "SANGAT_BAIK"
               ? "Sangat Baik"
@@ -907,22 +958,22 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               : "Perlu Latihan";
 
           return (
-            <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between">
+            <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Skor Postur</span>
-                <Award className="w-4 h-4 text-primary" />
+                <span className="text-[#9A9A9A] font-semibold">Skor Postur</span>
+                <Award className="w-4 h-4 text-[#1A1A1A]" />
               </div>
               <div className="my-1.5 flex items-baseline justify-between">
-                <span className="text-xl font-extrabold text-slate-800 font-mono">
+                <span className="text-xl font-extrabold text-[#1A1A1A] font-mono">
                   {health.score}%
                 </span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${gradeColor}`}>
                   {gradeText}
                 </span>
               </div>
-              <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
+              <div className="w-full bg-[#F6F6F6] h-2 rounded-full overflow-hidden p-0.5 border border-[#E8E8E8]">
                 <div
-                  className="bg-primary h-full transition-all duration-300"
+                  className="bg-[#CDE8B5] h-full rounded-full transition-all duration-300"
                   style={{ width: `${health.score}%` }}
                 />
               </div>
@@ -937,16 +988,16 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           const isFar = dist.status === "JAUH";
 
           return (
-            <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between">
+            <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Jarak Monitor</span>
-                <Ruler className="w-4 h-4 text-slate-400" />
+                <span className="text-[#9A9A9A] font-semibold">Jarak Monitor</span>
+                <Ruler className="w-4 h-4 text-[#9A9A9A]" />
               </div>
               <div className="my-1.5">
-                <div className={`text-xl font-extrabold font-mono ${isWarn ? "text-rose-600" : isFar ? "text-amber-600" : "text-emerald-600"}`}>
+                <div className={`text-xl font-extrabold font-mono ${isWarn ? "text-[#F7A8B0]" : isFar ? "text-[#F9B99A]" : "text-[#1A1A1A]"}`}>
                   ~{dist.distanceCm} cm
                 </div>
-                <div className="text-[10px] text-slate-400 mt-0.5">
+                <div className="text-[10px] text-[#9A9A9A] mt-0.5 font-medium">
                   {isWarn ? "Terlalu Dekat (<50cm)" : isFar ? "Jauh (>75cm)" : "Ideal (50-70cm)"}
                 </div>
               </div>
@@ -955,32 +1006,32 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
         })()}
 
         {/* Card 3: Slouch Incident */}
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between">
-          <div className="text-slate-500 font-medium">Insiden Slouch</div>
+        <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between shadow-xs">
+          <div className="text-[#9A9A9A] font-semibold">Insiden Slouch</div>
           <div className="my-1.5">
-            <div className="text-xl font-extrabold text-amber-600 font-mono">{slouchCount} kali</div>
-            <div className="text-[10px] text-slate-400 mt-0.5">Bahu turun / leher maju</div>
+            <div className="text-xl font-extrabold text-[#1A1A1A] font-mono">{slouchCount} kali</div>
+            <div className="text-[10px] text-[#9A9A9A] mt-0.5 font-medium">Bahu turun / leher maju</div>
           </div>
         </div>
 
         {/* Card 4: Proximity Incident */}
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between">
-          <div className="text-slate-500 font-medium">Mata Terlalu Dekat</div>
+        <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between shadow-xs">
+          <div className="text-[#9A9A9A] font-semibold">Mata Terlalu Dekat</div>
           <div className="my-1.5">
-            <div className="text-xl font-extrabold text-amber-600 font-mono">{tooCloseCount} kali</div>
-            <div className="text-[10px] text-slate-400 mt-0.5">Eye-strain proximity</div>
+            <div className="text-xl font-extrabold text-[#1A1A1A] font-mono">{tooCloseCount} kali</div>
+            <div className="text-[10px] text-[#9A9A9A] mt-0.5 font-medium">Eye-strain proximity</div>
           </div>
         </div>
 
         {/* Card 5: Work Bout & Session Status */}
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between col-span-2 sm:col-span-1">
-          <div className="text-slate-500 font-medium">Batas &amp; Status</div>
+        <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between col-span-2 sm:col-span-1 shadow-xs">
+          <div className="text-[#9A9A9A] font-semibold">Batas &amp; Status</div>
           <div className="my-1.5">
-            <div className="text-base font-bold text-slate-800">
+            <div className="text-base font-bold text-[#1A1A1A]">
               {demoMode ? "15s (Demo)" : "50m (ISO)"}
             </div>
-            <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <div className="text-[10px] text-[#1A1A1A] font-bold flex items-center gap-1 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#1A1A1A]" />
               {sessionActive ? `Aktif (${formatTime(sittingSeconds)})` : "Menunggu"}
             </div>
           </div>
@@ -988,14 +1039,14 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
       </div>
 
       {/* Manual Simulation Controls for Reviewers / Desktop Lab */}
-      <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 text-xs flex flex-wrap items-center justify-between gap-2">
-        <span className="text-slate-600 font-medium">
+      <div className="bg-[#F6F6F6] rounded-2xl p-3 border border-[#E8E8E8] text-xs flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[#1A1A1A] font-semibold">
           Lab Tools (Penguji Demo):
         </span>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setSittingSeconds(sittingLimitSeconds)}
-            className="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg font-semibold transition-colors"
+            className="px-3 py-1.5 bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] rounded-xl font-extrabold transition-colors border border-[#B6DF97]"
             title="Kunci layar sekarang untuk tes Active Break"
           >
             Trigger Lock Break Sekarang
@@ -1005,8 +1056,8 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               setSessionActive(!sessionActive);
               if (!sessionActive) sessionStartTimeRef.current = new Date();
             }}
-            className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1 text-white ${
-              sessionActive ? "bg-slate-700 hover:bg-slate-800" : "bg-primary hover:bg-blue-700"
+            className={`px-3.5 py-1.5 rounded-xl font-extrabold flex items-center gap-1 ${
+              sessionActive ? "bg-[#1A1A1A] text-white" : "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
             }`}
           >
             {sessionActive ? (
@@ -1015,7 +1066,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               </>
             ) : (
               <>
-                <Play className="w-3.5 h-3.5 fill-white" /> Lanjutkan Sesi
+                <Play className="w-3.5 h-3.5 fill-[#1A1A1A]" /> Lanjutkan Sesi
               </>
             )}
           </button>

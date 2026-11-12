@@ -1,25 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  Flame,
-  Moon,
-  Armchair,
-  Sparkles,
-  Zap,
   TrendingUp,
+  Moon,
+  Zap,
+  Clock,
+  ChevronRight,
+  Flame,
   Award,
+  Sparkles,
+  Play,
+  Armchair,
+  CheckCircle2,
 } from "lucide-react";
 import {
-  ResponsiveContainer,
   AreaChart,
   Area,
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
+  ResponsiveContainer,
 } from "recharts";
-import { api } from "@/lib/api";
-import type { TriadDashboardDTO } from "@/types";
-import { StatusPill } from "./common/StatusPill";
+import { StatusPill } from "@/components/common/StatusPill";
+import { MOCK_TRIAD_DASHBOARD } from "@/mocks/campusflowMock";
 
 interface TriadDashboardProps {
   onStartPanicRelief: () => void;
@@ -30,256 +32,474 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   onStartPanicRelief,
   onNavigateToFocus,
 }) => {
-  const [dashboardData, setDashboardData] = useState<TriadDashboardDTO | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let isMounted = true;
-    api
-      .getTriadDashboard(14)
-      .then((res) => {
-        if (isMounted) setDashboardData(res.data);
-      })
-      .catch((err) => console.error("Gagal memuat dashboard:", err))
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (loading || !dashboardData) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
+  const [dashboardData] = useState(MOCK_TRIAD_DASHBOARD.data);
   const { today, weeklySummary, history } = dashboardData;
 
+  // Calendar dates for mobile strip
+  const calendarDays = [
+    { day: "M", date: 12, active: false },
+    { day: "T", date: 13, active: false },
+    { day: "W", date: 14, active: true },
+    { day: "T", date: 15, active: false },
+    { day: "F", date: 16, active: false },
+    { day: "S", date: 17, active: false },
+    { day: "S", date: 18, active: false },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Header Banner & Gamifikasi Streak */}
-      <div className="bg-gradient-to-r from-blue-600 to-teal-600 rounded-2xl p-5 md:p-6 text-white shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="bg-white/20 px-2.5 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm">
-              24-Hour Movement Guidelines
+    <div className="space-y-6 pb-6">
+      {/* ========================================================
+          MOBILE HERO FEATURED CARD ("Your Progress" Sky Blue Card)
+          ======================================================== */}
+      <div className="lg:hidden bg-[#BDE6F0] rounded-[2rem] p-5 text-[#1A1A1A] shadow-softSky relative overflow-hidden">
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="space-y-1.5 max-w-[70%]">
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-white/80 text-[#1A1A1A] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-xs">
+              <Sparkles className="w-3 h-3 text-[#1A1A1A]" /> Sesi Terjadwal
             </span>
-            <span className="bg-white/20 px-2.5 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm">
-              Pilar Terpenuhi: {today.triadPillarsMet}/3
-            </span>
+            <h2 className="text-lg font-heading font-extrabold leading-snug text-[#1A1A1A]">
+              Vision Guard &amp; Active Break
+            </h2>
+            <p className="text-xs text-[#1A1A1A]/80 font-medium">
+              50 mnt fokus &bull; 10 mnt peregangan
+            </p>
           </div>
-          <h1 className="text-xl md:text-2xl font-bold font-heading">
-            Duduk Sehat. Gerak Terukur. Stres Terkendali.
-          </h1>
-          <p className="text-blue-100 text-sm mt-1 max-w-xl">
-            Sinergi isotemporal waktu duduk, aktivitas fisik terverifikasi, dan kualitas tidur untuk menurunkan stres akademik.
-          </p>
+          <button
+            onClick={onNavigateToFocus}
+            className="w-12 h-12 rounded-full bg-white text-[#1A1A1A] flex items-center justify-center shadow-md hover:scale-105 transition-transform shrink-0"
+            title="Mulai Sesi Fokus"
+          >
+            <Play className="w-5 h-5 fill-[#1A1A1A] ml-0.5" />
+          </button>
+        </div>
+        {/* Decorative soft pastel circle */}
+        <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/20 rounded-full blur-lg pointer-events-none" />
+      </div>
+
+      {/* ========================================================
+          MOBILE HORIZONTAL DATE SELECTOR (Calorie App Week Days)
+          ======================================================== */}
+      <div className="lg:hidden flex items-center justify-between gap-1.5 overflow-x-auto py-1 no-scrollbar">
+        {calendarDays.map((d, i) => (
+          <div
+            key={i}
+            className={`flex-1 min-w-[44px] py-2.5 rounded-2xl flex flex-col items-center justify-center text-center transition-all ${
+              d.active
+                ? "bg-[#FFF29A] text-[#1A1A1A] font-extrabold shadow-softPill border border-[#FFE966]"
+                : "bg-white border border-[#E8E8E8] text-[#9A9A9A] font-medium"
+            }`}
+          >
+            <span className="text-[10px] uppercase font-bold">{d.day}</span>
+            <span className="text-xs font-heading font-extrabold mt-0.5">{d.date}</span>
+            {d.active && <span className="w-1 h-1 rounded-full bg-[#1A1A1A] mt-1" />}
+          </div>
+        ))}
+      </div>
+
+      {/* ========================================================
+          ROW OF 4 STAT CARDS (Pastel Palette Mix)
+          ======================================================== */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Sedentary Hours (Pure White with Sky Blue icon) */}
+        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs font-semibold text-[#9A9A9A]">Total Waktu Duduk</p>
+              <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
+                {today.totalSedentaryHours}
+                <span className="text-xs font-medium text-[#9A9A9A] ml-1">Jam</span>
+              </h3>
+            </div>
+            <div className="w-10 h-10 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+              <Armchair className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3 pt-2.5 border-t border-[#E8E8E8] flex items-center justify-between">
+            <span className="text-[11px] text-[#9A9A9A]">Batas: &le; 9.0h</span>
+            <StatusPill status={today.sedentaryRiskStatus} showIcon={false} />
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-white/10 px-4 py-2.5 rounded-xl border border-white/20 backdrop-blur-sm self-stretch md:self-auto justify-around md:justify-start">
-          <div className="text-center">
-            <div className="flex items-center gap-1 justify-center text-amber-300 font-bold text-lg">
-              <Flame className="w-5 h-5 fill-amber-300" />
-              <span>{weeklySummary.currentStreakDays} Hari</span>
+        {/* Card 2: Active Movement MVPA ("Breakfast" Mint Green Card) */}
+        <div className="bg-[#CDE8B5] rounded-3xl p-4 sm:p-5 flex flex-col justify-between text-[#1A1A1A] shadow-softMint">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs font-semibold text-[#1A1A1A]/80">Gerak Aktif (MVPA)</p>
+              <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
+                {today.totalMvpaMinutes}
+                <span className="text-xs font-medium text-[#1A1A1A]/80 ml-1">Mnt</span>
+              </h3>
             </div>
-            <span className="text-xs text-blue-100">Streak Aktif</span>
+            <div className="w-10 h-10 rounded-2xl bg-white text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+              <TrendingUp className="w-5 h-5" />
+            </div>
           </div>
-          <div className="w-px h-8 bg-white/20"></div>
-          <div className="text-center">
-            <div className="flex items-center gap-1 justify-center text-green-300 font-bold text-lg">
-              <Award className="w-5 h-5" />
-              <span>{weeklySummary.xpPoints} XP</span>
+          <div className="mt-3 pt-2.5 border-t border-[#1A1A1A]/10 flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#1A1A1A]/70">{today.mvpaPerSedentaryRatio} mnt/jam duduk</span>
+            <span className="text-[10px] font-extrabold bg-white text-[#1A1A1A] px-2.5 py-0.5 rounded-full shadow-xs">
+              {today.totalMvpaMinutes >= 30 ? "OPTIMAL" : "WASPADA"}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 3: Stress Score PSS-4 (Pure White with Peach Orange icon) */}
+        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs font-semibold text-[#9A9A9A]">Skor Stres PSS-4</p>
+              <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
+                {today.pss4TotalScore}
+                <span className="text-xs font-medium text-[#9A9A9A] ml-1">/ 16</span>
+              </h3>
             </div>
-            <span className="text-xs text-blue-100">Total Poin</span>
+            <div className="w-10 h-10 rounded-2xl bg-[#F9B99A] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+              <Moon className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3 pt-2.5 border-t border-[#E8E8E8] flex items-center justify-between">
+            <span className="text-[11px] text-[#9A9A9A]">Tidur: {today.sleepHours} jam</span>
+            <StatusPill status={today.stressRiskLevel} showIcon={false} />
+          </div>
+        </div>
+
+        {/* Card 4: Attendance & METs Target */}
+        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs font-semibold text-[#9A9A9A]">Pencapaian METs</p>
+              <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
+                {Math.round((weeklySummary.weeklyMetsTotal / weeklySummary.weeklyMetsTarget) * 100)}%
+              </h3>
+            </div>
+            <div className="w-10 h-10 rounded-2xl bg-[#FFF29A] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3 pt-2.5 border-t border-[#E8E8E8] flex items-center justify-between">
+            <span className="text-[11px] text-[#9A9A9A]">{weeklySummary.weeklyMetsTotal}/{weeklySummary.weeklyMetsTarget} METs</span>
+            <span className="text-[11px] font-bold text-[#1A1A1A] bg-[#CDE8B5] px-2 py-0.5 rounded-full">Minggu Ini</span>
           </div>
         </div>
       </div>
 
-      {/* Exam Panic Button Quick Banner */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+      {/* ========================================================
+          PANIC RELIEF QUICK ACTION ACCENT BAR (Butter Yellow Accent)
+          ======================================================== */}
+      <div className="bg-[#FFF29A] rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[#1A1A1A] border border-[#FFE966] shadow-softPill">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
-            <Zap className="w-5 h-5" />
+          <div className="w-11 h-11 rounded-2xl bg-white text-[#1A1A1A] flex items-center justify-center shadow-xs shrink-0">
+            <Zap className="w-6 h-6 fill-[#1A1A1A]" />
           </div>
           <div>
-            <h3 className="font-semibold text-textMain text-sm md:text-base">
-              Merasa Cemas Menjelang Ujian atau Tugas?
-            </h3>
-            <p className="text-xs text-slate-600">
-              Panduan intervensi aerobik akut 15 menit (110–125 BPM) berbasis RCT Wu & Zhou (2024).
+            <h4 className="font-heading font-extrabold text-sm sm:text-base text-[#1A1A1A]">
+              Cemas Menjelang Ujian atau Presentasi?
+            </h4>
+            <p className="text-xs text-[#1A1A1A]/80 font-medium mt-0.5">
+              Protokol aerobik akut 15 menit (~116 BPM) berbasis riset Wu &amp; Zhou (2024).
             </p>
           </div>
         </div>
         <button
           onClick={onStartPanicRelief}
-          className="bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs md:text-sm px-4 py-2 rounded-lg transition-colors shadow-xs w-full sm:w-auto shrink-0 flex items-center justify-center gap-1.5"
+          className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-white hover:bg-[#F6F6F6] text-[#1A1A1A] text-xs font-extrabold transition-all shadow-xs flex items-center justify-center gap-2"
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-4 h-4 text-[#1A1A1A]" />
           Mulai Exam Panic Relief
         </button>
       </div>
 
-      {/* 3 PILAR UTAMA (TRIAD DASHBOARD CARDS) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Pilar 1: Waktu Duduk Statis */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-          <div>
-            <div className="flex justify-between items-start mb-3">
-              <span className="p-2.5 rounded-lg bg-blue-50 text-blue-600">
-                <Armchair className="w-5 h-5" />
-              </span>
-              <StatusPill status={today.sedentaryRiskStatus} />
+      {/* ========================================================
+          MAIN TWO-COLUMN GRID
+          ======================================================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* LEFT COLUMN: Today's Schedule & Wellbeing Goals (7 cols) */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Today's Schedule */}
+          <div className="learnova-card p-5 sm:p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-heading font-extrabold text-base text-[#1A1A1A] flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#1A1A1A]" /> Jadwal &amp; Intervensi Hari Ini
+                </h3>
+                <p className="text-xs text-[#9A9A9A] mt-0.5">
+                  Rutinitas isotemporal 24-Hour Movement
+                </p>
+              </div>
+              <button
+                onClick={onNavigateToFocus}
+                className="text-xs font-bold text-[#1A1A1A] hover:underline flex items-center gap-1"
+              >
+                Lihat Semua <ChevronRight className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-              Pilar 1: Batas Duduk
-            </h2>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-textMain sensor-num">
-                {today.totalSedentaryHours}
-              </span>
-              <span className="text-sm text-slate-500 font-medium">Jam / Hari</span>
+
+            <div className="space-y-3">
+              {/* Item 1 */}
+              <div className="p-3.5 rounded-2xl bg-[#F6F6F6] border border-[#E8E8E8] flex items-center justify-between hover:bg-[#BDE6F0]/25 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="text-center font-mono text-[11px] font-bold text-[#1A1A1A] bg-white px-2.5 py-1.5 rounded-xl border border-[#E8E8E8]">
+                    09:00 AM
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-[#1A1A1A]">
+                      Sesi Belajar &amp; Vision Guard
+                    </h5>
+                    <p className="text-[11px] text-[#9A9A9A]">Pemantauan postur tegak &amp; jarak mata</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-extrabold bg-[#BDE6F0] text-[#1A1A1A] px-2.5 py-1 rounded-full">
+                  LIVE
+                </span>
+              </div>
+
+              {/* Item 2 */}
+              <div className="p-3.5 rounded-2xl bg-[#F6F6F6] border border-[#E8E8E8] flex items-center justify-between hover:bg-[#CDE8B5]/25 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="text-center font-mono text-[11px] font-bold text-[#1A1A1A] bg-white px-2.5 py-1.5 rounded-xl border border-[#E8E8E8]">
+                    11:30 AM
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-[#1A1A1A]">
+                      Active Break Anti-Cheat
+                    </h5>
+                    <p className="text-[11px] text-[#9A9A9A]">Peregangan lengan di atas kepala (3x)</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold bg-[#CDE8B5] text-[#1A1A1A] px-2.5 py-1 rounded-full">
+                  UPCOMING
+                </span>
+              </div>
+
+              {/* Item 3 */}
+              <div className="p-3.5 rounded-2xl bg-[#F6F6F6] border border-[#E8E8E8] flex items-center justify-between hover:bg-[#C9B3E6]/25 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="text-center font-mono text-[11px] font-bold text-[#1A1A1A] bg-white px-2.5 py-1.5 rounded-xl border border-[#E8E8E8]">
+                    04:00 PM
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-[#1A1A1A]">
+                      Jalan Kaki Kampus (Pedometer)
+                    </h5>
+                    <p className="text-[11px] text-[#9A9A9A]">Aktivitas sedang ~240 MET-menit</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold bg-[#C9B3E6] text-[#1A1A1A] px-2.5 py-1 rounded-full">
+                  UPCOMING
+                </span>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">
-              Target aman: &le; 9.0 jam/hari (Barbosa et al., 2024). Jeda aktif setiap 50 menit.
-            </p>
           </div>
-          <button
-            onClick={onNavigateToFocus}
-            className="mt-4 w-full text-xs font-semibold text-primary hover:text-blue-700 bg-blue-50/70 hover:bg-blue-100/70 py-2 rounded-lg transition-colors text-center"
-          >
-            Mulai Mode Fokus &amp; Vision Guard &rarr;
-          </button>
+
+          {/* Target Kebugaran 24-Jam (Movement Goals with Cal/Prot/Carb style bars) */}
+          <div className="learnova-card p-5 sm:p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                  Target Kebugaran 24-Jam
+                </h3>
+                <p className="text-xs text-[#9A9A9A] mt-0.5">
+                  Progres harian substitusi duduk isotemporal
+                </p>
+              </div>
+              <span className="text-xs font-extrabold text-[#1A1A1A] bg-[#CDE8B5] px-3 py-1 rounded-full">
+                {today.triadPillarsMet}/3 Pilar Tercapai
+              </span>
+            </div>
+
+            <div className="space-y-3.5">
+              {/* Goal 1: Sedentary Limit (Sky Blue bar) */}
+              <div>
+                <div className="flex justify-between text-xs font-bold text-[#1A1A1A] mb-1.5">
+                  <span>Pembatasan Waktu Duduk (&le; 9 Jam)</span>
+                  <span className="font-mono">68%</span>
+                </div>
+                <div className="w-full bg-[#F6F6F6] h-3 rounded-full overflow-hidden p-0.5 border border-[#E8E8E8]">
+                  <div className="bg-[#BDE6F0] h-full rounded-full transition-all duration-500" style={{ width: "68%" }} />
+                </div>
+              </div>
+
+              {/* Goal 2: MVPA (Mint Green bar) */}
+              <div>
+                <div className="flex justify-between text-xs font-bold text-[#1A1A1A] mb-1.5">
+                  <span>Target Gerak Aktif MVPA (&ge; 30 Mnt)</span>
+                  <span className="font-mono">100%</span>
+                </div>
+                <div className="w-full bg-[#F6F6F6] h-3 rounded-full overflow-hidden p-0.5 border border-[#E8E8E8]">
+                  <div className="bg-[#CDE8B5] h-full rounded-full transition-all duration-500" style={{ width: "100%" }} />
+                </div>
+              </div>
+
+              {/* Goal 3: Restorative Sleep (Peach Orange bar) */}
+              <div>
+                <div className="flex justify-between text-xs font-bold text-[#1A1A1A] mb-1.5">
+                  <span>Durasi Tidur Restoratif (7–9 Jam)</span>
+                  <span className="font-mono">75%</span>
+                </div>
+                <div className="w-full bg-[#F6F6F6] h-3 rounded-full overflow-hidden p-0.5 border border-[#E8E8E8]">
+                  <div className="bg-[#F9B99A] h-full rounded-full transition-all duration-500" style={{ width: "75%" }} />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Pilar 2: Volume Gerak Aktif (MVPA & METs) */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-          <div>
-            <div className="flex justify-between items-start mb-3">
-              <span className="p-2.5 rounded-lg bg-emerald-50 text-emerald-600">
-                <TrendingUp className="w-5 h-5" />
-              </span>
-              <StatusPill
-                status={today.totalMvpaMinutes >= 30 ? "OPTIMAL" : "WASPADA"}
-              />
+        {/* RIGHT COLUMN: Donut Progress (Peach ring), Streak Card, & Trend Chart (5 cols) */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Circular Wellbeing Donut Progress ("Calorie 520 Kcal" style with Peach Orange ring) */}
+          <div className="learnova-card p-5 sm:p-6 flex flex-col items-center justify-center text-center">
+            <div className="w-full flex items-center justify-between mb-3">
+              <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
+                Keseimbangan Gaya Hidup
+              </h3>
+              <span className="text-[11px] text-[#9A9A9A] font-medium">Minggu Ini</span>
             </div>
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-              Pilar 2: Gerak Aktif (MVPA)
-            </h2>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-textMain sensor-num">
-                {today.totalMvpaMinutes}
-              </span>
-              <span className="text-sm text-slate-500 font-medium">Menit Hari Ini</span>
-            </div>
-            <p className="text-xs text-slate-500 mt-2">
-              Rasio gerak/duduk: {today.mvpaPerSedentaryRatio} menit/jam duduk (target: &ge; 25 mnt/jam).
-            </p>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between text-xs text-slate-600">
-            <span>Mingguan: <strong>{weeklySummary.weeklyMetsTotal}</strong>/{weeklySummary.weeklyMetsTarget} METs</span>
-            <span>MSE: <strong>{weeklySummary.weeklyMseDays}</strong>/{weeklySummary.weeklyMseTarget} Hari</span>
-          </div>
-        </div>
 
-        {/* Pilar 3: Tidur & Skor Stres PSS-4 */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-          <div>
-            <div className="flex justify-between items-start mb-3">
-              <span className="p-2.5 rounded-lg bg-teal-50 text-teal-600">
-                <Moon className="w-5 h-5" />
-              </span>
-              <StatusPill status={today.stressRiskLevel} />
+            {/* Circular Donut Progress Ring */}
+            <div className="relative w-40 h-40 flex items-center justify-center my-2">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="#F6F6F6"
+                  strokeWidth="10"
+                  fill="transparent"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="#F9B99A"
+                  strokeWidth="10"
+                  strokeDasharray="251.2"
+                  strokeDashoffset="70"
+                  strokeLinecap="round"
+                  fill="transparent"
+                  className="transition-all duration-1000 ease-out"
+                />
+              </svg>
+              <div className="absolute flex flex-col items-center justify-center">
+                <span className="text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
+                  72%
+                </span>
+                <span className="text-[10px] text-[#9A9A9A] font-semibold uppercase tracking-wider">
+                  Overall Score
+                </span>
+              </div>
             </div>
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-              Pilar 3: Tidur &amp; Stres (PSS-4)
-            </h2>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-textMain sensor-num">
-                {today.pss4TotalScore}
-              </span>
-              <span className="text-sm text-slate-500 font-medium">/ 16 (PSS-4)</span>
-              <span className="text-xs text-slate-400 ml-1">· Tidur: {today.sleepHours} jam</span>
+
+            {/* Donut Legend */}
+            <div className="flex items-center justify-center gap-4 text-xs font-semibold mt-3 text-[#1A1A1A]">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#F9B99A]" />
+                <span>Optimal (72%)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#CDE8B5]" />
+                <span>Waspada (20%)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#E8E8E8]" />
+                <span>Pending (8%)</span>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">
-              Efek mediasi tidur 41% (Mu et al., 2024). Cutoff PSS-4 &ge; 8 memicu rekomendasi AI Coach sore.
-            </p>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between text-xs text-slate-600">
-            <span>Screen Non-Akademik: <strong>{today.nonAcademicScreenHours}</strong> Jam</span>
-            <span className="text-teal-600 font-medium">Target 7–9 Jam</span>
-          </div>
-        </div>
-      </div>
 
-      {/* GRAFIK TREN 14 HARI (RECHARTS) */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h2 className="font-heading font-semibold text-base text-textMain">
-              Tren Kebugaran &amp; Skor Stres (14 Hari)
-            </h2>
-            <p className="text-xs text-slate-500">
-              Korelasi waktu duduk (merah) vs durasi gerak aktif MVPA (hijau)
-            </p>
-          </div>
-        </div>
+          {/* Current Streak Card (Fresh Sky Blue Card) */}
+          <div className="bg-[#BDE6F0] rounded-3xl p-5 sm:p-6 text-[#1A1A1A] shadow-softSky relative overflow-hidden flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#1A1A1A]">
+                <Flame className="w-4 h-4 fill-[#F9B99A] text-[#F9B99A]" />
+                <span>Current Streak</span>
+              </div>
+              <span className="bg-[#FFF29A] text-[#1A1A1A] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs">
+                +420 XP
+              </span>
+            </div>
 
-        <div className="h-60 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={history} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorMvpa" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22C55E" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#22C55E" stopOpacity={0.0} />
-                </linearGradient>
-                <linearGradient id="colorSedentary" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-              <XAxis
-                dataKey="logDate"
-                tickFormatter={(val) => val.slice(5)}
-                tick={{ fontSize: 11, fill: "#64748B" }}
-              />
-              <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                  borderRadius: "8px",
-                  border: "1px solid #E2E8F0",
-                  fontSize: "12px",
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="totalMvpaMinutes"
-                name="MVPA (Menit)"
-                stroke="#22C55E"
-                fillOpacity={1}
-                fill="url(#colorMvpa)"
-                strokeWidth={2}
-              />
-              <Area
-                type="monotone"
-                dataKey="totalSedentaryHours"
-                name="Duduk (Jam)"
-                stroke="#3B82F6"
-                fillOpacity={1}
-                fill="url(#colorSedentary)"
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+            <div className="my-2 relative z-10">
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl sm:text-5xl font-heading font-extrabold sensor-num text-[#1A1A1A]">
+                  {weeklySummary.currentStreakDays}
+                </span>
+                <span className="text-lg font-bold text-[#1A1A1A]/80">Hari Beruntun</span>
+              </div>
+              <p className="text-xs text-[#1A1A1A]/80 font-medium mt-1">
+                Keep it up! Anda berhasil mempertahankan konsistensi duduk sehat &amp; gerak terukur.
+              </p>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-[#1A1A1A]/10 flex items-center justify-between text-xs font-semibold text-[#1A1A1A]/90 relative z-10">
+              <span>Target Mingguan: 7 Hari</span>
+              <span className="flex items-center gap-1 font-bold text-[#1A1A1A] bg-white px-2 py-0.5 rounded-full shadow-xs">
+                <Award className="w-3.5 h-3.5 text-[#F9B99A]" /> Badge Unlocked!
+              </span>
+            </div>
+
+            {/* Background ambient shape */}
+            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/20 rounded-full blur-2xl pointer-events-none" />
+          </div>
+
+          {/* Performance Trend Area Chart */}
+          <div className="learnova-card p-5 sm:p-6 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
+                  Performance Overview
+                </h3>
+                <p className="text-[11px] text-[#9A9A9A]">Tren gerak aktif (MVPA) 14 hari terakhir</p>
+              </div>
+              <span className="text-[10px] font-extrabold text-[#1A1A1A] bg-[#FFF29A] px-2.5 py-0.5 rounded-full shadow-xs">
+                Bulan Ini
+              </span>
+            </div>
+
+            <div className="h-44 w-full pt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={history} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="pastelMintGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#CDE8B5" stopOpacity={0.7} />
+                      <stop offset="95%" stopColor="#CDE8B5" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="logDate"
+                    tickFormatter={(val) => val.slice(8)}
+                    tick={{ fontSize: 10, fill: "#9A9A9A" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 10, fill: "#9A9A9A" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#FFFFFF",
+                      color: "#1A1A1A",
+                      borderRadius: "16px",
+                      border: "1px solid #E8E8E8",
+                      fontSize: "11px",
+                      boxShadow: "0 8px 20px -4px rgba(26,26,26,0.08)",
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="totalMvpaMinutes"
+                    name="MVPA (Menit)"
+                    stroke="#8ECAD7"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#pastelMintGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
-

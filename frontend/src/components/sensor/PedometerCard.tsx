@@ -16,7 +16,6 @@ import {
   PedometerEngine,
   type StepEventDetail,
   type CadenceIntensity,
-  classifyCadence,
 } from "@/utils/pedometerSensor";
 import { api } from "@/lib/api";
 
@@ -58,205 +57,213 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       }
     });
 
+    if (typeof window !== "undefined" && !window.DeviceMotionEvent) {
+      setSensorSupported(false);
+    }
+
     return () => {
       engine.stop();
     };
   }, [onStepsChange]);
 
   const handleToggleTracking = async () => {
-    if (!engineRef.current) return;
+    const engine = engineRef.current;
+    if (!engine) return;
 
     if (isTracking) {
-      engineRef.current.stop();
+      engine.stop();
       setIsTracking(false);
     } else {
-      const res = await engineRef.current.start();
-      setSensorSupported(res.supported);
+      const res = await engine.start();
+      if (!res.supported) {
+        setSensorSupported(false);
+        return;
+      }
       if (!res.permissionGranted) {
         setPermissionState("denied");
-        setIsTracking(false);
-      } else {
-        setPermissionState("granted");
-        setIsTracking(true);
+        return;
+      }
+      setPermissionState("granted");
+      setIsTracking(true);
+    }
+  };
+
+  const handleReset = () => {
+    const engine = engineRef.current;
+    if (engine) {
+      engine.reset();
+      setTotalSteps(0);
+      setCadenceSpm(0);
+      setIntensityType("IDLE");
+      setMetMultiplier(1.0);
+      setMetMinutes(0);
+      setLastNetAcc(0);
+      if (onStepsChange) {
+        onStepsChange(0, 0);
       }
     }
   };
 
   const handleSimulateStep = (count = 1) => {
-    if (!engineRef.current) return;
-    for (let i = 0; i < count; i++) {
-      engineRef.current.simulateStep();
+    const engine = engineRef.current;
+    if (engine) {
+      let lastDetail: StepEventDetail | undefined;
+      for (let i = 0; i < count; i++) {
+        lastDetail = engine.simulateStep();
+      }
+      if (lastDetail) {
+        setTotalSteps(lastDetail.totalSteps);
+        setCadenceSpm(lastDetail.cadenceSpm);
+        setIntensityType(lastDetail.intensityType);
+        setMetMultiplier(lastDetail.metMultiplier);
+        setMetMinutes(lastDetail.metMinutes);
+        setLastNetAcc(lastDetail.lastNetAcc);
+        if (onStepsChange) {
+          onStepsChange(lastDetail.totalSteps, lastDetail.metMinutes);
+        }
+      }
     }
-    const snap = engineRef.current.getSnapshot();
-    setTotalSteps(snap.totalSteps);
-    setCadenceSpm(snap.cadenceSpm || (count > 1 ? 85 : 60));
-    const classified = classifyCadence(snap.cadenceSpm || (count > 1 ? 85 : 60));
-    setIntensityType(classified.intensityType);
-    setMetMultiplier(classified.metMultiplier);
-    setMetMinutes(snap.metMinutes);
-    if (onStepsChange) {
-      onStepsChange(snap.totalSteps, snap.metMinutes);
-    }
-  };
-
-  const handleReset = () => {
-    if (!engineRef.current) return;
-    engineRef.current.reset();
-    setTotalSteps(0);
-    setCadenceSpm(0);
-    setIntensityType("IDLE");
-    setMetMultiplier(1.0);
-    setMetMinutes(0);
-    setLastNetAcc(0);
-    setSavedSuccess(false);
   };
 
   const handleSaveToActivity = async () => {
+    if (totalSteps === 0) return;
     try {
-      const intensity =
-        intensityType === "VIGOROUS"
-          ? "VIGOROUS"
-          : intensityType === "MODERATE"
-          ? "MODERATE"
-          : "WALKING";
-
       await api.submitPhysicalActivity({
-        activityDate: new Date().toISOString().split("T")[0],
-        intensityType: intensity,
-        durationMinutes: Math.max(1, Math.round(metMinutes / Math.max(1, metMultiplier))),
+        activityDate: new Date().toISOString().slice(0, 10),
+        intensityType: intensityType === "VIGOROUS" ? "VIGOROUS" : intensityType === "WALKING" ? "WALKING" : "MODERATE",
+        durationMinutes: Math.max(1, Math.round(totalSteps / 100)),
         stepsCount: totalSteps,
-        avgCadenceSpm: cadenceSpm || 70,
+        avgCadenceSpm: cadenceSpm,
         source: "WEB_SENSOR_API",
-        notes: `Terekam otomatis via 3-Axis DSP DeviceMotion (${metMinutes.toFixed(1)} MET-menit)`,
+        notes: `Pedometer: ${metMinutes.toFixed(1)} MET-menit`,
       });
-
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err) {
-      console.error("Gagal menyimpan aktivitas:", err);
+      console.error("Gagal menyimpan log aktivitas:", err);
     }
   };
 
-  // Badge styling
   const getBadgeStyle = () => {
     switch (intensityType) {
-      case "VIGOROUS":
-        return "bg-rose-100 text-rose-700 border-rose-300";
-      case "MODERATE":
-        return "bg-amber-100 text-amber-800 border-amber-300";
       case "WALKING":
-        return "bg-emerald-100 text-emerald-800 border-emerald-300";
+        return "bg-[#CDE8B5] text-[#1A1A1A] border-[#B6DF97]";
+      case "MODERATE":
+        return "bg-[#FFF29A] text-[#1A1A1A] border-[#FFE966]";
+      case "VIGOROUS":
+        return "bg-[#F9B99A] text-[#1A1A1A] border-[#F6966C]";
+      case "IDLE":
       default:
-        return "bg-slate-100 text-slate-600 border-slate-200";
+        return "bg-[#F6F6F6] text-[#9A9A9A] border-[#E8E8E8]";
     }
   };
 
   return (
-    <div className={`bg-white rounded-2xl p-6 border border-slate-200 shadow-xs ${className}`}>
+    <div className={`learnova-card p-6 border-[#E8E8E8] ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
             <Footprints className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-heading font-bold text-base text-textMain">
+            <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
               3-Axis Pedometer &amp; IPAQ-SF Sensor
             </h3>
-            <p className="text-xs text-slate-500">
-              HTML5 DeviceMotionEvent &bull; 25-Sample High-Pass Filter &bull; Zero Server Latency
+            <p className="text-xs text-[#9A9A9A]">
+              HTML5 DeviceMotionEvent &bull; 25-Sample Filter &bull; Zero Latency
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <span
-            className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-colors ${getBadgeStyle()}`}
+            className={`px-3 py-1 text-xs font-bold rounded-full border transition-colors ${getBadgeStyle()}`}
           >
             {intensityType} ({metMultiplier}x MET)
           </span>
         </div>
       </div>
 
-      {/* Main Metric Ring / Big Counter */}
+      {/* Main Metric Ring / Big Counter Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {/* Step Count Big Display */}
-        <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
-          <div className="text-xs text-slate-500 font-medium mb-1 flex items-center gap-1.5">
-            <Footprints className="w-4 h-4 text-emerald-600" /> Total Langkah
+        {/* Step Count Big Display (Sky Blue Card) */}
+        <div className="bg-[#BDE6F0] rounded-2xl p-5 flex flex-col items-center justify-center text-center relative overflow-hidden text-[#1A1A1A] shadow-xs">
+          <div className="text-xs text-[#1A1A1A]/80 font-bold mb-1 flex items-center gap-1.5">
+            <Footprints className="w-4 h-4 text-[#1A1A1A]" /> Total Langkah
           </div>
-          <div className="text-4xl font-extrabold text-textMain tracking-tight my-1">
+          <div className="text-3xl sm:text-4xl font-heading font-extrabold text-[#1A1A1A] tracking-tight my-1 sensor-num">
             {totalSteps.toLocaleString()}
           </div>
-          <div className="text-[11px] text-slate-400">
+          <div className="text-[11px] text-[#1A1A1A]/70 font-medium">
             {isTracking ? "Sensor aktif membaca ayunan..." : "Pelacak tidak aktif"}
           </div>
 
           {lastNetAcc > 0 && isTracking && (
-            <div className="absolute top-2 right-2 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-mono">
+            <div className="absolute top-2 right-2 text-[10px] bg-white text-[#1A1A1A] px-2 py-0.5 rounded-full font-mono font-bold shadow-xs">
               +{lastNetAcc.toFixed(1)} m/s²
             </div>
           )}
         </div>
 
-        {/* Cadence Display */}
-        <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 flex flex-col items-center justify-center text-center">
-          <div className="text-xs text-slate-500 font-medium mb-1 flex items-center gap-1.5">
-            <Activity className="w-4 h-4 text-blue-600" /> Cadence (Irama)
+        {/* Cadence Display (Mint Green Card) */}
+        <div className="bg-[#CDE8B5] rounded-2xl p-5 flex flex-col items-center justify-center text-center text-[#1A1A1A] shadow-xs">
+          <div className="text-xs text-[#1A1A1A]/80 font-bold mb-1 flex items-center gap-1.5">
+            <Activity className="w-4 h-4 text-[#1A1A1A]" /> Cadence (Irama)
           </div>
-          <div className="text-4xl font-extrabold text-blue-600 tracking-tight my-1">
+          <div className="text-3xl sm:text-4xl font-heading font-extrabold text-[#1A1A1A] tracking-tight my-1 sensor-num">
             {cadenceSpm}
           </div>
-          <div className="text-[11px] text-slate-400">
+          <div className="text-[11px] text-[#1A1A1A]/70 font-medium">
             Langkah per Menit (SPM)
           </div>
         </div>
 
-        {/* MET-Minutes */}
-        <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 flex flex-col items-center justify-center text-center">
-          <div className="text-xs text-slate-500 font-medium mb-1 flex items-center gap-1.5">
-            <Flame className="w-4 h-4 text-amber-500" /> Volume MET-Menit
+        {/* MET-Minutes (Butter Yellow Card) */}
+        <div className="bg-[#FFF29A] rounded-2xl p-5 flex flex-col items-center justify-center text-center text-[#1A1A1A] shadow-xs">
+          <div className="text-xs text-[#1A1A1A]/80 font-bold mb-1 flex items-center gap-1.5">
+            <Flame className="w-4 h-4 text-[#1A1A1A] fill-[#1A1A1A]" /> Volume MET-Menit
           </div>
-          <div className="text-4xl font-extrabold text-amber-600 tracking-tight my-1">
+          <div className="text-3xl sm:text-4xl font-heading font-extrabold text-[#1A1A1A] tracking-tight my-1 sensor-num">
             {metMinutes.toFixed(1)}
           </div>
-          <div className="text-[11px] text-slate-400">
-            Akumulasi Beban Metabolik
+          <div className="text-[11px] text-[#1A1A1A]/70 font-medium">
+            Beban Metabolik
           </div>
         </div>
       </div>
 
       {/* Cadence Range Scale Guide */}
-      <div className="mb-6 bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs">
-        <div className="flex justify-between items-center text-[11px] font-semibold text-slate-500 mb-1.5">
+      <div className="mb-6 bg-[#F6F6F6] p-3.5 rounded-2xl border border-[#E8E8E8] text-xs">
+        <div className="flex justify-between items-center text-[11px] font-semibold text-[#1A1A1A] mb-1.5">
           <span>Klasifikasi Irama IPAQ-SF:</span>
-          <span>{cadenceSpm} SPM Saat Ini</span>
+          <span className="font-bold">{cadenceSpm} SPM Saat Ini</span>
         </div>
-        <div className="grid grid-cols-4 gap-1 text-center text-[10px] font-medium">
+        <div className="grid grid-cols-4 gap-1.5 text-center text-[10px] font-medium">
           <div
-            className={`p-1.5 rounded ${
-              intensityType === "IDLE" ? "bg-slate-200 text-slate-800 font-bold" : "bg-white text-slate-500"
+            className={`p-1.5 rounded-xl border transition-all ${
+              intensityType === "IDLE" ? "bg-[#FFF29A] text-[#1A1A1A] border-[#FFE966] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
             }`}
           >
             &lt;50 SPM<br /><span className="text-[9px]">IDLE (1.0x)</span>
           </div>
           <div
-            className={`p-1.5 rounded ${
-              intensityType === "WALKING" ? "bg-emerald-200 text-emerald-900 font-bold" : "bg-white text-slate-500"
+            className={`p-1.5 rounded-xl border transition-all ${
+              intensityType === "WALKING" ? "bg-[#CDE8B5] text-[#1A1A1A] border-[#B6DF97] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
             }`}
           >
             50-99 SPM<br /><span className="text-[9px]">WALK (3.3x)</span>
           </div>
           <div
-            className={`p-1.5 rounded ${
-              intensityType === "MODERATE" ? "bg-teal-200 text-teal-900 font-bold" : "bg-white text-slate-500"
+            className={`p-1.5 rounded-xl border transition-all ${
+              intensityType === "MODERATE" ? "bg-[#BDE6F0] text-[#1A1A1A] border-[#8ECAD7] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
             }`}
           >
             100-129 SPM<br /><span className="text-[9px]">MOD (4.0x)</span>
           </div>
           <div
-            className={`p-1.5 rounded ${
-              intensityType === "VIGOROUS" ? "bg-rose-200 text-rose-900 font-bold" : "bg-white text-slate-500"
+            className={`p-1.5 rounded-xl border transition-all ${
+              intensityType === "VIGOROUS" ? "bg-[#F9B99A] text-[#1A1A1A] border-[#F6966C] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
             }`}
           >
             &ge;130 SPM<br /><span className="text-[9px]">VIG (8.0x)</span>
@@ -266,8 +273,8 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
 
       {/* Permission Warning if Denied */}
       {permissionState === "denied" && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 text-xs rounded-xl flex items-center gap-2 border border-red-200">
-          <AlertTriangle className="w-4 h-4 shrink-0" />
+        <div className="mb-4 p-3 bg-[#F7A8B0]/20 text-[#1A1A1A] text-xs rounded-2xl flex items-center gap-2 border border-[#F7A8B0]">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-[#1A1A1A]" />
           <span>
             Izin sensor gerak ditolak oleh peramban. Di iOS Safari, silakan izinkan akses sensor gerak di pengaturan situs atau gunakan tombol simulasi di bawah.
           </span>
@@ -275,7 +282,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       )}
 
       {!sensorSupported && (
-        <div className="mb-4 p-3 bg-amber-50 text-amber-700 text-xs rounded-xl flex items-center gap-2 border border-amber-200">
+        <div className="mb-4 p-3 bg-[#FFF29A]/50 text-[#1A1A1A] text-xs rounded-2xl flex items-center gap-2 border border-[#FFF29A]">
           <Smartphone className="w-4 h-4 shrink-0" />
           <span>
             Perangkat desktop tidak memiliki sensor accelerometer fisik. Gunakan tombol simulasi langkah di bawah untuk pengujian lab.
@@ -284,30 +291,30 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       )}
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#E8E8E8]">
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleToggleTracking}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs ${
+            className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold flex items-center gap-2 transition-colors shadow-xs ${
               isTracking
-                ? "bg-red-600 hover:bg-red-700 text-white"
-                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                ? "bg-[#F7A8B0] text-[#1A1A1A] hover:bg-[#F27885]"
+                : "bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
             }`}
           >
             {isTracking ? (
               <>
-                <Square className="w-4 h-4 fill-white" /> Hentikan Sensor Gerak
+                <Square className="w-4 h-4 fill-[#1A1A1A]" /> Hentikan Sensor Gerak
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 fill-white" /> Aktifkan Sensor HP
+                <Play className="w-4 h-4 fill-[#1A1A1A]" /> Aktifkan Sensor HP
               </>
             )}
           </button>
 
           <button
             onClick={handleReset}
-            className="px-3 py-2.5 rounded-xl text-xs font-medium border border-slate-200 hover:bg-slate-50 text-slate-600 flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2.5 rounded-2xl text-xs font-semibold border border-[#E8E8E8] hover:bg-[#F6F6F6] text-[#1A1A1A] flex items-center gap-1.5 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Reset
           </button>
@@ -317,7 +324,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => handleSimulateStep(1)}
-            className="px-3 py-2 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1 transition-colors"
+            className="px-3 py-2 rounded-xl text-xs font-semibold bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] flex items-center gap-1 transition-colors border border-[#E8E8E8]"
             title="Simulasi 1 langkah (Desktop Testing)"
           >
             <Plus className="w-3.5 h-3.5" /> 1 Langkah
@@ -325,19 +332,19 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
 
           <button
             onClick={() => handleSimulateStep(10)}
-            className="px-3 py-2 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1 transition-colors"
+            className="px-3 py-2 rounded-xl text-xs font-semibold bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] flex items-center gap-1 transition-colors border border-[#E8E8E8]"
             title="Simulasi 10 langkah (Desktop Testing)"
           >
-            <Zap className="w-3.5 h-3.5 text-amber-500" /> +10 Langkah
+            <Zap className="w-3.5 h-3.5 text-[#1A1A1A]" /> +10 Langkah
           </button>
 
           {totalSteps > 0 && (
             <button
               onClick={handleSaveToActivity}
-              className={`px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-colors ${
                 savedSuccess
-                  ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                  : "bg-primary hover:bg-blue-700 text-white"
+                  ? "bg-[#CDE8B5] text-[#1A1A1A] border border-[#B6DF97]"
+                  : "bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
               }`}
             >
               {savedSuccess ? (
@@ -354,4 +361,3 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
     </div>
   );
 };
-

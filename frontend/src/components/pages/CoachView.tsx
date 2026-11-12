@@ -17,89 +17,90 @@ export const CoachView: React.FC = () => {
   if (!insight) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A1A1A]"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-50 text-primary rounded-xl">
-              <Bot className="w-6 h-6" />
+    <div className="space-y-6 max-w-2xl mx-auto pb-10">
+      {/* Header Banner */}
+      <div className="learnova-card p-6 border-[#E8E8E8] flex items-center justify-between">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+            <Bot className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
+                Wellbeing AI Coach
+              </h2>
+              <span className="text-[10px] bg-[#CDE8B5] text-[#1A1A1A] font-extrabold px-2.5 py-0.5 rounded-full border border-[#B6DF97]">
+                Gemini 2.5 Flash
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold font-heading text-textMain">
-                  Clinical Wellbeing AI Coach
-                </h2>
-                <span className="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  Gemini 2.5 Flash
-                </span>
-              </div>
-              <p className="text-xs text-slate-500">
-                Analisis telemetri 7 hari &amp; mediasi tidur 41% berbasis literatur.
-              </p>
-            </div>
+            <p className="text-xs text-[#9A9A9A] mt-0.5">
+              Rekomendasi terstruktur berbasis telemetri 7 hari &amp; mediasi tidur 41%.
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Mediator Badge & Diagnosis */}
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
-          <span className="text-[11px] font-bold tracking-wider uppercase text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200 inline-block">
+      {/* Main Diagnostic & Action Plan Card */}
+      <div className="learnova-card p-6 space-y-5 border-[#E8E8E8]">
+        {/* Dominant Mediator Tag */}
+        <div>
+          <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-[#1A1A1A] bg-[#FFF29A] px-3 py-1 rounded-full border border-[#FFE966]">
             Dominant Factor: {insight.dominantMediator}
           </span>
-          <p className="text-sm text-slate-700 leading-relaxed">
+          <h3 className="font-heading font-bold text-base text-[#1A1A1A] mt-3 leading-snug">
             {insight.diagnosisSummary}
-          </p>
+          </h3>
         </div>
 
-        {/* Action Plan */}
-        <div className="bg-teal-50/70 p-4 rounded-xl border border-teal-200/80 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-teal-800 uppercase tracking-wider">
-            <Sparkles className="w-4 h-4 text-teal-600" />
+        {/* Isotemporal Action Plan Card (Mint Green Card Accent) */}
+        <div className="bg-[#CDE8B5]/35 rounded-2xl p-5 border border-[#CDE8B5] space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">
+            <Sparkles className="w-4 h-4 text-[#1A1A1A]" />
             <span>Rencana Aksi Isotemporal Hari Ini</span>
           </div>
-          <p className="text-sm font-medium text-slate-800 leading-relaxed">
+          <p className="text-xs sm:text-sm font-medium text-[#1A1A1A] leading-relaxed">
             {insight.isotemporalActionPlan}
           </p>
-          <div className="flex items-center gap-2 text-xs text-teal-700 font-semibold pt-1">
-            <Target className="w-4 h-4" />
-            <span>Target Tambahan: ~{insight.recommendedMetsToday} MET-menit</span>
+          <div className="flex items-center gap-2 text-xs text-[#1A1A1A] font-bold pt-1">
+            <Target className="w-4 h-4 text-[#1A1A1A]" />
+            <span>Rekomendasi MET Hari Ini: ~{insight.recommendedMetsToday} MET-menit</span>
           </div>
         </div>
 
         {/* Scientific Citation Box */}
-        <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/60 flex items-start gap-2.5 text-xs text-slate-600">
-          <BookOpen className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-          <p className="italic">
+        <div className="p-4 rounded-2xl bg-[#F6F6F6] border border-[#E8E8E8] flex items-start gap-3 text-xs text-[#1A1A1A]/80">
+          <BookOpen className="w-4 h-4 text-[#9A9A9A] shrink-0 mt-0.5" />
+          <p className="leading-relaxed italic">
             {insight.scientificCitationNote}
           </p>
         </div>
 
-        {/* Claim / Complete Button */}
+        {/* Completion Claim Button */}
         <button
           onClick={() => setCompleted(true)}
           disabled={completed}
-          className={`w-full py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-xs ${
+          className={`w-full py-3.5 rounded-2xl font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-xs ${
             completed
-              ? "bg-green-50 text-green-700 border border-green-200 cursor-default"
-              : "bg-primary hover:bg-blue-700 text-white"
+              ? "bg-[#CDE8B5] text-[#1A1A1A] border border-[#B6DF97] shadow-none cursor-default"
+              : "bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
           }`}
         >
           {completed ? (
             <>
-              <CheckCircle className="w-4 h-4 text-green-600" />
+              <CheckCircle className="w-4 h-4 text-[#1A1A1A]" />
               Misi Telah Diselesaikan (+50 XP)
             </>
           ) : (
-            <>Selesaikan Misi &amp; Dapatkan +50 XP</>
+            <>Selesaikan Misi &amp; Klaim +50 XP</>
           )}
         </button>
       </div>
     </div>
   );
 };
-
