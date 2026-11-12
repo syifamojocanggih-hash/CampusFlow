@@ -21,17 +21,17 @@ export const VisionLabView: React.FC = () => {
                 Vision Guard &amp; Pedometer Lab
               </h2>
               <span className="text-[10px] bg-[#FFF29A] text-[#1A1A1A] font-extrabold px-2.5 py-0.5 rounded-full border border-[#FFE966]">
-                Test Hub
+                Ruang Pengujian
               </span>
             </div>
             <p className="text-xs text-[#9A9A9A] mt-0.5">
-              Verifikasi kinematika postur MediaPipe &amp; sensor inersia 3-sumbu HTML5 DeviceMotion 100% On-Device.
+              Ruang uji coba deteksi postur kamera AI dan sensor langkah HP secara langsung di browser Anda.
             </p>
           </div>
         </div>
 
         <span className="text-xs font-bold text-[#1A1A1A] bg-[#F6F6F6] px-3.5 py-2 rounded-2xl border border-[#E8E8E8]">
-          Uji Cepat: Aktifkan <strong>DEMO MODE (15s)</strong>
+          Uji Cepat: Aktifkan <strong>MODE COBA (15s)</strong>
         </span>
       </div>
 
@@ -42,7 +42,7 @@ export const VisionLabView: React.FC = () => {
             01
           </span>
           <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-            MediaPipe Vision Guard &amp; Anti-Cheat Break
+            Pemindai Postur Tubuh &amp; Jeda Istirahat Aktif
           </h3>
         </div>
 
@@ -61,11 +61,11 @@ export const VisionLabView: React.FC = () => {
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-[#CDE8B5]" />
               <h4 className="font-heading font-semibold text-sm text-white">
-                Emitted SedentarySessionPayload (Terkirim ke Kontrak Data)
+                Data Sesi Belajar yang Dikirim ke Profil
               </h4>
             </div>
             <span className="text-[11px] bg-[#FFF29A] text-[#1A1A1A] px-2.5 py-0.5 rounded-full font-mono font-bold">
-              verificationSource: {lastPayload.verificationSource}
+              Sumber: {lastPayload.verificationSource}
             </span>
           </div>
 
@@ -82,7 +82,7 @@ export const VisionLabView: React.FC = () => {
             02
           </span>
           <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-            3-Axis HTML5 Accelerometer DSP &amp; IPAQ-SF Pedometer
+            Penghitung Langkah Otomatis (Sensor Gerak HP)
           </h3>
         </div>
 
@@ -92,31 +92,31 @@ export const VisionLabView: React.FC = () => {
       {/* Architecture Spec Highlights */}
       <section className="learnova-card p-6 text-xs text-[#1A1A1A] space-y-3 border-[#E8E8E8]">
         <h4 className="font-heading font-extrabold text-sm text-[#1A1A1A] flex items-center gap-2">
-          <Code2 className="w-4 h-4 text-[#1A1A1A]" /> Rangkuman Spesifikasi Kinematika &amp; DSP
+          <Code2 className="w-4 h-4 text-[#1A1A1A]" /> Cara Kerja Deteksi &amp; Rumus Sensor
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 leading-relaxed">
           <div className="bg-[#F6F6F6] p-4 rounded-2xl border border-[#E8E8E8] space-y-1.5">
             <div className="font-bold text-[#1A1A1A] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#1A1A1A]" /> Vision Guard Formulas:
+              <Sparkles className="w-3.5 h-3.5 text-[#1A1A1A]" /> Aturan Postur Tubuh (Vision Guard):
             </div>
             <ul className="list-disc list-inside space-y-1 text-[#9A9A9A] text-[11px]">
-              <li><b className="text-[#1A1A1A]">Kalibrasi Baseline:</b> 60 frame (W_base, Y_sh_base, D_neck_base, &Theta;_base).</li>
-              <li><b className="text-[#1A1A1A]">Slouching:</b> R_neck &lt; 0.78 atau |&Delta;&Theta;| &gt; 15&deg; atau &Delta;Y_sh &gt; 0.08.</li>
-              <li><b className="text-[#1A1A1A]">Mata Terlalu Dekat:</b> R_depth = W_curr / W_base &ge; 1.28.</li>
-              <li><b className="text-[#1A1A1A]">Bahu Miring:</b> &Theta;_roll = atan2(|&Delta;y|, |&Delta;x|) &gt; 12.0&deg;.</li>
-              <li><b className="text-[#1A1A1A]">Overhead Stretch:</b> y_wrist &lt; y_nose &amp; sudut siku &gt; 140&deg;.</li>
+              <li><b className="text-[#1A1A1A]">Pengaturan Awal:</b> Merekam 60 frame posisi duduk tegak alami pengguna.</li>
+              <li><b className="text-[#1A1A1A]">Posisi Bungkuk:</b> Terdeteksi saat leher turun atau bahu membungkuk ke depan.</li>
+              <li><b className="text-[#1A1A1A]">Mata Terlalu Dekat:</b> Terdeteksi saat bahu membesar &ge; 1.28x dari posisi awal (&lt;50 cm).</li>
+              <li><b className="text-[#1A1A1A]">Bahu Miring:</b> Terdeteksi saat kemiringan kedua bahu melebihi 12 derajat.</li>
+              <li><b className="text-[#1A1A1A]">Peregangan Tangan:</b> Kedua tangan diangkat lurus di atas hidung &amp; kepala.</li>
             </ul>
           </div>
 
           <div className="bg-[#F6F6F6] p-4 rounded-2xl border border-[#E8E8E8] space-y-1.5">
             <div className="font-bold text-[#1A1A1A] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#1A1A1A]" /> Pedometer DSP Formulas:
+              <Sparkles className="w-3.5 h-3.5 text-[#1A1A1A]" /> Aturan Langkah (Pedometer HP):
             </div>
             <ul className="list-disc list-inside space-y-1 text-[#9A9A9A] text-[11px]">
-              <li><b className="text-[#1A1A1A]">Magnitudo 3-Axis:</b> a_mag = &radic;(ax&sup2; + ay&sup2; + az&sup2;).</li>
-              <li><b className="text-[#1A1A1A]">High-Pass Filter:</b> a_net = a_mag - mean(a_mag) (25 sampel).</li>
-              <li><b className="text-[#1A1A1A]">Deteksi Langkah:</b> a_net &gt; 1.35 m/s&sup2; &amp; jeda 250 - 1200 ms.</li>
-              <li><b className="text-[#1A1A1A]">IPAQ-SF Cadence:</b> &lt;50 SPM (1.0x), 50-99 (3.3x), 100-129 (4.0x), &ge;130 (8.0x).</li>
+              <li><b className="text-[#1A1A1A]">Sensor 3-Arah:</b> Menghitung total percepatan gerak smartphone di dalam saku.</li>
+              <li><b className="text-[#1A1A1A]">Penyaring Goyangan:</b> Memisahkan gravitasi bumi agar tidak salah hitung saat duduk.</li>
+              <li><b className="text-[#1A1A1A]">Validasi Langkah:</b> Hanya menghitung ayunan langkah ritmis (50–240 langkah/menit).</li>
+              <li><b className="text-[#1A1A1A]">Tingkat Intensitas:</b> Santai (1x), Jalan Santai (3.3x), Jalan Cepat (4x), Lari (8x).</li>
             </ul>
           </div>
         </div>

@@ -158,6 +158,20 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
     }
   };
 
+  const getIntensityLabel = () => {
+    switch (intensityType) {
+      case "WALKING":
+        return "Jalan Santai";
+      case "MODERATE":
+        return "Jalan Cepat";
+      case "VIGOROUS":
+        return "Lari / Olahraga";
+      case "IDLE":
+      default:
+        return "Diam / Santai";
+    }
+  };
+
   return (
     <div className={`learnova-card p-6 border-[#E8E8E8] ${className}`}>
       {/* Header */}
@@ -168,10 +182,10 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
           </div>
           <div>
             <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-              3-Axis Pedometer &amp; IPAQ-SF Sensor
+              Penghitung Langkah Otomatis (Sensor HP)
             </h3>
             <p className="text-xs text-[#9A9A9A]">
-              HTML5 DeviceMotionEvent &bull; 25-Sample Filter &bull; Zero Latency
+              Deteksi Gerak Langkah HP &bull; Akurat Tanpa Smartwatch &bull; Nol Latensi
             </p>
           </div>
         </div>
@@ -180,7 +194,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
           <span
             className={`px-3 py-1 text-xs font-bold rounded-full border transition-colors cursor-default select-none hover:opacity-90 ${getBadgeStyle()}`}
           >
-            {intensityType} ({metMultiplier}x MET)
+            {getIntensityLabel()} ({metMultiplier}x Intensitas)
           </span>
         </div>
       </div>
@@ -209,26 +223,26 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         {/* Cadence Display (Mint Green Card) */}
         <div className="bg-[#CDE8B5] rounded-2xl p-5 flex flex-col items-center justify-center text-center text-[#1A1A1A] shadow-xs">
           <div className="text-xs text-[#1A1A1A]/80 font-bold mb-1 flex items-center gap-1.5">
-            <Activity className="w-4 h-4 text-[#1A1A1A]" /> Cadence (Irama)
+            <Activity className="w-4 h-4 text-[#1A1A1A]" /> Kecepatan Langkah
           </div>
           <div className="text-3xl sm:text-4xl font-heading font-extrabold text-[#1A1A1A] tracking-tight my-1 sensor-num">
             {cadenceSpm}
           </div>
           <div className="text-[11px] text-[#1A1A1A]/70 font-medium">
-            Langkah per Menit (SPM)
+            Langkah per Menit
           </div>
         </div>
 
         {/* MET-Minutes (Butter Yellow Card) */}
         <div className="bg-[#FFF29A] rounded-2xl p-5 flex flex-col items-center justify-center text-center text-[#1A1A1A] shadow-xs">
           <div className="text-xs text-[#1A1A1A]/80 font-bold mb-1 flex items-center gap-1.5">
-            <Flame className="w-4 h-4 text-[#1A1A1A] fill-[#1A1A1A]" /> Volume MET-Menit
+            <Flame className="w-4 h-4 text-[#1A1A1A] fill-[#1A1A1A]" /> Poin Energi Gerak
           </div>
           <div className="text-3xl sm:text-4xl font-heading font-extrabold text-[#1A1A1A] tracking-tight my-1 sensor-num">
             {metMinutes.toFixed(1)}
           </div>
           <div className="text-[11px] text-[#1A1A1A]/70 font-medium">
-            Beban Metabolik
+            Poin Kebugaran Tubuh
           </div>
         </div>
       </div>
@@ -236,8 +250,8 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       {/* Cadence Range Scale Guide */}
       <div className="mb-6 bg-[#F6F6F6] p-3.5 rounded-2xl border border-[#E8E8E8] text-xs">
         <div className="flex justify-between items-center text-[11px] font-semibold text-[#1A1A1A] mb-1.5">
-          <span>Klasifikasi Irama IPAQ-SF:</span>
-          <span className="font-bold">{cadenceSpm} SPM Saat Ini</span>
+          <span>Tingkat Kecepatan Langkah:</span>
+          <span className="font-bold">{cadenceSpm} Langkah/Menit Saat Ini</span>
         </div>
         <div className="grid grid-cols-4 gap-1.5 text-center text-[10px] font-medium">
           <div
@@ -245,28 +259,28 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
               intensityType === "IDLE" ? "bg-[#FFF29A] text-[#1A1A1A] border-[#FFE966] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
             }`}
           >
-            &lt;50 SPM<br /><span className="text-[9px]">IDLE (1.0x)</span>
+            &lt;50 SPM<br /><span className="text-[9px]">Diam / Santai</span>
           </div>
           <div
             className={`p-1.5 rounded-xl border transition-all ${
               intensityType === "WALKING" ? "bg-[#CDE8B5] text-[#1A1A1A] border-[#B6DF97] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
             }`}
           >
-            50-99 SPM<br /><span className="text-[9px]">WALK (3.3x)</span>
+            50-99 SPM<br /><span className="text-[9px]">Jalan Santai</span>
           </div>
           <div
             className={`p-1.5 rounded-xl border transition-all ${
               intensityType === "MODERATE" ? "bg-[#BDE6F0] text-[#1A1A1A] border-[#8ECAD7] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
             }`}
           >
-            100-129 SPM<br /><span className="text-[9px]">MOD (4.0x)</span>
+            100-129 SPM<br /><span className="text-[9px]">Jalan Cepat</span>
           </div>
           <div
             className={`p-1.5 rounded-xl border transition-all ${
               intensityType === "VIGOROUS" ? "bg-[#F9B99A] text-[#1A1A1A] border-[#F6966C] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
             }`}
           >
-            &ge;130 SPM<br /><span className="text-[9px]">VIG (8.0x)</span>
+            &ge;130 SPM<br /><span className="text-[9px]">Lari / Olahraga</span>
           </div>
         </div>
       </div>

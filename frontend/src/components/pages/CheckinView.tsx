@@ -43,7 +43,7 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
                 </span>
               </div>
               <p className="text-xs text-[#9A9A9A] mt-0.5">
-                Skala stres klinis PSS-4 &amp; durasi tidur untuk input diagnosis AI Coach.
+                Evaluasi tingkat stres &amp; waktu tidur harian untuk rekomendasi dari AI Coach.
               </p>
             </div>
           </div>
@@ -59,7 +59,7 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
             Check-in Berhasil Disimpan!
           </h3>
           <p className="text-xs text-[#1A1A1A]/80 max-w-sm mx-auto leading-relaxed">
-            Data telemetri Anda telah diperbarui. Kunjungi tab <strong>AI Coach</strong> untuk melihat rekomendasi aksi fisik personal hari ini.
+            Data kebugaran Anda telah diperbarui. Kunjungi tab <strong>AI Coach</strong> untuk melihat rekomendasi aktivitas fisik hari ini.
           </p>
           <button
             onClick={() => setSubmitted(false)}
@@ -128,19 +128,19 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
 
           {/* Card 3: PSS-4 Questionnaire */}
           <div className="learnova-card p-5 sm:p-6 space-y-5 border-[#E8E8E8]">
-            <div className="flex items-center justify-between border-b border-[#E8E8E8] pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8E8E8] pb-3 gap-1">
               <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A] flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#1A1A1A]" />
-                Pertanyaan PSS-4 (24 Jam Terakhir)
+                Evaluasi Tingkat Stres (24 Jam Terakhir)
               </h3>
-              <span className="text-[11px] text-[#9A9A9A] font-medium">Skala 0 (Tidak Pernah) - 4 (Sangat Sering)</span>
+              <span className="text-[11px] text-[#9A9A9A] font-medium">Skala 0 (Tidak Pernah) &ndash; 4 (Sangat Sering)</span>
             </div>
 
             {[
               "1. Seberapa sering Anda merasa tidak mampu mengendalikan hal penting?",
-              "2. Seberapa sering Anda merasa yakin pada kemampuan mengatasi masalah pribadi? (Item Positif)",
-              "3. Seberapa sering Anda merasa segala hal berjalan sesuai keinginan? (Item Positif)",
-              "4. Seberapa sering Anda merasa kesulitan menumpuk begitu tinggi?",
+              "2. Seberapa sering Anda merasa yakin pada kemampuan mengatasi masalah pribadi?",
+              "3. Seberapa sering Anda merasa segala hal berjalan sesuai keinginan?",
+              "4. Seberapa sering Anda merasa beban dan kesulitan menumpuk begitu tinggi?",
             ].map((q, idx) => (
               <div key={idx} className="space-y-2.5 pt-1">
                 <p className="text-xs font-semibold text-[#1A1A1A] leading-snug">{q}</p>

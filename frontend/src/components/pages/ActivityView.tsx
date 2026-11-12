@@ -26,17 +26,17 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
             <div className="flex items-center gap-2">
               <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
                 {subTab === "pedometer"
-                  ? "Aktivitas Fisik & Pedometer DSP"
-                  : "Check-in Harian & Skala Stres"}
+                  ? "Aktivitas Fisik & Penghitung Langkah"
+                  : "Kuis Kebugaran & Evaluasi Stres"}
               </h2>
               <span className="text-[10px] bg-[#CDE8B5] text-[#1A1A1A] px-2.5 py-0.5 rounded-full font-extrabold border border-[#B6DF97]">
-                {subTab === "pedometer" ? "IPAQ-SF Real-Time" : "PSS-4 Klinis"}
+                {subTab === "pedometer" ? "Deteksi Otomatis HP" : "Evaluasi Harian"}
               </span>
             </div>
             <p className="text-xs text-[#9A9A9A] mt-0.5">
               {subTab === "pedometer"
-                ? "Pelacak langkah berbasis sensor akselerometer 3-sumbu smartphone & filter gravitasi 25 sampel."
-                : "Evaluasi durasi tidur, screen-time non-akademik, dan persepsi stres untuk diagnosis AI Coach."}
+                ? "Hitung langkah harian otomatis menggunakan sensor HP saat Anda berjalan di kampus."
+                : "Catat waktu tidur, waktu layar santai, dan tingkat stres untuk rekomendasi dari AI Coach."}
             </p>
           </div>
         </div>
@@ -70,7 +70,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
           }`}
         >
           <ClipboardCheck className="w-4 h-4" />
-          <span>Check-in Harian (PSS-4)</span>
+          <span>Kuis Evaluasi Diri</span>
         </button>
       </div>
 
@@ -83,10 +83,10 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
             <div className="learnova-card p-4 sm:p-5 text-xs text-[#1A1A1A] space-y-2 bg-[#F6F6F6] border-[#E8E8E8]">
               <div className="flex items-center gap-2 font-bold text-[#1A1A1A]">
                 <Sparkles className="w-4 h-4 text-[#1A1A1A]" />
-                <span>Panduan Pengujian di Smartphone:</span>
+                <span>Panduan Penggunaan di Smartphone:</span>
               </div>
               <p className="leading-relaxed text-[#9A9A9A]">
-                Buka aplikasi via HTTPS lokal di browser HP, klik <strong>&quot;Aktifkan Sensor HP&quot;</strong>, izinkan sensor gerak, dan masukkan ponsel ke dalam saku saat berjalan. Cadence SPM dan MET-menit akan terakumulasi otomatis.
+                Buka aplikasi di browser HP Anda, klik <strong>&quot;Aktifkan Sensor HP&quot;</strong>, izinkan akses sensor gerak, dan masukkan ponsel ke saku saat berjalan. Jumlah langkah dan poin energi gerak Anda akan bertambah otomatis.
               </p>
             </div>
           </div>

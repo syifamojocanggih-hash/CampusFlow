@@ -195,7 +195,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         <div className="bg-[#CDE8B5] rounded-3xl p-4 sm:p-5 flex flex-col justify-between text-[#1A1A1A] shadow-softMint">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-xs font-semibold text-[#1A1A1A]/80">Gerak Aktif (MVPA)</p>
+              <p className="text-xs font-semibold text-[#1A1A1A]/80">Olahraga &amp; Jalan Cepat</p>
               <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
                 {today.totalMvpaMinutes}
                 <span className="text-xs font-medium text-[#1A1A1A]/80 ml-1">Mnt</span>
@@ -210,7 +210,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
             />
           </div>
           <div className="mt-3 pt-2.5 border-t border-[#1A1A1A]/10 flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#1A1A1A]/70">{today.mvpaPerSedentaryRatio} mnt/jam duduk</span>
+            <span className="text-[11px] font-semibold text-[#1A1A1A]/70">{today.mvpaPerSedentaryRatio} mnt jalan tiap 1 jam duduk</span>
             <span className="text-[10px] font-extrabold bg-white text-[#1A1A1A] px-2.5 py-0.5 rounded-full shadow-xs">
               {today.totalMvpaMinutes >= 30 ? "OPTIMAL" : "WASPADA"}
             </span>
@@ -221,7 +221,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-xs font-semibold text-[#9A9A9A]">Skor Stres PSS-4</p>
+              <p className="text-xs font-semibold text-[#9A9A9A]">Tingkat Stres Harian</p>
               <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
                 {today.pss4TotalScore}
                 <span className="text-xs font-medium text-[#9A9A9A] ml-1">/ 16</span>
@@ -245,7 +245,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-xs font-semibold text-[#9A9A9A]">Pencapaian METs</p>
+              <p className="text-xs font-semibold text-[#9A9A9A]">Target Poin Gerak</p>
               <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
                 {Math.round((weeklySummary.weeklyMetsTotal / weeklySummary.weeklyMetsTarget) * 100)}%
               </h3>
@@ -259,7 +259,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
             />
           </div>
           <div className="mt-3 pt-2.5 border-t border-[#E8E8E8] flex items-center justify-between">
-            <span className="text-[11px] text-[#9A9A9A]">{weeklySummary.weeklyMetsTotal}/{weeklySummary.weeklyMetsTarget} METs</span>
+            <span className="text-[11px] text-[#9A9A9A]">{weeklySummary.weeklyMetsTotal}/{weeklySummary.weeklyMetsTarget} Poin</span>
             <span className="text-[11px] font-bold text-[#1A1A1A] bg-[#CDE8B5] px-2 py-0.5 rounded-full">Minggu Ini</span>
           </div>
         </div>
@@ -278,7 +278,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               Cemas Menjelang Ujian atau Presentasi?
             </h4>
             <p className="text-xs text-[#1A1A1A]/80 font-medium mt-0.5">
-              Protokol aerobik akut 15 menit (~116 BPM) berbasis riset Wu &amp; Zhou (2024).
+              Latihan jalan santai &amp; relaksasi napas 15 menit untuk redakan cemas dan kembalikan fokus.
             </p>
           </div>
         </div>
@@ -287,7 +287,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-white hover:bg-[#F6F6F6] text-[#1A1A1A] text-xs font-extrabold transition-all shadow-xs flex items-center justify-center gap-2"
         >
           <Sparkles className="w-4 h-4 text-[#1A1A1A]" />
-          Mulai Exam Panic Relief
+          Mulai Relaksasi 15 Menit
         </button>
       </div>
 
@@ -302,10 +302,10 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-heading font-extrabold text-base text-[#1A1A1A] flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#1A1A1A]" /> Jadwal &amp; Intervensi Hari Ini
+                  <Clock className="w-4 h-4 text-[#1A1A1A]" /> Jadwal &amp; Rencana Hari Ini
                 </h3>
                 <p className="text-xs text-[#9A9A9A] mt-0.5">
-                  Rutinitas isotemporal 24-Hour Movement
+                  Panduan aktivitas harian untuk gantikan waktu duduk lama
                 </p>
               </div>
               <button
@@ -331,7 +331,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   </div>
                 </div>
                 <span className="text-[10px] font-extrabold bg-[#BDE6F0] text-[#1A1A1A] px-2.5 py-1 rounded-full">
-                  LIVE
+                  SELESAI
                 </span>
               </div>
 
@@ -343,13 +343,13 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   </div>
                   <div>
                     <h5 className="text-xs font-bold text-[#1A1A1A]">
-                      Active Break Anti-Cheat
+                      Jeda Istirahat &amp; Peregangan
                     </h5>
-                    <p className="text-[11px] text-[#9A9A9A]">Peregangan lengan di atas kepala (3x)</p>
+                    <p className="text-[11px] text-[#9A9A9A]">Peregangan tangan di atas kepala (3x)</p>
                   </div>
                 </div>
                 <span className="text-[10px] font-bold bg-[#CDE8B5] text-[#1A1A1A] px-2.5 py-1 rounded-full">
-                  UPCOMING
+                  MENDATANG
                 </span>
               </div>
 
@@ -361,13 +361,13 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   </div>
                   <div>
                     <h5 className="text-xs font-bold text-[#1A1A1A]">
-                      Jalan Kaki Kampus (Pedometer)
+                      Jalan Santai Kampus
                     </h5>
-                    <p className="text-[11px] text-[#9A9A9A]">Aktivitas sedang ~240 MET-menit</p>
+                    <p className="text-[11px] text-[#9A9A9A]">Aktivitas jalan santai ~240 poin energi</p>
                   </div>
                 </div>
                 <span className="text-[10px] font-bold bg-[#C9B3E6] text-[#1A1A1A] px-2.5 py-1 rounded-full">
-                  UPCOMING
+                  MENDATANG
                 </span>
               </div>
             </div>
@@ -378,14 +378,14 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-                  Target Kebugaran 24-Jam
+                  Target Kebugaran Harian
                 </h3>
                 <p className="text-xs text-[#9A9A9A] mt-0.5">
-                  Progres harian substitusi duduk isotemporal
+                  Pantau target harian untuk kurangi waktu duduk lama
                 </p>
               </div>
               <span className="text-xs font-extrabold text-[#1A1A1A] bg-[#CDE8B5] px-3 py-1 rounded-full">
-                {today.triadPillarsMet}/3 Pilar Tercapai
+                {today.triadPillarsMet}/3 Target Tercapai
               </span>
             </div>
 
@@ -393,7 +393,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               {/* Goal 1: Sedentary Limit (Sky Blue bar) */}
               <div>
                 <div className="flex justify-between text-xs font-bold text-[#1A1A1A] mb-1.5">
-                  <span>Pembatasan Waktu Duduk (&le; 9 Jam)</span>
+                  <span>Batas Waktu Duduk (&le; 9 Jam)</span>
                   <span className="font-mono">68%</span>
                 </div>
                 <div className="w-full bg-[#F6F6F6] h-3 rounded-full overflow-hidden p-0.5 border border-[#E8E8E8]">
@@ -404,7 +404,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               {/* Goal 2: MVPA (Mint Green bar) */}
               <div>
                 <div className="flex justify-between text-xs font-bold text-[#1A1A1A] mb-1.5">
-                  <span>Target Gerak Aktif MVPA (&ge; 30 Mnt)</span>
+                  <span>Target Olahraga &amp; Jalan Cepat (&ge; 30 Mnt)</span>
                   <span className="font-mono">100%</span>
                 </div>
                 <div className="w-full bg-[#F6F6F6] h-3 rounded-full overflow-hidden p-0.5 border border-[#E8E8E8]">
@@ -415,7 +415,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               {/* Goal 3: Restorative Sleep (Peach Orange bar) */}
               <div>
                 <div className="flex justify-between text-xs font-bold text-[#1A1A1A] mb-1.5">
-                  <span>Durasi Tidur Restoratif (7–9 Jam)</span>
+                  <span>Tidur Cukup Malam Hari (7–9 Jam)</span>
                   <span className="font-mono">75%</span>
                 </div>
                 <div className="w-full bg-[#F6F6F6] h-3 rounded-full overflow-hidden p-0.5 border border-[#E8E8E8]">
@@ -493,7 +493,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
             <div className="flex items-center justify-between mb-4 relative z-10">
               <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#1A1A1A]">
                 <Flame className="w-4 h-4 fill-[#F9B99A] text-[#F9B99A]" />
-                <span>Current Streak</span>
+                <span>Konsistensi Kebugaran</span>
               </div>
               <span className="bg-[#FFF29A] text-[#1A1A1A] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs">
                 +420 XP

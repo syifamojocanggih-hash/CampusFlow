@@ -544,13 +544,13 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               sound.playSlouchWarning();
             }
             if (ps.isTooClose) {
-              setWarningMessage("Peringatan: Jarak mata terlalu dekat dengan monitor (<50 cm).");
+              setWarningMessage("Jarak mata terlalu dekat! Mundur sedikit agar mata tidak cepat lelah (<50 cm).");
               setTooCloseCount((c) => c + 1);
             } else if (ps.isSlouching) {
-              setWarningMessage("Peringatan: Postur membungkuk terdeteksi. Tegakkan bahu Anda!");
+              setWarningMessage("Posisi duduk membungkuk! Yuk tegakkan punggung dan bahu Anda.");
               setSlouchCount((c) => c + 1);
             } else if (ps.isLeaningAsymmetric) {
-              setWarningMessage("Peringatan: Bahu miring asimetris. Seimbangkan beban duduk.");
+              setWarningMessage("Posisi duduk miring! Seimbangkan kembali posisi bahu Anda.");
               setSlouchCount((c) => c + 1);
             }
           }
@@ -694,14 +694,14 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-                Vision Guard &amp; Anti-Cheat Break
+                Vision Guard &amp; Istirahat Aktif
               </h3>
               <span className="text-[10px] bg-[#CDE8B5] hover:bg-[#BEE1A3] text-[#1A1A1A] px-2.5 py-0.5 rounded-full font-bold border border-[#B6DF97] transition-colors cursor-default select-none">
-                {hardwareDelegate} Acceleration
+                Akselerasi {hardwareDelegate}
               </span>
             </div>
             <p className="text-xs text-[#9A9A9A]">
-              MediaPipe Pose Landmarker &bull; 100% On-Device &bull; Multi-Person Filter (Anti-Distraksi Latar)
+              Pemindai Postur Pintar &bull; 100% Privat di Perangkat &bull; Fokus Hanya Pada Anda (Anti-Distraksi)
             </p>
           </div>
         </div>
@@ -725,7 +725,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           {/* Demo Mode Switch */}
           <div className="flex items-center gap-2 bg-[#F6F6F6] px-3 py-1.5 rounded-xl border border-[#E8E8E8]">
             <Sliders className="w-4 h-4 text-[#1A1A1A]" />
-            <span className="text-xs font-semibold text-[#1A1A1A]">DEMO MODE</span>
+            <span className="text-xs font-semibold text-[#1A1A1A]">MODE COBA</span>
             <button
               onClick={() => {
                 setDemoMode(!demoMode);
@@ -735,7 +735,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 ${
                 demoMode ? "bg-[#1A1A1A]" : "bg-[#E8E8E8]"
               }`}
-              title={demoMode ? "Demo Mode (15 Detik Limit)" : "Mode Produksi (50 Menit Limit)"}
+              title={demoMode ? "Mode Coba Cepat (15 Detik)" : "Mode Sehat Normal (50 Menit)"}
             >
               <div
                 className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
@@ -753,7 +753,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               onClick={handleRecalibrate}
               className="text-xs text-[#1A1A1A] hover:bg-[#E8E8E8] px-3 py-1.5 rounded-lg border border-[#E8E8E8] bg-[#F6F6F6] flex items-center gap-1.5 transition-colors"
             >
-              <RefreshCw className="w-3.5 h-3.5" /> Kalibrasi Ulang
+              <RefreshCw className="w-3.5 h-3.5" /> Atur Posisi Ulang
             </button>
           )}
         </div>
@@ -823,7 +823,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             <div className="w-16 h-16 rounded-full bg-blue-600/30 border border-blue-400 flex items-center justify-center mb-4">
               <UserCheck className="w-8 h-8 text-blue-400 animate-pulse" />
             </div>
-            <h4 className="font-heading font-bold text-base">Kalibrasi Baseline Duduk Tegak</h4>
+            <h4 className="font-heading font-bold text-base">Atur Posisi Duduk Tegak</h4>
             <p className="text-xs text-slate-300 max-w-sm mt-1 mb-4">
               Duduk tegak, rileks, dan tatap lurus ke depan (hanya butuh kepala &amp; bahu).
             </p>
@@ -835,12 +835,12 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             </div>
             <div className="flex flex-col items-center gap-1">
               <span className="text-xs font-mono text-blue-300 font-semibold">
-                {calibrationCount} / 60 Frame ({Math.round(calibrationProgress * 100)}%)
+                {calibrationCount} / 60 Sampel ({Math.round(calibrationProgress * 100)}%)
               </span>
               <span className="text-[11px] text-slate-300">
                 {calibrationCount > 0
-                  ? "Bahu terdeteksi! Tahan posisi tegak..."
-                  : "Pastikan kedua bahu terlihat di layar..."}
+                  ? "Bahu terdeteksi! Tahan posisi tegak sejenak..."
+                  : "Pastikan kepala dan bahu Anda terlihat di kamera..."}
               </span>
             </div>
           </div>
@@ -850,15 +850,15 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
         {!baseline && !isCalibrating && !isInitializing && (
           <div className="absolute inset-0 bg-slate-900/80 z-10 flex flex-col items-center justify-center text-white p-6 text-center space-y-3">
             <Camera className="w-12 h-12 text-blue-400 mx-auto" />
-            <h4 className="font-heading font-bold text-base">Baseline Postur Belum Terkalibrasi</h4>
+            <h4 className="font-heading font-bold text-base">Posisi Duduk Belum Diatur</h4>
             <p className="text-xs text-slate-300 max-w-md">
-              Vision Guard memerlukan kalibrasi 5 detik untuk menghitung rasio leher (D_neck), lebar bahu, dan sudut torso unik Anda.
+              Kamera memerlukan waktu 5 detik untuk mengenali posisi duduk tegak alami Anda sebelum mulai mendeteksi postur.
             </p>
             <button
               onClick={handleStartCalibration}
               className="bg-primary hover:bg-blue-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition-all"
             >
-              <Check className="w-4 h-4" /> Mulai Kalibrasi 5 Detik
+              <Check className="w-4 h-4" /> Mulai Atur Posisi (5 Detik)
             </button>
           </div>
         )}
@@ -882,10 +882,10 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                   {bystanderCount > 0 && (
                     <span
                       className="text-[9px] font-sans px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-bold flex items-center gap-1"
-                      title="Sistem mengunci pengguna utama dan mengabaikan orang lain di latar belakang"
+                      title="Sistem mengunci Anda sebagai pengguna utama dan mengabaikan orang lain yang lewat di latar"
                     >
                       <Users className="w-2.5 h-2.5" />
-                      +{bystanderCount} Latar Diabaikan
+                      +{bystanderCount} Orang Lain Diabaikan
                     </span>
                   )}
                   <span className="text-[10px] font-sans px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 font-bold">
@@ -916,12 +916,16 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                   })()}
                 </div>
                 <div className="text-slate-300 flex items-center justify-between gap-3">
-                  <span>Rasio Leher:</span>
-                  <span className="text-blue-300 font-bold">{postureState.metrics.neckRatio}x (Min 0.78)</span>
+                  <span>Posisi Leher:</span>
+                  <span className={`font-bold ${postureState.isSlouching ? "text-amber-400" : "text-emerald-400"}`}>
+                    {postureState.isSlouching ? "Membungkuk" : "Tegak Alami"}
+                  </span>
                 </div>
                 <div className="text-slate-300 flex items-center justify-between gap-3">
-                  <span>Kemiringan:</span>
-                  <span className="text-blue-300 font-bold">{postureState.metrics.shoulderTiltDeg}&deg; (Max 12&deg;)</span>
+                  <span>Posisi Bahu:</span>
+                  <span className={`font-bold ${postureState.isLeaningAsymmetric ? "text-amber-400" : "text-emerald-400"}`}>
+                    {postureState.isLeaningAsymmetric ? "Miring" : "Seimbang"}
+                  </span>
                 </div>
               </>
             )}
@@ -1039,7 +1043,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
         {/* Card 3: Slouch Incident */}
         <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between shadow-xs">
-          <div className="text-[#9A9A9A] font-semibold">Insiden Slouch</div>
+          <div className="text-[#9A9A9A] font-semibold">Peringatan Bungkuk</div>
           <div className="my-1.5">
             <div className="text-xl font-extrabold text-[#1A1A1A] font-mono">{slouchCount} kali</div>
             <div className="text-[10px] text-[#9A9A9A] mt-0.5 font-medium">Bahu turun / leher maju</div>
@@ -1051,16 +1055,16 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           <div className="text-[#9A9A9A] font-semibold">Mata Terlalu Dekat</div>
           <div className="my-1.5">
             <div className="text-xl font-extrabold text-[#1A1A1A] font-mono">{tooCloseCount} kali</div>
-            <div className="text-[10px] text-[#9A9A9A] mt-0.5 font-medium">Eye-strain proximity</div>
+            <div className="text-[10px] text-[#9A9A9A] mt-0.5 font-medium">Risiko mata cepat lelah</div>
           </div>
         </div>
 
         {/* Card 5: Work Bout & Session Status */}
         <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between col-span-2 sm:col-span-1 shadow-xs">
-          <div className="text-[#9A9A9A] font-semibold">Batas &amp; Status</div>
+          <div className="text-[#9A9A9A] font-semibold">Batas Waktu Duduk</div>
           <div className="my-1.5">
             <div className="text-base font-bold text-[#1A1A1A]">
-              {demoMode ? "15s (Demo)" : "50m (ISO)"}
+              {demoMode ? "15 Detik (Coba)" : "50 Menit (Ideal)"}
             </div>
             <div className="text-[10px] text-[#1A1A1A] font-bold flex items-center gap-1 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#1A1A1A]" />
@@ -1118,10 +1122,10 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-extrabold font-heading text-white">
-              Anti-Cheat Active Break
+              Istirahat Aktif: Waktunya Peregangan!
             </h2>
             <p className="text-xs text-slate-300 leading-relaxed max-w-md mx-auto">
-              Layar dikunci hingga kamera AI memverifikasi peregangan aktif Anda (tidak ada tombol skip/snooze). Skeleton di atas akan berubah <b className="text-emerald-400">HIJAU</b> saat tangan Anda diangkat.
+              Layar dijeda sejenak untuk melindungi kesehatan tubuh Anda. Garis tubuh di atas akan berubah <b className="text-emerald-400">HIJAU</b> saat kedua tangan diangkat lurus.
             </p>
           </div>
 
@@ -1129,10 +1133,10 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           <div className="bg-slate-800/90 rounded-2xl p-5 border border-slate-700 space-y-4">
             <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
               <span className="flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-emerald-400" /> Pose 1: Overhead Arm Stretch
+                <Sparkles className="w-4 h-4 text-emerald-400" /> Gerakan 1: Angkat Tangan ke Atas
               </span>
               <span className="text-emerald-400 font-bold font-mono">
-                {breakRepsCompleted} / {targetReps} Repetisi
+                {breakRepsCompleted} / {targetReps} Gerakan Selesai
               </span>
             </div>
 
@@ -1158,7 +1162,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-mono">
                 <span className={isHoldingStretch ? "text-emerald-400 font-bold flex items-center gap-1" : "text-slate-400"}>
-                  {isHoldingStretch ? "✓ Tahan pose overhead stretch..." : "Angkat kedua tangan lurus ke atas kepala"}
+                  {isHoldingStretch ? "✓ Bagus! Tahan posisi tangan di atas..." : "Angkat kedua tangan lurus ke atas kepala"}
                 </span>
                 <span className="text-amber-400 font-bold">
                   {currentRepHoldSeconds.toFixed(1)}s / {targetHoldSeconds}s
@@ -1177,7 +1181,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
           {/* Stand Away Alternative */}
           <div className="text-xs text-slate-400 flex items-center justify-between bg-slate-800/40 px-4 py-2.5 rounded-xl border border-slate-700/50">
-            <span>Opsi 2: Berdiri menjauh dari meja kerja</span>
+            <span>Atau Opsi 2: Berdiri &amp; jalan sejenak menjauh dari meja</span>
             <span className="font-mono text-slate-300 font-bold">
               {standAwayDurationSecs.toFixed(0)}s / {targetStandAwaySeconds}s
             </span>
@@ -1189,7 +1193,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               onClick={() => completeActiveBreak("MANUAL_LOG")}
               className="text-xs text-slate-500 hover:text-slate-300 transition-colors underline"
             >
-              Simulasi Manual Bypass (Khusus Penguji Tanpa Webcam)
+              Lewati Manual (Khusus jika perangkat tidak memiliki webcam)
             </button>
           </div>
         </div>

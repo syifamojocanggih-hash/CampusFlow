@@ -50,7 +50,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigateToProfile 
                 Profil &amp; Target Wellbeing
               </h3>
               <p className="text-xs text-[#9A9A9A]">
-                Kelola identitas akademik, avatar, dan target METs mingguan Anda.
+                Kelola data profil, avatar, dan target aktivitas fisik mingguan Anda.
               </p>
             </div>
           </div>
@@ -71,11 +71,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigateToProfile 
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-[#1A1A1A]" />
               <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A] uppercase tracking-wide">
-                Mode Demo Presentasi Juri (15 Detik)
+                Mode Uji Coba Cepat (15 Detik)
               </h3>
             </div>
             <p className="text-xs text-[#1A1A1A]/80 mt-1 leading-relaxed">
-              Mempercepat ambang batas jeda duduk dari <strong>50 menit</strong> menjadi <strong>15 detik</strong> untuk keperluan demonstrasi live anti-cheat modal di depan dewan juri.
+              Mempercepat waktu batas duduk dari <strong>50 menit</strong> menjadi <strong>15 detik</strong> untuk keperluan demonstrasi jeda istirahat aktif di depan penguji.
             </p>
           </div>
 

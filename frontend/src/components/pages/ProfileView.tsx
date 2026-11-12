@@ -322,7 +322,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <div className="flex items-center gap-2 pb-2 border-b border-[#E8E8E8]">
             <Target className="w-4 h-4 text-[#1A1A1A]" />
             <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-              Target &amp; Parameter Ergonomi Wellbeing
+              Target Kebugaran &amp; Kebiasaan Belajar Sehat
             </h3>
           </div>
 
@@ -331,14 +331,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <label className="text-xs font-bold text-[#1A1A1A]">
-                  Target METs Mingguan (Aktivitas Fisik)
+                  Target Poin Gerak Mingguan (Aktivitas Fisik)
                 </label>
                 <p className="text-[11px] text-[#9A9A9A]">
-                  Standar IPAQ-SF: 600 METs (minimal sehat) hingga 1500+ METs (mahasiswa aktif bugar).
+                  Panduan: 600 Poin (ringan) hingga 1500+ Poin (aktif bugar, setara jalan kaki rutin 30 mnt/hari).
                 </p>
               </div>
               <span className="text-sm font-extrabold text-[#1A1A1A] bg-[#FFF29A] px-3 py-1 rounded-xl border border-[#FFE966]">
-                {weeklyMetsTarget} METs
+                {weeklyMetsTarget} Poin
               </span>
             </div>
 
@@ -442,7 +442,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                    Kalibrasi Postur AI (Vision Baseline)
+                    Pengaturan Posisi Duduk AI (Kamera)
                   </h3>
                   <span
                     className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
@@ -451,12 +451,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         : "bg-[#FFF29A] text-amber-900 border border-[#FFE966]"
                     }`}
                   >
-                    {hasPostureBaseline ? "Sudah Terkalibrasi" : "Belum Dikalibrasi"}
+                    {hasPostureBaseline ? "Posisi Duduk Tersimpan" : "Belum Diatur"}
                   </span>
                 </div>
                 <p className="text-xs text-[#9A9A9A] mt-0.5 leading-relaxed">
-                  Kalibrasi postur mengukur proporsi tubuh tegak Anda di depan kamera untuk
-                  mendeteksi bungkuk (*slouching*) dan jarak terlalu dekat secara akurat.
+                  Pengaturan awal mengenali posisi duduk tegak alami Anda di depan kamera untuk
+                  mendeteksi bungkuk dan jarak terlalu dekat ke layar secara akurat.
                 </p>
               </div>
             </div>
@@ -467,7 +467,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 onClick={onNavigateToFocus}
                 className="px-3.5 py-2 rounded-xl text-xs font-bold text-[#1A1A1A] bg-[#FFF29A] hover:bg-[#FFE966] transition-all border border-[#FFE966] shrink-0 shadow-xs"
               >
-                {hasPostureBaseline ? "Kalibrasi Ulang" : "Mulai Kalibrasi"} &rarr;
+                {hasPostureBaseline ? "Atur Ulang" : "Mulai Atur Posisi"} &rarr;
               </button>
             )}
           </div>

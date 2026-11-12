@@ -55,17 +55,17 @@ export const PanicReliefMode: React.FC<PanicReliefModeProps> = ({ onClose, onCom
           <ArrowLeft className="w-4 h-4" /> Kembali
         </button>
         <span className="bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] text-[11px] px-3 py-1 rounded-full font-extrabold flex items-center gap-1 shadow-xs">
-          <Award className="w-3.5 h-3.5" /> Wu &amp; Zhou (2024)
+          <Award className="w-3.5 h-3.5" /> Protokol 15 Menit
         </span>
       </div>
 
       {/* Main Title & Description */}
       <div className="text-center space-y-2 relative z-10">
         <h2 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] tracking-tight">
-          Exam Panic Relief Protocol
+          Pereda Cemas &amp; Panik Ujian
         </h2>
         <p className="text-xs text-[#9A9A9A] max-w-sm mx-auto leading-relaxed">
-          Latihan aerobik akut di tempat selama 15 menit dengan ritme 110–125 BPM untuk menurunkan hormon kortisol secara instan.
+          Jalan santai di tempat atau atur napas selama 15 menit untuk menenangkan detak jantung dan meredakan rasa cemas sebelum ujian.
         </p>
       </div>
 

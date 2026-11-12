@@ -49,18 +49,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         "Platform terpadu pemantau postur tegak, pelacak langkah inersia, dan manajemen stres mahasiswa berbasis AI.",
     },
     {
-      subtitle: "Zero Video Upload & Edge AI",
+      subtitle: "100% Privat & Aman",
       titleLine1: "Posture Guard",
-      titleLine2: "MediaPipe 33 Landmark",
+      titleLine2: "Asisten Postur AI",
       description:
-        "Deteksi slouching & eye-strain langsung di browser 100% lokal tanpa mengunggah video ke internet.",
+        "Deteksi posisi duduk bungkuk dan jarak mata terlalu dekat langsung di browser Anda tanpa mengunggah video.",
     },
     {
-      subtitle: "IPAQ-SF Real-Time Met-Minutes",
+      subtitle: "Hitung Langkah Otomatis",
       titleLine1: "Smart Pedometer",
       titleLine2: "Keep moving everyday",
       description:
-        "Filter gravitasi akselerometer 3-sumbu smartphone untuk mencatat cadence dan aktivitas fisik harian.",
+        "Gunakan sensor HP di saku untuk menghitung langkah dan menjaga tubuh tetap aktif di sela jam kuliah.",
     },
   ];
 
@@ -154,9 +154,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       cardBg: "bg-[#EEF7E6] border-[#CDE8B5] hover:border-[#B6DF97]",
       iconBg: "bg-[#CDE8B5] text-[#1A1A1A]",
       icon: <Footprints className="w-5 h-5" />,
-      title: "24-Hour Movement & Pedometer Inersia Kampus",
+      title: "Gaya Hidup Aktif & Penghitung Langkah Kampus",
       description:
-        "Mencapai target 1500 MET-minutes per minggu berbasis akselerometer HP. Strategi jalan aktif di sela jam kuliah padat.",
+        "Mencapai target gerak aktif mingguan dengan sensor HP di saku. Tetap aktif berjalan di sela jam kuliah padat.",
     },
     {
       id: "c3",
@@ -164,9 +164,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       cardBg: "bg-[#FFFCEB] border-[#FFE966] hover:border-[#FFDD33]",
       iconBg: "bg-[#FFF29A] text-[#1A1A1A]",
       icon: <Moon className="w-5 h-5" />,
-      title: "Regulasi Stres Mahasiswa & Panic Relief 15 Menit",
+      title: "Manajemen Stres Mahasiswa & Relaksasi 15 Menit",
       description:
-        "Pemahaman skor klinis PSS-4 / PSS-10, latihan pernapasan box breathing 4-4-4-4, serta relaksasi saat deadline tugas.",
+        "Ketahui tingkat stres harian, latihan pernapasan terpandu, dan relaksasi cepat saat menghadapi deadline tugas.",
     },
     {
       id: "c4",
@@ -176,18 +176,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       icon: <Bot className="w-5 h-5" />,
       title: "AI Coaching & Pembentukan Kebiasaan Belajar Sehat",
       description:
-        "Membangun rutinitas harian seimbang menggunakan umpan balik LLM adaptif dan menjaga streak tanpa rasa burnout.",
+        "Membangun rutinitas harian seimbang menggunakan panduan AI cerdas dan menjaga konsistensi tanpa rasa lelah berlebih.",
     },
   ];
 
   const faqs = [
     {
       q: "Apakah webcam saya direkam atau diunggah ke internet?",
-      a: "Sama sekali tidak. CampusFlow menggunakan arsitektur Edge AI 100% on-device. Pemrosesan landmark postur berjalan langsung di memori browser Anda menggunakan WebGL/WASM tanpa satu frame video pun dikirim ke server.",
+      a: "Sama sekali tidak. CampusFlow bekerja 100% langsung di perangkat Anda. Kamera hanya memindai kerangka tubuh di memori lokal peramban tanpa pernah mengirimkan satu frame video pun ke server atau internet.",
     },
     {
-      q: "Bagaimana cara kerja pelacak langkah pedometer inersia?",
-      a: "Pedometer mendeteksi akselerasi 3-sumbu smartphone melalui DeviceMotionEvent dengan filter gravitasi dinamis untuk mengklasifikasikan ritme langkah menjadi kategori METs IPAQ-SF.",
+      q: "Bagaimana cara kerja pelacak langkah pedometer?",
+      a: "Pedometer membaca ayunan langkah secara otomatis saat HP Anda berada di saku, membedakan jalan santai, jalan cepat, atau lari untuk menghitung energi kebugaran Anda.",
     },
     {
       q: "Apakah universitas atau fakultas saya dapat mengintegrasikan CampusFlow?",
@@ -450,7 +450,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               Membangun Generasi Mahasiswa Aktif, Ergonomis, &amp; Tangguh
             </h2>
             <p className="text-xs text-[#9A9A9A] leading-relaxed">
-              CampusFlow adalah Smart Wellbeing LMS yang menggabungkan kecerdasan buatan on-device MediaPipe, pelacak inersia akselerometer, dan protokol klinis PSS-4 untuk merevolusi gaya hidup belajar mahasiswa modern.
+              CampusFlow adalah platform kesehatan belajar mahasiswa yang menggabungkan asisten postur kamera pintar, penghitung langkah di saku, dan pemantau stres harian untuk gaya hidup mahasiswa yang lebih sehat dan berenergi.
             </p>
           </div>
 
@@ -461,10 +461,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <Eye className="w-5 h-5" />
               </div>
               <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                1. Postur &amp; Ergonomi AI
+                1. Pengingat Postur Tegak
               </h3>
               <p className="text-xs text-[#9A9A9A] leading-relaxed">
-                Evaluasi 33 titik landmark tubuh MediaPipe secara real-time untuk mendeteksi bungkuk (*slouching*) dan jarak mata terlalu dekat ke monitor tanpa delay.
+                Mendeteksi posisi duduk membungkuk dan jarak mata yang terlalu dekat ke monitor secara otomatis agar leher dan punggung tidak pegal saat belajar.
               </p>
             </div>
 
@@ -473,10 +473,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <Footprints className="w-5 h-5" />
               </div>
               <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                2. Gerak Aktif Inersia (METs)
+                2. Penghitung Langkah &amp; Gerak Aktif
               </h3>
               <p className="text-xs text-[#9A9A9A] leading-relaxed">
-                Menghitung langkah dan intensitas gerak MVPA harian menggunakan filter akselerometer HP untuk mencapai target 1500 MET-minutes mingguan sesuai standar WHO.
+                Menghitung langkah dan intensitas jalan santai atau olahraga harian secara otomatis lewat HP di saku untuk menjaga kebugaran tubuh setiap hari.
               </p>
             </div>
 
@@ -485,10 +485,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <Bot className="w-5 h-5" />
               </div>
               <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                3. Regulasi Stres &amp; Panic Relief
+                3. Manajemen Stres &amp; Relaksasi
               </h3>
               <p className="text-xs text-[#9A9A9A] leading-relaxed">
-                Inventori psikometrik tervalidasi PSS-4 dan intervensi darurat Panic Relief 15 menit dengan audio terpandu untuk meredakan ketegangan menjelang ujian.
+                Kuis cepat evaluasi tingkat stres dan fitur latihan relaksasi 15 menit untuk menenangkan pikiran saat cemas menjelang ujian atau deadline.
               </p>
             </div>
           </div>
