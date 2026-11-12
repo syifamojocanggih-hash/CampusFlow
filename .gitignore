@@ -36,3 +36,5 @@ desktop.ini
 # Test & coverage
 coverage/
 */coverage/
+
+backend/ollama/*.gguf

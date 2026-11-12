@@ -76,6 +76,32 @@ const MEDIATOR_BASE_RANGES: Record<DominantMediator, AllowedRanges> = {
   OPTIMAL_BALANCE: { durationMinutesRange: [10, 20], metsRange: [200, 260] },
 };
 
+const CITATION_BANK: Record<DominantMediator, string[]> = {
+  SLEEP_MEDIATION_DEFICIT: [
+    "Mu et al. (2024) dan Wang et al. (2025) menunjukkan kualitas tidur memediasi sebagian besar manfaat aktivitas fisik terhadap pemulihan stres mahasiswa.",
+    "Wang et al. (2025) dan Mu et al. (2024) menemukan bahwa gerak ringan menjelang malam membantu memperbaiki kualitas tidur yang terganggu oleh beban akademik.",
+  ],
+  SEDENTARY_OVERLOAD: [
+    "Barbosa et al. (2024) dan Su et al. (2022) menunjukkan bahwa memecah waktu duduk panjang dengan gerak singkat membantu memperbaiki suasana hati.",
+    "Su et al. (2022) dan Barbosa et al. (2024) menunjukkan jeda berdiri atau berjalan tiap beberapa jam duduk terbukti menurunkan ketegangan fisik maupun mental.",
+  ],
+  LOW_MVPA_VOLUME: [
+    "Zhang et al. (2024) dan Ai et al. (2021) menunjukkan aktivitas fisik rutin, bahkan intensitas ringan, membantu menjaga ketahanan mental mahasiswa.",
+    "Ai et al. (2021) dan Zhang et al. (2024) menunjukkan volume gerak harian yang konsisten berkorelasi dengan suasana hati yang lebih stabil.",
+  ],
+  EXAM_ACUTE_STRESS: [
+    "Wu & Zhou (2024) menunjukkan sesi aktivitas ringan-sedang singkat membantu menurunkan ketegangan akademik akut secara efektif.",
+  ],
+  OPTIMAL_BALANCE: [
+    "Keseimbangan gerak dan tidur yang terjaga mendukung ketahanan stres mahasiswa sesuai kerangka Martín-Rodríguez & González-Prieto (2026).",
+  ],
+};
+
+function pickCitation(mediator: DominantMediator): string {
+  const options = CITATION_BANK[mediator];
+  return options[Math.floor(Math.random() * options.length)];
+}
+
 const EMERGENCY_DISTRESS_KEYWORDS = [
   "cemas berlebihan",
   "putus asa",
@@ -258,7 +284,10 @@ function clampMets(value: number, [minMets, maxMets]: [number, number]): number 
   return Math.max(minMets, Math.min(maxMets, Math.round(value)));
 }
 
-/** Menjamin hasil LLM memenuhi batas aturan klinis 1.1, rentang allowedRanges, & eskalasi keamanan. */
+/** Menjamin hasil LLM memenuhi batas aturan klinis 1.1, rentang allowedRanges, & eskalasi keamanan.
+ *  CATATAN: scientificCitationNote TIDAK lagi dipercayakan ke LLM -- dipilih deterministik dari
+ *  CITATION_BANK berdasarkan dominantMediator (hasil rule engine), supaya selalu relevan & akurat
+ *  tanpa bergantung pada kemampuan model menghafal pemetaan sitasi yang benar. */
 function enforceClinicalGuardrails(
   insight: GeneratedInsight,
   evaluation: ClinicalRuleFlags,
@@ -281,12 +310,16 @@ function enforceClinicalGuardrails(
     summary = `${summary} Kalau sempat nanti, lengkapi check-in harianmu ya supaya dukungannya makin pas.`;
   }
 
+  const isOutOfScope = /di luar cakupan/i.test(summary);
+
   return {
     dominantMediator: evaluation.dominantMediator,
     diagnosisSummary: summary,
     isotemporalActionPlan: plan,
     recommendedMetsToday: clampMets(insight.recommendedMetsToday, allowedRanges.metsRange),
-    scientificCitationNote: insight.scientificCitationNote.trim(),
+    scientificCitationNote: isOutOfScope
+      ? "Di luar cakupan layanan CampusFlow Coach."
+      : pickCitation(evaluation.dominantMediator),
   };
 }
 
@@ -323,8 +356,7 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
       diagnosisSummary: `${skipPrefix}Beban harianmu sepertinya cukup terasa berat hari ini. Yuk ambil jeda pelan sebentar dulu untuk menenangkan napas.${counselorSuffix}`,
       isotemporalActionPlan: `Duduk nyaman dan lakukan latihan napas 4-7-8 atau peregangan bahu lembut selama ${gentleDuration} menit sekarang.`,
       recommendedMetsToday: clampMets(lowMets, allowedRanges.metsRange),
-      scientificCitationNote:
-        "Menurut Wu & Zhou (2024), aktivitas ringan dan relaksasi terstruktur membantu menurunkan respons ketegangan akut.",
+      scientificCitationNote: pickCitation("EXAM_ACUTE_STRESS"),
     };
   }
 
@@ -339,8 +371,7 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
         evaluation.escalationFlag ? lowMets : midMets,
         allowedRanges.metsRange
       ),
-      scientificCitationNote:
-        "Penelitian Mu et al. (2024) dan Wang et al. (2025) menunjukkan kualitas tidur memediasi sekitar 41% manfaat gerak terhadap pemulihan stres.",
+      scientificCitationNote: pickCitation("SLEEP_MEDIATION_DEFICIT"),
     },
     SEDENTARY_OVERLOAD: {
       dominantMediator: "SEDENTARY_OVERLOAD",
@@ -350,8 +381,7 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
         skipAdaptation.applied || evaluation.escalationFlag ? lowMets : midMets,
         allowedRanges.metsRange
       ),
-      scientificCitationNote:
-        "Menurut Barbosa et al. (2024) dan Su et al. (2022), mengganti waktu duduk panjang dengan gerak ringan membantu suasana hati.",
+      scientificCitationNote: pickCitation("SEDENTARY_OVERLOAD"),
     },
     LOW_MVPA_VOLUME: {
       dominantMediator: "LOW_MVPA_VOLUME",
@@ -361,24 +391,21 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
         skipAdaptation.applied || evaluation.escalationFlag ? lowMets : midMets,
         allowedRanges.metsRange
       ),
-      scientificCitationNote:
-        "Zhang et al. (2024) dan Ai et al. (2021) menunjukkan aktivitas fisik rutin dan latihan kekuatan ringan membantu menjaga ketahanan mental.",
+      scientificCitationNote: pickCitation("LOW_MVPA_VOLUME"),
     },
     EXAM_ACUTE_STRESS: {
       dominantMediator: "EXAM_ACUTE_STRESS",
       diagnosisSummary: `${skipPrefix}Gerak dan tidurmu sudah cukup terjaga, namun beban tekanan kuliah hari ini terasa meningkat.${counselorSuffix}`,
       isotemporalActionPlan: `Coba aktifkan Exam Panic Button atau jalan ringan selama ${stdDuration} menit sekarang sebelum melanjutkan belajar.`,
       recommendedMetsToday: clampMets(midMets, allowedRanges.metsRange),
-      scientificCitationNote:
-        "Wu & Zhou (2024) menunjukkan sesi aerobik ringan-sedang singkat membantu menurunkan ketegangan akademik akut.",
+      scientificCitationNote: pickCitation("EXAM_ACUTE_STRESS"),
     },
     OPTIMAL_BALANCE: {
       dominantMediator: "OPTIMAL_BALANCE",
       diagnosisSummary: `${skipPrefix}Ritme duduk dan gerakmu hari ini terjaga dengan baik.${checkInSuffix || " Kerja bagus sudah memberi tubuh ruang bernapas di tengah kuliah."}`,
       isotemporalActionPlan: `Pertahankan kebiasaan baik ini dengan peregangan santai ${stdDuration} menit sebelum tidur agar pemulihan tetap optimal.`,
       recommendedMetsToday: clampMets(midMets, allowedRanges.metsRange),
-      scientificCitationNote:
-        "Keseimbangan gerak dan tidur mendukung ketahanan stres mahasiswa sesuai kerangka Martín-Rodríguez & González-Prieto (2026).",
+      scientificCitationNote: pickCitation("OPTIMAL_BALANCE"),
     },
   };
 
