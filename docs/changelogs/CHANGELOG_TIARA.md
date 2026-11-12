@@ -21,6 +21,166 @@
 
 ---
 
+## [2026-11-12] — Pewarnaan Kartu Modul Kursus Pastel & Penghapusan Teks Hak Cipta Footer (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.23`
+- **Ringkasan:** 
+  1. **Hapus Teks Hak Cipta pada Footer (Foto 1):** Menghapus baris teks `© 2026 CampusFlow. All rights reserved.` pada footer landing page sehingga tampilan footer lebih bersih dan langsung terfokus pada tombol aksi *"Masuk Dashboard →"*.
+  2. **Pewarnaan Kartu Katalog Modul Kursus (Foto 2):**
+     - Memberikan palet warna tematik pastel Calorie Counter yang cerah dan estetis pada keempat kartu modul kursus agar tidak tampak polos:
+       - **Modul 1 (Ergonomi Postur):** Latar belakang Sky Blue lembut (`bg-[#E6F5F8] border-[#BDE6F0]`) dengan wadah ikon `Eye` bertema visi.
+       - **Modul 2 (Aktivitas Fisik & Pedometer):** Latar belakang Mint Green segar (`bg-[#EEF7E6] border-[#CDE8B5]`) dengan wadah ikon `Footprints`.
+       - **Modul 3 (Kesehatan Mental & Panic Relief):** Latar belakang Butter Yellow hangat (`bg-[#FFFCEB] border-[#FFE966]`) dengan wadah ikon `Moon`.
+       - **Modul 4 (AI Coaching & Habit):** Latar belakang Soft Pink anggun (`bg-[#FDF0F2] border-[#F7A8B0]`) dengan wadah ikon `Bot`.
+     - Tombol aksi *"Ikuti Modul →"* didesain kontras dengan warna putih bersih bergaris batas halus (`bg-white hover:bg-[#1A1A1A] hover:text-white border border-black/10 shadow-xs`) dan dorongan horizontal lembut pada panah saat di-hover.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-12] — Eliminasi Animasi Hover Melayang Ke Atas pada Button, Emoji, & Badge Status (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.22`
+- **Ringkasan:** 
+  1. **Tombol "Sign up / Masuk" Landing Page (Foto 1):** Menghilangkan efek `hover:scale-105` yang menyebabkan tombol terangkat/membesar ke atas saat di-hover. Menggantikannya dengan transisi warna halus (`hover:bg-[#B6DF97]`) dan dorongan horizontal lembut pada ikon panah (`group-hover:translate-x-0.5`).
+  2. **Emoji Melambai "👋" pada Header Pengguna (Foto 2):** Mengubah interaksi hover pada emoji tangan di `DesktopTopHeader` dan `MobileHeader` menjadi animasi rotasi melambai ke samping (`hover:rotate-12 origin-bottom-right`) tanpa pergeseran sumbu Y/ke atas.
+  3. **Badge "MediaPipe 33 Landmark" pada Focus View (Foto 3):** Memastikan badge tetap kokoh di tempatnya tanpa gerakan ke atas, dengan transisi warna latar belakang lembut (`hover:bg-[#BEE1A3] transition-colors`).
+  4. **Badge "GPU Acceleration" pada Vision Guard (Foto 4):** Menjaga badge stabil di posisinya tanpa animasi melayang ke atas, menggunakan interaksi hover perubahan warna hijau halus (`hover:bg-[#BEE1A3] transition-colors`).
+  5. **Badge "IDLE (1x MET)" pada Pedometer Sensor Card (Foto 5):** Mengunci posisi vertikal badge agar tidak bergeser ke atas saat kursor diarahkan, menggunakan transisi opasitas lembut (`hover:opacity-90 transition-colors`).
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `frontend/src/components/Navbar.tsx`
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `frontend/src/components/vision/VisionGuard.tsx`
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-12] — Refinement Layout Contact & Pembersihan Elemen Landing Page (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.21`
+- **Ringkasan:** 
+  1. **Hapus Badge Pusat Bantuan pada Contact (Foto 1):** Menghapus pill badge kuning bertuliskan *"Pusat Bantuan & Kolaborasi"* di header seksi Hubungi Tim CampusFlow.
+  2. **Rapikan Layout & Card Seksi Contact (Foto 2):**
+     - Mengubah grid Contact dari pembagian tidak seimbang (`lg:col-span-7` vs `lg:col-span-5` dengan background berbeda-beda) menjadi tata letak 2-kolom yang seimbang, simetris, dan proporsional (`grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch`).
+     - Kolom kiri: Formulir kirim pesan/pengaduan dalam kartu putih bersih (`p-6 sm:p-7 rounded-3xl bg-white border border-[#E8E8E8] shadow-xs`) dengan input yang konsisten dan tombol kirim di bawah.
+     - Kolom kanan: Penyatuan kartu saluran dukungan resmi (Email, Hotline, Lab Riset) dan akordion FAQ dalam kartu putih dengan padding dan ketinggian yang selaras dengan kolom kiri.
+  3. **Hapus Filter Pills Katalog Modul (Foto 3):** Menghapus barisan tab filter modul (*"Semua Modul"*, *"Ergonomi Postur"*, *"Aktivitas Fisik"*, *"Kesehatan Mental"*) di seksi Courses, menyajikan seluruh modul pembelajaran dalam grid responsif yang bersih.
+  4. **Hapus Tagline Branding Panjang pada Footer (Foto 4):** Menghapus baris teks *"CampusFlow • Smart Wellbeing LMS & 24-Hour Movement Behavior"* di bagian footer.
+  5. **Hapus Menu Navigasi Footer (Foto 5):** Menghapus deretan tombol link navigasi (*"Beranda"*, *"Courses"*, *"About"*, *"Contact"*) pada footer, menghasilkan tampilan footer yang rapi dan elegan dengan hak cipta di sisi kiri serta tombol aksi *"Masuk Dashboard →"* di sisi kanan.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-12] — Penyederhanaan Visual Landing Page (Hapus Badge, Rating, Banner, & Card Garansi) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.20`
+- **Ringkasan:** 
+  1. **Hapus Badge Kategori & XP pada Kartu Kursus (Foto 1):** Menghapus baris badge kategori (`c.categoryLabel`) dan poin XP (`c.xp`) di bagian atas kartu modul kursus (`media_1794491228298_8ebce514.png`).
+  2. **Hapus Durasi & Rating Modul Kursus (Foto 2):** Menghapus informasi waktu (`3 Minggu`) dan skor bintang rating (`⭐ 4.9`) pada footer kartu kursus (`media_1794491284529_2109934f.png`), sehingga menyisakan tombol aksi *"Ikuti Modul →"* yang tersusun rapi.
+  3. **Hapus Badge Header About (Foto 3):** Menghapus pill badge bertuliskan *"TENTANG CAMPUSFLOW"* di bagian atas judul seksi About (`media_1794491312390_9be71acc.png`).
+  4. **Hapus Banner Promosi Bawah Courses (Foto 4):** Menghapus kartu banner hijau *"Semua kursus terbuka gratis untuk mahasiswa aktif"* di akhir seksi katalog kursus (`media_1794491335277_08cda176.png`).
+  5. **Hapus Card Garansi Privasi Bawah About (Foto 5):** Menghapus kartu jaminan *"Garansi 100% On-Device Edge Privacy (Zero Video Upload)"* beserta metrik dampak di akhir seksi About (`media_1794491360340_7946dcdb.png`).
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-12] — Navbar Fixed Menempel di Atas Layar & Penghapusan Dot Pagination Hero Carousel (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.19`
+- **Ringkasan:** 
+  1. **Navbar Fixed Menempel di Atas (Foto 1):**
+     - Mengubah posisi `<header>` navigasi utama menjadi menempel di tepi paling atas layar (*edge-to-edge*) secara permanen menggunakan `fixed top-0 left-0 right-0 z-50` seperti standar navbar web modern.
+     - Menggunakan efek kaca transparan halus `bg-white/95 backdrop-blur-md border-b border-[#E8E8E8] shadow-xs`.
+     - Memberikan offset `pt-20 sm:pt-24` pada area konten utama agar tidak tertutup navbar fixed.
+     - Menyusun menu dropdown mobile menempel langsung tepat di bawah navbar fixed (`fixed top-[61px] left-0 right-0 z-40`).
+  2. **Penghapusan Dot Pagination Carousel (Foto 2):**
+     - Menghapus elemen indikator dot / pill pagination carousel (`● ● ▬`) di bawah headline seksi Hero sesuai tangkapan layar `media_1794491156668_484e4005.png`.
+     - Slider teks judul 3 variasi tetap berjalan otomatis secara mulus setiap 4 detik dengan transisi animasi slide ke samping.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-12] — Penyatuan Seluruh Bagian Landing Page Menjadi Satu Halaman Tunggal Terintegrasi (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.18`
+- **Ringkasan:** 
+  1. **Penyatuan Halaman Tunggal (Single-Page Seamless Layout):**
+     - Mengubah arsitektur tampilan Landing Page dari sistem pergantian tab terpisah menjadi **satu halaman utuh yang mengalir berkelanjutan** dari atas ke bawah.
+     - Menyusun seluruh seksi secara berurutan: `#home` (Hero Carousel & Maskot Ilustrasi AI), `#courses` (Katalog Modul Ergonomi & Wellbeing), `#about` (Tentang CampusFlow, 3 Pilar Triad, & Jaminan Zero Video Upload), dan `#contact` (Formulir Pengaduan/Pesan, Saluran Dukungan Resmi, & Akordion FAQ).
+  2. **Navigasi Cerdas & ScrollSpy:**
+     - Bilah navigasi atas (Desktop & Mobile) dibuat tetap menempel (*sticky header*) dengan efek blur `backdrop-blur-md`.
+     - Mengimplementasikan `IntersectionObserver` (ScrollSpy) sehingga saat pengguna menggulir halaman, pill kuning aktif (`#FFF29A`) pada navbar otomatis mengidentifikasi dan menyorot posisi seksi yang sedang dilihat.
+     - Mengarahkan klik pada tautan menu (HOME, COURSES, ABOUT, CONTACT) langsung melakukan gulir halus (*smooth scroll into view*) dengan offset margin `scroll-mt-24` agar judul seksi tidak tertutup navbar.
+  3. **Footer Terintegrasi:**
+     - Menyatukan footer informatif di bagian akhir halaman dengan tautan cepat kembali ke masing-masing seksi serta tombol masuk langsung ke Dashboard.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-12] — Kelengkapan Konten Halaman Courses, About, & Contact pada Landing Page (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.17`
+- **Ringkasan:** 
+  1. **Halaman Courses (`courses`):**
+     - Membangun katalog 4 modul pembelajaran wellbeing dan ergonomi terpadu (*Ergonomi Belajar 20-20-20*, *24-Hour Movement & Pedometer*, *Regulasi Stres & Panic Relief 15 Menit*, dan *AI Coach & Habit Loop*).
+     - Menghadirkan sistem filter kategori modul (*Semua Modul*, *Ergonomi Postur*, *Aktivitas Fisik*, *Kesehatan Mental*).
+     - Menampilkan rating, durasi modul, jumlah mahasiswa terdaftar, alokasi poin XP, dan tombol pendaftaran langsung menuju aplikasi.
+  2. **Halaman About (`about`):**
+     - Menjelaskan visi dan filosofi CampusFlow sebagai platform pelopor Smart Wellbeing LMS mahasiswa.
+     - Menyajikan 3 pilar utama Triad CampusFlow (*Postur AI MediaPipe*, *Gerak Aktif Inersia METs*, dan *Regulasi Stres PSS-4*).
+     - Menegaskan komitmen perlindungan data *Zero Video Upload Guarantee* (100% on-device WebGL/WASM) serta statistik dampak klinis (*-42% nyeri leher, 1500+ METs mingguan*).
+  3. **Halaman Contact (`contact`):**
+     - Membangun formulir kontak interaktif (Nama, Email, Kategori Pertanyaan, Uraian Pesan) dengan feedback animasi pengiriman sukses.
+     - Menampilkan saluran resmi pendukung (Email, Hotline Mahasiswa, Lokasi Lab Riset).
+     - Menyediakan panel akordion FAQ (*Frequently Asked Questions*) seputar privasi kamera, cara kerja sensor akselerometer, dan integrasi SSO kampus.
+  4. **Interaktivitas Navigasi:**
+     - Navbar desktop dan mobile kini mendukung pergantian halaman instan (*Home, Courses, About, Contact*) dengan pill Butter Yellow aktif `#FFF29A`.
+     - Footer dinamis yang menampilkan tombol kembali ke beranda saat berada di halaman sekunder dan navigasi cepat ke dashboard.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
 ## [2026-11-12] — Penghapusan Tombol Logout Top Header & Halaman Atur Profil Pengguna (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.16`
 - **Ringkasan:** 

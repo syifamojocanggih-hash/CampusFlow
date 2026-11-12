@@ -178,7 +178,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
 
         <div className="flex items-center gap-2">
           <span
-            className={`px-3 py-1 text-xs font-bold rounded-full border transition-colors ${getBadgeStyle()}`}
+            className={`px-3 py-1 text-xs font-bold rounded-full border transition-colors cursor-default select-none hover:opacity-90 ${getBadgeStyle()}`}
           >
             {intensityType} ({metMultiplier}x MET)
           </span>

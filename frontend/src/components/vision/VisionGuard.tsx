@@ -696,7 +696,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
                 Vision Guard &amp; Anti-Cheat Break
               </h3>
-              <span className="text-[10px] bg-[#CDE8B5] text-[#1A1A1A] px-2.5 py-0.5 rounded-full font-bold border border-[#B6DF97]">
+              <span className="text-[10px] bg-[#CDE8B5] hover:bg-[#BEE1A3] text-[#1A1A1A] px-2.5 py-0.5 rounded-full font-bold border border-[#B6DF97] transition-colors cursor-default select-none">
                 {hardwareDelegate} Acceleration
               </span>
             </div>

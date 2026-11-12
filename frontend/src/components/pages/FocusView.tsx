@@ -16,7 +16,7 @@ export const FocusView: React.FC = () => {
               <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
                 Sesi Belajar &amp; Vision Guard
               </h2>
-              <span className="text-[10px] bg-[#CDE8B5] text-[#1A1A1A] font-extrabold px-2.5 py-0.5 rounded-full border border-[#B6DF97]">
+              <span className="text-[10px] bg-[#CDE8B5] hover:bg-[#BEE1A3] text-[#1A1A1A] font-extrabold px-2.5 py-0.5 rounded-full border border-[#B6DF97] transition-colors cursor-default select-none">
                 MediaPipe 33 Landmark
               </span>
             </div>

@@ -130,7 +130,10 @@ export const DesktopTopHeader: React.FC<{
     <header className="hidden lg:flex items-center justify-between pb-6 mb-2">
       <div>
         <h1 className="font-heading font-extrabold text-2xl text-[#1A1A1A] flex items-center gap-2">
-          Hello, {userName.split(" ")[0]}! <span className="text-xl">👋</span>
+          Hello, {userName.split(" ")[0]}!{" "}
+          <span className="text-xl inline-block transition-transform duration-200 hover:rotate-12 origin-bottom-right cursor-default select-none">
+            👋
+          </span>
         </h1>
         <p className="text-xs text-[#9A9A9A] font-medium mt-0.5">
           Your boards look so good! Let&apos;s keep the active momentum.
@@ -205,7 +208,10 @@ export const MobileHeader: React.FC<{
     <div className="lg:hidden flex items-center justify-between pb-4 relative z-30">
       <div>
         <h1 className="font-heading font-bold text-lg text-[#1A1A1A] flex items-center gap-1.5">
-          Hello, {userName.split(" ")[0]}! <span className="text-base">👋</span>
+          Hello, {userName.split(" ")[0]}!{" "}
+          <span className="text-base inline-block transition-transform duration-200 hover:rotate-12 origin-bottom-right cursor-default select-none">
+            👋
+          </span>
         </h1>
         <p className="text-[11px] text-[#9A9A9A] font-medium">
           Duduk Sehat &bull; Gerak Terukur
