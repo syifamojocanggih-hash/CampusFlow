@@ -21,6 +21,74 @@
 
 ---
 
+## [2026-11-13] — Kustomisasi Nama Pet Streak oleh Pengguna (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.26`
+- **Ringkasan:** 
+  1. **Fitur Kustomisasi Nama Pet Mandiri:**
+     - Menambahkan fungsionalitas bagi pengguna untuk mengubah dan memberi nama panggilan unik pada pet virtual (*streak companion*).
+     - Menyediakan mode edit *inline* dengan tombol pensil (`Pencil`) pada header modal Mimi Pet Hub, tombol *"Ganti Nama"* pada area panggung pet, dan tombol kustomisasi pada panel kontrol simulasi.
+     - Formulir edit dilengkapi kolom teks responsif (maks. 20 karakter), tombol simpan (`Check`), tombol batal (`X`), serta dukungan tombol *Enter* untuk simpan cepat dan *Escape* untuk membatalkan.
+  2. **Persistensi & Efek Respon Interaktif:**
+     - Nama pet tersimpan secara otomatis dan persisten ke dalam `localStorage` (`campusflow_mimi_pet_state`) bersama progres streak, quest harian, dan freeze.
+     - Saat nama baru disimpan, pet memberikan respon emosional riang (*excited*), lonjakan partikel cinta & bintang (`animate-mimi-pop`), serta balon dialog ucapan terima kasih: *"Nama baruku sekarang [Nama]! Aku suka banget. Makasih ya!"*.
+  3. **Pembaruan Dinamis di Seluruh Komponen Pet:**
+     - Balon sapaan tooltip mengambang (`Halo! Ketuk [Nama]`), label aksesibilitas (`aria-label`), tab navigasi (*Panggung [Nama] & Misi*), teks evolusi, serta seluruh dialog interaksi kini menyematkan nama kustom pilihan pengguna.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pet/MimiPetWidget.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-13] — Integrasi Pet Streak Interaktif "Mimi" (Mengambang & Bisa Digeser) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.25`
+- **Ringkasan:** 
+  1. **Komponen Pet Mascot Mengambang & Draggable (`MimiPetWidget.tsx`):**
+     - Membangun maskot virtual *"Mimi"* yang mengambang bebas (*floating overlay*) di atas antarmuka dashboard CampusFlow.
+     - Mengimplementasikan sistem geser (*draggable pointer tracking*) yang halus dan responsif untuk mouse dan sentuhan layar (touch), dengan batas layar (*viewport clamping*) dan penyimpanan posisi otomatis di `localStorage`.
+     - Menyediakan indikator badge streak api (`🔥 {streak}d`) dan balon sapaan interaktif (*speech bubble*) saat idle.
+  2. **Evolusi Karakter & Mood Dinamis (`mimiSvg.ts`):**
+     - Mengintegrasikan renderer SVG dinamis Mimi dengan 5 tingkatan evolusi bertahap berdasarkan akumulasi streak hari: **Level 1 Biji**, **Level 2 Tunas**, **Level 3 Kuncup**, **Level 4 Mekar**, dan **Level 5 Legenda**.
+     - Ekspresi wajah & animasi respon dinamis (*happy, sleepy, excited, sad*) saat Mimi diketuk/disapa, dilengkapi efek partikel cinta & bintang (`♥`, `✦`).
+  3. **Pusat Misi Streak & Lembar Evolusi (Mimi Pet Hub Modal):**
+     - Ketika maskot Mimi diklik, terbuka dialog interaktif panggung pameran Mimi:
+       - **Misi Sehat Harian:** 3 misi kecil terintegrasi CampusFlow (1. Gerak aktif 30 mnt, 2. Istirahat mata 20-20-20, 3. Check-in PSS).
+       - **Indikator Progres:** Batang progres menuju level berikutnya, riwayat centang 7 hari mingguan, dan jumlah perlindungan *Streak Freeze*.
+       - **Lembar Evolusi (5 Level):** Panel visual lengkap menampilkan wujud, hari terbuka, warna badan, dan keuntungan tiap level Mimi.
+       - **Kontrol Uji Coba Cepat (Demo Controls):** Tombol simulasi hari baru (*Simulasi Besok*), *Mulai Ulang*, dan *Loncat Level* untuk mempermudah evaluasi fitur.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pet/mimiSvg.ts`
+  - `frontend/src/components/pet/MimiPetWidget.tsx`
+  - `frontend/src/index.css`
+  - `frontend/src/App.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-13] — Penyederhanaan Tombol Logout Sidebar Desktop (Hapus Teks Keluar) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.24`
+- **Ringkasan:** 
+  - Menghapus teks "Keluar →" pada tombol logout di sidebar navigasi desktop (`Navbar.tsx`), menyisakan hanya tombol ikon logout merah pastel yang ringkas, bersih, dan konsisten sesuai permintaan pengguna.
+- **Daftar File Diubah:**
+  - `frontend/src/components/Navbar.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
 ## [2026-11-12] — Pewarnaan Kartu Modul Kursus Pastel & Penghapusan Teks Hak Cipta Footer (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.23`
 - **Ringkasan:** 

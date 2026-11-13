@@ -103,16 +103,11 @@ export const DesktopSidebar: React.FC<NavbarProps> = ({
         {onBackToLanding && (
           <button
             onClick={onBackToLanding}
-            className="w-full py-2.5 px-3 rounded-xl text-xs font-bold text-[#9A9A9A] hover:text-rose-600 hover:bg-rose-50/70 transition-all flex items-center justify-between group"
-            title="Keluar dari akun (Log out)"
+            className="w-full py-2.5 px-3 rounded-xl text-xs font-bold text-[#9A9A9A] hover:text-rose-600 hover:bg-rose-50/70 transition-all flex items-center gap-2 group"
+            title="Log out"
           >
-            <span className="flex items-center gap-2">
-              <LogOut className="w-4 h-4 text-[#9A9A9A] group-hover:text-rose-500 transition-colors" />
-              <span>Log out</span>
-            </span>
-            <span className="text-[10px] text-[#9A9A9A] group-hover:text-rose-500 font-semibold tracking-wide">
-              Keluar &rarr;
-            </span>
+            <LogOut className="w-4 h-4 text-[#9A9A9A] group-hover:text-rose-500 transition-colors" />
+            <span>Log out</span>
           </button>
         )}
       </div>

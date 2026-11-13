@@ -15,6 +15,7 @@ import { SettingsView } from "@/components/pages/SettingsView";
 import { VisionLabView } from "@/components/pages/VisionLabView";
 import { ProfileView } from "@/components/pages/ProfileView";
 import { LandingPage } from "@/components/pages/LandingPage";
+import { MimiPetWidget } from "@/components/pet/MimiPetWidget";
 import { api } from "@/lib/api";
 import type { TabKey, UserProfileDTO } from "@/types";
 
@@ -118,6 +119,9 @@ export function App() {
         }}
         userName={userName}
       />
+
+      {/* 4. Draggable Floating Streak Pet (Mimi) */}
+      <MimiPetWidget />
     </div>
   );
 }

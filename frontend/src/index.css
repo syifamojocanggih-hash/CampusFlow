@@ -99,6 +99,51 @@
   animation: navPillBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
+/* Mimi Pet Mascot Animations */
+@keyframes mimiBob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes mimiPop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.12, 0.92); }
+  60% { transform: scale(0.95, 1.08) translateY(-8px); }
+  100% { transform: scale(1); }
+}
+
+@keyframes mimiLvl {
+  0% { transform: scale(0.85); filter: brightness(1); }
+  35% { transform: scale(1.22) rotate(-5deg); filter: brightness(1.25) saturate(1.4); }
+  65% { transform: scale(0.96) rotate(4deg); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes mimiRise {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-70px) rotate(20deg) scale(1.2); }
+}
+
+.animate-mimi-bob {
+  animation: mimiBob 3.4s ease-in-out infinite;
+}
+
+.animate-mimi-pop {
+  animation: mimiPop 0.5s ease-in-out;
+}
+
+.animate-mimi-lvl {
+  animation: mimiLvl 1s ease-in-out;
+}
+
+.animate-mimi-rise {
+  animation: mimiRise 1s forwards ease-out;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #9A9A9A;
 }
