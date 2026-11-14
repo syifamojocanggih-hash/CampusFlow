@@ -34,7 +34,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
   const [totalSteps, setTotalSteps] = useState(0);
   const [cadenceSpm, setCadenceSpm] = useState(0);
   const [intensityType, setIntensityType] = useState<CadenceIntensity>("IDLE");
-  const [metMultiplier, setMetMultiplier] = useState(1.0);
   const [metMinutes, setMetMinutes] = useState(0);
   const [lastNetAcc, setLastNetAcc] = useState(0);
   const [permissionState, setPermissionState] = useState<"unknown" | "granted" | "denied">("unknown");
@@ -49,7 +48,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       setTotalSteps(detail.totalSteps);
       setCadenceSpm(detail.cadenceSpm);
       setIntensityType(detail.intensityType);
-      setMetMultiplier(detail.metMultiplier);
       setMetMinutes(detail.metMinutes);
       setLastNetAcc(detail.lastNetAcc);
       if (onStepsChange) {
@@ -95,7 +93,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       setTotalSteps(0);
       setCadenceSpm(0);
       setIntensityType("IDLE");
-      setMetMultiplier(1.0);
       setMetMinutes(0);
       setLastNetAcc(0);
       if (onStepsChange) {
@@ -115,7 +112,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         setTotalSteps(lastDetail.totalSteps);
         setCadenceSpm(lastDetail.cadenceSpm);
         setIntensityType(lastDetail.intensityType);
-        setMetMultiplier(lastDetail.metMultiplier);
         setMetMinutes(lastDetail.metMinutes);
         setLastNetAcc(lastDetail.lastNetAcc);
         if (onStepsChange) {
@@ -144,34 +140,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
     }
   };
 
-  const getBadgeStyle = () => {
-    switch (intensityType) {
-      case "WALKING":
-        return "bg-[#CDE8B5] text-[#1A1A1A] border-[#B6DF97]";
-      case "MODERATE":
-        return "bg-[#FFF29A] text-[#1A1A1A] border-[#FFE966]";
-      case "VIGOROUS":
-        return "bg-[#F9B99A] text-[#1A1A1A] border-[#F6966C]";
-      case "IDLE":
-      default:
-        return "bg-[#F6F6F6] text-[#9A9A9A] border-[#E8E8E8]";
-    }
-  };
-
-  const getIntensityLabel = () => {
-    switch (intensityType) {
-      case "WALKING":
-        return "Jalan Santai";
-      case "MODERATE":
-        return "Jalan Cepat";
-      case "VIGOROUS":
-        return "Lari / Olahraga";
-      case "IDLE":
-      default:
-        return "Diam / Santai";
-    }
-  };
-
   return (
     <div className={`learnova-card p-6 border-[#E8E8E8] ${className}`}>
       {/* Header */}
@@ -188,14 +156,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
               Deteksi Gerak Langkah HP &bull; Akurat Tanpa Smartwatch &bull; Nol Latensi
             </p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span
-            className={`px-3 py-1 text-xs font-bold rounded-full border transition-colors cursor-default select-none hover:opacity-90 ${getBadgeStyle()}`}
-          >
-            {getIntensityLabel()} ({metMultiplier}x Intensitas)
-          </span>
         </div>
       </div>
 

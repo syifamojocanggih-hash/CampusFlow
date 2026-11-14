@@ -83,7 +83,6 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   const [demoMode, setDemoMode] = useState<boolean>(true);
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const [cameraPermissionError, setCameraPermissionError] = useState<string | null>(null);
-  const [hardwareDelegate, setHardwareDelegate] = useState<"GPU" | "CPU">("GPU");
   const [bystanderCount, setBystanderCount] = useState<number>(0);
 
   // Calibration State
@@ -188,7 +187,6 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 minPosePresenceConfidence: 0.45,
                 minTrackingConfidence: 0.45,
               });
-              setHardwareDelegate("GPU");
             } catch (gpuErr) {
               console.warn("[VisionGuard] GPU delegate failed, trying CPU delegate:", gpuErr);
               landmarker = await PoseLandmarker.createFromOptions(vision, {
@@ -202,7 +200,6 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 minPosePresenceConfidence: 0.45,
                 minTrackingConfidence: 0.45,
               });
-              setHardwareDelegate("CPU");
             }
             if (landmarker) {
               break;
@@ -692,14 +689,9 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             <Shield className="w-6 h-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-                Vision Guard &amp; Istirahat Aktif
-              </h3>
-              <span className="text-[10px] bg-[#CDE8B5] hover:bg-[#BEE1A3] text-[#1A1A1A] px-2.5 py-0.5 rounded-full font-bold border border-[#B6DF97] transition-colors cursor-default select-none">
-                Akselerasi {hardwareDelegate}
-              </span>
-            </div>
+            <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+              Vision Guard &amp; Istirahat Aktif
+            </h3>
             <p className="text-xs text-[#9A9A9A]">
               Pemindai Postur Pintar &bull; 100% Privat di Perangkat &bull; Fokus Hanya Pada Anda (Anti-Distraksi)
             </p>

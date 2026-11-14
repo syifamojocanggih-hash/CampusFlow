@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { PedometerCard } from "@/components/sensor/PedometerCard";
 import { CheckinView } from "@/components/pages/CheckinView";
-import { Footprints, ClipboardCheck, ShieldCheck } from "lucide-react";
+import { Footprints, ClipboardCheck } from "lucide-react";
 
 interface ActivityViewProps {
   defaultSubTab?: "pedometer" | "checkin";
@@ -34,11 +34,6 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
                 : "Catat waktu tidur, waktu layar santai, dan tingkat stres untuk rekomendasi dari AI Coach."}
             </p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs font-bold text-[#1A1A1A] bg-[#F6F6F6] px-3.5 py-2 rounded-2xl border border-[#E8E8E8] shrink-0">
-          <ShieldCheck className="w-4 h-4 text-[#1A1A1A]" />
-          <span>100% On-Device &amp; Privat</span>
         </div>
       </div>
 

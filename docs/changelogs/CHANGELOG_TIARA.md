@@ -21,6 +21,33 @@
 
 ---
 
+## [2026-11-14] — Pembersihan Badge Pill Header & Status (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.28`
+- **Ringkasan:** 
+  1. **Hapus Badge Pill "Akselerasi GPU" (`VisionGuard.tsx`):**
+     - Menghapus badge pill hijau akselerasi hardware pada header Vision Guard (Foto 1) dan membersihkan state `hardwareDelegate` yang tidak lagi digunakan.
+  2. **Hapus Badge Pill "Deteksi Postur AI" (`FocusView.tsx`):**
+     - Menghapus badge pill hijau pada judul modul Sesi Belajar & Vision Guard (Foto 2).
+  3. **Hapus Badge Pill "Privasi Aman: Video Tidak Diunggah" (`FocusView.tsx`):**
+     - Menghapus badge pill kuning keamanan video di header FocusView (Foto 3) dan merapikan kartu info perangkat.
+  4. **Hapus Badge Pill "Diam / Santai (1x Intensitas)" (`PedometerCard.tsx`):**
+     - Menghapus badge pill intensitas status di header kartu pedometer (Foto 4) serta membersihkan fungsi helper `getBadgeStyle` dan `getIntensityLabel`.
+  5. **Hapus Badge Pill "100% On-Device & Privat" (`ActivityView.tsx`):**
+     - Menghapus badge pill privasi di header modul Aktivitas Fisik (Foto 5), menghasilkan tampilan header yang lapang dan terfokus.
+- **Daftar File Diubah:**
+  - `frontend/src/components/vision/VisionGuard.tsx`
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `frontend/src/components/pages/ActivityView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
 ## [2026-11-14] — Pembersihan Badge Pill Berlebih & Ikon Sparkles (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.27`
 - **Ringkasan:** 
