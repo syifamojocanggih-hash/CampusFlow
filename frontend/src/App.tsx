@@ -93,7 +93,13 @@ export function App() {
               {activeTab === "vision-lab" && <VisionLabView />}
               {activeTab === "activity" && <ActivityView />}
               {activeTab === "checkin" && <ActivityView defaultSubTab="checkin" />}
-              {activeTab === "coach" && <CoachView />}
+              {activeTab === "coach" && (
+                <CoachView
+                  onNavigateToFocus={() => setActiveTab("focus")}
+                  onNavigateToActivity={() => setActiveTab("activity")}
+                  onStartPanicRelief={() => setIsPanicReliefActive(true)}
+                />
+              )}
               {activeTab === "history" && <HistoryView />}
               {activeTab === "settings" && (
                 <SettingsView onNavigateToProfile={() => setActiveTab("profile")} />

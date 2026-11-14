@@ -18,7 +18,8 @@ import type {
   PhysicalActivityPayload,
 } from "@/types";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+// Default ke mock mode (true) jika VITE_USE_MOCK belum didefinisikan atau bukan "false"
+const USE_MOCK = import.meta.env.VITE_USE_MOCK !== "false";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api/v1";
 
 class ApiClient {
