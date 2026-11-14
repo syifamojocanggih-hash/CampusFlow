@@ -21,6 +21,30 @@
 
 ---
 
+## [2026-11-14] — Pembersihan Badge & Elemen Informasi Wellbeing AI Coach (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.29`
+- **Ringkasan:** 
+  1. **Hapus Badge Pill "Gemini 2.5 Flash" (`CoachView.tsx`):**
+     - Menghapus badge pill hijau model AI pada header Wellbeing AI Coach (Foto 1), membuat header modul lebih bersih.
+  2. **Hapus Badge Pill "Fokus Utama: ..." (`CoachView.tsx`):**
+     - Menghapus badge pill kuning faktor mediator dominan (Foto 2) dan membersihkan fungsi helper `formatDominantFactor`.
+  3. **Hapus Ikon Sparkles (`CoachView.tsx`):**
+     - Menghapus ikon dekoratif `Sparkles` pada subjudul rencana aksi sehat (Foto 3).
+  4. **Hapus Ikon Target (`CoachView.tsx`):**
+     - Menghapus ikon bullseye `Target` pada baris target energi gerak harian (Foto 4).
+  5. **Hapus Kotak Informasi "Dasar Riset" (`CoachView.tsx`):**
+     - Menghapus seluruh kotak sitasi saintifik "Dasar Riset" (Foto 5) untuk penyajian rekomendasi aksi yang lebih padat dan langsung pada sasaran (*actionable*).
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
 ## [2026-11-14] — Pembersihan Badge Pill Header & Status (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.28`
 - **Ringkasan:** 
