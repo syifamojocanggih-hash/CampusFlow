@@ -21,6 +21,31 @@
 
 ---
 
+## [2026-11-14] — Pembersihan Badge Pill Berlebih & Ikon Sparkles (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.27`
+- **Ringkasan:** 
+  1. **Hapus Badge Pill "Deteksi Otomatis HP" & "Evaluasi Harian" (`ActivityView.tsx`):**
+     - Menghapus badge pill pastel hijau pada header modul Aktivitas Fisik & Evaluasi Kebugaran sesuai tangkapan layar pengguna (Foto 1 & Foto 2), menjadikan judul modul lebih bersih dan lega.
+  2. **Hapus Ikon Dekoratif Sparkles (`ActivityView.tsx`, `CheckinView.tsx`, `MimiPetWidget.tsx`):**
+     - Menghapus ikon dekoratif `Sparkles` pada kartu panduan penggunaan smartphone di modul Aktivitas (Foto 3), heading evaluasi stres PSS-4, dan panel simulasi pet, menjaga antarmuka tetap bersih, rapi, dan bebas dari elemen dekoratif AI yang tidak perlu.
+  3. **Hapus Badge Pill "Posisi Duduk Tersimpan" (`ProfileView.tsx`):**
+     - Menghapus badge pill status pada kartu Pengaturan Posisi Duduk AI (Foto 4) agar judul pengaturan lebih sederhana dan fokus langsung pada tombol aksi "Atur Ulang / Mulai Atur Posisi".
+  4. **Hapus Badge Pill "Mahasiswa Aktif" (`ProfileView.tsx`):**
+     - Menghapus badge pill hijau "Mahasiswa Aktif" di samping nama profil pengguna (Foto 5) untuk tampilan profil yang lebih bersih dan minimalis.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/ActivityView.tsx`
+  - `frontend/src/components/pages/CheckinView.tsx`
+  - `frontend/src/components/pages/ProfileView.tsx`
+  - `frontend/src/components/pet/MimiPetWidget.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (9/9 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
 ## [2026-11-13] — Kustomisasi Nama Pet Streak oleh Pengguna (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.26`
 - **Ringkasan:** 

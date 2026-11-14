@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ClipboardCheck, Moon, Check, Sparkles, Smartphone } from "lucide-react";
+import { ClipboardCheck, Moon, Check, Smartphone } from "lucide-react";
 import { api } from "@/lib/api";
 
 interface CheckinViewProps {
@@ -129,8 +129,7 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
           {/* Card 3: PSS-4 Questionnaire */}
           <div className="learnova-card p-5 sm:p-6 space-y-5 border-[#E8E8E8]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8E8E8] pb-3 gap-1">
-              <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A] flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#1A1A1A]" />
+              <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
                 Evaluasi Tingkat Stres (24 Jam Terakhir)
               </h3>
               <span className="text-[11px] text-[#9A9A9A] font-medium">Skala 0 (Tidak Pernah) &ndash; 4 (Sangat Sering)</span>

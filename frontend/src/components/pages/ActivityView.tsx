@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { PedometerCard } from "@/components/sensor/PedometerCard";
 import { CheckinView } from "@/components/pages/CheckinView";
-import { Footprints, ClipboardCheck, Sparkles, ShieldCheck } from "lucide-react";
+import { Footprints, ClipboardCheck, ShieldCheck } from "lucide-react";
 
 interface ActivityViewProps {
   defaultSubTab?: "pedometer" | "checkin";
@@ -23,16 +23,11 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
             )}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
-                {subTab === "pedometer"
-                  ? "Aktivitas Fisik & Penghitung Langkah"
-                  : "Kuis Kebugaran & Evaluasi Stres"}
-              </h2>
-              <span className="text-[10px] bg-[#CDE8B5] text-[#1A1A1A] px-2.5 py-0.5 rounded-full font-extrabold border border-[#B6DF97]">
-                {subTab === "pedometer" ? "Deteksi Otomatis HP" : "Evaluasi Harian"}
-              </span>
-            </div>
+            <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
+              {subTab === "pedometer"
+                ? "Aktivitas Fisik & Penghitung Langkah"
+                : "Kuis Kebugaran & Evaluasi Stres"}
+            </h2>
             <p className="text-xs text-[#9A9A9A] mt-0.5">
               {subTab === "pedometer"
                 ? "Hitung langkah harian otomatis menggunakan sensor HP saat Anda berjalan di kampus."
@@ -81,8 +76,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
             <PedometerCard />
 
             <div className="learnova-card p-4 sm:p-5 text-xs text-[#1A1A1A] space-y-2 bg-[#F6F6F6] border-[#E8E8E8]">
-              <div className="flex items-center gap-2 font-bold text-[#1A1A1A]">
-                <Sparkles className="w-4 h-4 text-[#1A1A1A]" />
+              <div className="font-bold text-[#1A1A1A]">
                 <span>Panduan Penggunaan di Smartphone:</span>
               </div>
               <p className="leading-relaxed text-[#9A9A9A]">

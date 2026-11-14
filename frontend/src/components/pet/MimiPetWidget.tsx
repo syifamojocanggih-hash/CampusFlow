@@ -3,7 +3,6 @@ import {
   X,
   Flame,
   Snowflake,
-  Sparkles,
   GripHorizontal,
   Pencil,
   Check,
@@ -708,8 +707,7 @@ export const MimiPetWidget: React.FC = () => {
 
                   {/* Demo Simulation Controls */}
                   <div className="p-3.5 bg-[#F6F6F6] rounded-2xl border border-[#E8E8E8] space-y-2 text-xs">
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#9A9A9A]">
-                      <Sparkles className="w-3.5 h-3.5 text-[#1A1A1A]" />
+                    <div className="text-[11px] font-bold text-[#9A9A9A]">
                       <span>Simulasi &amp; Kustomisasi Pet:</span>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">

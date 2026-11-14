@@ -176,9 +176,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <div>
               <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                 <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">{name}</h2>
-                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#CDE8B5] text-[#1A1A1A] border border-[#b2d992]">
-                  Mahasiswa Aktif
-                </span>
               </div>
               <p className="text-xs text-[#9A9A9A] font-medium mt-0.5">
                 {department} • NIM {nim}
@@ -440,20 +437,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <Eye className="w-5 h-5" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                    Pengaturan Posisi Duduk AI (Kamera)
-                  </h3>
-                  <span
-                    className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                      hasPostureBaseline
-                        ? "bg-[#CDE8B5] text-emerald-900 border border-[#b2d992]"
-                        : "bg-[#FFF29A] text-amber-900 border border-[#FFE966]"
-                    }`}
-                  >
-                    {hasPostureBaseline ? "Posisi Duduk Tersimpan" : "Belum Diatur"}
-                  </span>
-                </div>
+                <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
+                  Pengaturan Posisi Duduk AI (Kamera)
+                </h3>
                 <p className="text-xs text-[#9A9A9A] mt-0.5 leading-relaxed">
                   Pengaturan awal mengenali posisi duduk tegak alami Anda di depan kamera untuk
                   mendeteksi bungkuk dan jarak terlalu dekat ke layar secara akurat.
