@@ -1,6 +1,11 @@
 import { z } from "zod";
 import type { DominantMediator } from "../../../shared/contracts/index.ts";
 import { env } from "../config/env.ts";
+import {
+  CRISIS_RESPONSE_TEXT,
+  detectDistressKeywords as sharedDetectDistressKeywords,
+  stripNullFields,
+} from "./coachShared.ts";
 
 export interface Telemetry7DaysInput {
   today: {
@@ -147,27 +152,27 @@ const OLLAMA_RESPONSE_FORMAT = {
 
 const SYSTEM_INSTRUCTION = `Kamu adalah CampusFlow AI Coach: asisten kesehatan mental-fisik mahasiswa Indonesia berbasis Martín-Rodríguez & González-Prieto (2026). Tugasmu HANYA menyusun narasi empatik dan rencana aksi dari data input; kamu BUKAN pengambil keputusan klinis atau dokter.
 1. ATURAN MUTLAK: Salin field dominantMediator PERSIS dari clinicalRuleEvaluation.dominantMediator (jika flags kosong gunakan OPTIMAL_BALANCE). Angka recommendedMetsToday dan durasi menit pada isotemporalActionPlan HARUS berada dalam allowedRanges.
-2. GAYA BAHASA: Bahasa Indonesia yang hangat, empatik, suportif (hindari nada dingin "Anda terdeteksi mengalami..." dan DILARANG mendiagnosis gangguan psikiatris). Maksimal 2 kalimat pembuka di diagnosisSummary; sertakan aksi spesifik + durasi + timing ("sekarang" | "sore ini" | "sebelum tidur") di isotemporalActionPlan.
-3. ANTI-HALUSINASI: Hanya rujuk temuan tervalidasi (Martín-Rodríguez & González-Prieto 2026; Mu et al. 2024; Wang et al. 2025; Barbosa et al. 2024; Su et al. 2022; Zhang et al. 2024; Ai et al. 2021; Wu & Zhou 2024) tanpa mengarang angka statistik baru.
-4. ESKALASI & EDGE CASE: Bila escalationFlag true, hanya sarankan aksi fisik ringan/relaksasi napas (dilarang olahraga berat) dan WAJIB sertakan frasa "konselor kampus" secara halus di diagnosisSummary tanpa menakut-nakuti. Bila missingDailyCheckIn true (pss4TotalScore null), jangan asumsikan skor stres/tidur dan WAJIB sertakan ajakan mengisi "check-in harian" di diagnosisSummary. Bila skipAdaptation.applied true, turunkan target dalam allowedRanges maksimal -40%.
-5. PENOLAKAN: Jika input di luar scope wellbeing kampus, kembalikan JSON valid dengan diagnosisSummary "Pertanyaan ini di luar cakupan CampusFlow Coach.".`;
+  2. GAYA BAHASA: Bahasa Indonesia yang hangat, empatik, suportif (hindari nada dingin "Anda terdeteksi mengalami..." dan DILARANG mendiagnosis gangguan psikiatris). Maksimal 2 kalimat pembuka di diagnosisSummary; sertakan aksi spesifik + durasi + timing ("sekarang" | "sore ini" | "sebelum tidur") di isotemporalActionPlan.
+  3. ANTI-HALUSINASI: Hanya rujuk temuan tervalidasi (Martín-Rodríguez & González-Prieto 2026; Mu et al. 2024; Wang et al. 2025; Barbosa et al. 2024; Su et al. 2022; Zhang et al. 2024; Ai et al. 2021; Wu & Zhou 2024) tanpa mengarang angka statistik baru.
+  4. ESKALASI & EDGE CASE: Bila escalationFlag true, hanya sarankan aksi fisik ringan/relaksasi napas (dilarang olahraga berat) dan WAJIB sertakan frasa "konselor kampus" secara halus di diagnosisSummary tanpa menakut-nakuti. Bila missingDailyCheckIn true (pss4TotalScore null), jangan asumsikan skor stres/tidur dan WAJIB sertakan ajakan mengisi "check-in harian" di diagnosisSummary. Bila skipAdaptation.applied true, turunkan target dalam allowedRanges maksimal -40%.
+  5. PENOLAKAN: Jika input di luar scope wellbeing kampus, kembalikan JSON valid dengan diagnosisSummary "Pertanyaan ini di luar cakupan CampusFlow Coach.".`;
 
-/** Mendeteksi kata kunci stres darurat dari catatan bebas pengguna. */
-export function detectDistressKeywords(userNotes?: string | null): boolean {
-  if (!userNotes) return false;
-  const normalized = userNotes.toLowerCase();
-  return EMERGENCY_DISTRESS_KEYWORDS.some((keyword) => normalized.includes(keyword));
-}
+  /** Mendeteksi kata kunci stres darurat dari catatan bebas pengguna. */
+  export function detectDistressKeywords(userNotes?: string | null): boolean {
+    if (!userNotes) return false;
+    const normalized = userNotes.toLowerCase();
+    return EMERGENCY_DISTRESS_KEYWORDS.some((keyword) => normalized.includes(keyword));
+  }
 
-/** Mengevaluasi bendera batas klinis secara deterministik sesuai prioritas Martín-Rodríguez & González-Prieto (2026). */
-export function evaluateClinicalRuleFlags(
-  today: Telemetry7DaysInput["today"],
-  options?: { userNotes?: string | null }
-): ClinicalRuleFlags {
-  const missingDailyCheckIn = today.pss4TotalScore === null;
+  /** Mengevaluasi bendera batas klinis secara deterministik sesuai prioritas Martín-Rodríguez & González-Prieto (2026). */
+  export function evaluateClinicalRuleFlags(
+    today: Telemetry7DaysInput["today"],
+    options?: { userNotes?: string | null }
+  ): ClinicalRuleFlags {
+    const missingDailyCheckIn = today.pss4TotalScore === null;
 
-  const sleepDeficit =
-    !missingDailyCheckIn &&
+    const sleepDeficit =
+      !missingDailyCheckIn &&
     today.pss4TotalScore !== null &&
     ((today.sleepHours !== null && today.sleepHours < 7.0) ||
       (today.sleepQualityScore !== null && today.sleepQualityScore <= 2)) &&
@@ -205,7 +210,8 @@ export function evaluateClinicalRuleFlags(
 
   const escalationFlag =
     (today.pss4TotalScore !== null && today.pss4TotalScore >= 10) ||
-    detectDistressKeywords(options?.userNotes);
+    detectDistressKeywords(options?.userNotes) ||
+    sharedDetectDistressKeywords(options?.userNotes);
 
   return {
     sleepDeficit,
@@ -494,7 +500,7 @@ export async function generateClinicalWellbeingInsight(
   fetchOrOptions: typeof fetch | GenerateInsightOptions = fetch
 ): Promise<{
   insight: GeneratedInsight;
-  source: "OLLAMA_LOCAL" | "CLINICAL_FALLBACK";
+  source: "OLLAMA_LOCAL" | "CLINICAL_FALLBACK" | "CRISIS_SAFETY_BYPASS";
   model: string;
   escalationFlag: boolean;
 }> {
@@ -509,6 +515,23 @@ export async function generateClinicalWellbeingInsight(
   const promptMode: OllamaPromptMode =
     typeof fetchOrOptions === "function" ? "auto" : (fetchOrOptions.promptMode ?? "auto");
 
+  // JALUR KRISIS BERSAMA: Bila catatan user mengindikasikan krisis berat, JANGAN panggil model.
+  if (sharedDetectDistressKeywords(userTelemetry7Days.userNotes)) {
+    const crisisInsight: GeneratedInsight = {
+      dominantMediator: "EXAM_ACUTE_STRESS",
+      diagnosisSummary: CRISIS_RESPONSE_TEXT,
+      isotemporalActionPlan: "Tidak ada rencana aktivitas fisik. Diberikan protokol rujukan krisis.",
+      recommendedMetsToday: 80,
+      scientificCitationNote: "Protokol keselamatan kesehatan mental terpadu.",
+    };
+    return {
+      insight: crisisInsight,
+      source: "CRISIS_SAFETY_BYPASS",
+      model: targetModel,
+      escalationFlag: true,
+    };
+  }
+
   const evaluation = evaluateClinicalRuleFlags(userTelemetry7Days.today, {
     userNotes: userTelemetry7Days.userNotes,
   });
@@ -518,6 +541,9 @@ export async function generateClinicalWellbeingInsight(
     userTelemetry7Days.recentInsights
   );
   const activeDirectives = buildActiveDirectives(evaluation, skipAdaptation);
+  activeDirectives.push(
+    "DATA_TIDAK_LENGKAP: jangan menyebut angka, durasi, atau tingkat aktivitas yang tidak ada di input user"
+  );
 
   const promptPayload = {
     activeDirectives,
@@ -530,7 +556,7 @@ export async function generateClinicalWellbeingInsight(
     },
     allowedRanges,
     skipAdaptation,
-    today: userTelemetry7Days.today,
+    today: stripNullFields(userTelemetry7Days.today),
     history7Days: userTelemetry7Days.history7Days,
     latestPss10Score: userTelemetry7Days.latestPss10Score ?? null,
     userNotes: userTelemetry7Days.userNotes ?? null,
