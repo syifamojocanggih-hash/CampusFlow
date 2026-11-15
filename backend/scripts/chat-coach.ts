@@ -10,13 +10,29 @@ import {
   auditResponse,
   checkMovementMatch,
   CLARIFICATION_PROMPT_TEXT,
+  CLARIFICATION_WITH_OPTIONS_TEXT,
   CRISIS_RESPONSE_TEXT,
+  deduplicateResponse,
+  deduplicateSentences,
+  detectClarificationChoice,
   detectDistressKeywords,
+  detectRecentlyExercised,
   extractActivity,
   extractSedentaryHours,
   extractSleepHours,
+  formatMovementOptionsPrompt,
   getNextMovementOption,
+  getNextNeutralCauseFallback,
   IN_SCOPE_WELLBEING_PATTERN,
+  isBareGeneralComplaint,
+  MOVEMENT_OPTIONS_BY_MEDIATOR,
+  NEUTRAL_CAUSE_FALLBACK_TEXT,
+  NEUTRAL_CAUSE_FALLBACK_VARIANTS,
+  PROACTIVE_CLARIFICATION_OPTIONS,
+  PROACTIVE_CLARIFICATION_QUESTION,
+  PROACTIVE_CLARIFICATION_TEXT,
+  resetNeutralCauseFallbackIndex,
+  sanitizeSleepInterpretation,
   sanitizeTimeWords,
   stripNullFields,
   type AuditReport,
@@ -26,13 +42,29 @@ export {
   auditResponse,
   checkMovementMatch,
   CLARIFICATION_PROMPT_TEXT,
+  CLARIFICATION_WITH_OPTIONS_TEXT,
   CRISIS_RESPONSE_TEXT,
+  deduplicateResponse,
+  deduplicateSentences,
+  detectClarificationChoice,
   detectDistressKeywords,
+  detectRecentlyExercised,
   extractActivity,
   extractSedentaryHours,
   extractSleepHours,
+  formatMovementOptionsPrompt,
   getNextMovementOption,
+  getNextNeutralCauseFallback,
   IN_SCOPE_WELLBEING_PATTERN,
+  isBareGeneralComplaint,
+  MOVEMENT_OPTIONS_BY_MEDIATOR,
+  NEUTRAL_CAUSE_FALLBACK_TEXT,
+  NEUTRAL_CAUSE_FALLBACK_VARIANTS,
+  PROACTIVE_CLARIFICATION_OPTIONS,
+  PROACTIVE_CLARIFICATION_QUESTION,
+  PROACTIVE_CLARIFICATION_TEXT,
+  resetNeutralCauseFallbackIndex,
+  sanitizeSleepInterpretation,
   sanitizeTimeWords,
   stripNullFields,
 };
@@ -82,13 +114,20 @@ export function getSystemJakartaTime(): {
 }
 
 /** Menyusun payload JSON yang dikirim ke model */
-export function buildChatCoachPayload(userInput: string) {
+export function buildChatCoachPayload(
+  userInput: string,
+  options?: {
+    forcedJenisGerak?: string;
+  }
+) {
   const sedentaryHours = extractSedentaryHours(userInput);
   const sleepHours = extractSleepHours(userInput);
   const activity = extractActivity(userInput);
   const { timeStr, period } = getSystemJakartaTime();
 
   const isDistress = detectDistressKeywords(userInput);
+  const isRecentlyExercised = detectRecentlyExercised(userInput);
+  const clarChoice = detectClarificationChoice(userInput);
 
   let dominantMediator: DominantMediator = "LOW_MVPA_VOLUME";
   let escalationFlag = false;
@@ -96,6 +135,24 @@ export function buildChatCoachPayload(userInput: string) {
   if (isDistress) {
     dominantMediator = "EXAM_ACUTE_STRESS";
     escalationFlag = true;
+  } else if (isRecentlyExercised) {
+    // Sesuai CLINICAL_SCORING.md & clinicalRuleEvaluation:
+    // Waktu duduk < 6 jam (misal 2 jam) TIDAK memenuhi threshold SEDENTARY_OVERLOAD.
+    // Karena sudah olahraga, pilar MVPA tercapai, gunakan mediator netral OPTIMAL_BALANCE.
+    dominantMediator =
+      sedentaryHours !== null && sedentaryHours >= 6.0
+        ? "SEDENTARY_OVERLOAD"
+        : "OPTIMAL_BALANCE";
+  } else if (clarChoice.isChoice && clarChoice.choice !== "SKIP") {
+    if (clarChoice.choice === "A") {
+      dominantMediator = "SEDENTARY_OVERLOAD";
+    } else if (clarChoice.choice === "B") {
+      dominantMediator = "SLEEP_MEDIATION_DEFICIT";
+    } else if (clarChoice.choice === "C") {
+      dominantMediator = "OPTIMAL_BALANCE";
+    } else {
+      dominantMediator = "EXAM_ACUTE_STRESS";
+    }
   } else if (
     (sleepHours !== null && sleepHours < 7) ||
     /\b(begadang|tidur|kurang tidur|insomnia|ngantuk|kantuk|susah tidur|mata perih)\b/i.test(
@@ -118,23 +175,47 @@ export function buildChatCoachPayload(userInput: string) {
     dominantMediator = "LOW_MVPA_VOLUME";
   }
 
-  const allowedRanges: AllowedRanges = escalationFlag
-    ? { durationMinutesRange: [5, 10], metsRange: [80, 160] }
-    : dominantMediator === "SEDENTARY_OVERLOAD"
-      ? { durationMinutesRange: [10, 20], metsRange: [170, 240] }
-      : dominantMediator === "EXAM_ACUTE_STRESS"
-        ? { durationMinutesRange: [10, 20], metsRange: [150, 200] }
-        : dominantMediator === "SLEEP_MEDIATION_DEFICIT"
-          ? { durationMinutesRange: [15, 30], metsRange: [180, 260] }
-          : { durationMinutesRange: [15, 25], metsRange: [160, 220] };
+  const isRecoveryMode =
+    isRecentlyExercised || (clarChoice.isChoice && clarChoice.choice === "C");
+
+  const allowedRanges: AllowedRanges = isRecoveryMode
+    ? { durationMinutesRange: [5, 15], metsRange: [80, 140] }
+    : escalationFlag
+      ? { durationMinutesRange: [5, 10], metsRange: [80, 160] }
+      : dominantMediator === "SEDENTARY_OVERLOAD"
+        ? { durationMinutesRange: [10, 20], metsRange: [170, 240] }
+        : dominantMediator === "EXAM_ACUTE_STRESS"
+          ? { durationMinutesRange: [10, 20], metsRange: [150, 200] }
+          : dominantMediator === "SLEEP_MEDIATION_DEFICIT"
+            ? { durationMinutesRange: [15, 30], metsRange: [180, 260] }
+            : { durationMinutesRange: [15, 25], metsRange: [160, 220] };
 
   // Pilih variasi jenis gerak
-  const mediatorKey = escalationFlag ? "ESCALATION" : dominantMediator;
-  const jenisGerak = getNextMovementOption(mediatorKey);
+  let jenisGerak = options?.forcedJenisGerak || "";
+  if (!jenisGerak) {
+    if (isRecoveryMode) {
+      jenisGerak = getNextMovementOption("RECENTLY_EXERCISED");
+    } else if (clarChoice.isChoice && clarChoice.choice === "A") {
+      jenisGerak = getNextMovementOption("SEDENTARY_OVERLOAD");
+    } else if (clarChoice.isChoice && clarChoice.choice === "B") {
+      jenisGerak = getNextMovementOption("SLEEP_MEDIATION_DEFICIT");
+    } else if (clarChoice.isChoice && clarChoice.choice === "D") {
+      jenisGerak = getNextMovementOption("EXAM_ACUTE_STRESS");
+    } else {
+      const mediatorKey = escalationFlag ? "ESCALATION" : dominantMediator;
+      jenisGerak = getNextMovementOption(mediatorKey);
+    }
+  }
 
   const activeDirectives: string[] = [
     "DATA_TIDAK_LENGKAP: jangan menyebut angka, durasi, atau tingkat aktivitas yang tidak ada di input user",
   ];
+
+  if (isRecoveryMode) {
+    activeDirectives.push(
+      "SUDAH_OLAHRAGA: user sudah berolahraga sebelumnya hari ini. JANGAN merekomendasikan olahraga tambahan atau jalan cepat/MVPA. Berikan panduan pemulihan aktif, peregangan pendinginan otot lembut, hidrasi, atau relaksasi santai."
+    );
+  }
 
   if (escalationFlag) {
     activeDirectives.push(
@@ -142,14 +223,48 @@ export function buildChatCoachPayload(userInput: string) {
     );
   }
 
-  activeDirectives.push(`JENIS_GERAK: ${jenisGerak}`);
-
   // POIN 1: Hilangkan field today yang bernilai null dari JSON yang dikirim (jangan kirim null)
   const rawToday: Record<string, number | null> = {
     totalSedentaryHours: sedentaryHours,
     sleepHours: sleepHours,
   };
   const cleanToday = stripNullFields(rawToday);
+
+  // POIN 2: Directive PENYEBAB_TIDAK_DIKETAHUI ketika today kosong dan detectedActivity null
+  if (Object.keys(cleanToday).length === 0 && !activity) {
+    activeDirectives.push(
+      "PENYEBAB_TIDAK_DIKETAHUI: jangan menyebut penyebab (tidur, duduk, aktivitas, kuliah) yang tidak disebut user"
+    );
+  }
+
+  // POIN 5: Perbaiki tafsir "tidur cuma N jam"
+  if (sleepHours !== null) {
+    activeDirectives.push(
+      "TAFSIR_TIDUR: sleepHours adalah lama tidur semalam, bukan kejadian barusan. Jangan memakai kata 'baru saja' untuk durasi tidur."
+    );
+  }
+
+  activeDirectives.push(`JENIS_GERAK: ${jenisGerak}`);
+
+  let effectiveUserNotes = userInput;
+  if (clarChoice.isChoice && clarChoice.choice !== "SKIP") {
+    const choiceLabels: Record<string, string> = {
+      A: "Badan pegal atau otot kaku setelah duduk atau beraktivitas",
+      B: "Ngantuk atau kurang tidur semalam",
+      C: "Habis olahraga atau aktivitas fisik berat hari ini",
+      D: "Pikiran penat atau stres tugas kuliah",
+    };
+    const label = choiceLabels[clarChoice.choice] || userInput;
+    if (userInput.length <= 5 || /^(?:opsi\s+|pilihan\s+)?[a-d1-4]$/i.test(userInput.trim())) {
+      effectiveUserNotes = label;
+    } else {
+      effectiveUserNotes = `${userInput} (${label})`;
+    }
+  } else if (clarChoice.isChoice && clarChoice.choice === "SKIP") {
+    effectiveUserNotes = "Merasa capek atau lemas dan butuh saran relaksasi atau gerak ringan umum";
+  } else if (options?.forcedJenisGerak && userInput.length <= 5) {
+    effectiveUserNotes = `Ingin melakukan panduan gerak: ${options.forcedJenisGerak}`;
+  }
 
   const promptPayload = {
     activeDirectives,
@@ -172,7 +287,7 @@ export function buildChatCoachPayload(userInput: string) {
     today: cleanToday,
     history7Days: [],
     latestPss10Score: null,
-    userNotes: userInput,
+    userNotes: effectiveUserNotes,
   };
 
   return {
@@ -199,25 +314,32 @@ function wrapParagraph(
   width: number,
   subsequentIndent: string = ""
 ): string {
-  const words = text.trim().split(/\s+/);
-  const lines: string[] = [];
-  let currentLine = firstLinePrefix;
+  const paragraphs = text.split("\n");
+  return paragraphs
+    .map((p, idx) => {
+      const prefix = idx === 0 ? firstLinePrefix : subsequentIndent;
+      if (!p.trim()) return "";
+      const words = p.trim().split(/\s+/);
+      const lines: string[] = [];
+      let currentLine = prefix;
 
-  for (const word of words) {
-    if (!word) continue;
-    if (currentLine === firstLinePrefix) {
-      currentLine += word;
-    } else if ((currentLine + " " + word).length <= width) {
-      currentLine += " " + word;
-    } else {
-      lines.push(currentLine);
-      currentLine = subsequentIndent + word;
-    }
-  }
-  if (currentLine.length > 0) {
-    lines.push(currentLine);
-  }
-  return lines.join("\n");
+      for (const word of words) {
+        if (!word) continue;
+        if (currentLine === prefix) {
+          currentLine += word;
+        } else if ((currentLine + " " + word).length <= width) {
+          currentLine += " " + word;
+        } else {
+          lines.push(currentLine);
+          currentLine = subsequentIndent + word;
+        }
+      }
+      if (currentLine.length > 0) {
+        lines.push(currentLine);
+      }
+      return lines.join("\n");
+    })
+    .join("\n");
 }
 
 function selectOpeningSentence(input: string): string {
@@ -233,7 +355,7 @@ function selectOpeningSentence(input: string): string {
     return "Pasti tubuh dan pikiranmu terasa lelah sekali kalau jam tidurmu kurang.";
   }
   if (/\b(capek|lelah|letih|penat|habis tenaga|lelah banget)\b/.test(lower)) {
-    return "Wajar banget kalau kamu merasa capek setelah aktivitas padat hari ini.";
+    return "Wajar banget kalau kamu merasa capek dan butuh jeda sebentar hari ini.";
   }
   if (/\b(pegal|pegel|kaku|nyeri|linu|encok|sakit badan)\b/.test(lower)) {
     return "Pasti nggak nyaman ya kalau tubuh mulai terasa pegal dan kaku.";
@@ -269,6 +391,8 @@ export async function processChatCoachInput(
   trimmed: string,
   options: {
     callModelFn?: typeof callOllamaChatJson;
+    hasClarified?: boolean;
+    forcedJenisGerak?: string;
   } = {}
 ): Promise<{
   promptPayload: ReturnType<typeof buildChatCoachPayload>["promptPayload"];
@@ -282,6 +406,8 @@ export async function processChatCoachInput(
   movementMatchNote: string;
   auditReport: AuditReport;
   formattedOutput: string;
+  needsClarification: boolean;
+  movementOptions: string[];
 }> {
   const caller = options.callModelFn ?? callOllamaChatJson;
   const isDistress = detectDistressKeywords(trimmed);
@@ -336,23 +462,60 @@ export async function processChatCoachInput(
       auditReport: {
         unverifiedNumbers: [],
         unverifiedActivityClaims: [],
+        unverifiedCauseClaims: [],
         hasRepeatedSentences: false,
         repeatedSentences: [],
       },
       formattedOutput,
+      needsClarification: false,
+      movementOptions: [],
+    };
+  }
+
+  // POIN 1: KLARIFIKASI PROAKTIF
+  // Jika input hanya keluhan umum tanpa penanda konteks dan belum diklarifikasi, JANGAN panggil model!
+  if (isBareGeneralComplaint(trimmed) && !options.hasClarified) {
+    const formattedOutput = wrapParagraph("Coach > ", PROACTIVE_CLARIFICATION_TEXT, width, indent);
+    return {
+      promptPayload: {} as any,
+      dominantMediator: "OPTIMAL_BALANCE",
+      escalationFlag: false,
+      sleepHours: null,
+      sedentaryHours: null,
+      jenisGerak: "KLARIFIKASI_PROAKTIF",
+      insight: {
+        dominantMediator: "OPTIMAL_BALANCE",
+        diagnosisSummary: "Memerlukan klarifikasi keluhan umum tanpa konteks.",
+        isotemporalActionPlan: "Menanyakan opsi klarifikasi ke pengguna.",
+        recommendedMetsToday: 0,
+        scientificCitationNote: "Protokol klarifikasi kelelahan bertahap.",
+      },
+      source: "PROACTIVE_CLARIFICATION",
+      movementMatchNote: "KLARIFIKASI_PROAKTIF",
+      auditReport: {
+        unverifiedNumbers: [],
+        unverifiedActivityClaims: [],
+        unverifiedCauseClaims: [],
+        hasRepeatedSentences: false,
+        repeatedSentences: [],
+      },
+      formattedOutput,
+      needsClarification: true,
+      movementOptions: [],
     };
   }
 
   const {
     promptPayload,
     period,
+    activity,
     dominantMediator,
     escalationFlag,
     sleepHours,
     sedentaryHours,
     jenisGerak,
     allowedRanges,
-  } = buildChatCoachPayload(trimmed);
+  } = buildChatCoachPayload(trimmed, { forcedJenisGerak: options.forcedJenisGerak });
   const t0 = Date.now();
 
   let insight: GeneratedInsight;
@@ -405,23 +568,96 @@ export async function processChatCoachInput(
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
 
-  // Sanitasi kata waktu
-  const sanitizedSummary = sanitizeTimeWords(insight.diagnosisSummary, trimmed, period);
-  const sanitizedAction = sanitizeTimeWords(insight.isotemporalActionPlan, trimmed, period);
+  // Sanitasi kata waktu & interpretasi tidur
+  let sanitizedSummary = sanitizeTimeWords(insight.diagnosisSummary, trimmed, period);
+  sanitizedSummary = sanitizeSleepInterpretation(sanitizedSummary);
+
+  let sanitizedAction = sanitizeTimeWords(insight.isotemporalActionPlan, trimmed, period);
+  sanitizedAction = sanitizeSleepInterpretation(sanitizedAction);
+
+  // POIN 4: Hapus otomatis kalimat yang persis berulang dalam satu jawaban
+  const deduped = deduplicateResponse(sanitizedSummary, sanitizedAction);
+  sanitizedSummary = deduped.summary;
+  sanitizedAction = deduped.plan;
 
   // Evaluasi kecocokan jenis gerak
   const movementMatch = checkMovementMatch(sanitizedAction, jenisGerak);
 
-  // Poin 2: Audit pasca-jawaban (angka tidak terverifikasi, klaim aktivitas tanpa data, kalimat berulang)
-  const auditReport = auditResponse(
+  // POIN 1: Audit pasca-jawaban (angka tidak terverifikasi, klaim aktivitas tanpa data, klaim penyebab tidak berdasar)
+  let auditReport = auditResponse(
     sanitizedSummary,
     sanitizedAction,
     trimmed,
     allowedRanges,
     jenisGerak,
     sedentaryHours !== null,
-    false // tidak ada telemetry MVPA
+    false, // tidak ada telemetry MVPA
+    sleepHours !== null,
+    activity
   );
+
+  // POIN 3: Jika audit masih menemukan klaim penyebab karangan setelah satu kali percobaan,
+  // bangun jawaban dari bagian-bagian: pembuka dari model/template, kalimat penjelasan diganti template netral
+  // (atau menyaring kalimat karangan jika masih ada fakta yang sah), dan paragraf rekomendasi diambil dari model.
+  let wasModularFallbackApplied = false;
+  if (auditReport.unverifiedCauseClaims.length > 0) {
+    wasModularFallbackApplied = true;
+
+    const userLower = trimmed.toLowerCase();
+    const userMentionsSleep = /\b(tidur|begadang|ngantuk|kantuk|insomnia|lelap|merem)\b/i.test(userLower);
+    const userMentionsSitting = /\b(duduk|nugas|laprak|skripsi|lab|kuliah|kursi|meja|layar|komputer|laptop|tv)\b/i.test(userLower);
+    const userMentionsActivity = /\b(aktivitas|kegiatan|olahraga|kuliah|kelas|dosen|lab|laprak|skripsi|nugas|jadwal|padat|sibuk)\b/i.test(userLower);
+
+    const sentenceRegex = /[^.!?\n]+(?:[.!?]+|\n+|$)/g;
+    const sentences = sanitizedSummary.match(sentenceRegex) || [sanitizedSummary];
+    const filteredSentences = sentences.filter((s) => {
+      const lowerS = s.toLowerCase();
+      const isSleepClaim =
+        sleepHours === null &&
+        !userMentionsSleep &&
+        /\b(?:masalah\s+(?:dengan\s+)?tidur|kurang\s+tidur|pola\s+tidur|kualitas\s+tidur|jam\s+tidur|tidurmu|begadang|istirahat\s+malam)\b/i.test(lowerS);
+      const isSittingClaim =
+        sedentaryHours === null &&
+        !userMentionsSitting &&
+        /\b(?:duduk\s+(?:cukup\s+)?lama|terlalu\s+lama\s+duduk|sudah\s+cukup\s+lama\s+duduk|banyak\s+duduk|posisi\s+duduk|lama\s+di\s+depan\s+layar|di\s+depan\s+(?:komputer|laptop|layar|tv)|berjam-jam\s+di\s+depan|menonton\s+tv)\b/i.test(lowerS);
+      const isActivityClaim =
+        !activity &&
+        !userMentionsActivity &&
+        /\b(?:aktivitas\s+padat|padatnya\s+aktivitas|jadwal\s+padat|setelah\s+berolahraga|banyak\s+aktivitas|kuliah\s+seharian|kegiatan\s+padat)\b/i.test(lowerS);
+      return !isSleepClaim && !isSittingClaim && !isActivityClaim;
+    });
+
+    const cleanedSummary = filteredSentences.join(" ").trim();
+    if (cleanedSummary.length >= 10) {
+      sanitizedSummary = cleanedSummary;
+    } else {
+      sanitizedSummary = getNextNeutralCauseFallback();
+    }
+
+    const reDeduped = deduplicateResponse(sanitizedSummary, sanitizedAction);
+    sanitizedSummary = reDeduped.summary;
+    sanitizedAction = reDeduped.plan;
+    auditReport = auditResponse(
+      sanitizedSummary,
+      sanitizedAction,
+      trimmed,
+      allowedRanges,
+      jenisGerak,
+      sedentaryHours !== null,
+      false,
+      sleepHours !== null,
+      activity
+    );
+  }
+
+  const clarChoice = detectClarificationChoice(trimmed);
+  if (clarChoice.isChoice && clarChoice.choice === "SKIP") {
+    sanitizedSummary = getNextNeutralCauseFallback();
+    wasModularFallbackApplied = true;
+    const reDeduped = deduplicateResponse(sanitizedSummary, sanitizedAction);
+    sanitizedSummary = reDeduped.summary;
+    sanitizedAction = reDeduped.plan;
+  }
 
   const isStillOutOfScope =
     /di luar cakupan/i.test(sanitizedSummary) ||
@@ -431,7 +667,7 @@ export async function processChatCoachInput(
 
   if (isStillOutOfScope) {
     if (IN_SCOPE_WELLBEING_PATTERN.test(trimmed)) {
-      formattedOutput = wrapParagraph("Coach > ", CLARIFICATION_PROMPT_TEXT, width, indent);
+      formattedOutput = wrapParagraph("Coach > ", CLARIFICATION_WITH_OPTIONS_TEXT, width, indent);
     } else {
       const outOfScopeFriendly =
         "Maaf ya, untuk hal itu aku belum bisa bantu. Sebagai CampusFlow Coach, fokus utamaku adalah mendampingi kesehatan fisik, pola duduk aktif, kualitas tidur, dan pengelolaan stres kuliahmu. Kalau ada yang kamu rasakan seputar tubuh, energi, atau kelelahan belajar, cerita saja ke aku ya!";
@@ -451,6 +687,23 @@ export async function processChatCoachInput(
     ].join("\n");
   }
 
+  const isRecoveryMode =
+    detectRecentlyExercised(trimmed) || (clarChoice.isChoice && clarChoice.choice === "C");
+  const mediatorKey = isRecoveryMode
+    ? "RECENTLY_EXERCISED"
+    : escalationFlag
+      ? "ESCALATION"
+      : dominantMediator;
+  const movementOptions = (
+    MOVEMENT_OPTIONS_BY_MEDIATOR[mediatorKey] ||
+    MOVEMENT_OPTIONS_BY_MEDIATOR.OPTIMAL_BALANCE
+  ).slice(0, 3);
+
+  if (!isStillOutOfScope) {
+    const movementPrompt = formatMovementOptionsPrompt(mediatorKey);
+    formattedOutput = `${formattedOutput}\n\n${movementPrompt.trim()}`;
+  }
+
   if (isDebug) {
     formattedOutput += `\n\n--- [DEBUG INFO] ---`;
     formattedOutput += `\n- Latency           : ${elapsed}s`;
@@ -466,6 +719,12 @@ export async function processChatCoachInput(
     }
     if (auditReport.unverifiedActivityClaims.length > 0) {
       formattedOutput += `\n- [AUDIT] Klaim Aktivitas Tdk Sah : ${auditReport.unverifiedActivityClaims.join(", ")}`;
+    }
+    if (auditReport.unverifiedCauseClaims.length > 0) {
+      formattedOutput += `\n- [AUDIT] Klaim Penyebab Tdk Sah  : ${auditReport.unverifiedCauseClaims.join(", ")}`;
+    }
+    if (wasModularFallbackApplied) {
+      formattedOutput += `\n- [MODULAR FALLBACK] Kalimat penjelasan diganti varian netral`;
     }
     if (auditReport.hasRepeatedSentences) {
       formattedOutput += `\n- [AUDIT] Kalimat Berulang         : ${auditReport.repeatedSentences.join(" | ")}`;
@@ -491,6 +750,8 @@ export async function processChatCoachInput(
     movementMatchNote: movementMatch.note,
     auditReport,
     formattedOutput,
+    needsClarification: false,
+    movementOptions,
   };
 }
 
@@ -506,8 +767,36 @@ if (isDirectRun) {
       ? process.argv[argPromptIndex + 1]
       : null;
 
+  const argClarifyIndex = process.argv.findIndex(
+    (a) => a === "--clarify" || a === "--clarification"
+  );
+  const cliClarify =
+    argClarifyIndex !== -1 && process.argv[argClarifyIndex + 1]
+      ? process.argv[argClarifyIndex + 1]
+      : null;
+
+  const argMovementIndex = process.argv.findIndex(
+    (a) => a === "--movement" || a === "--movement-option"
+  );
+  const cliMovement =
+    argMovementIndex !== -1 && process.argv[argMovementIndex + 1]
+      ? process.argv[argMovementIndex + 1]
+      : null;
+
   if (cliInput) {
-    processChatCoachInput(cliInput)
+    const runOptions: {
+      hasClarified?: boolean;
+      forcedJenisGerak?: string;
+    } = {};
+
+    if (cliClarify) {
+      runOptions.hasClarified = true;
+    }
+    if (cliMovement) {
+      runOptions.forcedJenisGerak = cliMovement;
+    }
+
+    processChatCoachInput(cliInput, runOptions)
       .then(
         ({
           promptPayload,
@@ -533,13 +822,24 @@ if (isDirectRun) {
           console.log(`- JENIS_GERAK      : ${jenisGerak}`);
           console.log(`- Gerak Match      : ${movementMatchNote}`);
           if (auditReport.unverifiedNumbers.length > 0) {
-            console.log(`- [AUDIT] Angka Tdk Terverifikasi: ${auditReport.unverifiedNumbers.join(", ")}`);
+            console.log(
+              `- [AUDIT] Angka Tdk Terverifikasi: ${auditReport.unverifiedNumbers.join(", ")}`
+            );
           }
           if (auditReport.unverifiedActivityClaims.length > 0) {
-            console.log(`- [AUDIT] Klaim Aktivitas Tdk Sah: ${auditReport.unverifiedActivityClaims.join(", ")}`);
+            console.log(
+              `- [AUDIT] Klaim Aktivitas Tdk Sah: ${auditReport.unverifiedActivityClaims.join(", ")}`
+            );
+          }
+          if (auditReport.unverifiedCauseClaims.length > 0) {
+            console.log(
+              `- [AUDIT] Klaim Penyebab Tdk Sah : ${auditReport.unverifiedCauseClaims.join(", ")}`
+            );
           }
           if (auditReport.hasRepeatedSentences) {
-            console.log(`- [AUDIT] Kalimat Berulang       : ${auditReport.repeatedSentences.join(" | ")}`);
+            console.log(
+              `- [AUDIT] Kalimat Berulang       : ${auditReport.repeatedSentences.join(" | ")}`
+            );
           }
           console.log();
           console.log(`Kamu > ${cliInput}\n`);
@@ -564,6 +864,9 @@ if (isDirectRun) {
       isClosed = true;
     });
 
+    let isAwaitingClarification = false;
+    let pendingMovementOptions: string[] = [];
+
     console.log("\n==================================================================");
     console.log("  🌿 CampusFlow AI Coach — Sesi Percakapan Aktif");
     console.log("==================================================================");
@@ -574,7 +877,7 @@ if (isDirectRun) {
       if (isClosed) return;
       rl.question("Kamu > ", async (input) => {
         const trimmed = input.trim();
-        if (!trimmed) {
+        if (!trimmed && !isAwaitingClarification) {
           if (!isClosed) askPrompt();
           return;
         }
@@ -589,6 +892,31 @@ if (isDirectRun) {
         process.stdout.write("Coach > Sedang memikirkan rekomendasi untukmu...");
 
         try {
+          const callOptions: {
+            hasClarified?: boolean;
+            forcedJenisGerak?: string;
+          } = {};
+
+          if (isAwaitingClarification) {
+            isAwaitingClarification = false;
+            callOptions.hasClarified = true;
+          } else if (pendingMovementOptions.length > 0) {
+            const upper = trimmed.toUpperCase();
+            let selectedMovement: string | null = null;
+            if (upper === "A" || trimmed === "1") {
+              selectedMovement = pendingMovementOptions[0];
+            } else if (upper === "B" || trimmed === "2") {
+              selectedMovement = pendingMovementOptions[1];
+            } else if (upper === "C" || trimmed === "3") {
+              selectedMovement = pendingMovementOptions[2];
+            }
+
+            pendingMovementOptions = [];
+            if (selectedMovement) {
+              callOptions.forcedJenisGerak = selectedMovement;
+            }
+          }
+
           const {
             promptPayload,
             dominantMediator,
@@ -599,7 +927,9 @@ if (isDirectRun) {
             movementMatchNote,
             auditReport,
             formattedOutput,
-          } = await processChatCoachInput(trimmed);
+            needsClarification,
+            movementOptions,
+          } = await processChatCoachInput(trimmed, callOptions);
 
           if (process.stdout.isTTY) {
             readline.clearLine(process.stdout, 0);
@@ -623,19 +953,36 @@ if (isDirectRun) {
             console.log(`- JENIS_GERAK      : ${jenisGerak}`);
             console.log(`- Gerak Match      : ${movementMatchNote}`);
             if (auditReport.unverifiedNumbers.length > 0) {
-              console.log(`- [AUDIT] Angka Tdk Terverifikasi: ${auditReport.unverifiedNumbers.join(", ")}`);
+              console.log(
+                `- [AUDIT] Angka Tdk Terverifikasi: ${auditReport.unverifiedNumbers.join(", ")}`
+              );
             }
             if (auditReport.unverifiedActivityClaims.length > 0) {
-              console.log(`- [AUDIT] Klaim Aktivitas Tdk Sah: ${auditReport.unverifiedActivityClaims.join(", ")}`);
+              console.log(
+                `- [AUDIT] Klaim Aktivitas Tdk Sah: ${auditReport.unverifiedActivityClaims.join(", ")}`
+              );
+            }
+            if (auditReport.unverifiedCauseClaims.length > 0) {
+              console.log(
+                `- [AUDIT] Klaim Penyebab Tdk Sah : ${auditReport.unverifiedCauseClaims.join(", ")}`
+              );
             }
             if (auditReport.hasRepeatedSentences) {
-              console.log(`- [AUDIT] Kalimat Berulang       : ${auditReport.repeatedSentences.join(" | ")}`);
+              console.log(
+                `- [AUDIT] Kalimat Berulang       : ${auditReport.repeatedSentences.join(" | ")}`
+              );
             }
             console.log();
           }
 
           console.log(formattedOutput);
           console.log();
+
+          if (needsClarification) {
+            isAwaitingClarification = true;
+          } else if (movementOptions && movementOptions.length > 0) {
+            pendingMovementOptions = movementOptions;
+          }
         } catch (err) {
           if (process.stdout.isTTY) {
             readline.clearLine(process.stdout, 0);

@@ -3,6 +3,7 @@ import type { DominantMediator } from "../../../shared/contracts/index.ts";
 import { env } from "../config/env.ts";
 import {
   CRISIS_RESPONSE_TEXT,
+  deduplicateResponse,
   detectDistressKeywords as sharedDetectDistressKeywords,
   stripNullFields,
 } from "./coachShared.ts";
@@ -125,7 +126,7 @@ const insightOutputSchema = z.object({
   dominantMediator: z.enum(VALID_MEDIATORS),
   diagnosisSummary: z.string().min(10),
   isotemporalActionPlan: z.string().min(10),
-  recommendedMetsToday: z.coerce.number().int().min(50).max(2000),
+  recommendedMetsToday: z.coerce.number().int().min(0).max(2000),
   scientificCitationNote: z.string().min(5),
 });
 
@@ -521,7 +522,7 @@ export async function generateClinicalWellbeingInsight(
       dominantMediator: "EXAM_ACUTE_STRESS",
       diagnosisSummary: CRISIS_RESPONSE_TEXT,
       isotemporalActionPlan: "Tidak ada rencana aktivitas fisik. Diberikan protokol rujukan krisis.",
-      recommendedMetsToday: 80,
+      recommendedMetsToday: 0,
       scientificCitationNote: "Protokol keselamatan kesehatan mental terpadu.",
     };
     return {
@@ -540,10 +541,24 @@ export async function generateClinicalWellbeingInsight(
     evaluation.escalationFlag,
     userTelemetry7Days.recentInsights
   );
+  const cleanToday = stripNullFields(userTelemetry7Days.today);
   const activeDirectives = buildActiveDirectives(evaluation, skipAdaptation);
   activeDirectives.push(
     "DATA_TIDAK_LENGKAP: jangan menyebut angka, durasi, atau tingkat aktivitas yang tidak ada di input user"
   );
+  if (Object.keys(cleanToday).length === 0 && !userTelemetry7Days.userNotes) {
+    activeDirectives.push(
+      "PENYEBAB_TIDAK_DIKETAHUI: jangan menyebut penyebab (tidur, duduk, aktivitas, kuliah) yang tidak disebut user"
+    );
+  }
+  if (
+    userTelemetry7Days.today.sleepHours !== null &&
+    userTelemetry7Days.today.sleepHours !== undefined
+  ) {
+    activeDirectives.push(
+      "TAFSIR_TIDUR: sleepHours adalah lama tidur semalam, bukan kejadian barusan. Jangan memakai kata 'baru saja' untuk durasi tidur."
+    );
+  }
 
   const promptPayload = {
     activeDirectives,
@@ -556,7 +571,7 @@ export async function generateClinicalWellbeingInsight(
     },
     allowedRanges,
     skipAdaptation,
-    today: stripNullFields(userTelemetry7Days.today),
+    today: cleanToday,
     history7Days: userTelemetry7Days.history7Days,
     latestPss10Score: userTelemetry7Days.latestPss10Score ?? null,
     userNotes: userTelemetry7Days.userNotes ?? null,
@@ -585,6 +600,13 @@ export async function generateClinicalWellbeingInsight(
     const finalInsight = enforceGuardrails
       ? enforceClinicalGuardrails(parsed, evaluation, allowedRanges)
       : parsed;
+
+    const deduped = deduplicateResponse(
+      finalInsight.diagnosisSummary,
+      finalInsight.isotemporalActionPlan
+    );
+    finalInsight.diagnosisSummary = deduped.summary;
+    finalInsight.isotemporalActionPlan = deduped.plan;
 
     return {
       insight: finalInsight,

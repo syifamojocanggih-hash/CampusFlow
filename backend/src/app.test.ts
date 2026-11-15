@@ -350,3 +350,231 @@ test("POST /ai-coach/generate menangani belum check-in harian (pss4=null) & cata
     }
   );
 });
+
+test("POST /ai-coach/generate pada input krisis darurat tidak memanggil Ollama (mock) dan mengembalikan respons krisis tanpa METs", async () => {
+  const demoUser = {
+    id: DEMO_USER_ID,
+    name: "Mahasiswa Demo",
+    nim: "4.33.24.0.01",
+    email: "demo@campusflow.id",
+    passwordHash: "hashed",
+    department: "Teknik Informatika",
+    weeklyMetsTarget: 1500,
+    postureBaselineJson: null,
+    pushSubscription: null,
+    currentStreakDays: 0,
+    xpPoints: 0,
+    createdAt: new Date(),
+  };
+
+  let ollamaMockCalled = false;
+  const tempFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    if (url.includes(":11434")) {
+      ollamaMockCalled = true;
+      throw new Error("Ollama TIDAK boleh dipanggil pada kondisi krisis!");
+    }
+    return tempFetch(input, init);
+  }) as typeof fetch;
+
+  try {
+    await withStubbedPrisma(
+      {
+        user: { findUnique: async () => demoUser },
+        dailyWellbeingLog: { findMany: async () => [] },
+        clinicalAssessment: { findFirst: async () => null },
+        sedentarySession: { aggregate: async () => ({ _sum: { durationMinutes: 120 } }) },
+        physicalActivity: { aggregate: async () => ({ _sum: { durationMinutes: 0 } }) },
+        aiCoachingInsight: {
+          findMany: async () => [],
+          create: async (args: { data: Record<string, unknown> }) => ({
+            id: "insight-crisis-test",
+            createdAt: new Date().toISOString(),
+            isCompleted: false,
+            ...args.data,
+          }),
+        },
+      },
+      async () => {
+        const loginRes = await fetch(`${baseUrl}/auth/demo`, { method: "POST" });
+        const { data: loginData } = (await loginRes.json()) as { data: { token: string } };
+        const res = await fetch(`${baseUrl}/ai-coach/generate`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${loginData.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            notes: "aku putus asa banget dan rasanya pengen mengakhiri hidup",
+          }),
+        });
+        const json = (await res.json()) as {
+          data: {
+            dominantMediator: string;
+            diagnosisSummary: string;
+            isotemporalActionPlan: string;
+            escalationFlag: boolean;
+            generationSource: string;
+            recommendedMetsToday?: number;
+          };
+        };
+
+        assert.equal(res.status, 201);
+        assert.equal(ollamaMockCalled, false, "Ollama tidak boleh dipanggil");
+        assert.equal(json.data.generationSource, "CRISIS_SAFETY_BYPASS");
+        assert.equal(json.data.escalationFlag, true);
+        assert.equal(json.data.dominantMediator, "EXAM_ACUTE_STRESS");
+        assert.match(json.data.diagnosisSummary, /healing119\.id/);
+        assert.match(json.data.diagnosisSummary, /Hotline 119/);
+        assert.equal(
+          json.data.recommendedMetsToday,
+          undefined,
+          "Field recommendedMetsToday harus dihilangkan pada respons krisis"
+        );
+      }
+    );
+  } finally {
+    globalThis.fetch = tempFetch;
+  }
+});
+
+test("POST /ai-coach/generate pada input keluhan umum tanpa konteks mengembalikan clarification {question, options} tanpa memanggil Ollama", async () => {
+  const demoUser = {
+    id: DEMO_USER_ID,
+    name: "Mahasiswa Demo",
+    nim: "4.33.24.0.01",
+    email: "demo@campusflow.id",
+    passwordHash: "hashed",
+    department: "Teknik Informatika",
+    weeklyMetsTarget: 1500,
+    postureBaselineJson: null,
+    pushSubscription: null,
+    currentStreakDays: 0,
+    xpPoints: 0,
+    createdAt: new Date(),
+  };
+
+  let ollamaMockCalled = false;
+  const tempFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    if (url.includes(":11434")) {
+      ollamaMockCalled = true;
+      throw new Error("Ollama TIDAK boleh dipanggil pada kondisi klarifikasi proaktif!");
+    }
+    return tempFetch(input, init);
+  }) as typeof fetch;
+
+  try {
+    await withStubbedPrisma(
+      {
+        user: { findUnique: async () => demoUser },
+        dailyWellbeingLog: { findMany: async () => [] },
+        clinicalAssessment: { findFirst: async () => null },
+        sedentarySession: { aggregate: async () => ({ _sum: { durationMinutes: 120 } }) },
+        physicalActivity: { aggregate: async () => ({ _sum: { durationMinutes: 0 } }) },
+        aiCoachingInsight: {
+          findMany: async () => [],
+          create: async () => {
+            throw new Error("Insight tidak boleh disimpan ke DB saat klarifikasi proaktif!");
+          },
+        },
+      },
+      async () => {
+        const loginRes = await fetch(`${baseUrl}/auth/demo`, { method: "POST" });
+        const { data: loginData } = (await loginRes.json()) as { data: { token: string } };
+        const res = await fetch(`${baseUrl}/ai-coach/generate`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${loginData.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            notes: "capek banget",
+          }),
+        });
+        const json = (await res.json()) as {
+          data: {
+            clarification?: {
+              question: string;
+              options: Array<{ id: string; label: string }>;
+            };
+          };
+        };
+
+        assert.equal(res.status, 200);
+        assert.equal(ollamaMockCalled, false, "Ollama tidak boleh dipanggil saat klarifikasi");
+        assert.ok(json.data.clarification, "Field clarification harus ada");
+        assert.match(json.data.clarification.question, /capek atau kondisi tubuhmu/i);
+        assert.equal(json.data.clarification.options.length, 4);
+        assert.equal(json.data.clarification.options[0].id, "A");
+        assert.equal(json.data.clarification.options[1].id, "B");
+        assert.equal(json.data.clarification.options[2].id, "C");
+        assert.equal(json.data.clarification.options[3].id, "D");
+      }
+    );
+  } finally {
+    globalThis.fetch = tempFetch;
+  }
+});
+
+test("POST /ai-coach/generate menyertakan movementOptions pada respons normal", async () => {
+  const demoUser = {
+    id: DEMO_USER_ID,
+    name: "Mahasiswa Demo",
+    nim: "4.33.24.0.01",
+    email: "demo@campusflow.id",
+    passwordHash: "hashed",
+    department: "Teknik Informatika",
+    weeklyMetsTarget: 1500,
+    postureBaselineJson: null,
+    pushSubscription: null,
+    currentStreakDays: 0,
+    xpPoints: 0,
+    createdAt: new Date(),
+  };
+
+  await withStubbedPrisma(
+    {
+      user: { findUnique: async () => demoUser },
+      dailyWellbeingLog: { findMany: async () => [] },
+      clinicalAssessment: { findFirst: async () => null },
+      sedentarySession: { aggregate: async () => ({ _sum: { durationMinutes: 120 } }) },
+      physicalActivity: { aggregate: async () => ({ _sum: { durationMinutes: 0 } }) },
+      aiCoachingInsight: {
+        findMany: async () => [],
+        create: async (args: { data: Record<string, unknown> }) => ({
+          id: "insight-normal-test",
+          createdAt: new Date().toISOString(),
+          isCompleted: false,
+          ...args.data,
+        }),
+      },
+    },
+    async () => {
+      const loginRes = await fetch(`${baseUrl}/auth/demo`, { method: "POST" });
+      const { data: loginData } = (await loginRes.json()) as { data: { token: string } };
+      const res = await fetch(`${baseUrl}/ai-coach/generate`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${loginData.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notes: "pegal habis nugas 8 jam",
+        }),
+      });
+      const json = (await res.json()) as {
+        data: {
+          dominantMediator: string;
+          movementOptions?: string[];
+        };
+      };
+
+      assert.equal(res.status, 201);
+      assert.ok(Array.isArray(json.data.movementOptions), "movementOptions harus berupa array");
+      assert.ok(json.data.movementOptions.length >= 2, "Harus menyertakan setidaknya 2 pilihan gerak");
+    }
+  );
+});

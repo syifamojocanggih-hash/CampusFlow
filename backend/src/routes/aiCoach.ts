@@ -12,11 +12,20 @@ import {
   checkOllamaStatus,
   generateClinicalWellbeingInsight,
 } from "../services/ollamaCoach.ts";
+import {
+  detectClarificationChoice,
+  detectDistressKeywords,
+  isBareGeneralComplaint,
+  MOVEMENT_OPTIONS_BY_MEDIATOR,
+  PROACTIVE_CLARIFICATION_OPTIONS,
+  PROACTIVE_CLARIFICATION_QUESTION,
+} from "../services/coachShared.ts";
 
 export const aiCoachRouter = Router();
 
 const generateCoachBodySchema = z.object({
   notes: z.string().trim().max(500).optional(),
+  clarificationChoice: z.string().trim().max(100).optional(),
 });
 
 const aiGenerateLimiter = createRateLimiter({
@@ -48,6 +57,7 @@ aiCoachRouter.post(
   async (req: AuthenticatedRequest, res) => {
   const userId = req.user!.sub;
   let userNotes: string | null = null;
+  let clarificationChoice: string | null = null;
   if (req.body && typeof req.body === "object" && Object.keys(req.body).length > 0) {
     const parsedBody = generateCoachBodySchema.safeParse(req.body);
     if (!parsedBody.success) {
@@ -56,6 +66,39 @@ aiCoachRouter.post(
       });
     }
     userNotes = parsedBody.data.notes ?? null;
+    clarificationChoice = parsedBody.data.clarificationChoice ?? null;
+  }
+
+  // 1. Jalur krisis tetap dicek paling awal
+  const isCrisis = detectDistressKeywords(userNotes);
+
+  // 2. Klarifikasi proaktif: jika input hanya keluhan umum tanpa penanda konteks, JANGAN panggil model
+  if (!isCrisis && userNotes && !clarificationChoice && isBareGeneralComplaint(userNotes)) {
+    sendSuccess(
+      res,
+      {
+        clarification: {
+          question: PROACTIVE_CLARIFICATION_QUESTION,
+          options: PROACTIVE_CLARIFICATION_OPTIONS,
+        },
+      },
+      200
+    );
+    return;
+  }
+
+  if (clarificationChoice) {
+    const detected = detectClarificationChoice(clarificationChoice);
+    if (detected.isChoice && detected.choice && detected.choice !== "SKIP") {
+      const optionMap: Record<string, string> = {
+        A: "keluhan badan pegal dan kaku",
+        B: "keluhan ngantuk dan kurang tidur",
+        C: "keluhan baru selesai olahraga atau aktivitas fisik berat",
+        D: "keluhan pikiran penat atau stres akademik",
+      };
+      const label = optionMap[detected.choice] || clarificationChoice;
+      userNotes = userNotes ? `${userNotes}. ${label}` : label;
+    }
   }
 
   const todayStart = toUtcDateOnly(new Date());
@@ -137,7 +180,22 @@ aiCoachRouter.post(
     },
   });
 
-  sendSuccess(res, { ...saved, generationSource: source, model, escalationFlag }, 201);
+  if (source === "CRISIS_SAFETY_BYPASS") {
+    const { recommendedMetsToday: _omit, ...rest } = saved;
+    sendSuccess(res, { ...rest, generationSource: source, model, escalationFlag }, 201);
+    return;
+  }
+
+  const movementOptions = (
+    MOVEMENT_OPTIONS_BY_MEDIATOR[insight.dominantMediator] ||
+    MOVEMENT_OPTIONS_BY_MEDIATOR.OPTIMAL_BALANCE
+  ).slice(0, 3);
+
+  sendSuccess(
+    res,
+    { ...saved, generationSource: source, model, escalationFlag, movementOptions },
+    201
+  );
 });
 
 aiCoachRouter.get("/latest", requireAuth, async (req: AuthenticatedRequest, res) => {

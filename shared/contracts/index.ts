@@ -170,14 +170,29 @@ export interface TriadDashboardDTO {
   history: TriadHistoryPointDTO[];
 }
 
+export interface ClarificationOptionDTO {
+  id: "A" | "B" | "C" | "D";
+  label: string;
+}
+
+export interface ClarificationDTO {
+  question: string;
+  options: ClarificationOptionDTO[];
+}
+
 export interface AiCoachingInsightDTO {
-  id: string;
-  createdAt: string;
-  dominantMediator: DominantMediator;
-  diagnosisSummary: string;
-  isotemporalActionPlan: string;
-  recommendedMetsToday: number;
-  scientificCitationNote: string;
-  isCompleted: boolean;
+  id?: string;
+  createdAt?: string;
+  dominantMediator?: DominantMediator;
+  diagnosisSummary?: string;
+  isotemporalActionPlan?: string;
+  recommendedMetsToday?: number;
+  scientificCitationNote?: string;
+  isCompleted?: boolean;
+  clarification?: ClarificationDTO;
+  movementOptions?: string[];
+  generationSource?: string;
+  escalationFlag?: boolean;
+  model?: string;
 }
 

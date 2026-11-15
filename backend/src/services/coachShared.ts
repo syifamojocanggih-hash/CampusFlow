@@ -20,6 +20,54 @@ Ada orang-orang yang peduli dan siap mendengarkanmu tanpa menghakimi. Ambil jeda
 export const CLARIFICATION_PROMPT_TEXT =
   "Capeknya lebih ke badan, mata, atau pikiran?";
 
+/** 3 varian template netral pengganti penjelasan kondisi bila audit mendeteksi klaim karangan (tidak menyebut kata 'capek') */
+export const NEUTRAL_CAUSE_FALLBACK_VARIANTS: string[] = [
+  "Aku belum tahu pasti penyebabnya, tapi gerakan ringan bisa membantu memulihkan kesegaran tubuhmu.",
+  "Penyebab pastinya belum diketahui dari ceritamu, tapi jeda gerak santai bisa membuat tubuh lebih nyaman.",
+  "Tanpa tahu persis pemicunya, peregangan atau gerakan ringan tetap bisa membantu merilekskan tubuh.",
+];
+
+let neutralFallbackIndex = 0;
+export function getNextNeutralCauseFallback(): string {
+  const variant =
+    NEUTRAL_CAUSE_FALLBACK_VARIANTS[neutralFallbackIndex % NEUTRAL_CAUSE_FALLBACK_VARIANTS.length];
+  neutralFallbackIndex += 1;
+  return variant;
+}
+
+export function resetNeutralCauseFallbackIndex(): void {
+  neutralFallbackIndex = 0;
+}
+
+export const NEUTRAL_CAUSE_FALLBACK_TEXT = NEUTRAL_CAUSE_FALLBACK_VARIANTS[0];
+
+export interface ClarificationOption {
+  id: "A" | "B" | "C" | "D";
+  label: string;
+}
+
+export const PROACTIVE_CLARIFICATION_QUESTION =
+  "Biar rekomendasinya pas, capek atau kondisi tubuhmu saat ini paling dominan karena apa?";
+
+export const PROACTIVE_CLARIFICATION_OPTIONS: ClarificationOption[] = [
+  { id: "A", label: "Badan pegal atau otot kaku" },
+  { id: "B", label: "Ngantuk atau kurang tidur" },
+  { id: "C", label: "Habis olahraga atau aktivitas berat" },
+  { id: "D", label: "Pikiran penat atau stres kuliah" },
+];
+
+export const PROACTIVE_CLARIFICATION_TEXT =
+  `${PROACTIVE_CLARIFICATION_QUESTION}\n` +
+  `1. A) ${PROACTIVE_CLARIFICATION_OPTIONS[0].label}\n` +
+  `2. B) ${PROACTIVE_CLARIFICATION_OPTIONS[1].label}\n` +
+  `3. C) ${PROACTIVE_CLARIFICATION_OPTIONS[2].label}\n` +
+  `4. D) ${PROACTIVE_CLARIFICATION_OPTIONS[3].label}\n\n` +
+  `(Ketik A/B/C/D, 1/2/3/4, kata kuncinya, atau ketik 'lewati' untuk rekomendasi umum)`;
+
+/** Teks pertanyaan klarifikasi ramah dengan pilihan A/B/C */
+export const CLARIFICATION_WITH_OPTIONS_TEXT =
+  "Capeknya lebih ke arah mana?\nA. Badan terasa kaku atau pegal (butuh peregangan lembut)\nB. Mata lelah atau kepala berat karena layar (butuh jeda istirahat)\nC. Pikiran penuh atau stres tugas kuliah (butuh latihan napas)";
+
 /** Pengecualian ekspresi kiasan / hiperbola sehari-hari bahasa Indonesia yang memakai kata 'mati' */
 export const FIGURATIVE_MATI_EXCLUSIONS = [
   /\bmati\s+(?:rasa|gaya|kutu|langkah|lampu|listrik|angin)\b/i,
@@ -127,6 +175,123 @@ export function extractActivity(text: string): string | null {
   return null;
 }
 
+/** Mendeteksi apakah user menyatakan sudah / baru saja berolahraga */
+export function detectRecentlyExercised(text?: string | null): boolean {
+  if (!text) return false;
+  const lower = text.toLowerCase();
+  return (
+    /\b(?:sebelum.*?sudah|habis|baru saja|tadi)\s+(?:olahraga|workout|gym|jogging|lari|senam|futsal|badminton|sepedaan|renang)\b/i.test(
+      lower
+    ) ||
+    /\bsudah\s+(?:olahraga|workout|gym|jogging|lari|senam|futsal|badminton|sepedaan|renang)\b/i.test(
+      lower
+    ) ||
+    /\bhabis\s+(?:olahraga|workout|gym|jogging|lari|senam)\b/i.test(lower) ||
+    /\bsebelum\s+.*\s+sudah\s+olahraga\b/i.test(lower) ||
+    /\bbaru\s+olahraga\b/i.test(lower)
+  );
+}
+
+/** Mengecek apakah input hanya berisi keluhan umum tanpa penanda konteks (durasi duduk, jam tidur, olahraga, stres/ujian, aktivitas) */
+export function isBareGeneralComplaint(text: string): boolean {
+  if (!text) return false;
+  const trimmed = text.trim();
+  const lower = trimmed.toLowerCase();
+
+  // Jalur krisis selalu diprioritaskan paling awal
+  if (detectDistressKeywords(trimmed)) return false;
+
+  // Cek apakah ada keluhan kelelahan/kebugaran umum
+  const hasGeneralComplaint =
+    /\b(capek|lelah|letih|lemes|lemas|mager|males|males gerak|pegal|pegel|kaku|penat|loyo)\b/i.test(
+      lower
+    );
+  if (!hasGeneralComplaint) return false;
+
+  // Cek penanda konteks: jika ADA penanda konteks, bukan bare complaint
+  const hasSedentaryHours = extractSedentaryHours(trimmed) !== null;
+  const hasSleepHours = extractSleepHours(trimmed) !== null;
+  const hasActivity = extractActivity(trimmed) !== null;
+  const hasExercise = detectRecentlyExercised(trimmed);
+  const hasSleepWords = /\b(tidur|begadang|insomnia|ngantuk|kantuk|mata perih)\b/i.test(lower);
+  const hasExamWords = /\b(uts|uas|ujian|tes|kuis|deadline|sidang|presentasi|deg-degan|panik)\b/i.test(lower);
+  const hasSittingWords = /\b(duduk|di depan (?:laptop|komputer|layar)|meja|kursi)\b/i.test(lower);
+  const hasDurationWords = /\b(seharian|sepanjang hari|berjam-jam|tiap hari)\b/i.test(lower);
+
+  if (
+    hasSedentaryHours ||
+    hasSleepHours ||
+    hasActivity ||
+    hasExercise ||
+    hasSleepWords ||
+    hasExamWords ||
+    hasSittingWords ||
+    hasDurationWords
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+/** Mendeteksi respon klarifikasi opsi A/B/C/D, angka 1/2/3/4, lewati, atau kata kunci dari user */
+export function detectClarificationChoice(
+  text: string
+): { isChoice: boolean; choice: "A" | "B" | "C" | "D" | "SKIP" | null } {
+  const trimmed = text.trim().toLowerCase();
+  if (
+    !trimmed ||
+    trimmed === "lewati" ||
+    trimmed === "skip" ||
+    trimmed === "pass" ||
+    trimmed === "langsung" ||
+    trimmed === "lanjut"
+  ) {
+    return { isChoice: true, choice: "SKIP" };
+  }
+  if (
+    /^(?:pilihan\s+|opsi\s+)?(?:a|1)\b/i.test(trimmed) ||
+    /\b(?:badan|fisik|pegal|pegel|kaku|otot)\b/i.test(trimmed)
+  ) {
+    return { isChoice: true, choice: "A" };
+  }
+  if (
+    /^(?:pilihan\s+|opsi\s+)?(?:b|2)\b/i.test(trimmed) ||
+    /\b(?:ngantuk|kantuk|tidur|kurang tidur|begadang|merem|mata\s+lelah|mata\s+perih|mata|layar)\b/i.test(
+      trimmed
+    )
+  ) {
+    return { isChoice: true, choice: "B" };
+  }
+  if (
+    /^(?:pilihan\s+|opsi\s+)?(?:c|3)\b/i.test(trimmed) ||
+    /\b(?:olahraga|workout|gym|lari|berat|fisik berat|futsal|badminton|senam)\b/i.test(trimmed)
+  ) {
+    return { isChoice: true, choice: "C" };
+  }
+  if (
+    /^(?:pilihan\s+|opsi\s+)?(?:d|4)\b/i.test(trimmed) ||
+    /\b(?:pikiran|penat|mental|stres|stress|tugas|beban|kuliah|pusing|mumet)\b/i.test(trimmed)
+  ) {
+    return { isChoice: true, choice: "D" };
+  }
+  return { isChoice: false, choice: null };
+}
+
+/** Format pilihan 2-3 gerakan di akhir jawaban Coach untuk terminal */
+export function formatMovementOptionsPrompt(mediatorKey: string): string {
+  const rawOptions =
+    MOVEMENT_OPTIONS_BY_MEDIATOR[mediatorKey] || MOVEMENT_OPTIONS_BY_MEDIATOR.OPTIMAL_BALANCE;
+  const options = rawOptions.slice(0, 3);
+  const letters = ["A", "B", "C"];
+  const lines = [
+    "\nPilihan gerak untukmu:",
+    ...options.map((opt, i) => `  ${letters[i]}. ${opt.charAt(0).toUpperCase() + opt.slice(1)}`),
+    "  (Ketik A/B/C untuk memilih, atau ketik bebas)",
+  ];
+  return lines.join("\n");
+}
+
 /** Menghilangkan field bernilai null atau undefined dari objek */
 export function stripNullFields<T extends Record<string, unknown>>(obj: T): Partial<T> {
   const clean: Record<string, unknown> = {};
@@ -160,8 +325,14 @@ export const MOVEMENT_OPTIONS_BY_MEDIATOR: Record<string, string[]> = {
   ESCALATION: [
     "TIDAK ada rekomendasi olahraga; hanya latihan napas pelan atau duduk tenang 5-10 menit di ruangan yang nyaman dan ajakan berkonsultasi ke Konselor Kampus",
   ],
+  RECENTLY_EXERCISED: [
+    "pemulihan aktif dengan peregangan pendinginan otot lembut dan rehidrasi cairan (tanpa olahraga tambahan)",
+    "latihan napas rileks dan peregangan pendinginan statis untuk memulihkan otot yang sudah dipakai berolahraga",
+  ],
   OPTIMAL_BALANCE: [
     "peregangan santai dan jalan ringan untuk memelihara kebugaran harian",
+    "jalan santai 10-15 menit di luar ruangan untuk menyegarkan suasana pikiran",
+    "peregangan tubuh lembut dan jeda minum air untuk menjaga keseimbangan energi",
   ],
 };
 
@@ -264,6 +435,11 @@ export function checkMovementMatch(
   ) {
     matches = true;
   } else if (
+    /pemulihan aktif|pendinginan|rehidrasi/i.test(targetLower) &&
+    /pemulihan|pendinginan|peregangan|napas|hidrasi|minum|istirahat|rileks/i.test(planLower)
+  ) {
+    matches = true;
+  } else if (
     /jalan singkat|jeda berdiri/i.test(targetLower) &&
     /jalan|berdiri|koridor/i.test(planLower)
   ) {
@@ -277,9 +453,77 @@ export function checkMovementMatch(
   return { matches, note };
 }
 
+/** Hapus duplikasi kalimat persis dalam satu teks (case-insensitive & whitespace trimmed) */
+export function deduplicateSentences(text: string): string {
+  if (!text) return "";
+  const sentenceRegex = /[^.!?\n]+(?:[.!?]+|\n+|$)/g;
+  const matches = text.match(sentenceRegex);
+  if (!matches) return text.trim();
+
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const raw of matches) {
+    const clean = raw.trim();
+    if (!clean) continue;
+    const normalized = clean.toLowerCase().replace(/[.!?]+$/, "").trim();
+    if (normalized.length > 5 && seen.has(normalized)) {
+      continue;
+    }
+    seen.add(normalized);
+    result.push(clean);
+  }
+
+  return result.join(" ");
+}
+
+/** Hapus kalimat rekomendasi yang diulang antara ringkasan dan rencana aksi */
+export function deduplicateResponse(
+  summary: string,
+  plan: string
+): { summary: string; plan: string; removedDuplicates: string[] } {
+  const dedupedSummary = deduplicateSentences(summary);
+  const sentenceRegex = /[^.!?\n]+(?:[.!?]+|\n+|$)/g;
+  const summarySentences = (dedupedSummary.match(sentenceRegex) || [])
+    .map((s) => s.trim().toLowerCase().replace(/[.!?]+$/, "").trim())
+    .filter((s) => s.length > 5);
+
+  const summarySet = new Set(summarySentences);
+  const planMatches = plan.match(sentenceRegex) || [plan];
+  const cleanPlanPieces: string[] = [];
+  const removedDuplicates: string[] = [];
+
+  for (const raw of planMatches) {
+    const clean = raw.trim();
+    if (!clean) continue;
+    const norm = clean.toLowerCase().replace(/[.!?]+$/, "").trim();
+    if (norm.length > 5 && summarySet.has(norm)) {
+      removedDuplicates.push(clean);
+      continue;
+    }
+    cleanPlanPieces.push(clean);
+  }
+
+  const dedupedPlan = deduplicateSentences(cleanPlanPieces.join(" "));
+  const finalPlan = dedupedPlan.trim().length > 0 ? dedupedPlan : plan;
+  return {
+    summary: dedupedSummary,
+    plan: finalPlan,
+    removedDuplicates,
+  };
+}
+
+/** Menghapus pemakaian kata 'baru saja' sebelum durasi tidur (karena sleepHours adalah tidur semalam) */
+export function sanitizeSleepInterpretation(text: string): string {
+  return text
+    .replace(/\bbaru\s+saja\s+(?:tidur|bangun\s+dari\s+tidur)\b/gi, "semalam tidur")
+    .replace(/\bbaru\s+tidur\b/gi, "tidur semalam");
+}
+
 export interface AuditReport {
   unverifiedNumbers: string[];
   unverifiedActivityClaims: string[];
+  unverifiedCauseClaims: string[];
   hasRepeatedSentences: boolean;
   repeatedSentences: string[];
 }
@@ -288,7 +532,8 @@ export interface AuditReport {
  * Pengecekan pasca-jawaban:
  * 1. Angka+satuan (jam/menit) yang tidak ada di input user, di allowedRanges, atau di JENIS_GERAK.
  * 2. Klaim aktivitas ("sudah cukup aktif", "aktivitas intensif") saat datanya null/tidak ada.
- * 3. Deteksi kalimat rekomendasi yang diulang dua kali.
+ * 3. Klaim penyebab yang tidak ada di input user atau data (tidur, duduk, aktivitas padat).
+ * 4. Deteksi kalimat rekomendasi yang diulang dua kali.
  */
 export function auditResponse(
   diagnosisSummary: string,
@@ -297,9 +542,12 @@ export function auditResponse(
   allowedRanges: AllowedRanges,
   jenisGerak: string,
   hasSedentaryData: boolean,
-  hasMvpaData: boolean
+  hasMvpaData: boolean,
+  hasSleepData: boolean = false,
+  detectedActivity: string | null = null
 ): AuditReport {
   const fullText = `${diagnosisSummary} ${actionPlan}`;
+  const userLower = userInput.toLowerCase();
 
   // 1. Ekstrak angka+satuan (misal "25 menit", "8 jam")
   const numberUnitMatches = fullText.matchAll(/\b(\d+(?:[.,]\d+)?)\s*(jam|menit)\b/gi);
@@ -342,7 +590,49 @@ export function auditResponse(
     }
   }
 
-  // 3. Deteksi kalimat rekomendasi yang diulang dua kali
+  // 3. Klaim penyebab tidak ada di input user atau data (Poin 1)
+  const unverifiedCauseClaims: string[] = [];
+
+  // a. Klaim tidur saat field kosong & user tidak sebut tidur
+  const userMentionsSleep = /\b(tidur|begadang|ngantuk|kantuk|insomnia|lelap|merem)\b/i.test(userLower);
+  if (!hasSleepData && !userMentionsSleep) {
+    if (
+      /\b(?:masalah\s+(?:dengan\s+)?tidur|kurang\s+tidur|pola\s+tidur|kualitas\s+tidur|jam\s+tidur|tidurmu|begadang|istirahat\s+malam)\b/i.test(
+        fullText
+      )
+    ) {
+      unverifiedCauseClaims.push("Klaim masalah tidur tanpa data/disebut user");
+    }
+  }
+
+  // b. Klaim duduk saat field kosong & user tidak sebut duduk/nugas
+  const userMentionsSitting =
+    /\b(duduk|nugas|laprak|skripsi|lab|kuliah|kursi|meja|layar|komputer|laptop|tv)\b/i.test(
+      userLower
+    );
+  if (!hasSedentaryData && !userMentionsSitting) {
+    if (
+      /\b(?:duduk\s+(?:cukup\s+)?lama|terlalu\s+lama\s+duduk|sudah\s+cukup\s+lama\s+duduk|banyak\s+duduk|posisi\s+duduk|lama\s+di\s+depan\s+layar|di\s+depan\s+(?:komputer|laptop|layar|tv)|berjam-jam\s+di\s+depan|menonton\s+tv)\b/i.test(
+        fullText
+      )
+    ) {
+      unverifiedCauseClaims.push("Klaim durasi duduk/layar tanpa data/disebut user");
+    }
+  }
+
+  // c. Klaim aktivitas padat/kuliah saat field kosong & user tidak sebut
+  const userMentionsActivity = /\b(aktivitas|kegiatan|olahraga|kuliah|kelas|dosen|lab|laprak|skripsi|nugas|jadwal|padat|sibuk)\b/i.test(userLower);
+  if (!hasMvpaData && !detectedActivity && !userMentionsActivity) {
+    if (
+      /\b(?:aktivitas\s+padat|padatnya\s+aktivitas|jadwal\s+padat|setelah\s+berolahraga|banyak\s+aktivitas|kuliah\s+seharian|kegiatan\s+padat)\b/i.test(
+        fullText
+      )
+    ) {
+      unverifiedCauseClaims.push("Klaim aktivitas padat/kuliah tanpa data/disebut user");
+    }
+  }
+
+  // 4. Deteksi kalimat rekomendasi yang diulang dua kali
   const sentences = fullText
     .split(/[.!?]+/)
     .map((s) => s.trim().toLowerCase())
@@ -360,6 +650,7 @@ export function auditResponse(
   return {
     unverifiedNumbers,
     unverifiedActivityClaims,
+    unverifiedCauseClaims,
     hasRepeatedSentences: repeatedSentences.length > 0,
     repeatedSentences,
   };
