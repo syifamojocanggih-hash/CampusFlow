@@ -22,8 +22,8 @@ interface NavbarProps {
 }
 
 export const navItems: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-  { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-  { key: "focus", label: "Vision Focus", icon: <Eye className="w-5 h-5" /> },
+  { key: "dashboard", label: "Dashboard Strava", icon: <LayoutDashboard className="w-5 h-5" /> },
+  { key: "focus", label: "Workstation & Jeda", icon: <Eye className="w-5 h-5" /> },
   { key: "activity", label: "Aktivitas & Check-in", icon: <Footprints className="w-5 h-5" /> },
   { key: "coach", label: "AI Coach", icon: <Bot className="w-5 h-5" /> },
   { key: "history", label: "Riwayat", icon: <History className="w-5 h-5" /> },
@@ -48,7 +48,7 @@ export const DesktopSidebar: React.FC<NavbarProps> = ({
               CampusFlow
             </span>
             <span className="text-[10px] text-[#9A9A9A] font-semibold tracking-wide">
-              Smart Wellbeing LMS
+              Academic Strava
             </span>
           </div>
         </div>

@@ -13,6 +13,8 @@ import {
   Compass,
   HeartPulse,
   Flame,
+  AlertCircle,
+  PhoneCall,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { MOCK_AI_COACH } from "@/mocks/campusflowMock";
@@ -72,6 +74,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
   ]);
   const [inputQuestion, setInputQuestion] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isCrisisActive, setIsCrisisActive] = useState(false);
 
   useEffect(() => {
     api
@@ -141,7 +144,19 @@ export const CoachView: React.FC<CoachViewProps> = ({
         "Pertanyaan yang bagus! Kunci menjaga fokus belajar adalah menjaga ritme jeda 50 menit duduk diimbangi 5 menit jalan atau peregangan ringan. Pastikan juga asupan air mineral cukup agar sirkulasi oksigen ke otak optimal.";
       
       const lower = q.toLowerCase();
-      if (lower.includes("tidur") || lower.includes("insomnia") || lower.includes("begadang")) {
+      if (
+        lower.includes("putus asa") ||
+        lower.includes("menyerah") ||
+        lower.includes("mati") ||
+        lower.includes("bunuh diri") ||
+        lower.includes("darurat") ||
+        lower.includes("tidak kuat lagi") ||
+        lower.includes("distres")
+      ) {
+        setIsCrisisActive(true);
+        reply =
+          "Kami sangat peduli dengan keselamatan Anda. Beban dan stres akademik saat ini mungkin terasa luar biasa berat, namun Anda tidak sendirian. Mohon segera hubungi Hotline Darurat Kesehatan Mental Indonesia di 119 (ext. 8) atau akses healing119.id. Layanan ini bebas pulsa, rahasia, dan aktif 24 jam untuk mendampingi Anda.";
+      } else if (lower.includes("tidur") || lower.includes("insomnia") || lower.includes("begadang")) {
         reply =
           "Jika Anda terpaksa tidur larut malam, usahakan tidur minimal 1.5 jam (1 siklus tidur penuh) dan hindari layar HP 20 menit sebelum memejamkan mata. Sore nanti, luangkan jalan santai 15 menit untuk merangsang produksi melatonin alami malam hari.";
       } else if (lower.includes("pegal") || lower.includes("punggung") || lower.includes("postur") || lower.includes("leher")) {
@@ -194,6 +209,9 @@ export const CoachView: React.FC<CoachViewProps> = ({
               </h2>
               <span className="bg-[#CDE8B5] text-[#1A1A1A] text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-[#B6DF97]">
                 Aktif Hari Ini
+              </span>
+              <span className="text-[10px] font-extrabold bg-[#BDE6F0] text-[#1A1A1A] px-2 py-0.5 rounded-full border border-[#8ECAD7]">
+                Ollama Local AI &bull; Guardrail 119
               </span>
             </div>
             <p className="text-xs text-[#9A9A9A] mt-0.5">
@@ -420,6 +438,37 @@ export const CoachView: React.FC<CoachViewProps> = ({
             Respons Instan &amp; Empatik
           </span>
         </div>
+
+        {/* Crisis Gateway 119 Alert Banner if Triggered */}
+        {isCrisisActive && (
+          <div className="p-4 rounded-2xl bg-[#FFF1F2] border border-[#F7A8B0] text-[#9F1239] space-y-2 animate-in zoom-in-95">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 shrink-0 text-[#9F1239]" />
+              <h4 className="font-heading font-extrabold text-xs sm:text-sm">
+                Crisis Gateway 119 &bull; Bantuan Segera Tersedia
+              </h4>
+            </div>
+            <p className="text-xs leading-relaxed">
+              Jika Anda merasa kewalahan atau mengalami keputusasaan mendalam, hubungi Hotline Kesehatan Mental Indonesia di <strong>119 ext. 8</strong> atau akses situs resmi <a href="https://healing119.id" target="_blank" rel="noreferrer" className="underline font-bold">healing119.id</a>. Layanan ini rahasia, bebas pulsa, dan siaga 24 jam.
+            </p>
+            <div className="pt-1 flex items-center gap-2">
+              <a
+                href="tel:119"
+                className="px-3.5 py-1.5 rounded-xl bg-[#9F1239] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs"
+              >
+                <PhoneCall className="w-3.5 h-3.5" />
+                <span>Telepon Hotline 119</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setIsCrisisActive(false)}
+                className="text-xs font-semibold text-[#9F1239] hover:underline px-2"
+              >
+                Tutup Peringatan
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Preset FAQ Chips */}
         <div className="space-y-1.5">

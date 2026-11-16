@@ -14,7 +14,6 @@ import {
   Send,
   CheckCircle2,
   HelpCircle,
-  Moon,
 } from "lucide-react";
 
 interface LandingPageProps {
@@ -42,25 +41,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
   const headlines = [
     {
-      subtitle: "Online education & Active Wellbeing",
-      titleLine1: "Start learning",
-      titleLine2: "at home & campus",
+      subtitle: "Academic Strava & Predictive Burnout Management",
+      titleLine1: "Keseimbangan Hidup",
+      titleLine2: "Beban Belajar & Layar",
       description:
-        "Platform terpadu pemantau postur tegak, pelacak langkah inersia, dan manajemen stres mahasiswa berbasis AI.",
+        "Platform terpadu berbasis Fusi Prediktif Beban Akademik KRS, Waktu Layar Pasif, Zero Continuous Camera (2 Menit), dan AI Coach Proaktif.",
     },
     {
-      subtitle: "100% Privat & Aman",
-      titleLine1: "Posture Guard",
-      titleLine2: "Asisten Postur AI",
+      subtitle: "Zero Continuous Camera (Privasi 100%)",
+      titleLine1: "Kamera Default OFF",
+      titleLine2: "Fokus Belajar Tenang",
       description:
-        "Deteksi posisi duduk bungkuk dan jarak mata terlalu dekat langsung di browser Anda tanpa mengunggah video.",
+        "Waktu belajar dilacak pasif via Page Visibility API peramban. Kamera HANYA menyala maksimal 2 menit saat tombol Active Break ditekan untuk validasi pose.",
     },
     {
-      subtitle: "Hitung Langkah Otomatis",
-      titleLine1: "Smart Pedometer",
-      titleLine2: "Keep moving everyday",
+      subtitle: "Fusi Parameter Tunggal (0–100)",
+      titleLine1: "Burnout Risk Index",
+      titleLine2: "Metrik Strava Akademik",
       description:
-        "Gunakan sensor HP di saku untuk menghitung langkah dan menjaga tubuh tetap aktif di sela jam kuliah.",
+        "Menyeimbangkan beban SKS & layar dengan jam tidur dan jeda aktif terverifikasi: Hijau (<40 Optimal), Kuning (40–75 Waspada), Merah (>75 Risiko Tinggi).",
     },
   ];
 
@@ -140,58 +139,58 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const coursesData = [
     {
       id: "c1",
-      category: "ergonomi",
+      category: "akademik",
       cardBg: "bg-[#E6F5F8] border-[#BDE6F0] hover:border-[#8ECAD7]",
       iconBg: "bg-[#BDE6F0] text-[#1A1A1A]",
-      icon: <Eye className="w-5 h-5" />,
-      title: "Mastery Ergonomi Belajar & Postur 20-20-20",
+      icon: <BookOpen className="w-5 h-5" />,
+      title: "Smart Academic Planner (PDF KRS Parser)",
       description:
-        "Setup ruang belajar ergonomis, pencegahan leher bungkuk (Text Neck), dan panduan jarak mata-layar 50-70 cm.",
+        "Ekstraksi jadwal perkuliahan, bobot SKS, jenis kelas teori vs praktikum, dan pekan ujian untuk prediksi beban kognitif otomatis setiap harinya.",
     },
     {
       id: "c2",
-      category: "aktivitas",
+      category: "layar",
       cardBg: "bg-[#EEF7E6] border-[#CDE8B5] hover:border-[#B6DF97]",
       iconBg: "bg-[#CDE8B5] text-[#1A1A1A]",
-      icon: <Footprints className="w-5 h-5" />,
-      title: "Gaya Hidup Aktif & Penghitung Langkah Kampus",
+      icon: <Eye className="w-5 h-5" />,
+      title: "Cross-Device Screen Time & Zero Continuous Camera",
       description:
-        "Mencapai target gerak aktif mingguan dengan sensor HP di saku. Tetap aktif berjalan di sela jam kuliah padat.",
+        "Pelacakan durasi fokus layar secara pasif menggunakan Page Visibility API tanpa menyalakan webcam. Kamera tetap mati 100% saat Anda belajar.",
     },
     {
       id: "c3",
-      category: "stres",
+      category: "jeda",
       cardBg: "bg-[#FFFCEB] border-[#FFE966] hover:border-[#FFDD33]",
       iconBg: "bg-[#FFF29A] text-[#1A1A1A]",
-      icon: <Moon className="w-5 h-5" />,
-      title: "Manajemen Stres Mahasiswa & Relaksasi 15 Menit",
+      icon: <Footprints className="w-5 h-5" />,
+      title: "On-Demand Active Break Validator (MediaPipe 2 Menit)",
       description:
-        "Ketahui tingkat stres harian, latihan pernapasan terpandu, dan relaksasi cepat saat menghadapi deadline tugas.",
+        "Verifikasi gerakan peregangan overhead reach dan beranjak dari kursi selama 2 menit. Menambah +10 poin pemulihan dan kamera langsung mati otomatis.",
     },
     {
       id: "c4",
-      category: "stres",
+      category: "ai",
       cardBg: "bg-[#FDF0F2] border-[#F7A8B0] hover:border-[#F27885]",
       iconBg: "bg-[#F7A8B0] text-[#1A1A1A]",
       icon: <Bot className="w-5 h-5" />,
-      title: "AI Coaching & Pembentukan Kebiasaan Belajar Sehat",
+      title: "Wellbeing AI Coach & Konsultasi Stres Proaktif",
       description:
-        "Membangun rutinitas harian seimbang menggunakan panduan AI cerdas dan menjaga konsistensi tanpa rasa lelah berlebih.",
+        "Mesin inferensi lokal Ollama untuk konsultasi keluhan kelelahan fisik, rekomendasi peregangan esok hari, dan safety guardrail krisis darurat 119.",
     },
   ];
 
   const faqs = [
     {
-      q: "Apakah webcam saya direkam atau diunggah ke internet?",
-      a: "Sama sekali tidak. CampusFlow bekerja 100% langsung di perangkat Anda. Kamera hanya memindai kerangka tubuh di memori lokal peramban tanpa pernah mengirimkan satu frame video pun ke server atau internet.",
+      q: "Apakah kamera laptop menyala terus-menerus saat saya belajar?",
+      a: "Sama sekali tidak! CampusFlow v4.0 menerapkan prinsip Zero Continuous Camera. Kamera Anda default OFF saat belajar. Kamera HANYA menyala maksimal 2 menit saat Anda menekan tombol Active Break untuk memvalidasi gerakan peregangan, lalu langsung mati otomatis.",
     },
     {
-      q: "Bagaimana cara kerja pelacak langkah pedometer?",
-      a: "Pedometer membaca ayunan langkah secara otomatis saat HP Anda berada di saku, membedakan jalan santai, jalan cepat, atau lari untuk menghitung energi kebugaran Anda.",
+      q: "Bagaimana cara kerja penghitungan Burnout Risk Index (0–100)?",
+      a: "CampusFlow menggabungkan faktor beban (Academic Load dari SKS KRS + kelebihan jam layar di atas 8 jam) dikurangi faktor pemulihan (durasi tidur + bonus 10 poin per sesi Active Break) berdasarkan kaidah saintifik Effort-Recovery Model.",
     },
     {
-      q: "Apakah universitas atau fakultas saya dapat mengintegrasikan CampusFlow?",
-      a: "Ya! CampusFlow dirancang dengan standar interoperabilitas LMS (LTI 1.3 / SSO Kampus) sehingga progres kebugaran dan kehadiran dapat disinkronkan secara aman.",
+      q: "Apakah data percakapan AI Coach dan video kamera diunggah ke internet?",
+      a: "Tidak pernah. Pemrosesan landmark pose 2 menit berjalan 100% lokal di memori peramban via WebGL/WASM tanpa satu frame video pun diunggah. AI Coach didukung oleh mesin AI lokal (Ollama) yang menjaga kerahasiaan data mahasiswa.",
     },
   ];
 
@@ -348,19 +347,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 onClick={() => scrollToSection("about")}
                 className="px-3.5 py-2 rounded-full bg-[#BDE6F0] hover:bg-[#A2DCF0] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
               >
-                <Eye className="w-3.5 h-3.5" /> Vision Guard
+                <Eye className="w-3.5 h-3.5" /> Zero Continuous Camera
               </button>
               <button
-                onClick={() => scrollToSection("about")}
+                onClick={() => scrollToSection("courses")}
                 className="px-3.5 py-2 rounded-full bg-[#CDE8B5] hover:bg-[#B6DF97] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
               >
-                <Footprints className="w-3.5 h-3.5" /> Pedometer
+                <BookOpen className="w-3.5 h-3.5" /> Strava Akademik (KRS)
               </button>
               <button
                 onClick={() => scrollToSection("courses")}
                 className="px-3.5 py-2 rounded-full bg-[#FFF29A] hover:bg-[#FFE966] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
               >
-                <Bot className="w-3.5 h-3.5" /> AI Coach
+                <Bot className="w-3.5 h-3.5" /> Wellbeing AI Coach
               </button>
             </div>
           </div>
@@ -446,11 +445,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         >
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto space-y-2.5">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#9A9A9A]">
+              Tiga Pilar Utama CampusFlow Versi 4.0
+            </span>
             <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A]">
-              Membangun Generasi Mahasiswa Aktif, Ergonomis, &amp; Tangguh
+              Academic Strava &amp; Predictive Burnout Management
             </h2>
             <p className="text-xs text-[#9A9A9A] leading-relaxed">
-              CampusFlow adalah platform kesehatan belajar mahasiswa yang menggabungkan asisten postur kamera pintar, penghitung langkah di saku, dan pemantau stres harian untuk gaya hidup mahasiswa yang lebih sehat dan berenergi.
+              Keseimbangan sistemik antara Beban Akademik (Academic Load), Waktu Layar (Screen Time), dan Waktu Pemulihan (Tidur &amp; Jeda Aktif) untuk mencegah academic burnout mahasiswa.
             </p>
           </div>
 
@@ -461,22 +463,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <Eye className="w-5 h-5" />
               </div>
               <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                1. Pengingat Postur Tegak
+                1. Zero Continuous Camera
               </h3>
               <p className="text-xs text-[#9A9A9A] leading-relaxed">
-                Mendeteksi posisi duduk membungkuk dan jarak mata yang terlalu dekat ke monitor secara otomatis agar leher dan punggung tidak pegal saat belajar.
+                Kamera laptop default OFF saat belajar. Kamera HANYA menyala MAKSIMAL 2 MENIT saat tombol &apos;Active Break&apos; ditekan untuk validasi pose peregangan.
               </p>
             </div>
 
             <div className="p-6 rounded-3xl bg-[#F6F6F6] border border-[#E8E8E8] space-y-3">
               <div className="w-10 h-10 rounded-2xl bg-[#CDE8B5] flex items-center justify-center text-[#1A1A1A] shadow-xs">
-                <Footprints className="w-5 h-5" />
+                <BookOpen className="w-5 h-5" />
               </div>
               <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                2. Penghitung Langkah &amp; Gerak Aktif
+                2. Konsep &apos;Strava Akademik&apos; &amp; Fusi Parameter
               </h3>
               <p className="text-xs text-[#9A9A9A] leading-relaxed">
-                Menghitung langkah dan intensitas jalan santai atau olahraga harian secara otomatis lewat HP di saku untuk menjaga kebugaran tubuh setiap hari.
+                Stres dihitung dari fusi 4 variabel harian: Jam Tidur, Layar, Jeda Aktif, dan Academic Load (KRS). Menghasilkan satu metrik intuitif Burnout Risk Index (0–100).
               </p>
             </div>
 
@@ -485,10 +487,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <Bot className="w-5 h-5" />
               </div>
               <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                3. Manajemen Stres &amp; Relaksasi
+                3. Proactive AI Coaching
               </h3>
               <p className="text-xs text-[#9A9A9A] leading-relaxed">
-                Kuis cepat evaluasi tingkat stres dan fitur latihan relaksasi 15 menit untuk menenangkan pikiran saat cemas menjelang ujian atau deadline.
+                AI Coach mendampingi mahasiswa secara terstruktur: menganalisis keluhan fisik, mitigasi krisis darurat (119), dan rekomendasi preventif esok hari berbasis mesin lokal Ollama.
               </p>
             </div>
           </div>

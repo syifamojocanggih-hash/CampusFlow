@@ -21,6 +21,54 @@
 
 ---
 
+## [2026-11-16] — Penyelarasan Frontend dengan README Terbaru & Arsitektur PRD v4.0 (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.30`
+- **Ringkasan:** 
+  1. **Dashboard Strava Akademik, Smart Academic Planner & CCTV Zone (`TriadDashboard.tsx`):**
+     - Mengubah hero dashboard menjadi metrik terpadu **Burnout Risk Index (0–100)**:
+       $$\text{Burnout Risk Index} = (\text{Academic Load Score} + \text{Screen Time Fatigue}) - \text{Recovery Score}$$
+     - Indikator status warna: Hijau (< 40, Optimal/Aman), Kuning (40–75, Waspada), dan Merah (> 75, Risiko Tinggi).
+     - Menampilkan visualisasi ritme mingguan Strava Akademik: Beban Mingguan (SKS KRS + Layar) vs Skor Pemulihan (Tidur & Jeda Aktif).
+     - Menambahkan 4 kartu parameter klinis fusi: Beban Kuliah (KRS), Waktu Layar Pasif, Jam Tidur Restoratif, dan Active Break Terverifikasi.
+     - Mengintegrasikan modal interaktif **Smart Academic Planner (PDF KRS Parser & Schedule)** dengan 2 tab: Dropzone Upload Berkas PDF KRS (ekstraksi otomatis SKS & kelas) dan Input Manual.
+     - Menambahkan kartu & modal materi pitching juri Techcomfest 2027: **Smart Campus CCTV Recovery Zone** (peregangan di fasilitas publik kampus via Edge AI & QR scan).
+     - Menampilkan grafik tren Recharts 14 hari perbandingan Burnout Index dan Skor Pemulihan.
+  2. **Zero Continuous Camera & Workstation Belajar Mandiri (`FocusView.tsx`, `VisionGuard.tsx`):**
+     - Menerapkan prinsip **Zero Continuous Camera**: kamera laptop default **OFF** selama jam belajar mahasiswa.
+     - Melacak durasi fokus layar secara pasif menggunakan Page Visibility API (`document.hidden`) & Focus Events tanpa menyalakan webcam.
+     - Menyediakan tombol on-demand **"Mulai Active Break (2 Menit)"** yang membuka modal validator pose MediaPipe WASM insidental 2 menit untuk 3x peregangan overhead reach.
+     - Menghubungkan verifikasi jeda aktif ke endpoint `api.verifyActiveBreak()`, menambahkan +10 poin pemulihan ke Burnout Index, dan mematikan stream kamera secara otomatis begitu gerakan selesai.
+  3. **Wellbeing AI Coach Proaktif & Crisis Gateway 119 (`CoachView.tsx`):**
+     - Mengintegrasikan deteksi kata kunci distres berat / krisis emosional yang secara otomatis mengaktifkan peringatan darurat **Crisis Gateway 119** (Hotline 119 ext. 8 / healing119.id).
+     - Menambahkan indikator status inferensi AI lokal: *Ollama Local AI (campusflow-coach)* dengan aturan jam malam ($\ge 21.30\text{ WIB}$) untuk memprioritaskan pemulihan tidur.
+  4. **Penyelarasan Landing Page (`LandingPage.tsx`):**
+     - Memperbarui headline dan subjudul hero carousel ke tema PRD v4.0: "Academic Strava & Predictive Burnout Management", "Zero Continuous Camera (Privasi 100%)", dan "Burnout Risk Index (0–100)".
+     - Menyelaraskan katalog modul pembelajaran ke 4 pilar v4.0: Smart Academic Planner, Cross-Device Screen Time, Active Break 2 Menit, dan Wellbeing AI Coach.
+     - Memperbarui 3 pilar utama di bagian About dan memperbarui FAQ untuk menegaskan privasi tanpa rekaman webcam kontinu.
+  5. **Pembaruan Navigasi & Label Subtitle (`Navbar.tsx`):**
+     - Memperbarui label menu navigasi: `focus` menjadi "Workstation & Jeda", `dashboard` menjadi "Dashboard Strava".
+     - Memperbarui subtitle brand sidebar menjadi "Academic Strava".
+  6. **Utilitas Kalkulator Burnout Client-Side & Unit Test (`burnoutCalculator.ts`, `burnoutCalculator.test.ts`):**
+     - Membuat fungsi deterministik client-side `calculateAcademicLoadScore`, `calculateScreenTimeFatigue`, `calculateRecoveryScore`, dan `calculateBurnoutRiskIndex`.
+     - Menambahkan 4 unit test baru yang menguji kalkulasi SKS, penalti kelebihan layar > 8 jam, skor pemulihan, dan klasifikasi status risiko (13/13 test lolos).
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `frontend/src/components/vision/VisionGuard.tsx`
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `frontend/src/components/Navbar.tsx`
+  - `frontend/src/utils/burnoutCalculator.ts`
+  - `frontend/src/utils/burnoutCalculator.test.ts`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript (dist bundle 890 kB).
+  - `npm run test:frontend` (13/13 unit test lolos).
+  - `npm run test:shared` (5/5 unit test lolos).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
 ## [2026-11-14] — Pembersihan Badge & Elemen Informasi Wellbeing AI Coach (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.29`
 - **Ringkasan:** 
