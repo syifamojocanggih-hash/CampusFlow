@@ -10,11 +10,15 @@ import type {
   UserProfileDTO,
   TriadDashboardDTO,
   AiCoachingInsightDTO,
+  DailyFussionLogDTO,
+  AcademicScheduleDTO,
 } from "@shared/contracts";
 
 export type UserResponse = ApiSuccessEnvelope<UserProfileDTO>;
 export type TriadDashboardResponse = ApiSuccessEnvelope<TriadDashboardDTO>;
 export type AiCoachInsightResponse = ApiSuccessEnvelope<AiCoachingInsightDTO>;
+export type BurnoutSummaryResponse = ApiSuccessEnvelope<DailyFussionLogDTO>;
+export type AcademicScheduleListResponse = ApiSuccessEnvelope<AcademicScheduleDTO[]>;
 
 export type TabKey =
   | "dashboard"

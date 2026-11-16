@@ -14,6 +14,9 @@ import { notificationsRouter } from "./routes/notifications.ts";
 import { sedentaryRouter } from "./routes/sedentary.ts";
 import { usersRouter, visionRouter } from "./routes/users.ts";
 import { assessmentsRouter, wellbeingRouter } from "./routes/wellbeing.ts";
+import { scheduleRouter } from "./routes/academicSchedule.ts";
+import { burnoutRouter } from "./routes/burnout.ts";
+import { activeBreakRouter } from "./routes/activeBreak.ts";
 
 export function createApp() {
   const app = express();
@@ -62,6 +65,9 @@ export function createApp() {
   app.use("/api/v1/dashboard", dashboardRouter);
   app.use("/api/v1/ai-coach", aiCoachRouter);
   app.use("/api/v1/notifications", notificationsRouter);
+  app.use("/api/v1/schedule", scheduleRouter);
+  app.use("/api/v1/burnout", burnoutRouter);
+  app.use("/api/v1/active-break", activeBreakRouter);
 
   app.use((req, _res, next) => {
     next(new AppError(404, "NOT_FOUND", `Endpoint '${req.method} ${req.originalUrl}' tidak ditemukan.`));

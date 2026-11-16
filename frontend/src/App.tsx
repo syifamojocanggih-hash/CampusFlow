@@ -16,6 +16,7 @@ import { VisionLabView } from "@/components/pages/VisionLabView";
 import { ProfileView } from "@/components/pages/ProfileView";
 import { LandingPage } from "@/components/pages/LandingPage";
 import { MimiPetWidget } from "@/components/pet/MimiPetWidget";
+import { screenTimeTracker } from "@/utils/screenTimeTracker";
 import { api } from "@/lib/api";
 import type { TabKey, UserProfileDTO } from "@/types";
 
@@ -24,6 +25,11 @@ export function App() {
   const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
   const [isPanicReliefActive, setIsPanicReliefActive] = useState(false);
   const [user, setUser] = useState<UserProfileDTO | null>(null);
+
+  useEffect(() => {
+    screenTimeTracker.start();
+    return () => screenTimeTracker.stop();
+  }, []);
 
   useEffect(() => {
     api

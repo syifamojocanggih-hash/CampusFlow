@@ -16,6 +16,9 @@ import type {
   PostureBaseline,
   DailyWellbeingPayload,
   PhysicalActivityPayload,
+  AcademicScheduleDTO,
+  AcademicScheduleListResponse,
+  BurnoutSummaryResponse,
 } from "@/types";
 
 // Default ke mock mode (true) jika VITE_USE_MOCK belum didefinisikan atau bukan "false"
@@ -162,6 +165,81 @@ class ApiClient {
       return;
     }
     await this.request("/activity/log", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // --- PRD v4.0: Academic Strava & Burnout Index ---
+  async getAcademicSchedules(): Promise<AcademicScheduleListResponse> {
+    if (USE_MOCK) {
+      return {
+        data: [
+          { dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: true },
+          { dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false },
+          { dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 2, isPracticum: true },
+        ],
+        meta: { timestamp: new Date().toISOString(), version: "4.0" },
+      };
+    }
+    return this.request<AcademicScheduleListResponse>("/schedule");
+  }
+
+  async saveAcademicSchedule(payload: AcademicScheduleDTO): Promise<void> {
+    if (USE_MOCK) {
+      console.log("[MOCK] Save Schedule:", payload);
+      return;
+    }
+    await this.request("/schedule", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getTodayBurnout(): Promise<BurnoutSummaryResponse> {
+    if (USE_MOCK) {
+      return {
+        data: {
+          logDate: new Date().toISOString().split("T")[0],
+          totalScreenTimeMins: 320,
+          sleepHours: 7.0,
+          academicLoadScore: 7.5,
+          screenFatigueScore: 0,
+          recoveryScore: 45,
+          verifiedBreakCount: 1,
+          burnoutIndex: 25,
+          status: "LOW",
+        },
+        meta: { timestamp: new Date().toISOString(), version: "4.0" },
+      };
+    }
+    return this.request<BurnoutSummaryResponse>("/burnout/today");
+  }
+
+  async calculateBurnout(payload: {
+    totalScreenTimeMins: number;
+    sleepHours: number;
+    logDate?: string;
+  }): Promise<BurnoutSummaryResponse> {
+    if (USE_MOCK) {
+      return this.getTodayBurnout();
+    }
+    return this.request<BurnoutSummaryResponse>("/burnout/calculate", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async verifyActiveBreak(payload: {
+    durationMins: number;
+    poseVerified: boolean;
+    poseType: string;
+  }): Promise<void> {
+    if (USE_MOCK) {
+      console.log("[MOCK] Active Break Verified:", payload);
+      return;
+    }
+    await this.request("/active-break/verify", {
       method: "POST",
       body: JSON.stringify(payload),
     });

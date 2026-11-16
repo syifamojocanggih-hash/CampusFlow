@@ -198,3 +198,64 @@ export interface AiCoachingInsightDTO {
   model?: string;
 }
 
+// ==============================================================================
+// PRD Versi 4.0 — Academic Strava & Burnout Risk Index Contracts
+// ==============================================================================
+
+export const BURNOUT_CONSTANTS = {
+  MAX_SAFE_SCREEN_HOURS: 8.0,
+  SCREEN_FATIGUE_COEFFICIENT: 2.5,
+  THEORY_SKS_WEIGHT: 1.0,
+  PRACTICUM_SKS_WEIGHT: 1.5,
+  EXAM_PROXIMITY_PENALTY: 3.0,
+  SLEEP_RECOVERY_MAX_SCORE: 40.0,
+  ACTIVE_BREAK_SCORE_PER_SESSION: 10.0,
+  BURNOUT_THRESHOLD_LOW: 40.0,
+  BURNOUT_THRESHOLD_HIGH: 75.0,
+} as const;
+
+export type BurnoutRiskStatus = "LOW" | "MODERATE" | "HIGH";
+
+export interface AcademicScheduleDTO {
+  id?: string;
+  userId?: string;
+  dayOfWeek: number; // 1 = Senin, 2 = Selasa, ... 7 = Minggu
+  subjectName: string;
+  creditHours: number;
+  isPracticum?: boolean;
+  isExamWeek?: boolean;
+  createdAt?: string;
+}
+
+export interface DailyFussionLogDTO {
+  id?: string;
+  userId?: string;
+  logDate: string;
+  totalScreenTimeMins: number;
+  sleepHours: number;
+  academicLoadScore: number;
+  screenFatigueScore: number;
+  recoveryScore: number;
+  verifiedBreakCount: number;
+  burnoutIndex: number;
+  status: BurnoutRiskStatus;
+}
+
+export interface ActiveBreakSessionDTO {
+  id?: string;
+  userId?: string;
+  startTime: string;
+  durationMins: number;
+  poseVerified: boolean;
+  poseType: string;
+}
+
+export interface BurnoutCalculationResult {
+  academicLoadScore: number;
+  screenFatigueScore: number;
+  recoveryScore: number;
+  burnoutIndex: number;
+  status: BurnoutRiskStatus;
+}
+
+

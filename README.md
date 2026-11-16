@@ -1,138 +1,157 @@
 # CampusFlow
 
-> **Duduk Sehat. Gerak Terukur. Stres Terkendali.**  
-> Progressive Web Application (PWA) lintas perangkat berbasis AI Vision & Sensor Gerak untuk pemantauan postur, intervensi jeda aktif anti-cheat, kuantifikasi aktivitas fisik IPAQ-SF, dan *Clinical Wellbeing AI Coach* mahasiswa.  
-> Topik Riset: **Kelola Stres Melalui Physical Activity Berbasis Aplikasi PWA pada Mahasiswa** · **Techcomfest 2027** · Sub-Tema 3: *Smart Lifestyle & Digital Wellbeing* (SDG 3).
+> **Academic Strava & Predictive Burnout Management**  
+> Progressive Web Application (PWA) lintas perangkat berbasis Fusi Prediktif Beban Akademik & Waktu Layar, *Zero Continuous Camera* (Kamera Insidental 2 Menit), dan *AI Coach* Proaktif.  
+> Topik Riset: **Kelola Stres & Keseimbangan Hidup Mahasiswa Berbasis Fusi Parameter dan Jeda Aktif Terverifikasi** · **Techcomfest 2027** · Sub-Tema 3: *Smart Lifestyle & Digital Wellbeing* (SDG 3).
 
 [![Architecture: 3-Branch Monorepo](https://img.shields.io/badge/Architecture-3--Branch%20Monorepo-2563EB.svg)](#7-struktur-monorepo--pembagian-kerja)
-[![Vision: On-Device MediaPipe](https://img.shields.io/badge/AI%20Vision-On--Device%20WebGL%2FWASM-0EA5A4.svg)](#4-arsitektur-privasi--keamanan-data)
-[![AI Coach: Ollama Local JSON](https://img.shields.io/badge/AI%20Coach-Ollama%20Local%20JSON-22C55E.svg)](#35-agentic-wellbeing-ai-coach--exam-panic-button)
-[![Zero-Conflict Changelogs](https://img.shields.io/badge/Workflow-Per--User%20Changelog%20Guard-F59E0B.svg)](#7-struktur-monorepo--pembagian-kerja)
+[![Privacy: Zero Continuous Camera](https://img.shields.io/badge/Privacy-Zero%20Continuous%20Camera-0EA5A4.svg)](#4-arsitektur-privasi--keamanan-data)
+[![Burnout Metric: Unified Fussion Index](https://img.shields.io/badge/Burnout%20Metric-Unified%20Index%200--100-F59E0B.svg)](#2-arsitektur-fusi-parameter--algoritma-burnout-index)
+[![AI Coach: Ollama Local JSON](https://img.shields.io/badge/AI%20Coach-Ollama%20Local%20JSON-22C55E.svg)](#35-wellbeing-ai-coach--konsultasi-stres-proaktif)
 
 ---
 
 ## Daftar Isi
-1. [Latar Belakang & Masalah](#1-latar-belakang--masalah)
-2. [Landasan Ilmiah & Kerangka 24-Hour Movement](#2-landasan-ilmiah--kerangka-24-hour-movement)
+1. [Latar Belakang & Pivot Paradigma MVP (Versi 4.0)](#1-latar-belakang--pivot-paradigma-mvp-versi-40)
+2. [Arsitektur Fusi Parameter: Algoritma Burnout Index](#2-arsitektur-fusi-parameter--algoritma-burnout-index)
 3. [Fitur Utama](#3-fitur-utama)
-   - [Vision Guard & Kalibrasi Baseline 5 Detik](#31-vision-guard--kalibrasi-baseline-5-detik)
-   - [Pose-Verified Anti-Cheat Active Break](#32-pose-verified-anti-cheat-active-break)
-   - [Pedometer 3-Sumbu & Konversi METs (IPAQ-SF)](#33-pedometer-3-sumbu--konversi-mets-ipaq-sf)
-   - [Kuesioner Klinis PSS-4, PSS-10, & PSQI Tidur](#34-kuesioner-klinis-pss-4-pss-10--psqi-tidur)
-   - [Agentic Wellbeing AI Coach & Exam Panic Button](#35-agentic-wellbeing-ai-coach--exam-panic-button)
-   - [Akun Demo & Mode Presentasi Juri](#36-akun-demo--mode-presentasi-juri)
-   - [Transparansi & Keterbatasan Sistem](#37-transparansi--keterbatasan-sistem)
+   - [Smart Academic Planner (PDF KRS Parser)](#31-smart-academic-planner-pdf-krs-parser)
+   - [Cross-Device Screen Time Tracking](#32-cross-device-screen-time-tracking)
+   - [On-Demand Active Break Validator (MediaPipe 2 Menit)](#33-on-demand-active-break-validator-mediapipe-2-menit)
+   - [Dashboard Strava Akademik (Burnout Risk Index 0–100)](#34-dashboard-strava-akademik-burnout-risk-index-0100)
+   - [Wellbeing AI Coach & Konsultasi Stres Proaktif](#35-wellbeing-ai-coach--konsultasi-stres-proaktif)
+   - [Materi Pitching Juri: Smart Campus CCTV Recovery Zone](#36-materi-pitching-juri-smart-campus-cctv-recovery-zone)
 4. [Arsitektur Privasi & Keamanan Data](#4-arsitektur-privasi--keamanan-data)
-5. [Petunjuk Penggunaan (Alur Evaluasi / Walk-Through)](#5-petunjuk-penggunaan-alur-evaluasi--walk-through)
+5. [Skema Database Produksi (Prisma ORM / MySQL)](#5-skema-database-produksi-prisma-orm--mysql)
 6. [Cara Menjalankan di Komputer Lokal](#6-cara-menjalankan-di-komputer-lokal)
 7. [Struktur Monorepo & Pembagian Kerja](#7-struktur-monorepo--pembagian-kerja)
-8. [Teknologi yang Digunakan](#8-teknologi-yang-digunakan)
-9. [Tim Pengembang](#9-tim-pengembang)
-10. [Dokumentasi Teknis Terkait](#10-dokumentasi-teknis-terkait)
+8. [Landasan Literatur Ilmiah (5 Tahun Terakhir)](#8-landasan-literatur-ilmiah-5-tahun-terakhir)
+9. [Teknologi yang Digunakan](#9-teknologi-yang-digunakan)
+10. [Tim Pengembang & Dokumentasi Terkait](#10-tim-pengembang--dokumentasi-terkait)
 
 ---
 
-## 1. Latar Belakang & Masalah
+## 1. Latar Belakang & Pivot Paradigma MVP (Versi 4.0)
 
-Mahasiswa menghabiskan rata-rata **8–10 jam per hari** dalam posisi duduk statis (*sedentary behavior*) saat menghadiri kuliah, mengerjakan tugas, dan belajar mandiri di depan layar laptop. Berdasarkan tinjauan sistematis **Martín-Rodríguez & González-Prieto (2026)** (*Frontiers in Sports and Active Living*, PROSPERO: CRD420251179614), perilaku duduk berkepanjangan ($\ge 9$ jam/hari) tanpa aktivitas fisik sedang-berat (*MVPA*) yang memadai secara signifikan meningkatkan risiko kecemasan (OR = 1.37) dan gejala depresi/kelelahan akademik (OR = 1.61–1.74).
+Mahasiswa rentan mengalami kelelahan belajar (*academic burnout*) dan penurunan kesehatan mental bukan hanya karena kurang berolahraga, melainkan akibat **ketidakseimbangan sistemik** antara **Beban Akademik (Academic Load)**, **Waktu Layar (Screen Time)**, dan **Waktu Pemulihan (Tidur & Jeda Aktif)**.
 
-Aplikasi pengingat biasa gagal mengatasi masalah ini karena bersifat pasif: tombol *snooze* dapat ditekan tanpa mahasiswa beranjak dari kursi, pencatatan aktivitas masih manual dan subjektif, serta intervensi olahraga sering mengabaikan kualitas tidur dan durasi layar.
+Berdasarkan evaluasi terhadap versi sebelumnya, CampusFlow melakukan **Pivot Desain Strategis (PRD Versi 4.0)** dengan 3 prinsip utama:
 
-**CampusFlow** hadir sebagai solusi PWA lintas perangkat (laptop + smartphone) yang memantau dan mengintervensi tiga pilar kesehatan harian mahasiswa secara terukur: **Postur & Waktu Duduk (Vision Guard)**, **Aktivitas Fisik Otomatis (Pedometer METs)**, serta **Stres & Tidur (PSS + Ollama Local AI Coach)**.
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                   TIGA PILAR PIVOT PARADIGMA (v4.0)                    │
+├────────────────────────────────┬───────────────────────────────────────┤
+│ 1. ZERO CONTINUOUS CAMERA      │ Kamera laptop default OFF.            │
+│    (Privasi Terjaga Penuh)     │ Kamera HANYA menyala MAKSIMAL 2 MENIT │
+│                                │ saat tombol 'Active Break' ditekan    │
+│                                │ untuk validasi pose peregangan.       │
+├────────────────────────────────┼───────────────────────────────────────┤
+│ 2. KONSEP 'STRAVA AKADEMIK'    │ Stres dihitung dari penggabungan fusi │
+│    & FUSI PARAMETER TUNGGAL    │ 4 variabel harian: Jam Tidur, Layar,  │
+│                                │ Jeda Aktif, & Academic Load (KRS).    │
+│                                │ Output: Satu skor 'Burnout Index'.    │
+├────────────────────────────────┼───────────────────────────────────────┤
+│ 3. PROACTIVE AI COACHING       │ AI Coach mendampingi mahasiswa secara │
+│    (Analisis Beban Belajar)    │ terstruktur: menganalisis keluhan     │
+│                                │ fisik, mitigasi krisis darurat (119), │
+│                                │ dan rekomendasi preventif esok hari.  │
+└────────────────────────────────┴───────────────────────────────────────┘
+```
 
 ---
 
-## 2. Landasan Ilmiah & Kerangka 24-Hour Movement
+## 2. Arsitektur Fusi Parameter: Algoritma Burnout Index
 
-Setiap ambang batas dan aturan bisnis di CampusFlow diturunkan langsung dari bukti kuantitatif literatur utama:
+CampusFlow menghitung metrik kesimpulan harian tunggal yang disebut **Burnout Risk Index (0–100)** yang menggabungkan faktor beban dan faktor pemulihan (*Effort-Recovery Model*, Meijman & Mulder):
 
-| Pilar / Dimensi | Rujukan Bukti Ilmiah | Implementasi Konstanta & Aturan di CampusFlow |
-|---|---|---|
-| **1. Pembatasan Duduk Statis** *(Substitusi Isotemporal)* | Barbosa et al. (2024); Su et al. (2022) | `MAX_SAFE_SEDENTARY_HOURS = 9.0`, `ISOTEMPORAL_WORK_BOUT_MINS = 50`, `ISOTEMPORAL_BREAK_MINS = 10` (mengganti 5–15 menit duduk dengan gerak aktif). |
-| **2. Volume Gerak Aktif (MVPA & MSE)** | Zhang et al. (2024); Ai et al. (2021) | `TRIAD_PILLAR_1_MVPA_MINS = 30`, `TARGET_MVPA_PER_SEDENTARY_HOUR = 25`, `WEEKLY_TOTAL_METS_TARGET = 1500`, `WEEKLY_MSE_TARGET_DAYS = 2`. |
-| **3. Sinergi Tidur & Stres** *(Mediasi 41%)* | Mu et al. (2024); Wang et al. (2025); Moriarty et al. (2021) | `SLEEP_MEDIATION_WEIGHT = 0.41`, `TRIAD_PILLAR_2_SLEEP_HOURS = [7.0, 9.0]`, skor `PSS-4 >= 8` memicu intervensi AI Coach prioritas sore hari. |
+$$\text{Burnout Risk Index} = (\text{Academic Load Score} + \text{Screen Time Fatigue}) - \text{Recovery Score}$$
 
-> Kegagalan memenuhi ketiga pilar *24-Hour Movement Guidelines* sekaligus meningkatkan risiko depresi hingga **3.4× lipat** (Zhang et al., 2024; Lin et al., 2024).
+```
+   [ FAKTOR BEBAN / PENINGKAT STRES ]                [ FAKTOR PEMULIHAN / PENURUN STRES ]
+   • Academic Load Score (Bobot SKS + H-7 Ujian)   • Kualitas & Durasi Tidur ((Jam / 8) * 40)
+   • Screen Time Fatigue ((Jam Layar - 8) * 2.5)    • Active Break Terverifikasi (Jumlah * 10)
+                                ╲                  ╱
+                                 ▼                ▼
+                          ┌───────────────────────────────┐
+                          │   BURNOUT RISK INDEX (0–100)  │
+                          ├───────────────────────────────┤
+                          │  Hijau (< 40)   : Aman/Optimal│
+                          │  Kuning (40–75) : Waspada     │
+                          │  Merah (> 75)   : Risiko Tinggi│
+                          └───────────────────────────────┘
+```
+
+### 2.1. Formulasi Matematika Parameter
+1. **Academic Load Score (AL):**
+   $$\text{AL} = \sum (\text{SKS} \times \text{Bobot}) + \text{Penalti Ujian}$$
+   - Matakuliah Teori = $1.0\text{ poin/SKS}$
+   - Matakuliah Praktikum = $1.5\text{ poin/SKS}$
+   - Pekan Menjelang Ujian ($\le H-7$) = $+3.0\text{ poin ekstra}$
+2. **Screen Time Fatigue (ST):**
+   $$\text{ST} = \max(0, \text{Total Jam Layar} - 8.0) \times 2.5$$
+   - Batas aman menatap layar adalah $8\text{ jam/hari}$ (Alshahrani et al., 2025). Setiap kelebihan 1 jam menambah $2.5\text{ poin penalti}$.
+3. **Recovery Score (RS):**
+   $$\text{RS} = \min\left(40, \left(\frac{\text{Jam Tidur}}{8.0}\right) \times 40\right) + (\text{Active Break Terverifikasi} \times 10)$$
+   - Tidur ideal (7–9 jam) berkontribusi hingga 40 poin pemulihan (Allen et al., 2021).
+   - Setiap sesi *Active Break 2 Menit* yang lolos verifikasi MediaPipe menambah $10\text{ poin pemulihan}$ (Albulescu et al., 2022).
 
 ---
 
 ## 3. Fitur Utama
 
-```
-                                  CAMPUSFLOW PWA
-  ┌──────────────────┬──────────────────┬──────────────────┬──────────────────┐
-     VISION GUARD       ACTIVE BREAK        PEDOMETER HP       CLINICAL AI COACH
-   (33 Pose + EAR)    (Anti-Cheat Lock)   (3-Axis DSP METs)   (PSS + Ollama LLM)
-          │                  │                   │                    │
-          ▼ [ ON-DEVICE WASM ]                   ▼ [ WEB SENSOR ]     ▼ [ PRISMA + LLM ]
-              [ PRIVACY-FIRST: CITRA KAMERA TIDAK PERNAH DIUNGGAH KE SERVER ]
-```
+### 3.1. Smart Academic Planner (PDF KRS Parser)
+- Mahasiswa mengunggah file PDF atau screenshot KRS/jadwal kuliah pada awal semester.
+- Sistem mengekstrak hari, jam, nama matakuliah, bobot SKS, dan jenis kelas (teori/praktikum) ke dalam database MySQL untuk menghitung beban kognitif otomatis setiap harinya.
 
-### 3.1. Vision Guard & Kalibrasi Baseline 5 Detik
-- **MediaPipe Tasks Vision (WebGL/WASM):** Ekstraksi **33 Pose Landmarks** dan **478 Face Landmarks** secara real-time ($\ge 24$ FPS) langsung di browser laptop tanpa melatih dataset gambar dari nol.
-- **Kalibrasi Baseline 5 Detik (100 Frame):** Mengukur `shoulderWidth`, `shoulderY`, `neckVerticalDist`, dan `torsoNeckAngle` unik per pengguna agar deteksi tahan terhadap perbedaan tinggi badan dan sudut kamera.
-- **Deteksi 4 Kondisi Real-Time (EMA $\alpha = 0.25$):**
-  1. *Forward Head / Slouching* ($R_{neck} < 0.78$ atau $\Delta\theta > 15^\circ$ selama $\ge 180$ detik).
-  2. *Eye-Strain Proximity* ($R_{depth} \ge 1.28$ selama $\ge 60$ detik) + Eye Aspect Ratio (EAR) kedipan mata.
-  3. *Asymmetric Leaning* ($\theta_{roll} > 12.0^\circ$ selama $\ge 120$ detik).
-  4. *Prolonged Sedentary Bout* ($\text{Var}(X_{sh}, Y_{sh}) < 0.015$ selama $\ge 50$ menit).
+### 3.2. Cross-Device Screen Time Tracking
+- **Desktop/Laptop:** Melacak durasi fokus layar secara pasif menggunakan **Page Visibility API (`document.hidden`) & Focus Events** di browser saat tab CampusFlow aktif, tanpa perlu menyalakan webcam.
+- **Smartphone:** Pengguna dapat memasukkan atau menyinkronkan data durasi layar harian dari fitur *Digital Wellbeing* ponsel ke akun cloud yang sama.
 
-### 3.2. Pose-Verified Anti-Cheat Active Break
-- Saat waktu duduk melampaui batas (50 menit pada mode normal, atau 15 detik pada `DEMO_MODE`), layar sesi belajar terkunci dan memunculkan **Active Break Modal**.
-- Tidak ada tombol *Snooze*: pengguna wajib menyelesaikan **Overhead Arm Stretch** ($y_{wrist} < y_{nose}$ dan sudut siku $> 140^\circ$ selama 5 detik $\times 3$ repetisi) serta verifikasi **Stand-Up / Step-Away** ($Y_{sh\_curr} < Y_{sh\_base} - 0.20$ atau subjek meninggalkan kursi).
+### 3.3. On-Demand Active Break Validator (MediaPipe 2 Menit)
+- **Kamera Default OFF:** Privasi mahasiswa terlindungi 100%. Kamera tidak menyala selama jam belajar.
+- **Notifikasi Jeda (> 90 Menit):** Saat waktu kerja kontinu melampaui batas aman, muncul pengingat istirahat.
+- **Validator Pose 2 Menit:** Pengguna menekan *"Mulai Active Break"*, kamera menyala selama 2 menit. Model **MediaPipe Pose** membaca skeleton tubuh (misal: *overhead reach*, peregangan bahu dan leher). Begitu gerakan tervalidasi, poin pemulihan bertambah $+10$ dan kamera otomatis langsung mati.
 
-### 3.3. Pedometer 3-Sumbu & Konversi METs (IPAQ-SF)
-- Menggunakan **HTML5 `DeviceMotionEvent`** pada PWA smartphone dengan pemrosesan sinyal digital *Orientation-Independent* (magnitudo vektor 3D + *High-Pass Moving Average* 25 sampel).
-- **Anti-Shake Filter:** Langkah hanya sah jika puncak akselerasi bersih $> 1.35\text{ m/s}^2$, jeda antarlangkah $250\text{–}1200\text{ ms}$ ($50\text{–}240\text{ SPM}$), dan minimal 6 langkah beruntun.
-- **Konversi Otomatis MET-Menit:** *Walking* ($3.3\text{ METs}$ pada $60\text{–}99\text{ SPM}$), *Moderate* ($4.0\text{ METs}$ pada $100\text{–}129\text{ SPM}$), *Vigorous* ($8.0\text{ METs}$ pada $\ge 130\text{ SPM}$), serta log *Muscle-Strengthening Exercise* ($5.0\text{ METs}$).
+### 3.4. Dashboard Strava Akademik (Burnout Risk Index 0–100)
+- Menampilkan visualisasi ritme mingguan layaknya metrik latihan atlet di Strava: **Beban Mingguan vs Tingkat Pemulihan**.
+- Dilengkapi indikator status warna: **Hijau (< 40)**, **Kuning (40–75)**, dan **Merah (> 75)** beserta riwayat tren 14 hari.
 
-### 3.4. Kuesioner Klinis PSS-4, PSS-10, & PSQI Tidur
-- **PSS-4 Harian (30 detik):** Skala Likert 0–4 dengan *reverse scoring* otomatis pada item positif **Q2 & Q3** ($4 - x$). Cutoff $\ge 8$ memicu peringatan stres tinggi.
-- **PSS-10 Mingguan:** 10 item baku dengan *reverse scoring* otomatis pada **Item 4, 5, 7, 8**.
-- **Indeks Kualitas Tidur (Adaptasi PSQI):** Menghitung durasi tidur malam, latensi tidur, dan skor kesegaran bangun pagi (target optimal $7.0\text{–}9.0$ jam dan skor $\ge 3$).
+### 3.5. Wellbeing AI Coach & Konsultasi Stres Proaktif
+- **Mesin Inferensi Lokal (Ollama):** Didukung model AI lokal (`campusflow-coach` berbasis Qwen2.5/Llama) yang berjalan lokal tanpa biaya API eksternal dan menjaga kerahasiaan data mahasiswa.
+- **Deteksi Krisis & Safety Guardrail:** Dilengkapi *Crisis Gateway* yang otomatis mengarahkan ke nomor darurat kesehatan mental (Hotline 119 / healing119.id) jika mendeteksi indikasi distres berat atau keputusasaan.
+- **Rekomendasi Gerak Deterministik:** Memberikan panduan gerakan peregangan bertahap yang aman dari beban fisiologis dan disesuaikan dengan aturan jam malam ($\ge 21.30\text{ WIB}$).
 
-### 3.5. Agentic Wellbeing AI Coach & Exam Panic Button
-- **Ollama Lokal (`OLLAMA_BASE_URL/api/chat`) Structured JSON Output:** Menganalisis telemetri 7 hari terakhir pengguna secara lokal (tanpa API key berbayar/cloud) untuk menghasilkan `dominantMediator`, `diagnosisSummary`, `isotemporalActionPlan`, `recommendedMetsToday`, dan `scientificCitationNote` yang dikunci pada literatur klinis, dengan fallback deterministik bila server Ollama belum aktif.
-- **Exam Panic Button (15 Menit):** Mode darurat kecemasan ujian berbasis studi Wu & Zhou (2024) yang memandu latihan aerobik akut $110\text{–}125\text{ BPM}$ selama 15 menit.
-
-### 3.6. Akun Demo & Mode Presentasi Juri
-Tersedia **Akun Demo Bawaan** (dengan riwayat data 14 hari ter-seed di MySQL) untuk pengujian evaluator/juri:
-
-| Informasi Akun | Nilai Kredensial |
-|---|---|
-| **Email Demo** | `demo@campusflow.id` |
-| **Toggle Presentasi Cepat** | Aktifkan `DEMO_MODE = true` di UI Pengaturan untuk mempercepat ambang duduk dari 50 menit menjadi **15 detik** saat demo live. |
-
-### 3.7. Transparansi & Keterbatasan Sistem
-- CampusFlow adalah sistem pemantauan preventif dan intervensi perilaku mahasiswa berbasis literatur ilmiah, **bukan alat diagnosis medis/psikiatris pengganti psikolog atau dokter**.
-- Fitur deteksi postur membutuhkan pencahayaan ruangan yang cukup dan otomatis dinonaktifkan secara anggun (*graceful degradation*) bila perangkat tidak memiliki webcam atau berada pada layar mobile sempit (`< 640px`).
+### 3.6. Materi Pitching Juri: Smart Campus CCTV Recovery Zone
+- Inovasi masa depan (*Future Work*) untuk kompetisi Techcomfest 2027: integrasi dengan fasilitas publik kampus (perpustakaan/lab).
+- Mahasiswa cukup mendatangi *Campus Recovery Zone* dan melakukan peregangan di depan CCTV kampus yang terpasang Edge AI (MediaPipe). Poin pemulihan masuk ke akun PWA via pemindaian QR code tanpa perlu menyalakan kamera pribadi sama sekali.
 
 ---
 
 ## 4. Arsitektur Privasi & Keamanan Data
 
-CampusFlow menerapkan prinsip **On-Device Edge Privacy**:
-
 ```
-[ WEBCAM LAPTOP ] ──► [ MEDIAPIPE WASM/WEBGL DI BROWSER ] ──► [ HANYA ANGKA BASELINE/METRIK ]
-                                                                          │
-[ SENSOR HP 3-AXIS ] ──► [ DSP PEDOMETER DI BROWSER ] ────────────────────┼──► [ EXPRESS REST API ] ──► [ MYSQL (PRISMA) ]
-                                                                          │
-[ KUESIONER PSS/PSQI ] ──► [ HTTPS / TLS + JWT + BCRYPT ] ────────────────┘          └─► [ OLLAMA LOKAL API ]
+[ BROWSER DESKTOP ] ──► Page Visibility API (Screen Time) ────┐
+                                                              │
+[ WEBCAM INSIDENTAL ] ──► MediaPipe WASM (HANYA 2 MENIT) ─────┼──► [ EXPRESS REST API ] ──► [ MYSQL (PRISMA) ]
+                                                              │            │
+[ INPUT TIDUR / KRS ] ──► Form Terenkripsi JWT ───────────────┘            ▼
+                                                                  [ OLLAMA LOKAL ENGINE ]
 ```
 
-1. **Zero Video/Image Upload:** Frame video webcam diproses 100% lokal di browser (WebGL/WASM). Tidak ada gambar atau rekaman video yang pernah dikirim ke server — hanya koordinat ringkas kalibrasi dan metrik durasi duduk/slouch.
-2. **Aset Model Lokal:** Bobot model `pose_landmarker_lite.task` disajikan dari `frontend/public/models/` dan di-cache via PWA Workbox agar tetap berjalan cepat dan privat.
-3. **Keamanan Kredensial & Privasi Lokal:** Kata sandi di-hash dengan `bcryptjs`, sesi dilindungi JWT, inferensi LLM berjalan di server Ollama lokal (data tidak dikirim ke AI cloud), dan kunci rahasia (`JWT_SECRET`, `VAPID_PRIVATE_KEY`, `DATABASE_URL`) hanya disimpan di `.env` sisi server.
+1. **Zero Continuous Surveillance:** Tidak ada kamera yang menyala berjam-jam saat belajar. Kamera hanya hidup saat verifikasi 2 menit.
+2. **Zero Image Upload:** Pemrosesan landmark pose dilakukan 100% di browser pengguna via WebGL/WASM. Citra kamera tidak pernah diunggah ke server.
+3. **Privasi AI Lokal:** Percakapan dan keluhan mahasiswa diproses oleh mesin Ollama lokal, tidak bocor ke server AI pihak ketiga.
 
 ---
 
-## 5. Petunjuk Penggunaan (Alur Evaluasi / Walk-Through)
+## 5. Skema Database Produksi (Prisma ORM / MySQL)
 
-1. **Skenario A — Onboarding & Kalibrasi 5 Detik:** Login menggunakan `demo@campusflow.id`, berikan izin kamera, duduk tegak selama 5 detik hingga baseline tersimpan.
-2. **Skenario B — Vision Guard & Anti-Cheat Active Break:** Aktifkan `DEMO_MODE = true`, duduk membungkuk di depan laptop selama 15 detik hingga peringatan postur dan **Active Break Modal** mengunci layar, lalu angkat kedua tangan di atas kepala ($3 \times 5$ detik) dan berdiri hingga kunci terbuka.
-3. **Skenario C — Pelacak Langkah Mobile (HTTPS):** Buka URL PWA di smartphone melalui HTTPS lokal, masukkan HP ke saku, berjalan 20 langkah untuk memantau kenaikan langkah, cadence (SPM), dan MET-menit secara live.
-4. **Skenario D — Kuesioner PSS-4 & Agentic AI Coach:** Isi kuesioner harian PSS-4 (30 detik) dan jam tidur, buka **Triad Dashboard**, lalu panggil **AI Coach** untuk melihat rekomendasi spesifik beserta rujukan studi pendukungnya.
+Tabel inti pada arsitektur CampusFlow v4.0:
+- **`User`:** Profil mahasiswa, NIM, email, target recovery score, streak, dan poin XP.
+- **`AcademicSchedule`:** Jadwal perkuliahan mingguan hasil parsing KRS (`day_of_week`, `subject_name`, `credit_hours`, `is_practicum`, `is_exam_week`).
+- **`DailyFussionLog`:** Catatan fusi parameter harian (`log_date`, `total_screen_time_mins`, `sleep_hours`, `academic_load_score`, `screen_fatigue_score`, `recovery_score`, `verified_break_count`, `burnout_index`, `status`).
+- **`ActiveBreakSession`:** Log sesi peregangan kamera 2 menit (`duration_mins`, `pose_verified`, `pose_type`, `start_time`).
+- **`AiCoachingInsight`:** Riwayat konsultasi, dominant mediator, dan rencana aksi pemulihan.
 
 ---
 
@@ -140,187 +159,133 @@ CampusFlow menerapkan prinsip **On-Device Edge Privacy**:
 
 ### Prasyarat Sistem
 - **Node.js:** Versi `20.x` atau lebih baru
-- **npm:** Versi `10.x` atau lebih baru
-- **Database:** MySQL 8.x (lokal, Docker, atau TiDB Cloud)
-- **Git:** Minimal versi `2.30` (skrip `npm run guard` berjalan lintas platform via Node.js di PowerShell/CMD/Terminal; Git for Windows otomatis menjalankan `.githooks/pre-push`)
+- **Database:** MySQL 8.x
+- **Port Tersedia:** Backend (`4000`), Frontend (`5174`)
 
-### Langkah Instalasi & Menjalankan
+### Langkah Instalasi
 
-1. **Kloning Repositori & Pilih Branch Kerja:**
+1. **Kloning Repositori:**
    ```bash
    git clone https://github.com/syifamojocanggih-hash/CampusFlow.git
    cd CampusFlow
-   git config core.hooksPath .githooks
    ```
-   - Gunakan `main` untuk arsitektur inti, kontrak, & AI Vision (**Ibra**).
-   - Gunakan `backend` untuk layanan server & LLM (**Syifa**).
-   - Gunakan `frontend` untuk aplikasi web PWA & UI (**Tiara** / kolaborasi **Ibra**).
 
-2. **Konfigurasi Environment Variables (`.env`):**
-   Salin file template `.env.example` yang sudah tersedia di masing-masing folder (`backend/.env` dan `frontend/.env.local` tidak di-commit ke Git karena sudah diabaikan oleh `.gitignore`):
-
+2. **Setup Konfigurasi Environment:**
    ```bash
-   # Linux / macOS / Git Bash
+   # Salin template env backend
    cp backend/.env.example backend/.env
-   cp frontend/.env.example frontend/.env.local
+   # Salin template env frontend
+   cp frontend/.env.example frontend/.env
    ```
-   ```powershell
-   # Windows PowerShell
-   Copy-Item backend/.env.example backend/.env
-   Copy-Item frontend/.env.example frontend/.env.local
-   ```
+   *Pengaturan port default:*
+   - Backend: `PORT=4000`
+   - Frontend: `port: 5174` (dapat diakses di [http://localhost:5174/](http://localhost:5174/))
+   - Backend CORS: Mengizinkan origin `http://localhost:5174`.
 
-   **Rincian Variabel `backend/.env` *(khusus server & LLM)*:**
-
-   | Variabel | Wajib | Contoh / Cara Mendapatkan |
-   |---|---|---|
-   | `PORT` | Ya | `4000` (port default Express REST API) |
-   | `DATABASE_URL` | Ya | `"mysql://root:password@localhost:3306/campusflow"` |
-   | `JWT_SECRET` | Ya | String acak minimal 32 karakter (mis. `openssl rand -hex 32`) |
-   | `OLLAMA_BASE_URL` | Ya | `"http://localhost:11434"` (URL server Ollama lokal — tanpa API key eksternal) |
-   | `OLLAMA_MODEL` | Ya | `"llama3.2"` (atau model lokal lain yang sudah di-pull via `ollama pull`) |
-   | `OLLAMA_TIMEOUT_MS` | Opsional | `30000` (batas tunggu ms sebelum fallback klinis deterministik aktif) |
-   | `VAPID_PUBLIC_KEY` & `VAPID_PRIVATE_KEY` | Opsional (Web Push) | Generate lewat `npx web-push generate-vapid-keys` |
-   | `VAPID_SUBJECT` | Opsional (Web Push) | `"mailto:admin@campusflow.id"` |
-   | `CORS_ORIGIN` | Ya | `"http://localhost:5173,https://localhost:5173"` |
-
-   **Rincian Variabel `frontend/.env.local` *(khusus client PWA)*:**
-
-   | Variabel | Wajib | Contoh / Keterangan |
-   |---|---|---|
-   | `VITE_API_BASE_URL` | Ya | `"http://localhost:4000/api/v1"` |
-   | `VITE_USE_MOCK` | Ya | `"true"` saat UI dev mandiri (`MOCK_DATA.md`), ubah ke `"false"` saat terhubung ke backend asli |
-   | `VITE_VAPID_PUBLIC_KEY` | Opsional | Samakan dengan `VAPID_PUBLIC_KEY` backend (**jangan pernah taruh private key di frontend**) |
-   | `VITE_DEMO_MODE` | Opsional | `"false"` (ubah ke `"true"` untuk mempercepat jeda duduk 50 menit → 15 detik saat demo) |
-
-   > ⚠️ **Keamanan Env:** DILARANG menaruh `DATABASE_URL`, `JWT_SECRET`, atau `VAPID_PRIVATE_KEY` di `frontend/.env.local` (semua variabel `VITE_*` terbuka di browser).
-
-3. **Setup & Jalankan Backend (Branch `backend` / folder `backend/`):**
+3. **Jalankan Database & Migrasi Prisma:**
    ```bash
-   git checkout backend
-   cd backend
-   npm install
-   npx prisma migrate dev --name init
-   npx prisma db seed            # Mengisi akun demo & riwayat 14 hari
-   npm run dev
+   npx --prefix backend prisma migrate dev --name init
+   npx --prefix backend prisma generate
    ```
 
-4. **Setup & Jalankan Frontend PWA (Branch `frontend` / folder `frontend/`):**
+4. **Jalankan Aplikasi:**
    ```bash
-   git checkout frontend
-   cd frontend
-   npm install
-   npm run dev                   # Gunakan HTTPS lokal (@vitejs/plugin-basic-ssl / ngrok) untuk uji sensor HP
+   # Menjalankan Backend (Port 4000)
+   npm run dev:backend
+
+   # Menjalankan Frontend PWA (Port 5174)
+   npm run dev:frontend
    ```
 
-5. **Verifikasi Guard Changelog & Unit Test Vision Sebelum Push:**
+5. **Uji Pengujian Otomatis (Unit Tests):**
    ```bash
-   npm run test:shared
-   npm run guard
+   npm --prefix backend test    # 82 unit test backend lolos
+   npm --prefix frontend test   # 9 unit test frontend lolos
    ```
-
-### Panduan Cepat Onboarding AI Coding Assistant (Untuk Setiap Anggota)
-
-Jika masing-masing anggota menggunakan AI coding assistant setelah `git clone`, arahkan AI Anda sesuai branch tugas agar langsung menyiapkan `.env` dan bekerja bebas konflik:
-
-- **Ibra (`@flyingdutchman` — Branch `main` / Project Leader & Vision AI):**
-  > *"Checkout branch `main`, aktifkan `git config core.hooksPath .githooks`, baca `DESIGN.md`, `docs/vision/VISION_SPEC.md`, dan `docs/vision/TASK_GUIDE.md`. Pastikan `npm run test:shared` lolos, dan catat semua perubahan di `docs/changelogs/CHANGELOG_IBRA.md`."*
-- **Syifa (`@syifamojocanggih-hash` — Branch `backend` / Backend & LLM):**
-  > *"Checkout branch `backend` dan `git merge origin/main`, aktifkan `git config core.hooksPath .githooks`, salin `backend/.env.example` ke `backend/.env` dan bantu saya isi variabelnya. Baca `docs/backend/README.md`, `docs/backend/TASK_GUIDE.md`, `docs/backend/DATABASE_SCHEMA.md`, serta `docs/universal/INTERFACES.md`. Setiap perubahan wajib dicatat di `docs/changelogs/CHANGELOG_SYIFA.md` dan lolos `npm run guard`."*
-- **Tiara (`@mutiaradewanda` — Branch `frontend` / Frontend & PWA):**
-  > *"Checkout branch `frontend` dan `git merge origin/main`, aktifkan `git config core.hooksPath .githooks`, salin `frontend/.env.example` ke `frontend/.env.local` (set `VITE_USE_MOCK=true` bila backend belum jalan). Baca `docs/frontend/README.md`, `docs/frontend/TASK_GUIDE.md`, `docs/frontend/DESIGN_SYSTEM.md`, dan `docs/universal/INTERFACES.md`. Setiap perubahan wajib dicatat di `docs/changelogs/CHANGELOG_TIARA.md` dan lolos `npm run guard`."*
 
 ---
 
 ## 7. Struktur Monorepo & Pembagian Kerja
 
-CampusFlow menggunakan arsitektur **3-Branch Zero-Conflict Monorepo** (`main`, `backend`, `frontend`) dengan aturan pemisahan file yang tegas antara file turunan dari `main` dan file khusus masing-masing branch, serta **Changelog terpisah per user**:
+CampusFlow menggunakan monorepo terpadu dengan aturan boundary dan changelog per-user:
 
 ```
 CampusFlow/
-├── README.md                          # [main] Dokumentasi utama proyek
-├── DESIGN.md                          # [main] Master Design, PRD Summary & Aturan Batas User
-├── package.json                       # [main] Skrip helper root (tanpa shared package-lock.json)
-├── shared/                            # [main -> diturunkan] Kontrak TypeScript & modul inti Vision
-├── backend/                           # [branch: backend] Express + Prisma MySQL + Ollama AI Coach
-│   ├── .env.example                   # [main -> diturunkan] Template env backend
-│   └── (package.json & package-lock.json mandiri)
-├── frontend/                          # [branch: frontend] React 18 + Vite + Tailwind + PWA + MediaPipe UI
-│   ├── .env.example                   # [main -> diturunkan] Template env frontend
-│   └── (package.json & package-lock.json mandiri)
+├── README.md                          # Dokumentasi resmi arsitektur produk
+├── package.json                       # Skrip helper root monorepo
+├── shared/
+│   └── contracts/index.ts             # Kontrak data DTO & konstanta klinis bersama
+├── backend/                           # Service Express TS, Prisma MySQL, & Ollama AI Coach
+│   ├── src/
+│   │   ├── routes/                    # schedule, burnout, activeBreak, aiCoach, auth, dll.
+│   │   ├── services/                  # burnoutScoring, clinicalScoring, coachShared, dll.
+│   │   └── app.ts                     # Express app setup & rate limiting
+│   └── prisma/schema.prisma           # Skema MySQL Prisma ORM
+├── frontend/                          # Client React 18 + Vite + Tailwind PWA
+│   ├── src/
+│   │   ├── components/                # TriadDashboard, VisionGuard (ActiveBreak), Navbar, dll.
+│   │   └── utils/                     # screenTimeTracker, poseHeuristics, audioFeedback
+│   └── vite.config.ts                 # Konfigurasi Vite & PWA Service Worker (Port 5174)
 ├── docs/
-│   ├── README.md                      # [main] Indeks dokumentasi & matriks wewenang
-│   ├── universal/                     # [main -> diturunkan] PRD, Arsitektur, Kontrak, Git Workflow, ADR
-│   ├── vision/                        # [main -> diturunkan] Spesifikasi & tugas AI Vision (Ibra)
-│   ├── backend/                       # [branch: backend] Spesifikasi DB, API, Scoring, Ollama LLM (Syifa)
-│   ├── frontend/                      # [branch: frontend] Design System, Alur Layar, Pedometer, Mock (Tiara)
-│   └── changelogs/                    # [TERPISAH PER USER — Anti-Konflik saat Merge!]
-│       ├── CHANGELOG_IBRA.md          # Catatan perubahan Ibra (@flyingdutchman)
-│       ├── CHANGELOG_TIARA.md         # Catatan perubahan Tiara (@mutiaradewanda)
-│       └── CHANGELOG_SYIFA.md         # Catatan perubahan Syifa (@syifamojocanggih-hash)
-├── scripts/
-│   ├── guard-check.mjs                # [main] Penjaga wajib changelog pribadi & audit [CROSS-SCOPE]
-│   └── guard-check.sh                 # [main] Wrapper Bash untuk guard-check.mjs
-├── .githooks/
-│   └── pre-push                       # [main] Menjalankan guard-check otomatis sebelum git push
-└── .github/
-    ├── CODEOWNERS                     # [main] Peninjau otomatis per domain
-    ├── pull_request_template.md       # [main] Template PR dengan checklist changelog & cross-scope
-    └── workflows/guard-check.yml      # [main] CI verifikasi PR menuju main
+│   ├── universal/                     # PRD v4 Pivot Explanation, Architecture, Git Workflow
+│   └── changelogs/                    # Catatan perubahan per anggota (Ibra, Tiara, Syifa)
+└── scripts/
+    └── guard-check.mjs                # Guard linter integritas commit & scope kerja
 ```
 
-> **Mengapa Merge Tidak Konflik?**
-> 1. `backend/package-lock.json` dan `frontend/package-lock.json` dipisah (tidak ada single root lockfile yang diperebutkan).
-> 2. Changelog setiap user dipisah (`CHANGELOG_IBRA.md`, `CHANGELOG_TIARA.md`, `CHANGELOG_SYIFA.md`).
-> 3. File bersama (`DESIGN.md`, `docs/universal/`, `docs/vision/`, `shared/`) dibuat di `main` dan diturunkan ke branch lewat `git merge origin/main`.
-> 4. Perubahan lintas zona (`[CROSS-SCOPE]`) tetap diperbolehkan bila mendesak dengan syarat **wajib tercatat** di Changelog pribadi dan dikoordinasikan saat PR.
+---
+
+## 8. Landasan Literatur Ilmiah (5 Tahun Terakhir)
+
+Arsitektur CampusFlow v4.0 didasarkan pada studi peer-reviewed terbaru (2021–2026):
+
+1. **Effort-Recovery Model (Dasar Rumus Fusi Beban vs Pemulihan):**
+   * *Meijman & Mulder (1998)* / *Sonnentag et al. (2021)* — Pemulihan energi psikologis melalui tidur dan jeda mikro memulihkan sumber daya kognitif dari tuntutan kerja.
+2. **Beban Akademik & Burnout Mahasiswa:**
+   * *Olson et al. (2023)*, *Frontiers in Public Health* [DOI: 10.3389/fpubh.2023.1118244](https://doi.org/10.3389/fpubh.2023.1118244) — Beban SKS padat dan kurikulum adalah prediktor utama kelelahan emosional mahasiswa.
+   * *Andrade et al. (2023)*, *Scientific Reports* [DOI: 10.1038/s41598-023-31852-w](https://doi.org/10.1038/s41598-023-31852-w) — Hubungan linier antara *study overload* dengan sindrom burnout akademik.
+3. **Waktu Layar & Kelelahan Digital:**
+   * *Alshahrani et al. (2025)*, *Frontiers in Psychiatry* [DOI: 10.3389/fpsyt.2025.1485601](https://doi.org/10.3389/fpsyt.2025.1485601) — Layar $> 8\text{ jam/hari}$ mempercepat kelelahan mental dan mengganggu tidur.
+   * *Xu et al. (2025)*, *Frontiers in Psychiatry* [DOI: 10.3389/fpsyt.2025.1528659](https://doi.org/10.3389/fpsyt.2025.1528659) — Ketergantungan layar ponsel memicu *learning burnout* pada mahasiswa.
+4. **Jeda Mikro 2–5 Menit (*Active Breaks*):**
+   * *Albulescu et al. (2022)*, *PLOS ONE* [DOI: 10.1371/journal.pone.0272460](https://doi.org/10.1371/journal.pone.0272460) — Meta-analisis ($N = 2.335$) membuktikan jeda mikro fisik meningkatkan *vigor* dan menurunkan kelelahan secara instan.
+   * *Loh et al. (2023)*, *Work* [DOI: 10.3233/WOR-220528](https://doi.org/10.3233/WOR-220528) — Jeda peregangan singkat efektif mereduksi kelelahan otot saat bekerja di depan laptop.
+5. **Tidur Sebagai Restorasi Energi Utama:**
+   * *Mu et al. (2024)*, *Frontiers in Psychology* [DOI: 10.3389/fpsyg.2024.1376993](https://doi.org/10.3389/fpsyg.2024.1376993) — Kualitas tidur memediasi pemulihan psikologis dari stres harian.
+   * *Allen et al. (2021)*, *Int. J. Behavioral Medicine* [DOI: 10.1007/s12529-020-09942-3](https://doi.org/10.1007/s12529-020-09942-3) — Durasi tidur cukup (7–9 jam) memitigasi eskalasi burnout mahasiswa.
+6. **Quantified Self & "Academic Strava":**
+   * *Gauthier et al. (2022)*, *Computers in Human Behavior* [DOI: 10.1016/j.chb.2022.107314](https://doi.org/10.1016/j.chb.2022.107314) — Pemantauan diri ritme belajar dan aktivitas fisik meningkatkan regulasi diri mahasiswa.
 
 ---
 
-## 8. Teknologi yang Digunakan
+## 9. Teknologi yang Digunakan
 
-| Kategori | Teknologi / Pustaka | Penggunaan |
+| Kategori | Teknologi / Pustaka | Penggunaan Utama |
 |---|---|---|
-| **Frontend & PWA** | React 18, TypeScript, Vite, Tailwind CSS, `vite-plugin-pwa` | Antarmuka responsif, Service Worker Workbox cache, instalasi offline PWA |
-| **Computer Vision (On-Device)** | `@mediapipe/tasks-vision` (PoseLandmarker + FaceLandmarker) | Deteksi postur 33 titik sendi, jarak layar, kedipan EAR, & verifikasi peregangan |
-| **Mobile Motion Sensor** | HTML5 `DeviceMotionEvent` (3-Axis Accelerometer) | Pedometer independen orientasi & kalkulasi otomatis MET-menit IPAQ-SF |
-| **Visualisasi & Ikon** | Recharts & Lucide React | Grafik tren 24-Hour Triad, Progress Ring, & ikonografi bebas lisensi |
-| **Backend & Database** | Node.js, Express, TypeScript, Prisma ORM, MySQL | REST API `/api/v1/*`, kalkulator klinis PSS/PSQI/METs, Web Push VAPID |
-| **Agentic AI Coach** | Ollama Lokal (`OLLAMA_MODEL`, `/api/chat` JSON Schema) | Analisis multivariat 7 hari lokal dengan Structured JSON Output + fallback klinis |
-| **Keamanan & Autentikasi** | JWT (`jsonwebtoken`), `bcryptjs`, HTTPS/TLS | Autentikasi mahasiswa, enkripsi password, & izin sensor/kamera |
+| **Frontend & PWA** | React 18, TypeScript, Vite, Tailwind CSS, `vite-plugin-pwa` | Antarmuka PWA responsif, Service Worker Workbox, port `5174` |
+| **Computer Vision (On-Demand)** | `@mediapipe/tasks-vision` (Pose Landmarker WebGL/WASM) | Validasi gerakan peregangan 2 menit saat *Active Break* |
+| **Screen Time Monitoring** | Browser Page Visibility API (`document.hidden`) | Pelacakan durasi aktif layar laptop tanpa webcam |
+| **Backend & Database** | Node.js, Express, TypeScript, Prisma ORM, MySQL | API REST `/api/v1/*`, scoring Burnout Index, port `4000` |
+| **Local LLM Engine** | Ollama Lokal (`campusflow-coach` via Structured JSON) | AI Coach konsultasi keluhan tubuh/stres & mitigasi krisis 119 |
+| **Keamanan & Autentikasi** | JWT, `bcryptjs`, Rate Limiting per-akun, Helmet | Keamanan autentikasi dan isolasi akses per mahasiswa |
 
 ---
 
-## 9. Tim Pengembang
+## 10. Tim Pengembang & Dokumentasi Terkait
 
 Proyek **CampusFlow** dikembangkan untuk **Techcomfest 2027** oleh:
+* **Ibra** (`@flyingdutchman`) — *Project Leader & Vision AI Engineer* (Branch `main`)
+* **Mutiara Dewanda Prisvilla (Tiara)** (`@mutiaradewanda`) — *Frontend & PWA Experience Engineer* (Branch `frontend`)
+* **Ahmad Syifa'ul Falakhul Khayyi (Syifa)** (`@syifamojocanggih-hash`) — *Backend & LLM Engineer* (Branch `backend`)
 
-| Nama | GitHub | Peran | Branch Utama | Tanggung Jawab Utama |
-|---|---|---|---|---|
-| **Ibra** | `@flyingdutchman` | **Project Leader & Vision AI Engineer** | `main` *(+ kolaborasi `frontend`)* | Kepemimpinan proyek, arsitektur & kontrak `main`, AI Vision MediaPipe (33 Pose + 478 Face Landmarks, kalibrasi 5 detik, heuristik postur & anti-cheat), integrasi PR |
-| **Mutiara Dewanda Prisvilla (Tiara)** | `@mutiaradewanda` | **Frontend & PWA Experience Engineer** | `frontend` | Antarmuka React 18 + Tailwind PWA, Triad Dashboard, Active Break UI, Pedometer 3-sumbu, Kuesioner PSS/PSQI, AI Coach UI, Panic Relief Mode |
-| **Ahmad Syifa'ul Falakhul Khayyi (Syifa)** | `@syifamojocanggih-hash` | **Backend & LLM Engineer** | `backend` | Server Express TS, Skema Prisma MySQL & 14-day seed, Clinical Scoring (PSS-4/10, PSQI, IPAQ METs), Agentic AI Coach Ollama Lokal, Web Push VAPID |
-
----
-
-## 10. Dokumentasi Teknis Terkait
-
-Untuk memahami rincian spesifikasi, kontrak data, batasan wewenang, dan riwayat kerja per anggota tim, baca dokumen berikut:
-
-- 📘 [**Master Design & Aturan Batasan (DESIGN.md)**](DESIGN.md)
-- 📑 [**Indeks Dokumentasi Repositori (docs/README.md)**](docs/README.md)
-- 📋 [**Product Requirements Document v3.0 (PRD.md)**](docs/universal/PRD.md)
-- 🛡️ [**Batas Kerja, Hak Akses & Protokol Fleksibel (BOUNDARIES_AND_CONTRACTS.md)**](docs/universal/BOUNDARIES_AND_CONTRACTS.md)
-- 🔌 [**Kontrak Data & API Tunggal (INTERFACES.md)**](docs/universal/INTERFACES.md)
-- 🌿 [**Alur 3 Branch & Anti-Konflik (GIT_WORKFLOW.md)**](docs/universal/GIT_WORKFLOW.md)
-- 👁️ [**Spesifikasi Vision AI (docs/vision/VISION_SPEC.md)**](docs/vision/VISION_SPEC.md)
-- ⚙️ [**Panduan Backend & LLM (docs/backend/README.md)**](docs/backend/README.md)
-- 🎨 [**Panduan Frontend & Design System (docs/frontend/DESIGN_SYSTEM.md)**](docs/frontend/DESIGN_SYSTEM.md)
-- 📝 **Changelog Per-User:** [Ibra](docs/changelogs/CHANGELOG_IBRA.md) · [Tiara](docs/changelogs/CHANGELOG_TIARA.md) · [Syifa](docs/changelogs/CHANGELOG_SYIFA.md)
+Dokumentasi transisi dan analisis arsitektur lengkap:
+* 📄 [**Dokumentasi Pivot PRD v4.0 Lintas Branch (PRD_V4_PIVOT_EXPLANATION.md)**](docs/universal/PRD_V4_PIVOT_EXPLANATION.md)
+* 🛡️ [**Changelog Per-User (CHANGELOG_SYIFA.md)**](docs/changelogs/CHANGELOG_SYIFA.md)
+* 🔌 [**Kontrak Bersama (shared/contracts/index.ts)**](shared/contracts/index.ts)
 
 ---
 
 <p align="center">
-  <strong>CampusFlow — Duduk Sehat. Gerak Terukur. Stres Terkendali.</strong><br>
+  <strong>CampusFlow — Academic Strava & Predictive Burnout Management</strong><br>
   <em>Smart Lifestyle & Digital Wellbeing (SDG 3) · Techcomfest 2027 Politeknik Negeri Semarang</em>
 </p>
