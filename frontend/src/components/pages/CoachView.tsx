@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   Bot,
   CheckCircle,
-  Sparkles,
   Moon,
   Footprints,
   Armchair,
@@ -292,8 +291,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
         {/* Isotemporal Action Plan Card (Mint Green Card Accent) */}
         <div className="bg-[#CDE8B5]/35 rounded-2xl p-5 border border-[#CDE8B5] space-y-3">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#446A27]" />
+            <div className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">
               <span>Rencana Sehat &amp; Jeda Aktif Hari Ini</span>
             </div>
             <span className="text-xs font-extrabold text-[#1A1A1A] bg-white/80 px-2.5 py-0.5 rounded-lg border border-[#B6DF97]">

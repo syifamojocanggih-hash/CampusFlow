@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  Flame,
   Moon,
   Zap,
   Clock,
@@ -13,9 +12,6 @@ import {
   Activity,
   UploadCloud,
   FileText,
-  QrCode,
-  Video,
-  CheckCircle2,
 } from "lucide-react";
 import {
   AreaChart,
@@ -89,8 +85,6 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   const [isKrsModalOpen, setIsKrsModalOpen] = useState<boolean>(false);
   const [krsModalTab, setKrsModalTab] = useState<"upload" | "manual">("upload");
   const [isExtractingPdf, setIsExtractingPdf] = useState<boolean>(false);
-  const [isCctvModalOpen, setIsCctvModalOpen] = useState<boolean>(false);
-  const [cctvVerified, setCctvVerified] = useState<boolean>(false);
 
   // New Course Form State
   const [newDayOfWeek, setNewDayOfWeek] = useState<number>(1);
@@ -241,25 +235,6 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
     }, 1200);
   };
 
-  // Handle Smart Campus CCTV Recovery Zone verification (PRD v4.0 Section 3.6)
-  const handleSimulateCctvBreak = async () => {
-    try {
-      await api.verifyActiveBreak({
-        durationMins: 2,
-        poseVerified: true,
-        poseType: "CCTV_EDGE_AI_OVERHEAD",
-      });
-    } catch {
-      // safe fallback
-    }
-    setCctvVerified(true);
-    setVerifiedBreakCount((prev) => prev + 1);
-    setTimeout(() => {
-      setCctvVerified(false);
-      setIsCctvModalOpen(false);
-    }, 1800);
-  };
-
   return (
     <div className="space-y-6 pb-8">
       {/* ========================================================
@@ -308,9 +283,6 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#9A9A9A]">
                   Dashboard Strava Akademik
-                </span>
-                <span className={`text-[10px] font-extrabold px-3 py-0.5 rounded-full shadow-xs ${statusMeta.badgeBg}`}>
-                  {statusMeta.label}
                 </span>
               </div>
               <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1A1A1A] leading-tight">
@@ -507,9 +479,6 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         {/* Action 1: On-Demand Active Break */}
         <div className="bg-[#BDE6F0] rounded-3xl p-5 flex items-center justify-between gap-4 text-[#1A1A1A] shadow-softSky">
           <div className="space-y-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/80 text-[#1A1A1A] px-2.5 py-0.5 rounded-full inline-block">
-              Zero Continuous Camera
-            </span>
             <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
               Mulai Active Break 2 Menit
             </h4>
@@ -529,9 +498,6 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         {/* Action 2: Panic Relief Mode */}
         <div className="bg-[#FFF29A] rounded-3xl p-5 flex items-center justify-between gap-4 text-[#1A1A1A] border border-[#FFE966] shadow-softPill">
           <div className="space-y-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/80 text-[#1A1A1A] px-2.5 py-0.5 rounded-full inline-block">
-              Mitigasi Distres Ujian
-            </span>
             <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
               Panic Relief 15 Menit
             </h4>
@@ -717,43 +683,6 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               </div>
             </div>
           </div>
-
-          {/* Quantified Self Motivation Banner */}
-          <div className="bg-[#BDE6F0] rounded-3xl p-5 text-[#1A1A1A] shadow-softSky space-y-2">
-            <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider">
-              <Flame className="w-4 h-4 fill-[#F9B99A] text-[#F9B99A]" />
-              <span>Prinsip Effort-Recovery Model</span>
-            </div>
-            <p className="text-xs text-[#1A1A1A]/80 font-medium leading-relaxed">
-              Mahasiswa yang mempertahankan skor pemulihan &ge; 40 poin setiap hari memiliki penurunan risiko stres kognitif hingga 64% (Meijman &amp; Mulder, 1998; Sonnentag et al., 2021).
-            </p>
-          </div>
-
-          {/* Section 3.6 Pitching Feature: Smart Campus CCTV Recovery Zone Card */}
-          <div className="learnova-card p-5 border-[#E8E8E8] space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider bg-[#FFF29A] text-[#854D0E] px-2.5 py-0.5 rounded-full border border-[#FFE966]">
-                Materi Pitching Juri Techcomfest 2027
-              </span>
-              <span className="text-[10px] text-[#9A9A9A] font-bold">Future Work</span>
-            </div>
-            <div>
-              <h4 className="font-heading font-extrabold text-sm text-[#1A1A1A] flex items-center gap-1.5">
-                <Video className="w-4 h-4 text-[#1A1A1A]" />
-                Smart Campus CCTV Recovery Zone
-              </h4>
-              <p className="text-[11px] text-[#9A9A9A] mt-1 leading-relaxed">
-                Peregangan 2 menit di depan CCTV publik kampus (Perpustakaan &amp; Lab). Edge AI memvalidasi gerakan tanpa kamera pribadi, dan poin pemulihan masuk via pemindaian QR code.
-              </p>
-            </div>
-            <button
-              onClick={() => setIsCctvModalOpen(true)}
-              className="w-full py-2 px-3 rounded-xl bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] text-xs font-bold transition-colors flex items-center justify-center gap-1.5 border border-[#E8E8E8]"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              <span>Simulasi CCTV Recovery Zone Kampus</span>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -937,73 +866,6 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   </button>
                 </div>
               </form>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================
-          6. SMART CAMPUS CCTV RECOVERY ZONE MODAL (Section 3.6 Pitching)
-          ======================================================== */}
-      {isCctvModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-[#E8E8E8] space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#F0F0F0]">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A]">
-                  <Video className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-                    CCTV Recovery Zone Kampus
-                  </h3>
-                  <p className="text-[11px] text-[#9A9A9A]">Materi Pitching Juri Techcomfest 2027</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsCctvModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] flex items-center justify-center transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {cctvVerified ? (
-              <div className="p-5 rounded-2xl bg-[#CDE8B5] text-[#166534] text-center space-y-2 animate-in zoom-in-95">
-                <CheckCircle2 className="w-8 h-8 mx-auto" />
-                <h4 className="font-bold text-sm">Poin Pemulihan Berhasil Masuk!</h4>
-                <p className="text-xs leading-relaxed">
-                  Peregangan di depan CCTV Perpustakaan Kampus terverifikasi (+10 Poin). Tidak ada rekaman kamera laptop yang digunakan.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3.5">
-                <div className="p-4 rounded-2xl bg-[#F6F6F6] border border-[#E8E8E8] space-y-2.5 text-center">
-                  <div className="w-24 h-24 rounded-2xl bg-white border border-[#E8E8E8] flex items-center justify-center mx-auto shadow-xs">
-                    <QrCode className="w-16 h-16 text-[#1A1A1A]" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#9A9A9A] block">
-                      Zona: Perpustakaan Lantai 2 / Lab Komputer
-                    </span>
-                    <h5 className="font-heading font-extrabold text-xs text-[#1A1A1A] mt-0.5">
-                      Pindai QR Code di Area Istirahat Kampus
-                    </h5>
-                    <p className="text-[11px] text-[#9A9A9A] leading-relaxed mt-1">
-                      CCTV Edge AI kampus memvalidasi pose peregangan 2 menit secara publik. Bebas dari kewajiban membuka kamera webcam pribadi!
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleSimulateCctvBreak}
-                  className="w-full py-2.5 rounded-xl bg-[#1A1A1A] hover:bg-black text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Simulasi Verifikasi Selesai (+10 Poin)</span>
-                </button>
-              </div>
             )}
           </div>
         </div>

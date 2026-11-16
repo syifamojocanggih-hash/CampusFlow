@@ -21,6 +21,61 @@
 
 ---
 
+## [2026-11-16] — Pembersihan Kartu Pitching CCTV, Badge Distres/API & Ikon Dekoratif (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.32`
+- **Ringkasan:** 
+  1. **Hapus Kartu & Modal "Smart Campus CCTV Recovery Zone" (`TriadDashboard.tsx`):**
+     - Menghapus kartu pitching juri Techcomfest 2027 Section 3.6 (Foto 1) dan modal simulasi CCTV kampus untuk menyederhanakan arsitektur dashboard Strava Akademik.
+     - Membersihkan state `isCctvModalOpen`, `cctvVerified`, fungsi `handleSimulateCctvBreak`, serta impor `QrCode`, `Video`, dan `CheckCircle2`.
+  2. **Hapus Badge Pill "MITIGASI DISTRES UJIAN" (`TriadDashboard.tsx`):**
+     - Menghapus badge pill kuning pada kartu Panic Relief 15 Menit (Foto 2) agar kartu aksi jeda cepat konsisten dan minimalis.
+  3. **Hapus Badge Pill "Page Visibility API" (`FocusView.tsx`):**
+     - Menghapus badge pill biru muda penanda API pelacakan pasif pada kartu metrik waktu layar (Foto 3).
+  4. **Hapus Ikon Lightning Bolt (`FocusView.tsx`):**
+     - Menghapus ikon `Zap` berwarna hitam pada kartu pemicu cepat jeda aktif "Kamera Insidental 2 Menit" (Foto 4) dan membersihkan impor `Zap`.
+  5. **Hapus Ikon Hijau Sparkles (`CoachView.tsx`):**
+     - Menghapus ikon dekoratif `Sparkles` berwarna hijau pada judul kartu "Rencana Sehat & Jeda Aktif Hari Ini" (Foto 5) dan membersihkan impor `Sparkles`.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 unit test lolos).
+  - `npm run test:shared` (5/5 unit test lolos).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-16] — Pembersihan Kartu Edukasi, Pengaturan Ergonomi Opsional & Badge Pill Privasi (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.31`
+- **Ringkasan:** 
+  1. **Hapus Kartu "Prinsip Effort-Recovery Model" (`TriadDashboard.tsx`):**
+     - Menghapus banner biru sitasi riset motivasi kuantifikasi pemulihan (Foto 1) agar tampilan dashboard ritme akademis lebih ramping dan fokus pada visualisasi beban vs pemulihan.
+     - Membersihkan impor ikon `Flame` yang tidak terpakai.
+  2. **Hapus Akordion "Lab Kalibrasi Postur Belajar & Pengaturan Ergonomi (Opsional)" (`FocusView.tsx`):**
+     - Menghapus bagian akordion Section 4 yang memuat uji postur kamera opsional (Foto 2) untuk menegaskan prinsip zero continuous camera selama sesi belajar.
+     - Membersihkan state `isPostureLabOpen` serta impor ikon `ChevronDown`, `ChevronUp`, dan `Sparkles`.
+  3. **Hapus Kartu "Privasi Terjaga Penuh" (`FocusView.tsx`):**
+     - Menghapus kartu informasi penjaminan privasi kamera (Foto 3) agar area kerja workstation lebih ringkas dan langsung berfokus pada tombol aksi validator jeda aktif.
+     - Membersihkan impor ikon `ShieldCheck` yang tidak terpakai.
+  4. **Hapus Badge Pill "OPTIMAL / AMAN" (`TriadDashboard.tsx`):**
+     - Menghapus status badge pill warna hijau pada kartu utama Hero Card (Foto 4).
+  5. **Hapus Badge Pill "ZERO CONTINUOUS CAMERA" (`TriadDashboard.tsx` & `FocusView.tsx`):**
+     - Menghapus pill badge "Zero Continuous Camera" pada kartu quick trigger jeda aktif di dashboard dan header workstation (Foto 5).
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript (dist bundle 898 kB).
+  - `npm run test:frontend` (13/13 unit test lolos).
+  - `npm run test:shared` (5/5 unit test lolos).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
 ## [2026-11-16] — Penyelarasan Frontend dengan README Terbaru & Arsitektur PRD v4.0 (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.30`
 - **Ringkasan:** 

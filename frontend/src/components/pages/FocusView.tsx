@@ -4,13 +4,8 @@ import {
   Play,
   Pause,
   RotateCcw,
-  ShieldCheck,
   CheckCircle2,
   X,
-  ChevronDown,
-  ChevronUp,
-  Sparkles,
-  Zap,
 } from "lucide-react";
 import { VisionGuard } from "@/components/vision/VisionGuard";
 import { screenTimeTracker } from "@/utils/screenTimeTracker";
@@ -30,9 +25,6 @@ export const FocusView: React.FC = () => {
   // Active Break On-Demand Modal State
   const [isActiveBreakOpen, setIsActiveBreakOpen] = useState<boolean>(false);
   const [activeBreakSuccess, setActiveBreakSuccess] = useState<boolean>(false);
-
-  // Optional Posture Lab Collapsible State
-  const [isPostureLabOpen, setIsPostureLabOpen] = useState<boolean>(false);
 
   // Update passive screen time every 10 seconds
   useEffect(() => {
@@ -93,14 +85,9 @@ export const FocusView: React.FC = () => {
             <Monitor className="w-6 h-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
-                Workstation Belajar &amp; Active Break
-              </h2>
-              <span className="text-[10px] bg-[#CDE8B5] text-[#166534] font-extrabold px-2.5 py-0.5 rounded-full">
-                Zero Continuous Camera
-              </span>
-            </div>
+            <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
+              Workstation Belajar &amp; Active Break
+            </h2>
             <p className="text-xs text-[#9A9A9A] mt-0.5">
               Fokus belajar produktif dengan pelacakan layar pasif. Kamera HANYA menyala insidental 2 menit saat jeda.
             </p>
@@ -208,9 +195,6 @@ export const FocusView: React.FC = () => {
           <div className="learnova-card p-5 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[#9A9A9A]">Waktu Layar Pasif Hari Ini</span>
-              <span className="text-[10px] font-extrabold bg-[#BDE6F0] text-[#1A1A1A] px-2.5 py-0.5 rounded-full">
-                Page Visibility API
-              </span>
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
@@ -227,22 +211,10 @@ export const FocusView: React.FC = () => {
             </p>
           </div>
 
-          {/* Privacy Guarantee Card */}
-          <div className="bg-[#BDE6F0] rounded-3xl p-5 text-[#1A1A1A] shadow-softSky space-y-2.5">
-            <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Privasi Terjaga Penuh</span>
-            </div>
-            <p className="text-xs text-[#1A1A1A]/80 font-medium leading-relaxed">
-              Kamera laptop Anda <strong>100% OFF</strong> saat Anda membaca modul atau mengerjakan tugas. Kamera hanya diaktifkan selama 2 menit jika Anda memilih untuk memvalidasi gerakan peregangan.
-            </p>
-          </div>
-
           {/* Active Break Quick Trigger Card */}
           <div className="bg-[#FFF29A] rounded-3xl p-5 text-[#1A1A1A] border border-[#FFE966] shadow-softPill space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold flex items-center gap-1.5">
-                <Zap className="w-4 h-4 fill-[#1A1A1A]" />
+              <span className="text-xs font-extrabold">
                 Kamera Insidental 2 Menit
               </span>
               <span className="text-[10px] font-extrabold bg-white px-2 py-0.5 rounded-full shadow-xs">
@@ -335,39 +307,6 @@ export const FocusView: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* ========================================================
-          4. OPTIONAL: ERGONOMIC POSTURE LAB (Collapsible)
-          ======================================================== */}
-      <div className="learnova-card p-5 border-[#E8E8E8] space-y-4">
-        <button
-          onClick={() => setIsPostureLabOpen(!isPostureLabOpen)}
-          className="w-full flex items-center justify-between text-left group"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#FFF29A] flex items-center justify-center text-[#1A1A1A] shrink-0">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                Lab Kalibrasi Postur Belajar &amp; Pengaturan Ergonomi (Opsional)
-              </h4>
-              <p className="text-[11px] text-[#9A9A9A]">
-                Gunakan jika Anda ingin menguji deteksi bungkuk atau mengatur ulang baseline duduk tegak.
-              </p>
-            </div>
-          </div>
-          <div className="p-1 rounded-lg bg-[#FAFAFA] text-[#9A9A9A] group-hover:text-[#1A1A1A]">
-            {isPostureLabOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </div>
-        </button>
-
-        {isPostureLabOpen && (
-          <div className="pt-3 border-t border-[#F0F0F0] animate-in fade-in duration-200">
-            <VisionGuard autoStartCamera={false} />
-          </div>
-        )}
-      </div>
     </div>
   );
 };
