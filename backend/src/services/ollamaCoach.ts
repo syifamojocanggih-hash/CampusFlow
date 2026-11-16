@@ -586,11 +586,6 @@ export async function generateClinicalWellbeingInsight(
     activeDirectives.push(`JENIS_GERAK: ${forcedJenisGerak}`);
     activeDirectives.push(`PILIHAN_GERAK_USER: user memilih opsi gerak '${forcedJenisGerak}'`);
   }
-  if (Object.keys(cleanToday).length === 0 && !userTelemetry7Days.userNotes) {
-    activeDirectives.push(
-      "PENYEBAB_TIDAK_DIKETAHUI: jangan menyebut penyebab (tidur, duduk, aktivitas, kuliah) yang tidak disebut user"
-    );
-  }
   if (
     userTelemetry7Days.today.sleepHours !== null &&
     userTelemetry7Days.today.sleepHours !== undefined

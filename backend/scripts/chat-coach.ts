@@ -11,6 +11,7 @@ import {
   ALL_OFFICIAL_MOVEMENT_OPTIONS,
   appendCoachRawLog,
   auditResponse,
+  buildDeterministicCauseExplanation,
   checkMovementMatch,
   CLARIFICATION_PROMPT_TEXT,
   CLARIFICATION_WITH_OPTIONS_TEXT,
@@ -22,6 +23,8 @@ import {
   detectMovementChoice,
   detectRecentlyExercised,
   extractActivity,
+  extractActivityWord,
+  extractLocation,
   extractSedentaryHours,
   extractSleepHours,
   filterDirectiveLeakage,
@@ -61,6 +64,7 @@ export {
   ALL_OFFICIAL_MOVEMENT_OPTIONS,
   appendCoachRawLog,
   auditResponse,
+  buildDeterministicCauseExplanation,
   checkMovementMatch,
   CLARIFICATION_PROMPT_TEXT,
   CLARIFICATION_WITH_OPTIONS_TEXT,
@@ -72,6 +76,8 @@ export {
   detectMovementChoice,
   detectRecentlyExercised,
   extractActivity,
+  extractActivityWord,
+  extractLocation,
   extractSedentaryHours,
   extractSleepHours,
   filterDirectiveLeakage,
@@ -124,6 +130,7 @@ export function buildChatCoachPayload(
   options?: {
     forcedJenisGerak?: string;
     pendingPrompt?: "clarification" | "movement" | null;
+    noRotate?: boolean;
   }
 ) {
   const sedentaryHours = extractSedentaryHours(userInput);
@@ -201,20 +208,22 @@ export function buildChatCoachPayload(
             ? { durationMinutesRange: [15, 30], metsRange: [180, 260] }
             : { durationMinutesRange: [15, 25], metsRange: [160, 220] };
 
+  const shouldNoRotate = Boolean(options?.noRotate || process.env.COACH_NO_ROTATE === "1");
+
   // Pilih variasi jenis gerak (dengan aturan jam malam bila berlaku)
   let jenisGerak = options?.forcedJenisGerak || "";
   if (!jenisGerak) {
     if (isRecoveryMode) {
-      jenisGerak = getNextMovementOption("RECENTLY_EXERCISED", isLateNight);
+      jenisGerak = getNextMovementOption("RECENTLY_EXERCISED", isLateNight, shouldNoRotate);
     } else if (clarChoice.isChoice && clarChoice.choice === "1") {
-      jenisGerak = getNextMovementOption("SEDENTARY_OVERLOAD", isLateNight);
+      jenisGerak = getNextMovementOption("SEDENTARY_OVERLOAD", isLateNight, shouldNoRotate);
     } else if (clarChoice.isChoice && clarChoice.choice === "2") {
-      jenisGerak = getNextMovementOption("SLEEP_MEDIATION_DEFICIT", isLateNight);
+      jenisGerak = getNextMovementOption("SLEEP_MEDIATION_DEFICIT", isLateNight, shouldNoRotate);
     } else if (clarChoice.isChoice && clarChoice.choice === "4") {
-      jenisGerak = getNextMovementOption("EXAM_ACUTE_STRESS", isLateNight);
+      jenisGerak = getNextMovementOption("EXAM_ACUTE_STRESS", isLateNight, shouldNoRotate);
     } else {
       const mediatorKey = escalationFlag ? "ESCALATION" : dominantMediator;
-      jenisGerak = getNextMovementOption(mediatorKey, isLateNight);
+      jenisGerak = getNextMovementOption(mediatorKey, isLateNight, shouldNoRotate);
     }
   }
 
@@ -241,10 +250,12 @@ export function buildChatCoachPayload(
   };
   const cleanToday = stripNullFields(rawToday);
 
-  // POIN 2: Directive PENYEBAB_TIDAK_DIKETAHUI ketika today kosong dan detectedActivity null
-  if (Object.keys(cleanToday).length === 0 && !activity) {
+  // POIN 1 (User Request): Hapus directive PENYEBAB_TIDAK_DIKETAHUI dan pandu model dengan konteks fisik jika ada
+  if (sedentaryHours !== null || activity) {
+    const actDesc = activity ? `pada ${activity}` : "";
+    const sedDesc = sedentaryHours !== null ? `selama ${sedentaryHours} jam` : "";
     activeDirectives.push(
-      "PENYEBAB_TIDAK_DIKETAHUI: jangan menyebut penyebab (tidur, duduk, aktivitas, kuliah) yang tidak disebut user"
+      `KONTEKS_FISIK: user duduk ${sedDesc} ${actDesc}. Sebutkan durasi dan aktivitas fisik ini secara akurat tanpa menambah asumsi kegiatan lain.`
     );
   }
 
@@ -448,6 +459,7 @@ export interface ProcessChatCoachOptions {
   hasClarified?: boolean;
   forcedJenisGerak?: string;
   pendingPrompt?: "clarification" | "movement" | null;
+  noRotate?: boolean;
   previousPayload?: ReturnType<typeof buildChatCoachPayload>["promptPayload"];
   previousMeta?: {
     dominantMediator: DominantMediator;
@@ -1008,7 +1020,15 @@ export async function processChatCoachInput(
     }
 
     const cleanedSummary = filteredSentences.join(" ").trim();
-    if (cleanedSummary.length >= 10) {
+    const deterministicCause = buildDeterministicCauseExplanation(trimmed, {
+      sedentaryHours,
+      sleepHours,
+      detectedActivity: activity,
+    });
+
+    if (deterministicCause) {
+      sanitizedSummary = deterministicCause;
+    } else if (cleanedSummary.length >= 10) {
       sanitizedSummary = cleanedSummary;
     } else {
       sanitizedSummary = getNextNeutralCauseFallback();
@@ -1043,6 +1063,55 @@ export async function processChatCoachInput(
     );
   }
 
+  // POIN 1 & 2: Jika sedentaryHours atau aktivitas terdeteksi, JANGAN pakai NEUTRAL_CAUSE_FALLBACK_VARIANTS
+  const deterministicCause = buildDeterministicCauseExplanation(trimmed, {
+    sedentaryHours,
+    sleepHours,
+    detectedActivity: activity,
+  });
+
+  const hasUnknownCausePhrase =
+    /\b(?:belum\s+tahu\s+pasti\s+penyebabnya|penyebab\s+pastinya\s+belum\s+diketahui|belum\s+tahu\s+penyebabnya)\b/i.test(
+      sanitizedSummary
+    );
+
+  let isStillOutOfScope =
+    /di luar cakupan/i.test(sanitizedSummary) ||
+    /di luar cakupan/i.test(sanitizedAction);
+
+  if (!isStillOutOfScope) {
+    if (deterministicCause) {
+      if (hasUnknownCausePhrase) {
+        sanitizedSummary = sanitizedSummary
+          .replace(
+            /\b(?:Aku\s+belum\s+tahu\s+pasti\s+penyebabnya[^\.\!\?]*[\.\!\?]?|Penyebab\s+pastinya\s+belum\s+diketahui[^\.\!\?]*[\.\!\?]?)\s*/gi,
+            ""
+          )
+          .trim();
+        sanitizedSummary =
+          sanitizedSummary.length >= 10
+            ? `${deterministicCause} ${sanitizedSummary}`
+            : deterministicCause;
+      }
+
+      const mentionsHours =
+        sedentaryHours !== null
+          ? new RegExp(`\\b${sedentaryHours}\\s*jam\\b`, "i").test(sanitizedSummary)
+          : true;
+      const actWord = extractActivityWord(trimmed);
+      const mentionsAct = actWord
+        ? new RegExp(`\\b${actWord.split(" ")[0]}\\b`, "i").test(sanitizedSummary)
+        : true;
+
+      if (!mentionsHours || !mentionsAct) {
+        sanitizedSummary = deterministicCause;
+      }
+    } else if (isBareGeneralComplaint(trimmed) || (clarChoice.isChoice && clarChoice.choice === "SKIP")) {
+      // POIN 2: Gunakan kalimat netral "belum tahu penyebabnya" HANYA bila tidak ada durasi, aktivitas, atau penyebab yang terdeteksi dari input
+      sanitizedSummary = getNextNeutralCauseFallback();
+    }
+  }
+
   if (clarChoice.isChoice && clarChoice.choice === "SKIP") {
     sanitizedSummary = getNextNeutralCauseFallback();
     wasModularFallbackApplied = true;
@@ -1062,7 +1131,7 @@ export async function processChatCoachInput(
     conjunctionStripped = true;
   }
 
-  const isStillOutOfScope =
+  isStillOutOfScope =
     /di luar cakupan/i.test(sanitizedSummary) ||
     /di luar cakupan/i.test(sanitizedAction);
 
@@ -1308,8 +1377,15 @@ if (isDirectRun) {
       ? process.argv[argPriorActivityIndex + 1]
       : null;
 
+  const argNoRotate = process.argv.includes("--no-rotate") || process.env.COACH_NO_ROTATE === "1";
+  if (argNoRotate) {
+    process.env.COACH_NO_ROTATE = "1";
+  }
+
   if (cliInput) {
-    const runOptions: ProcessChatCoachOptions = {};
+    const runOptions: ProcessChatCoachOptions = {
+      noRotate: argNoRotate,
+    };
 
     if (cliPendingPrompt) {
       runOptions.pendingPrompt = cliPendingPrompt;
@@ -1479,6 +1555,7 @@ if (isDirectRun) {
             pendingPrompt: sessionState.pendingPrompt,
             previousPayload: sessionState.previousPayload,
             previousMeta: sessionState.previousMeta,
+            noRotate: argNoRotate,
           };
 
           const result = await processChatCoachInput(trimmed, callOptions);

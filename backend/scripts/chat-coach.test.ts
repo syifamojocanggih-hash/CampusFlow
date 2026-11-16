@@ -921,3 +921,133 @@ import { computeCoachStats } from "./coach-stats.ts";
           assert.ok(guidance.fullPlanText.includes(MOVEMENT_GUIDANCE_CLOSING));
         }
       });
+
+      test("transkrip keluhan duduk di rumah: memuat '3 jam' dan 'laptop' serta TIDAK memuat 'belum tahu pasti penyebabnya'", async () => {
+        const mockCaller = async () => ({
+          insight: {
+            dominantMediator: "SEDENTARY_OVERLOAD" as const,
+            diagnosisSummary:
+              "Aku belum tahu pasti penyebabnya, tapi tubuhmu terasa lelah setelah kuliah dan mengerjakan tugas.",
+            isotemporalActionPlan: "Lakukan peregangan meja selama 15 menit sekarang.",
+            recommendedMetsToday: 180,
+            scientificCitationNote: "Pedoman ergonomi.",
+          },
+        });
+
+        const res = await processChatCoachInput(
+          "aku capek karena terlalu lama duduk menghadap laptop selama 3 jam di rumah",
+          {
+            callModelFn: mockCaller as any,
+          }
+        );
+
+        assert.match(res.formattedOutput, /3 jam/i, "Harus memuat '3 jam'");
+        assert.match(res.formattedOutput, /laptop/i, "Harus memuat 'laptop'");
+        assert.doesNotMatch(
+          res.formattedOutput,
+          /belum tahu pasti penyebabnya/i,
+          "TIDAK boleh memuat 'belum tahu pasti penyebabnya'"
+        );
+        assert.doesNotMatch(
+          res.formattedOutput,
+          /penyebab pastinya belum diketahui/i,
+          "TIDAK boleh memuat 'penyebab pastinya belum diketahui'"
+        );
+        assert.match(res.formattedOutput, /di rumah/i, "Harus menyebut 'di rumah' karena user menyebutnya");
+      });
+
+      test("input 'capek banget' tetap memakai kalimat netral bila diproses", async () => {
+        // Setelah klarifikasi, input pendek 'capek banget' yang tidak memiliki durasi/aktivitas memakai kalimat netral
+        const mockCaller = async () => ({
+          insight: {
+            dominantMediator: "OPTIMAL_BALANCE" as const,
+            diagnosisSummary: "Memerlukan pemulihan ringan.",
+            isotemporalActionPlan: "Lakukan jalan santai 10 menit.",
+            recommendedMetsToday: 160,
+            scientificCitationNote: "Pedoman kebugaran.",
+          },
+        });
+
+        const res = await processChatCoachInput("capek banget", {
+          callModelFn: mockCaller as any,
+          hasClarified: true,
+        });
+
+        assert.match(
+          res.formattedOutput,
+          /(?:belum tahu pasti penyebabnya|penyebab pastinya belum diketahui|tanpa tahu persis pemicunya)/i,
+          "Input tanpa durasi/aktivitas harus memakai penjelasan netral"
+        );
+      });
+
+      test("input 'aku kelelahan sebadan karena 4 jam aku belajar lihat laptop' memuat '4 jam' dan 'laptop' tanpa lokasi fiktif", async () => {
+        const mockCaller = async () => ({
+          insight: {
+            dominantMediator: "SEDENTARY_OVERLOAD" as const,
+            diagnosisSummary:
+              "Tubuhmu lelah setelah kuliah seharian.",
+            isotemporalActionPlan: "Lakukan peregangan meja 15 menit.",
+            recommendedMetsToday: 180,
+            scientificCitationNote: "Pedoman ergonomi.",
+          },
+        });
+
+        const res = await processChatCoachInput(
+          "aku kelelahan sebadan karena 4 jam aku belajar lihat laptop",
+          {
+            callModelFn: mockCaller as any,
+          }
+        );
+
+        assert.match(res.formattedOutput, /4 jam/i, "Harus memuat '4 jam'");
+        assert.match(res.formattedOutput, /laptop/i, "Harus memuat 'laptop'");
+        assert.doesNotMatch(res.formattedOutput, /di rumah/i, "Jangan menambah lokasi 'di rumah' bila user tidak menyebut");
+        assert.doesNotMatch(res.formattedOutput, /belum tahu pasti penyebabnya/i);
+      });
+
+      test("flag --no-rotate / COACH_NO_ROTATE=1 mengunci JENIS_GERAK agar tidak berputar", () => {
+        const option1 = getNextMovementOption("SEDENTARY_OVERLOAD", false, true);
+        const option2 = getNextMovementOption("SEDENTARY_OVERLOAD", false, true);
+        const option3 = getNextMovementOption("SEDENTARY_OVERLOAD", false, true);
+
+        assert.equal(option1, option2, "Opsi gerak harus identik saat noRotate=true");
+        assert.equal(option2, option3, "Opsi gerak harus konsisten pada pemanggilan berikutnya");
+      });
+
+      test("template panduan: bebas klaim fisiologis sirkulasi darah dan memiliki durasi/hitungan jelas pada tiap langkah", () => {
+        for (const [key, steps] of Object.entries(MOVEMENT_GUIDANCE_TEMPLATES)) {
+          for (let idx = 0; idx < steps.length; idx++) {
+            const step = steps[idx];
+            assert.doesNotMatch(
+              step,
+              /melancarkan\s+(?:sirkulasi|aliran)\s+darah/i,
+              `Template ${key} memuat klaim sirkulasi darah: "${step}"`
+            );
+            assert.doesNotMatch(
+              step,
+              /sambil\s+mengambil\s+jeda\s+melihat\s+pandangan\s+jauh\s+dari\s+layar/i,
+              `Template ${key} memuat frasa lama tidak gramatikal: "${step}"`
+            );
+            assert.doesNotMatch(
+              step,
+              /menyeimbangkan\s+denyut\s+jantung|menurunkan\s+denyut\s+nadi|suhu\s+tubuh\s+kembali/i,
+              `Template ${key} memuat klaim fisiologis denyut/suhu: "${step}"`
+            );
+
+            // Pada template eskalasi krisis, langkah penutup adalah ajakan konselor / Hotline 119
+            if (key.startsWith("TIDAK ada rekomendasi olahraga") && idx === 3) {
+              continue;
+            }
+
+            // Cek ada durasi (menit/detik) atau hitungan (kali/hitungan/putaran/gelas/botol)
+            const hasMetric =
+              /\b(?:\d+(?:-\d+)?\s*(?:menit|detik|kali|hitungan|putaran|jam|gelas|botol))\b/i.test(
+                step
+              );
+            assert.ok(
+              hasMetric,
+              `Langkah pada template "${key}" harus memiliki durasi atau hitungan jelas: "${step}"`
+            );
+          }
+        }
+      });

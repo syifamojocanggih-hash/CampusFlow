@@ -174,6 +174,101 @@ export function extractActivity(text: string): string | null {
   if (/\b(?:kuliah|kelas|dosen)\b/i.test(lower)) return "kuliah";
   if (/\b(?:nugas|tugas)\b/i.test(lower)) return "nugas";
   if (/\b(?:belajar|baca buku)\b/i.test(lower)) return "belajar";
+  if (/\b(?:ngoding|koding)\b/i.test(lower)) return "ngoding";
+  if (/\b(?:menghadap\s+laptop|lihat\s+laptop|depan\s+laptop|laptop)\b/i.test(lower)) return "laptop";
+  if (/\b(?:di\s+depan\s+)?layar\b/i.test(lower)) return "layar";
+  if (/\b(?:di\s+depan\s+)?komputer\b/i.test(lower)) return "komputer";
+  return null;
+}
+
+/** Ekstrak penyebutan lokasi dari input user secara ketat */
+export function extractLocation(text: string): string | null {
+  const lower = text.toLowerCase();
+  if (/\bdi\s+rumah\b/i.test(lower)) return "di rumah";
+  if (/\bdi\s+kos(?:an)?\b/i.test(lower)) return "di kos";
+  if (/\bdi\s+kamar\b/i.test(lower)) return "di kamar";
+  if (/\bdi\s+perpus(?:takaan)?\b/i.test(lower)) return "di perpustakaan";
+  if (/\bdi\s+lab(?:oratorium)?\b/i.test(lower)) return "di lab";
+  if (/\bdi\s+kampus\b/i.test(lower)) return "di kampus";
+  if (/\bdi\s+kantor\b/i.test(lower)) return "di kantor";
+  return null;
+}
+
+/** Ekstrak kata aktivitas spesifik dari input user untuk pembentukan kalimat deterministik */
+export function extractActivityWord(text: string): string | null {
+  const lower = text.toLowerCase();
+  if (/\bbelajar\b/i.test(lower) && /\blaptop\b/i.test(lower)) {
+    if (/\b(?:lihat|melihat|depan)\s+laptop\b/i.test(lower)) {
+      return "belajar di depan laptop";
+    }
+    return "belajar menghadap laptop";
+  }
+  if (/\bmenghadap\s+laptop\b/i.test(lower)) return "menghadap laptop";
+  if (/\b(?:lihat|melihat|di\s+depan)\s+laptop\b/i.test(lower)) return "di depan laptop";
+  if (/\blaptop\b/i.test(lower)) return "menghadap laptop";
+  if (/\b(?:di\s+depan\s+)?layar\b/i.test(lower)) return "di depan layar";
+  if (/\b(?:di\s+depan\s+)?komputer\b/i.test(lower)) return "di depan komputer";
+  if (/\bngoding\b/i.test(lower)) return "ngoding";
+  if (/\b(?:nugas|mengerjakan\s+tugas)\b/i.test(lower)) return "nugas";
+  if (/\b(?:skripsi|mengerjakan\s+skripsi)\b/i.test(lower)) return "mengerjakan skripsi";
+  if (/\b(?:laprak|mengerjakan\s+laprak)\b/i.test(lower)) return "mengerjakan laprak";
+  if (/\bbelajar\b/i.test(lower)) return "belajar";
+  if (/\b(?:kuliah|di\s+kelas)\b/i.test(lower)) return "kuliah";
+  if (/\b(?:membaca|baca\s+buku)\b/i.test(lower)) return "membaca";
+  if (/\bmenulis\b/i.test(lower)) return "menulis";
+  return null;
+}
+
+/**
+ * Menyusun kalimat penjelasan deterministik jika sedentaryHours atau aktivitas terdeteksi.
+ * Mengembalikan null jika tidak ada fakta yang terdeteksi (sehingga menggunakan kalimat netral).
+ */
+export function buildDeterministicCauseExplanation(
+  userInput: string,
+  meta?: {
+    sedentaryHours?: number | null;
+    sleepHours?: number | null;
+    detectedActivity?: string | null;
+  }
+): string | null {
+  const sedentaryHours =
+    meta?.sedentaryHours !== undefined
+      ? meta.sedentaryHours
+      : extractSedentaryHours(userInput);
+  const sleepHours =
+    meta?.sleepHours !== undefined
+      ? meta.sleepHours
+      : extractSleepHours(userInput);
+  const activityWord = extractActivityWord(userInput) ?? meta?.detectedActivity ?? null;
+  const locationWord = extractLocation(userInput);
+  const isExercised = detectRecentlyExercised(userInput);
+
+  if (isExercised) {
+    return "Setelah berolahraga, wajar jika otot terasa lelah dan tubuh memerlukan pemulihan bertahap.";
+  }
+
+  if (sedentaryHours !== null) {
+    const parts = [
+      `Duduk ${sedentaryHours} jam`,
+      activityWord,
+      locationWord,
+    ].filter(Boolean);
+    return `${parts.join(" ")} memang bisa membuat badan terasa lelah dan kaku.`;
+  }
+
+  if (activityWord) {
+    const parts = [
+      `Duduk cukup lama`,
+      activityWord,
+      locationWord,
+    ].filter(Boolean);
+    return `${parts.join(" ")} memang bisa membuat badan terasa lelah dan kaku.`;
+  }
+
+  if (sleepHours !== null) {
+    return `Tidur ${sleepHours} jam semalam memang bisa membuat tubuh terasa lelah dan kurang bertenaga.`;
+  }
+
   return null;
 }
 
@@ -459,9 +554,15 @@ export function getMovementOptionsForMediator(
 export const lastMovementIndexByMediator: Record<string, number> = {};
 
 /** Memilih opsi gerakan bergantian per mediator dalam sesi (tidak sama dengan giliran sebelumnya) */
-export function getNextMovementOption(mediatorKey: string, isLateNight: boolean = false): string {
+export function getNextMovementOption(
+  mediatorKey: string,
+  isLateNight: boolean = false,
+  noRotate: boolean = false
+): string {
   const options = getMovementOptionsForMediator(mediatorKey, isLateNight);
-  if (options.length === 1) return options[0];
+  if (options.length === 1 || noRotate || process.env.COACH_NO_ROTATE === "1") {
+    return options[0];
+  }
 
   const cacheKey = isLateNight ? `${mediatorKey}_LATE_NIGHT` : mediatorKey;
   const prevIdx = lastMovementIndexByMediator[cacheKey] ?? -1;
@@ -564,130 +665,130 @@ export function getAlternativeMovementOptions(
 /** Template 3-4 langkah panduan ringkas untuk setiap jenis gerak PRD (tanpa memanggil model) */
 export const MOVEMENT_GUIDANCE_TEMPLATES: Record<string, string[]> = {
   "peregangan meja (fokus bahu, leher, pergelangan tangan, dan punggung bawah)": [
-    "Duduk tegak di kursi, tarik bahu ke belakang, lalu putar perlahan 5 kali.",
-    "Miringkan kepala lembut ke arah bahu kanan dan kiri, tahan 10 detik pada tiap sisi.",
-    "Luruskan kedua lengan ke depan, tarik jemari ke belakang untuk meregangkan pergelangan tangan.",
-    "Tautkan jemari di belakang punggung bawah lalu dorong dada terbuka perlahan sambil bernapas teratur.",
+    "Duduk tegak di kursi, tarik bahu ke belakang, lalu putar perlahan sebanyak 5 kali.",
+    "Miringkan kepala lembut ke arah bahu kanan dan kiri, tahan selama 10 detik pada tiap sisi.",
+    "Luruskan kedua lengan ke depan, tarik jemari ke belakang untuk meregangkan pergelangan tangan selama 15 detik.",
+    "Tautkan jemari di belakang punggung bawah lalu dorong dada terbuka perlahan selama 15-20 detik sambil bernapas teratur.",
   ],
   "jeda berdiri dari kursi dan jalan singkat di koridor atau sekitar ruangan": [
-    "Dorong kursi ke belakang dan berdiri tegak dengan kedua kaki berpijak mantap di lantai.",
-    "Berjalan santai mengitari ruangan atau koridor selama beberapa menit untuk melancarkan sirkulasi darah.",
-    "Ayunkan kedua lengan perlahan sambil mengambil jeda melihat pandangan jauh dari layar.",
-    "Minum beberapa teguk air putih sebelum kembali duduk dengan postur lebih nyaman.",
+    "Dorong kursi ke belakang dan berdiri tegak dengan kedua kaki berpijak mantap di lantai selama 10 detik.",
+    "Berjalan santai mengitari ruangan atau koridor selama 3-5 menit dengan langkah ringan dan stabil.",
+    "Ayunkan kedua lengan perlahan selama 30 detik sambil menatap objek yang jauh untuk mengistirahatkan mata.",
+    "Habiskan segelas air putih secara perlahan selama 1 menit sebelum kembali duduk dengan postur nyaman.",
   ],
   "peregangan tubuh lembut dan jalan santai 10 menit di sekitar meja": [
-    "Berdiri dari meja, angkat kedua tangan lurus ke atas dan rasakan regangan di tulang belakang.",
-    "Miringkan tubuh secara perlahan ke arah kiri dan kanan untuk melemaskan otot samping pinggang.",
+    "Berdiri dari meja, angkat kedua tangan lurus ke atas dan rasakan regangan di tulang belakang selama 15 detik.",
+    "Miringkan tubuh secara perlahan ke arah kiri dan kanan, tahan selama 10 detik pada tiap sisi.",
     "Lakukan jalan santai langkah kecil di sekitar meja selama 10 menit dengan ritme teratur.",
-    "Turunkan kedua bahu secara relaks dan atur napas panjang sebelum melanjutkan aktivitas.",
+    "Turunkan kedua bahu secara relaks dan atur napas panjang selama 30 detik sebelum melanjutkan aktivitas.",
   ],
   "peregangan relaksasi otot lembut dan latihan napas 4-7-8 (tanpa olahraga berat bila malam)": [
-    "Duduk atau rebahkan tubuh dalam posisi nyaman dan pejamkan mata perlahan.",
-    "Lemaskan otot rahang, leher, dan bahu yang terasa tegang dengan gerakan memutar lembut.",
+    "Duduk atau rebahkan tubuh dalam posisi nyaman dan pejamkan mata perlahan selama 30 detik.",
+    "Lemaskan otot rahang, leher, dan bahu dengan gerakan memutar lembut sebanyak 5 kali.",
     "Tarik napas lewat hidung selama 4 hitungan, tahan selama 7 hitungan, lalu hembuskan lewat mulut selama 8 hitungan.",
     "Ulangi siklus napas 4-7-8 ini sebanyak 4 kali putaran hingga pikiran terasa tenang.",
   ],
   "latihan napas 4-7-8 santai dalam posisi duduk atau rebahan untuk menenangkan tubuh (tanpa olahraga berat)": [
-    "Cari posisi duduk bersandar yang tenang atau rebahan santai di kasur.",
-    "Letakkan satu tangan di dada dan tangan lainnya di perut untuk merasakan irama napas.",
+    "Cari posisi duduk bersandar yang tenang atau rebahan santai di kasur selama 1 menit.",
+    "Letakkan satu tangan di dada dan tangan lainnya di perut untuk merasakan irama napas selama 30 detik.",
     "Tarik napas dalam melalui hidung selama 4 detik, tahan napas dengan tenang selama 7 detik.",
-    "Hembuskan napas perlahan melalui bibir terbuka selama 8 detik, lalu rasakan tubuh semakin rileks.",
+    "Hembuskan napas perlahan melalui bibir terbuka selama 8 detik, lalu ulangi siklus ini sebanyak 4 kali.",
   ],
   "jalan cepat 15-20 menit di area kampus atau kos": [
-    "Kenakan alas kaki yang nyaman dan siapkan air minum sebelum melangkah keluar.",
-    "Mulai dengan jalan santai 3 menit sebagai pemanasan di sekitar lorong atau halaman.",
+    "Kenakan alas kaki yang nyaman dan siapkan 1 botol air minum selama 1-2 menit persiapan.",
+    "Mulai dengan jalan santai selama 3 menit sebagai pemanasan di sekitar lorong atau halaman.",
     "Tingkatkan kecepatan ke jalan cepat selama 15-20 menit dengan ayunan lengan aktif.",
-    "Turunkan tempo langkah di 2 menit terakhir dan lakukan peregangan betis ringan.",
+    "Turunkan tempo langkah di 2 menit terakhir dan lakukan peregangan betis ringan selama 15 detik tiap kaki.",
   ],
   "naik-turun tangga dan jalan aktif yang boleh dipecah 2-3 sesi 10 menit": [
-    "Gunakan tangga terdekat dengan tempo langkah stabil dan berpegangan tangan bila perlu.",
+    "Gunakan tangga terdekat dengan tempo langkah stabil selama 1-2 menit menaiki tangga secara berhati-hati.",
     "Lakukan naik-turun tangga santai selama 5-10 menit tanpa terburu-buru.",
-    "Sambung dengan jalan aktif mendatar di koridor untuk menyeimbangkan denyut jantung.",
-    "Istirahat sejenak, rehidrasi cairan tubuh, dan ulangi sesi berikutnya bila ada waktu luang.",
+    "Sambung dengan jalan aktif mendatar di koridor selama 3-5 menit secara teratur.",
+    "Istirahat sejenak selama 2 menit, minum air putih, dan ulangi sesi berikutnya bila ada waktu luang.",
   ],
   "latihan napas fokus 10-15 menit untuk menenangkan ketegangan akademik": [
-    "Jauhkan buku atau layar gawai sejenak dan duduk bersandar dengan nyaman.",
+    "Jauhkan buku atau gawai sejenak dan duduk bersandar dengan nyaman selama 1 menit.",
     "Tarik napas dalam melalui hidung selama 4 hitungan hingga rongga dada mengembang.",
-    "Hembuskan napas panjang dan teratur melalui mulut sambil melepaskan beban ketegangan di kepala.",
-    "Lanjutkan pernapasan terarah ini selama 10-15 menit hingga detak jantung terasa lebih stabil.",
+    "Hembuskan napas panjang dan teratur melalui mulut selama 6 hitungan sambil melepaskan beban ketegangan.",
+    "Lanjutkan pernapasan terarah ini selama 10-15 menit dengan ritme tenang dan stabil.",
   ],
   "jeda sejenak melihat ruang terbuka hijau atau berjalan santai 10-15 menit": [
-    "Melangkah ke luar ruangan, balkon, atau dekat jendela yang menghadap pepohonan terbuka.",
+    "Melangkah ke luar ruangan, balkon, atau dekat jendela terbuka selama 1 menit.",
     "Alihkan pandangan ke objek hijau di kejauhan selama 2-3 menit untuk mengistirahatkan mata lelah.",
     "Berjalan santai langkah tenang di area terbuka selama 10-15 menit sambil menghirup udara segar.",
-    "Rasakan udara bersih menyegarkan pikiran sebelum kembali melanjutkan kegiatan belajar.",
+    "Ambil napas panjang selama 30 detik sebelum kembali melanjutkan kegiatan belajar.",
   ],
   "TIDAK ada rekomendasi olahraga; hanya latihan napas pelan atau duduk tenang 5-10 menit di ruangan yang nyaman dan ajakan berkonsultasi ke Konselor Kampus": [
-    "Cari tempat yang tenang, aman, dan teduh untuk duduk bersandar dengan relaks.",
-    "Letakkan tangan di atas paha dan pejamkan mata sejenak tanpa memaksakan pikiran apa pun.",
+    "Cari tempat yang tenang, aman, dan teduh untuk duduk bersandar dengan relaks selama 1 menit.",
+    "Letakkan tangan di atas paha dan pejamkan mata sejenak selama 30 detik tanpa memaksakan pikiran apa pun.",
     "Tarik napas pelan dan hembuskan dengan lembut selama 5-10 menit untuk menenangkan diri.",
     "Ingat bahwa kamu tidak sendirian; jangan ragu menghubungi layanan konselor kampus atau Hotline 119 bila butuh teman cerita.",
   ],
   "pemulihan aktif dengan peregangan pendinginan otot lembut dan rehidrasi cairan (tanpa olahraga tambahan)": [
-    "Minum satu atau dua gelas air putih secara berkala untuk memulihkan hidrasi tubuh.",
-    "Lakukan peregangan statis pada otot paha, betis, dan punggung tanpa sentakan tiba-tiba.",
+    "Minum satu atau dua gelas air putih secara berkala selama 2 menit untuk memulihkan cairan tubuh.",
+    "Lakukan peregangan statis pada otot paha, betis, dan punggung selama 2-3 menit tanpa sentakan tiba-tiba.",
     "Tahan setiap posisi regangan selama 15-20 detik sambil bernapas santai dan tenang.",
-    "Duduk atau rebahan santai sejenak agar suhu tubuh kembali ke kondisi normal.",
+    "Duduk atau rebahan santai selama 3-5 menit agar tubuh kembali tenang dan relaks.",
   ],
   "latihan napas rileks dan peregangan pendinginan statis untuk memulihkan otot yang sudah dipakai berolahraga": [
-    "Berdiri atau duduk santai dan atur pernapasan panjang untuk menurunkan denyut nadi.",
-    "Regangkan otot paha depan dengan menarik satu pergelangan kaki ke belakang perlahan, tahan 15 detik.",
-    "Luruskan satu kaki ke depan dan bungkukkan badan lembut untuk meregangkan paha belakang.",
-    "Ambil napas dalam, regangkan kedua bahu, lalu minum air putih untuk mendukung pemulihan.",
+    "Berdiri atau duduk santai dan atur pernapasan panjang selama 1-2 menit secara teratur.",
+    "Regangkan otot paha depan dengan menarik satu pergelangan kaki ke belakang perlahan, tahan selama 15 detik.",
+    "Luruskan satu kaki ke depan dan bungkukkan badan lembut untuk meregangkan paha belakang selama 15 detik.",
+    "Ambil napas dalam selama 30 detik, regangkan kedua bahu, lalu minum air putih untuk mendukung pemulihan.",
   ],
   "peregangan santai dan jalan ringan untuk memelihara kebugaran harian": [
-    "Bangkit dari tempat duduk dan regangkan seluruh badan dari ujung jari tangan ke kaki.",
+    "Bangkit dari tempat duduk dan regangkan seluruh badan ke atas selama 15-20 detik.",
     "Lakukan jalan ringan mengelilingi ruangan atau koridor dengan langkah santai selama 5-10 menit.",
-    "Putar pinggang lembut ke kiri dan kanan untuk melemaskan otot persendian punggung.",
-    "Tarik napas lega dan lanjutkan sisa hari dengan energi yang lebih seimbang.",
+    "Putar pinggang lembut ke kiri dan kanan masing-masing sebanyak 5 kali untuk melemaskan persendian punggung.",
+    "Tarik napas lega selama 30 detik dan lanjutkan sisa hari dengan ritme yang lebih segar.",
   ],
   "jalan santai 10-15 menit di luar ruangan untuk menyegarkan suasana pikiran": [
-    "Beranjak ke luar ruangan atau halaman kos dan nikmati pergantian suasana sekitarmu.",
+    "Beranjak ke luar ruangan atau halaman kos dan nikmati pergantian suasana sekitarmu selama 1 menit.",
     "Berjalan santai dengan ritme nyaman selama 10-15 menit tanpa memikirkan beban tugas.",
-    "Perhatikan lingkungan sekitar dan rasakan embusan udara segar menyegarkan kepalamu.",
-    "Akhiri dengan mengatur napas tenang dan minum segelas air saat tiba kembali di kamar.",
+    "Perhatikan lingkungan sekitar dan rasakan embusan udara segar secara perlahan selama 1-2 menit.",
+    "Akhiri dengan mengatur napas tenang selama 1 menit dan minum segelas air saat tiba kembali di kamar.",
   ],
   "peregangan tubuh lembut dan jeda minum air untuk menjaga keseimbangan energi": [
-    "Ambil segelas air putih dan minum perlahan sambil merasakan kesegaran tubuhmu.",
-    "Tautkan jemari tangan lalu dorong telapak tangan ke arah langit-langit setinggi mungkin.",
+    "Ambil segelas air putih dan minum perlahan selama 1-2 menit sambil duduk santai.",
+    "Tautkan jemari tangan lalu dorong telapak tangan ke arah atas selama 15 detik.",
     "Miringkan badan ke kiri dan kanan secara bergantian masing-masing selama 10 detik.",
-    "Lemaskan lengan ke samping badan dan hembuskan napas panjang dengan relaks.",
+    "Lemaskan kedua lengan ke samping badan dan hembuskan napas panjang selama 30 detik dengan relaks.",
   ],
   "peregangan relaksasi seluruh tubuh dan jalan pelan di dalam ruangan 10-15 menit (tanpa jalan cepat di luar)": [
-    "Tetap di dalam kamar atau ruangan yang tenang tanpa perlu keluar malam hari.",
+    "Tetap di dalam kamar selama 1 menit persiapan tanpa perlu keluar di malam hari.",
     "Lakukan jalan perlahan di dalam kamar selama 5 menit untuk melemaskan persendian kaki.",
-    "Regangkan otot leher, bahu, dan punggung atas dengan gerakan memutar lembut.",
-    "Akhiri dengan duduk tenang sambil menarik napas panjang untuk menyiapkan tubuh beristirahat.",
+    "Regangkan otot leher, bahu, dan punggung atas dengan gerakan memutar lembut sebanyak 5 kali.",
+    "Akhiri dengan duduk tenang sambil menarik napas panjang selama 2-3 menit untuk menyiapkan tubuh beristirahat.",
   ],
   "jalan santai di dalam kamar atau lorong kos 10 menit untuk melancarkan sirkulasi sebelum tidur": [
-    "Lepaskan alas kaki yang kaku dan mulailah melangkah santai di lantai kamar atau lorong kos.",
+    "Lepaskan alas kaki yang kaku dan mulailah melangkah santai selama 1 menit di lantai kamar atau lorong kos.",
     "Berjalan pelan bolak-balik selama 10 menit dengan ritme langkah yang tenang dan stabil.",
-    "Ayunkan kedua tangan dengan bebas untuk melancarkan aliran darah ke seluruh tubuh.",
-    "Minum sedikit air hangat lalu bersiaplah untuk beristirahat di tempat tidur.",
+    "Ayunkan kedua tangan dengan bebas selama 1-2 menit dengan gerakan santai dan teratur.",
+    "Minum 1 gelas air hangat secara perlahan lalu bersiaplah untuk beristirahat di tempat tidur.",
   ],
   "peregangan ringan di lantai atau matras dan latihan napas tenang 10 menit": [
-    "Duduk bersila atau rebahan di atas matras atau lantai beralas karpet yang bersih.",
-    "Dekapkan kedua lutut ke dada perlahan untuk melepaskan tekanan pada punggung bawah.",
-    "Buka kedua lengan ke samping dan miringkan lutut bergantian ke kiri dan kanan secara lembut.",
-    "Lakukan pernapasan perut yang tenang selama 5 menit hingga kelopak mata terasa berat.",
+    "Duduk bersila atau rebahan di atas matras selama 1 menit pada posisi yang bersih dan nyaman.",
+    "Dekapkan kedua lutut ke dada perlahan, tahan selama 20 detik untuk melepaskan tekanan pada punggung bawah.",
+    "Buka kedua lengan ke samping dan miringkan lutut bergantian ke kiri dan kanan, tahan 10 detik pada tiap sisi.",
+    "Lakukan pernapasan perut yang tenang selama 5 menit hingga kelopak mata terasa berat dan relaks.",
   ],
   "peregangan meja lembut (bahu, leher, punggung bawah) dan jalan pelan di dalam ruangan 10 menit": [
     "Duduk bersandar di kursi dan putar bahu ke belakang sebanyak 5 kali dengan lembut.",
-    "Tolehkan kepala perlahan ke samping kiri dan kanan untuk melonggarkan otot leher kaku.",
+    "Tolehkan kepala perlahan ke samping kiri dan kanan, tahan selama 10 detik pada masing-masing sisi.",
     "Berdiri lalu jalan perlahan di dalam ruangan selama 5-10 menit tanpa terburu-buru.",
-    "Kembali ke tempat tidur atau kursi dengan perasaan tubuh yang lebih longgar dan relaks.",
+    "Kembali duduk atau rebahan selama 1-2 menit dengan perasaan tubuh yang lebih longgar dan relaks.",
   ],
   "jeda berdiri santai dan peregangan tubuh ringan di dalam kamar 5-10 menit": [
-    "Berdiri tegak di samping tempat tidur dan rasakan kedua telapak kaki menapak rileks.",
-    "Angkat kedua tangan ke atas lalu condongkan tubuh lembut ke samping kiri dan kanan.",
+    "Berdiri tegak di samping tempat tidur dan rasakan kedua telapak kaki menapak rileks selama 10 detik.",
+    "Angkat kedua tangan ke atas lalu condongkan tubuh lembut ke samping kiri dan kanan, tahan 10 detik tiap sisi.",
     "Berjalan langkah kecil di dalam kamar selama 5 menit untuk melemaskan tungkai kaki.",
-    "Duduk di tepi kasur sambil menghembuskan napas panjang untuk menyudahi kegiatan hari ini.",
+    "Duduk di tepi kasur sambil menghembuskan napas panjang selama 30 detik untuk menyudahi kegiatan hari ini.",
   ],
   "peregangan relaksasi di tempat tidur atau matras untuk mengurai kaku duduk": [
-    "Rebahkan tubuh lurus di atas kasur atau matras dengan bantal yang menyangga nyaman.",
-    "Tarik satu lutut ke arah dada, tahan 15 detik, lalu ganti dengan kaki yang satunya.",
-    "Rentangkan kedua tangan ke atas kepala dan regangkan ujung jemari kaki sejauh mungkin.",
-    "Lemaskan seluruh otot tubuh, tarik napas dalam, dan biarkan rasa kaku duduk menghilang.",
+    "Rebahkan tubuh lurus di atas kasur atau matras selama 1 menit dengan bantal yang menyangga nyaman.",
+    "Tarik satu lutut ke arah dada, tahan selama 15 detik, lalu ganti dengan kaki yang satunya.",
+    "Rentangkan kedua tangan ke atas kepala dan regangkan ujung jemari kaki sejauh mungkin selama 10-15 detik.",
+    "Lemaskan seluruh otot tubuh, tarik napas dalam selama 1-2 menit, dan biarkan rasa kaku duduk berkurang.",
   ],
 };
 
