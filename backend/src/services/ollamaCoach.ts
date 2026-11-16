@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { DominantMediator } from "../../../shared/contracts/index.ts";
+export type { DominantMediator };
 import { env } from "../config/env.ts";
 import {
   CRISIS_RESPONSE_TEXT,

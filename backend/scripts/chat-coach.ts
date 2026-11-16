@@ -284,7 +284,7 @@ export function buildChatCoachPayload(
       "3": "Habis olahraga atau aktivitas berat",
       "4": "Pikiran penat atau stres kuliah",
     };
-    const label = choiceLabels[clarChoice.choice];
+    const label = clarChoice.choice ? choiceLabels[clarChoice.choice] : undefined;
     if (label) {
       activeDirectives.push(`KONTEKS_PILIHAN: user memilih ${label}`);
     }
@@ -500,6 +500,7 @@ export interface ProcessChatCoachResult {
   movementOptions: string[];
   movementOptionsShown: string[];
   pendingPrompt: "clarification" | "movement" | null;
+  guidance?: string[];
 }
 
 export async function processChatCoachInput(
@@ -561,6 +562,7 @@ export async function processChatCoachInput(
         unverifiedNumbers: [],
         unverifiedActivityClaims: [],
         unverifiedCauseClaims: [],
+        unverifiedEmotionClaims: [],
         hasRepeatedSentences: false,
         repeatedSentences: [],
       },
@@ -599,6 +601,7 @@ export async function processChatCoachInput(
         unverifiedNumbers: [],
         unverifiedActivityClaims: [],
         unverifiedCauseClaims: [],
+        unverifiedEmotionClaims: [],
         hasRepeatedSentences: false,
         repeatedSentences: [],
       },
