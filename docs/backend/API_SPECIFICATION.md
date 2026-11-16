@@ -107,3 +107,58 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
 - `POST /api/v1/notifications/subscribe` — Menyimpan subscription VAPID Web Push.
 - `DELETE /api/v1/notifications/subscribe` — Menghapus subscription Web Push pengguna.
 - `POST /api/v1/notifications/test` — Mengirim notifikasi uji Web Push.
+
+## 5. Endpoints Jadwal Akademik & Fusi Burnout (PRD v4.0)
+
+### `POST /api/v1/schedule/parse-krs` *(JWT Required)*
+Mengekstrak jadwal perkuliahan dari file dokumen KRS (PDF, TXT, CSV) atau teks langsung, menghitung bobot beban akademik terhadap stres, dan menyimpannya ke database.
+- **Engine**: Parser SIAKAD berkecepatan tinggi dengan **Google Gemini API Fallback** (`gemini-1.5-flash`) untuk menangani dokumen non-standar, layout kompleks, atau scanned PDF multimodal.
+- **Headers**:
+  - `Authorization: Bearer <token>`
+  - `x-gemini-api-key` *(Opsional)*: Menyediakan API key Gemini kustom per-request (default membaca `GEMINI_API_KEY` dari server `.env`).
+- **Content-Type**: `multipart/form-data` (field `file`) atau `application/json` (`{ fileBase64, text, replaceExisting, saveToDatabase, geminiApiKey, preferGemini }`).
+- **Response `201 Created`**:
+```json
+{
+  "data": {
+    "extractedCount": 5,
+    "saved": true,
+    "savedCount": 5,
+    "replacedPrevious": true,
+    "source": "PDF",
+    "summary": {
+      "totalCourses": 5,
+      "totalSks": 14,
+      "theorySks": 12,
+      "practicumSks": 2,
+      "peakLoadDay": {
+        "dayOfWeek": 2,
+        "dayName": "Selasa",
+        "academicLoadScore": 5.5,
+        "stressLevel": "HIGH"
+      },
+      "burnoutRiskWarning": "Peringatan Beban Kognitif Tinggi: Hari Selasa memiliki beban stres akademik 5.5 poin (HIGH)..."
+    },
+    "dailyBreakdown": [
+      {
+        "dayOfWeek": 1,
+        "dayName": "Senin",
+        "courses": [...],
+        "academicLoadScore": 3.0,
+        "stressLevel": "MODERATE"
+      }
+    ],
+    "items": [...]
+  },
+  "meta": { "timestamp": "...", "version": "v1.0" }
+}
+```
+
+### `POST /api/v1/schedule/parse-krs/preview` *(JWT Required)*
+Sama seperti `parse-krs`, tetapi hanya mengembalikan preview ekstraksi dan analisis beban stres tanpa mengubah data di database.
+
+### `GET /api/v1/schedule/stress-analysis` *(JWT Required)*
+Mengambil ringkasan analisis dampak beban akademik aktif terhadap risiko burnout pengguna (breakdown harian, peak load day, dan rekomendasi klinis).
+
+### `GET /api/v1/burnout/today` *(JWT Required)*
+Mengambil fusi Burnout Risk Index (0–100) hari ini yang secara otomatis mengintegrasikan beban kuliah hari ini dari `AcademicSchedule` ($SKS \times bobot + ujian$), Screen Time Fatigue, skor pemulihan, dan PSS-10.

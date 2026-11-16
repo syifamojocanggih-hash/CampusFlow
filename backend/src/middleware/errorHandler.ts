@@ -23,6 +23,22 @@ export function errorHandler(
     return;
   }
 
+  // Multer upload errors (e.g. LIMIT_FILE_SIZE)
+  if (
+    typeof err === "object" &&
+    err !== null &&
+    "name" in err &&
+    (err as { name?: string }).name === "MulterError"
+  ) {
+    const multerErr = err as { code?: string; message?: string };
+    const msg =
+      multerErr.code === "LIMIT_FILE_SIZE"
+        ? "Ukuran file dokumen melebihi batas maksimal (10 MB)."
+        : `Kesalahan unggah dokumen: ${multerErr.message || "File tidak valid"}`;
+    sendError(res, 400, "VALIDATION_ERROR", msg);
+    return;
+  }
+
   // Prisma unique constraint violation (P2002)
   if (
     typeof err === "object" &&
