@@ -36,3 +36,34 @@ test("createRateLimiter mengizinkan request di bawah batas lalu mengembalikan 42
     );
   }
 });
+
+test("createRateLimiter.reset() mengosongkan bucket limit dan mengizinkan request kembali", async () => {
+  const app = express();
+  const limiter = createRateLimiter({ windowMs: 60_000, maxRequests: 1, keyPrefix: "unit-test-reset" });
+  app.use("/limited-reset", limiter, (_req, res) => {
+    res.status(200).json({ ok: true });
+  });
+
+  const server = app.listen(0);
+  const address = server.address();
+  const port = typeof address === "object" && address ? address.port : 0;
+  const url = `http://127.0.0.1:${port}/limited-reset`;
+
+  try {
+    const r1 = await fetch(url);
+    assert.equal(r1.status, 200);
+
+    const r2 = await fetch(url);
+    assert.equal(r2.status, 429);
+
+    // Reset limiter
+    limiter.reset();
+
+    const r3 = await fetch(url);
+    assert.equal(r3.status, 200, "Setelah reset, request harus kembali diizinkan dengan 200");
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      server.close((err) => (err ? reject(err) : resolve()))
+    );
+  }
+});

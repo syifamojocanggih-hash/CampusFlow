@@ -75,3 +75,14 @@ $$\text{PSS4\_Score} = q_1 + (4 - q_2) + (4 - q_3) + q_4 \quad \in [0, 16]$$
 | `VIGOROUS` | `8.0` | `8.0 * durationMinutes` |
 | `MUSCLE_STRENGTHENING` | `5.0` | `5.0 * durationMinutes` |
 | `ACUTE_AEROBIC_RELIEF` | `5.0` | `5.0 * durationMinutes` |
+
+---
+
+## 6. Penanganan Telemetri Kosong & Asumsi MVPA Nol (Barbosa et al., 2024)
+
+- **Keputusan Klinis (`MVPA_ASUMSI_NOL`):**
+  Bila pengguna mengeluhkan durasi duduk statis (misal duduk > 6 jam pada kalimat *"pegal habis nugas 8 jam"*) tanpa mencatat aktivitas fisik MVPA pada telemetri atau catatan hari tersebut, mesin evaluasi aturan klinis secara konservatif mengasumsikan:
+  $$\text{totalMvpaMinutes} = 0$$
+  $$\text{mvpaPerSedentaryRatio} = \frac{0}{\text{totalSedentaryHours}} = 0$$
+- **Rujukan Klinis:**
+  Sesuai temuan Barbosa et al. (2024), rasio MVPA terhadap jam duduk $< 25\text{ menit/jam}$ pada durasi duduk $> 6\text{ jam}$ berasosiasi signifikan dengan peningkatan risiko depresi ($\text{OR} = 1.74$). Oleh sebab itu, kondisi duduk statis panjang tanpa olahraga protektif diklasifikasikan sebagai `SEDENTARY_OVERLOAD` untuk segera memicu intervensi pemutus duduk statis (peregangan meja / jeda berdiri) tanpa mengubah batas ambang klinis baku.

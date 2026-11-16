@@ -7,6 +7,8 @@ import {
   type GeneratedInsight,
 } from "../src/services/ollamaCoach.ts";
 import {
+  ALL_OFFICIAL_MOVEMENT_OPTIONS,
+  appendCoachRawLog,
   auditResponse,
   checkMovementMatch,
   CLARIFICATION_PROMPT_TEXT,
@@ -16,15 +18,23 @@ import {
   deduplicateSentences,
   detectClarificationChoice,
   detectDistressKeywords,
+  detectMovementChoice,
   detectRecentlyExercised,
   extractActivity,
   extractSedentaryHours,
   extractSleepHours,
+  filterDirectiveLeakage,
   formatMovementOptionsPrompt,
+  getCoachRawLogPath,
+  getJakartaDateString,
+  getMovementOptionsForMediator,
   getNextMovementOption,
   getNextNeutralCauseFallback,
+  getSystemJakartaTime,
+  hasLeadingConjunction,
   IN_SCOPE_WELLBEING_PATTERN,
   isBareGeneralComplaint,
+  LATE_NIGHT_MOVEMENT_OPTIONS,
   MOVEMENT_OPTIONS_BY_MEDIATOR,
   NEUTRAL_CAUSE_FALLBACK_TEXT,
   NEUTRAL_CAUSE_FALLBACK_VARIANTS,
@@ -32,13 +42,18 @@ import {
   PROACTIVE_CLARIFICATION_QUESTION,
   PROACTIVE_CLARIFICATION_TEXT,
   resetNeutralCauseFallbackIndex,
+  sanitizeDurationMinutes,
   sanitizeSleepInterpretation,
   sanitizeTimeWords,
+  stripLeadingConjunctions,
   stripNullFields,
   type AuditReport,
+  type CoachRawLogEntry,
 } from "../src/services/coachShared.ts";
 
 export {
+  ALL_OFFICIAL_MOVEMENT_OPTIONS,
+  appendCoachRawLog,
   auditResponse,
   checkMovementMatch,
   CLARIFICATION_PROMPT_TEXT,
@@ -48,15 +63,23 @@ export {
   deduplicateSentences,
   detectClarificationChoice,
   detectDistressKeywords,
+  detectMovementChoice,
   detectRecentlyExercised,
   extractActivity,
   extractSedentaryHours,
   extractSleepHours,
+  filterDirectiveLeakage,
   formatMovementOptionsPrompt,
+  getCoachRawLogPath,
+  getJakartaDateString,
+  getMovementOptionsForMediator,
   getNextMovementOption,
   getNextNeutralCauseFallback,
+  getSystemJakartaTime,
+  hasLeadingConjunction,
   IN_SCOPE_WELLBEING_PATTERN,
   isBareGeneralComplaint,
+  LATE_NIGHT_MOVEMENT_OPTIONS,
   MOVEMENT_OPTIONS_BY_MEDIATOR,
   NEUTRAL_CAUSE_FALLBACK_TEXT,
   NEUTRAL_CAUSE_FALLBACK_VARIANTS,
@@ -64,9 +87,13 @@ export {
   PROACTIVE_CLARIFICATION_QUESTION,
   PROACTIVE_CLARIFICATION_TEXT,
   resetNeutralCauseFallbackIndex,
+  sanitizeDurationMinutes,
   sanitizeSleepInterpretation,
   sanitizeTimeWords,
+  stripLeadingConjunctions,
   stripNullFields,
+  type AuditReport,
+  type CoachRawLogEntry,
 };
 
 const isDebug =
@@ -77,57 +104,30 @@ const isDebug =
 const isShowJson =
   isDebug || process.argv.includes("--show-json") || process.env.COACH_SHOW_JSON === "1";
 
-/** Membaca jam lokal sistem sebenarnya dalam zona waktu Asia/Jakarta */
-export function getSystemJakartaTime(): {
-  timeStr: string;
-  hour: number;
-  period: "pagi" | "siang" | "sore" | "malam";
-} {
-  const now = new Date();
-  const timeFormatter = new Intl.DateTimeFormat("id-ID", {
-    timeZone: "Asia/Jakarta",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  const hourFormatter = new Intl.DateTimeFormat("id-ID", {
-    timeZone: "Asia/Jakarta",
-    hour: "numeric",
-    hour12: false,
-  });
-
-  const timeStr = `${timeFormatter.format(now)} WIB`;
-  const hour = parseInt(hourFormatter.format(now), 10);
-
-  let period: "pagi" | "siang" | "sore" | "malam" = "malam";
-  if (hour >= 4 && hour < 11) {
-    period = "pagi";
-  } else if (hour >= 11 && hour < 15) {
-    period = "siang";
-  } else if (hour >= 15 && hour < 18) {
-    period = "sore";
-  } else {
-    period = "malam";
-  }
-
-  return { timeStr, hour, period };
-}
+const isShowRaw =
+  isDebug || process.argv.includes("--raw") || process.env.COACH_SHOW_RAW === "1";
 
 /** Menyusun payload JSON yang dikirim ke model */
 export function buildChatCoachPayload(
   userInput: string,
   options?: {
     forcedJenisGerak?: string;
+    pendingPrompt?: "clarification" | "movement" | null;
   }
 ) {
   const sedentaryHours = extractSedentaryHours(userInput);
   const sleepHours = extractSleepHours(userInput);
   const activity = extractActivity(userInput);
-  const { timeStr, period } = getSystemJakartaTime();
+  const { timeStr, period, isLateNight } = getSystemJakartaTime();
 
   const isDistress = detectDistressKeywords(userInput);
   const isRecentlyExercised = detectRecentlyExercised(userInput);
-  const clarChoice = detectClarificationChoice(userInput);
+
+  // Balasan hanya ditafsirkan sebagai klarifikasi bila pendingPrompt === 'clarification'
+  const isClarificationState = options?.pendingPrompt === "clarification";
+  const clarChoice = isClarificationState
+    ? detectClarificationChoice(userInput)
+    : { isChoice: false, choice: null };
 
   let dominantMediator: DominantMediator = "LOW_MVPA_VOLUME";
   let escalationFlag = false;
@@ -144,11 +144,11 @@ export function buildChatCoachPayload(
         ? "SEDENTARY_OVERLOAD"
         : "OPTIMAL_BALANCE";
   } else if (clarChoice.isChoice && clarChoice.choice !== "SKIP") {
-    if (clarChoice.choice === "A") {
+    if (clarChoice.choice === "1") {
       dominantMediator = "SEDENTARY_OVERLOAD";
-    } else if (clarChoice.choice === "B") {
+    } else if (clarChoice.choice === "2") {
       dominantMediator = "SLEEP_MEDIATION_DEFICIT";
-    } else if (clarChoice.choice === "C") {
+    } else if (clarChoice.choice === "3") {
       dominantMediator = "OPTIMAL_BALANCE";
     } else {
       dominantMediator = "EXAM_ACUTE_STRESS";
@@ -176,7 +176,7 @@ export function buildChatCoachPayload(
   }
 
   const isRecoveryMode =
-    isRecentlyExercised || (clarChoice.isChoice && clarChoice.choice === "C");
+    isRecentlyExercised || (clarChoice.isChoice && clarChoice.choice === "3");
 
   const allowedRanges: AllowedRanges = isRecoveryMode
     ? { durationMinutesRange: [5, 15], metsRange: [80, 140] }
@@ -190,20 +190,20 @@ export function buildChatCoachPayload(
             ? { durationMinutesRange: [15, 30], metsRange: [180, 260] }
             : { durationMinutesRange: [15, 25], metsRange: [160, 220] };
 
-  // Pilih variasi jenis gerak
+  // Pilih variasi jenis gerak (dengan aturan jam malam bila berlaku)
   let jenisGerak = options?.forcedJenisGerak || "";
   if (!jenisGerak) {
     if (isRecoveryMode) {
-      jenisGerak = getNextMovementOption("RECENTLY_EXERCISED");
-    } else if (clarChoice.isChoice && clarChoice.choice === "A") {
-      jenisGerak = getNextMovementOption("SEDENTARY_OVERLOAD");
-    } else if (clarChoice.isChoice && clarChoice.choice === "B") {
-      jenisGerak = getNextMovementOption("SLEEP_MEDIATION_DEFICIT");
-    } else if (clarChoice.isChoice && clarChoice.choice === "D") {
-      jenisGerak = getNextMovementOption("EXAM_ACUTE_STRESS");
+      jenisGerak = getNextMovementOption("RECENTLY_EXERCISED", isLateNight);
+    } else if (clarChoice.isChoice && clarChoice.choice === "1") {
+      jenisGerak = getNextMovementOption("SEDENTARY_OVERLOAD", isLateNight);
+    } else if (clarChoice.isChoice && clarChoice.choice === "2") {
+      jenisGerak = getNextMovementOption("SLEEP_MEDIATION_DEFICIT", isLateNight);
+    } else if (clarChoice.isChoice && clarChoice.choice === "4") {
+      jenisGerak = getNextMovementOption("EXAM_ACUTE_STRESS", isLateNight);
     } else {
       const mediatorKey = escalationFlag ? "ESCALATION" : dominantMediator;
-      jenisGerak = getNextMovementOption(mediatorKey);
+      jenisGerak = getNextMovementOption(mediatorKey, isLateNight);
     }
   }
 
@@ -244,27 +244,37 @@ export function buildChatCoachPayload(
     );
   }
 
-  activeDirectives.push(`JENIS_GERAK: ${jenisGerak}`);
+  // POIN 5 (User Request): Aturan jam malam
+  if (
+    isLateNight &&
+    (dominantMediator === "LOW_MVPA_VOLUME" || dominantMediator === "SEDENTARY_OVERLOAD")
+  ) {
+    activeDirectives.push(
+      "JAM_MALAM_RINGAN: waktu saat ini sudah larut malam (>= 21.30 WIB). DILARANG menyarankan jalan cepat di luar ruangan atau olahraga intensif. Fokus HANYA pada gerakan relaksasi, peregangan lembut, atau jalan pelan santai di dalam ruangan."
+    );
+  }
 
-  let effectiveUserNotes = userInput;
+  // POIN 3 (User Request): Konteks pilihan klarifikasi dikirim sebagai directive terpisah (userNotes tetap teks asli user)
   if (clarChoice.isChoice && clarChoice.choice !== "SKIP") {
     const choiceLabels: Record<string, string> = {
-      A: "Badan pegal atau otot kaku setelah duduk atau beraktivitas",
-      B: "Ngantuk atau kurang tidur semalam",
-      C: "Habis olahraga atau aktivitas fisik berat hari ini",
-      D: "Pikiran penat atau stres tugas kuliah",
+      "1": "Badan pegal atau otot kaku",
+      "2": "Ngantuk atau kurang tidur",
+      "3": "Habis olahraga atau aktivitas berat",
+      "4": "Pikiran penat atau stres kuliah",
     };
-    const label = choiceLabels[clarChoice.choice] || userInput;
-    if (userInput.length <= 5 || /^(?:opsi\s+|pilihan\s+)?[a-d1-4]$/i.test(userInput.trim())) {
-      effectiveUserNotes = label;
-    } else {
-      effectiveUserNotes = `${userInput} (${label})`;
+    const label = choiceLabels[clarChoice.choice];
+    if (label) {
+      activeDirectives.push(`KONTEKS_PILIHAN: user memilih ${label}`);
     }
   } else if (clarChoice.isChoice && clarChoice.choice === "SKIP") {
-    effectiveUserNotes = "Merasa capek atau lemas dan butuh saran relaksasi atau gerak ringan umum";
-  } else if (options?.forcedJenisGerak && userInput.length <= 5) {
-    effectiveUserNotes = `Ingin melakukan panduan gerak: ${options.forcedJenisGerak}`;
+    // Untuk "lewati", jangan tambahkan kata seperti relaksasi, tidur, atau saran!
+    activeDirectives.push("KONTEKS_PILIHAN: user memilih lewati untuk rekomendasi umum");
   }
+
+  activeDirectives.push(`JENIS_GERAK: ${jenisGerak}`);
+
+  // userNotes ke model harus SELALU teks asli user (Requirement 3)
+  const effectiveUserNotes = userInput;
 
   const promptPayload = {
     activeDirectives,
@@ -273,7 +283,7 @@ export function buildChatCoachPayload(
       priorityMediator: dominantMediator,
       flags: [dominantMediator],
       escalationFlag,
-      missingDailyCheckIn: true,
+      missingDailyCheckIn: false,
     },
     allowedRanges,
     skipAdaptation: {
@@ -300,6 +310,7 @@ export function buildChatCoachPayload(
     escalationFlag,
     jenisGerak,
     allowedRanges,
+    isLateNight,
   };
 }
 
@@ -342,8 +353,37 @@ function wrapParagraph(
     .join("\n");
 }
 
-function selectOpeningSentence(input: string): string {
-  const lower = input.toLowerCase();
+function selectOpeningSentence(
+  input: string,
+  context?: {
+    clarChoice?: string | null;
+    isMovementSelection?: boolean;
+    isRecoveryMode?: boolean;
+  }
+): string {
+  const trimmed = input.trim();
+  const lower = trimmed.toLowerCase();
+
+  // POIN 4: Jangan pakai pembuka "Makasih sudah meluangkan waktu untuk cerita"
+  // bila input user hanya satu angka/huruf pilihan. Pilih pembuka yang sesuai konteks pilihan:
+  if (context?.isMovementSelection || /^[a-c]$/i.test(trimmed)) {
+    return "Pilihan jeda gerak yang sangat baik untuk menyegarkan kembali tubuhmu.";
+  }
+  if (context?.clarChoice === "3" || lower === "3" || context?.isRecoveryMode) {
+    return "Keren sudah menyempatkan olahraga hari ini! Tubuhmu berhak mendapatkan pemulihan dan pendinginan yang baik.";
+  }
+  if (context?.clarChoice === "1" || lower === "1") {
+    return "Pasti nggak nyaman ya kalau otot mulai kaku dan pegal setelah duduk lama.";
+  }
+  if (context?.clarChoice === "2" || lower === "2") {
+    return "Pasti tubuh dan matamu terasa berat kalau jam tidurmu kurang atau sempat begadang.";
+  }
+  if (context?.clarChoice === "4" || lower === "4") {
+    return "Wajar banget kalau pikiran terasa penuh dan jenuh setelah menghadapi tugas kuliah.";
+  }
+  if (lower === "lewati" || lower === "skip") {
+    return "Tidak apa-apa, mari kita fokus pada gerakan ringan yang bisa menyegarkan tubuhmu hari ini.";
+  }
 
   if (/\b(nggak sanggup|tidak sanggup|putus asa|menyerah|capek sama semuanya)\b/.test(lower)) {
     return "Makasih banyak ya sudah mau cerita saat keadaan rasanya begitu berat.";
@@ -367,6 +407,11 @@ function selectOpeningSentence(input: string): string {
     return "Nggak apa-apa banget kok kalau energimu lagi turun dan mager hari ini.";
   }
 
+  // Jika input pendek (misal karakter tunggal), hindari ucapan terima kasih panjang yang tidak wajar
+  if (trimmed.length <= 3) {
+    return "Bagus kamu menyempatkan jeda sebentar untuk mendengarkan tubuhmu.";
+  }
+
   const fallbacks = [
     "Makasih ya sudah meluangkan waktu untuk cerita kondisi kamu.",
     "Aku mengerti apa yang kamu rasakan, yuk kita urai pelan-pelan.",
@@ -387,14 +432,27 @@ function formatActionPlanText(plan: string): string {
   return `Coba ${trimmed.charAt(0).toLowerCase() + trimmed.slice(1)}`;
 }
 
-export async function processChatCoachInput(
-  trimmed: string,
-  options: {
-    callModelFn?: typeof callOllamaChatJson;
-    hasClarified?: boolean;
-    forcedJenisGerak?: string;
-  } = {}
-): Promise<{
+export interface ProcessChatCoachOptions {
+  callModelFn?: typeof callOllamaChatJson;
+  hasClarified?: boolean;
+  forcedJenisGerak?: string;
+  pendingPrompt?: "clarification" | "movement" | null;
+  previousPayload?: ReturnType<typeof buildChatCoachPayload>["promptPayload"];
+  previousMeta?: {
+    dominantMediator: DominantMediator;
+    escalationFlag: boolean;
+    sleepHours: number | null;
+    sedentaryHours: number | null;
+    detectedActivity: string | null;
+    allowedRanges: AllowedRanges;
+    movementOptions: string[];
+    movementOptionsShown?: string[];
+  };
+  showRaw?: boolean;
+  logFilePath?: string;
+}
+
+export interface ProcessChatCoachResult {
   promptPayload: ReturnType<typeof buildChatCoachPayload>["promptPayload"];
   dominantMediator: DominantMediator;
   escalationFlag: boolean;
@@ -402,17 +460,34 @@ export async function processChatCoachInput(
   sedentaryHours: number | null;
   jenisGerak: string;
   insight: GeneratedInsight;
+  rawInsight?: GeneratedInsight;
+  flags?: {
+    retryApplied: boolean;
+    retryReasons?: string[];
+    sentenceRemoved: boolean;
+    durationAdjusted: boolean;
+    openingReplaced: boolean;
+    conjunctionStripped: boolean;
+  };
   source: string;
   movementMatchNote: string;
   auditReport: AuditReport;
   formattedOutput: string;
   needsClarification: boolean;
   movementOptions: string[];
-}> {
+  movementOptionsShown: string[];
+  pendingPrompt: "clarification" | "movement" | null;
+}
+
+export async function processChatCoachInput(
+  trimmed: string,
+  options: ProcessChatCoachOptions = {}
+): Promise<ProcessChatCoachResult> {
   const caller = options.callModelFn ?? callOllamaChatJson;
   const isDistress = detectDistressKeywords(trimmed);
   const width = getTerminalWidth();
   const indent = "        ";
+  const { timeStr, period: sysPeriod, isLateNight } = getSystemJakartaTime();
 
   // JALUR KRISIS (Poin 4 & 5): Jika terdeteksi, JANGAN panggil model sama sekali.
   if (isDistress) {
@@ -430,8 +505,8 @@ export async function processChatCoachInput(
         metsRange: [80, 160] as [number, number],
       },
       skipAdaptation: { applied: false, consecutiveSkips: 0, previousRecommendedMets: null },
-      currentTime: `${getSystemJakartaTime().timeStr} (${getSystemJakartaTime().period})`,
-      timeOfDay: getSystemJakartaTime().period,
+      currentTime: `${timeStr} (${sysPeriod})`,
+      timeOfDay: sysPeriod,
       detectedActivity: null,
       today: {},
       history7Days: [],
@@ -469,12 +544,17 @@ export async function processChatCoachInput(
       formattedOutput,
       needsClarification: false,
       movementOptions: [],
+      movementOptionsShown: [],
+      pendingPrompt: null,
     };
   }
 
   // POIN 1: KLARIFIKASI PROAKTIF
-  // Jika input hanya keluhan umum tanpa penanda konteks dan belum diklarifikasi, JANGAN panggil model!
-  if (isBareGeneralComplaint(trimmed) && !options.hasClarified) {
+  // Jika input hanya keluhan umum tanpa penanda konteks dan belum dalam state klarifikasi, JANGAN panggil model!
+  const isClarificationState =
+    options.pendingPrompt === "clarification" || Boolean(options.hasClarified);
+
+  if (isBareGeneralComplaint(trimmed) && !isClarificationState) {
     const formattedOutput = wrapParagraph("Coach > ", PROACTIVE_CLARIFICATION_TEXT, width, indent);
     return {
       promptPayload: {} as any,
@@ -502,24 +582,95 @@ export async function processChatCoachInput(
       formattedOutput,
       needsClarification: true,
       movementOptions: [],
+      movementOptionsShown: [],
+      pendingPrompt: "clarification",
     };
   }
 
-  const {
-    promptPayload,
-    period,
-    activity,
-    dominantMediator,
-    escalationFlag,
-    sleepHours,
-    sedentaryHours,
-    jenisGerak,
-    allowedRanges,
-  } = buildChatCoachPayload(trimmed, { forcedJenisGerak: options.forcedJenisGerak });
-  const t0 = Date.now();
+  const moveChoice = detectMovementChoice(trimmed);
+  const isMovementSelection =
+    options.pendingPrompt === "movement" &&
+    (moveChoice.isChoice || Boolean(options.forcedJenisGerak)) &&
+    Boolean(options.previousPayload);
 
+  const clarChoice = isMovementSelection
+    ? { isChoice: false, choice: null }
+    : detectClarificationChoice(trimmed);
+
+  let promptPayload: ReturnType<typeof buildChatCoachPayload>["promptPayload"];
+  let period: "pagi" | "siang" | "sore" | "malam" = sysPeriod;
+  let activity: string | null = null;
+  let dominantMediator: DominantMediator;
+  let escalationFlag: boolean;
+  let sleepHours: number | null = null;
+  let sedentaryHours: number | null = null;
+  let detectedActivity: string | null = null;
+  let jenisGerak: string;
+  let allowedRanges: AllowedRanges;
+
+  if (isMovementSelection) {
+    const prevPayload = options.previousPayload!;
+    const prevMeta = options.previousMeta;
+
+    const optionsShown = prevMeta?.movementOptionsShown || prevMeta?.movementOptions;
+    const chosenOption =
+      (moveChoice.index !== null && optionsShown?.[moveChoice.index])
+        ? optionsShown[moveChoice.index]
+        : (options.forcedJenisGerak ||
+          prevPayload.activeDirectives.find((d: string) => d.startsWith("JENIS_GERAK:"))?.replace("JENIS_GERAK:", "").trim() ||
+          "peregangan meja");
+
+    dominantMediator = prevMeta?.dominantMediator ?? prevPayload.clinicalRuleEvaluation.dominantMediator;
+    escalationFlag = prevMeta?.escalationFlag ?? prevPayload.clinicalRuleEvaluation.escalationFlag;
+    sleepHours = prevMeta?.sleepHours ?? (prevPayload.today.sleepHours as number | null) ?? null;
+    sedentaryHours = prevMeta?.sedentaryHours ?? (prevPayload.today.totalSedentaryHours as number | null) ?? null;
+    detectedActivity = prevMeta?.detectedActivity ?? prevPayload.detectedActivity ?? null;
+    activity = detectedActivity;
+    allowedRanges = prevMeta?.allowedRanges ?? prevPayload.allowedRanges;
+    jenisGerak = chosenOption;
+
+    const filteredDirectives = prevPayload.activeDirectives.filter(
+      (d: string) => !d.startsWith("JENIS_GERAK:") && !d.startsWith("PILIHAN_GERAK_USER:")
+    );
+    filteredDirectives.push(`JENIS_GERAK: ${jenisGerak}`);
+    filteredDirectives.push(`PILIHAN_GERAK_USER: user memilih opsi gerak '${jenisGerak}'`);
+
+    promptPayload = {
+      ...prevPayload,
+      activeDirectives: filteredDirectives,
+      currentTime: `${timeStr} (${period})`,
+      timeOfDay: period,
+      userNotes: trimmed, // userNotes selalu teks asli user ("B")
+    };
+  } else {
+    const built = buildChatCoachPayload(trimmed, {
+      forcedJenisGerak: options.forcedJenisGerak,
+      pendingPrompt: options.pendingPrompt ?? (options.hasClarified ? "clarification" : null),
+    });
+    promptPayload = built.promptPayload;
+    period = built.period;
+    activity = built.activity;
+    dominantMediator = built.dominantMediator;
+    escalationFlag = built.escalationFlag;
+    sleepHours = built.sleepHours;
+    sedentaryHours = built.sedentaryHours;
+    jenisGerak = built.jenisGerak;
+    allowedRanges = built.allowedRanges;
+  }
+
+  const t0 = Date.now();
   let insight: GeneratedInsight;
+  let rawInsight: GeneratedInsight | null = null;
+  let rawAttempt1: GeneratedInsight | null = null;
+  let rawAttempt2: GeneratedInsight | null = null;
   let source = "OLLAMA_LOCAL";
+  let hasRetried = false;
+  let retryApplied = false;
+  const retryReasons: string[] = [];
+  let sentenceRemoved = false;
+  let durationAdjusted = false;
+  let openingReplaced = false;
+  let conjunctionStripped = false;
 
   try {
     const res = await caller(
@@ -527,6 +678,8 @@ export async function processChatCoachInput(
       { timeoutMs: 120000 }
     );
     insight = res.insight;
+    rawAttempt1 = { ...insight };
+    rawInsight = { ...insight };
 
     // POIN 1: Input pendek ditolak salah -> jika out-of-scope tapi kata kunci in-scope ada, retry SEKALI
     const isOutOfScopeInitial =
@@ -534,6 +687,9 @@ export async function processChatCoachInput(
       /di luar cakupan/i.test(insight.isotemporalActionPlan);
 
     if (isOutOfScopeInitial && IN_SCOPE_WELLBEING_PATTERN.test(trimmed)) {
+      hasRetried = true;
+      retryApplied = true;
+      retryReasons.push("OUT_OF_SCOPE_IN_SCOPE_RETRY");
       promptPayload.activeDirectives.push(
         "INPUT_DALAM_CAKUPAN: keluhan ini terkait kelelahan fisik/energi, berikan rekomendasi sesuai JENIS_GERAK"
       );
@@ -542,9 +698,90 @@ export async function processChatCoachInput(
           [{ role: "user", content: JSON.stringify(promptPayload) }],
           { timeoutMs: 120000 }
         );
+        rawAttempt2 = { ...retryRes.insight };
         insight = retryRes.insight;
       } catch {
         // Biarkan memakai hasil initial
+      }
+    }
+
+    // POIN 1 (Perluas Audit): Cek klaim emosi & penyebab karangan pada hasil awal dan coba ulang sekali
+    const preAudit = auditResponse(
+      insight.diagnosisSummary,
+      insight.isotemporalActionPlan,
+      trimmed,
+      allowedRanges,
+      jenisGerak,
+      sedentaryHours !== null,
+      false,
+      sleepHours !== null,
+      activity,
+      {
+        dominantMediator,
+        escalationFlag,
+        contextChoice: clarChoice.isChoice ? clarChoice.choice : null,
+      }
+    );
+
+    if (!hasRetried && (preAudit.unverifiedEmotionClaims.length > 0 || preAudit.unverifiedCauseClaims.length > 0)) {
+      hasRetried = true;
+      retryApplied = true;
+      retryReasons.push("UNVERIFIED_CAUSE_EMOTION_RETRY");
+      promptPayload.activeDirectives.push(
+        "KLAIM_TIDAK_TERVERIFIKASI: Jangan menyebut kata/klaim stres, cemas, tidur, atau kesibukan yang tidak ada di input user. Fokus HANYA pada kondisi fisik riil dan JENIS_GERAK."
+      );
+      try {
+        const retryRes = await caller(
+          [{ role: "user", content: JSON.stringify(promptPayload) }],
+          { timeoutMs: 120000 }
+        );
+        rawAttempt2 = { ...retryRes.insight };
+        insight = retryRes.insight;
+      } catch {
+        // Biarkan memakai hasil sebelumnya
+      }
+    }
+
+    // POIN 4: Cek "Gerak Match" & Retry bila tidak sesuai target
+    let initialMatch = checkMovementMatch(insight.isotemporalActionPlan, jenisGerak);
+    if (!initialMatch.matches) {
+      if (!hasRetried) {
+        hasRetried = true;
+        retryApplied = true;
+        retryReasons.push("MOVEMENT_MISMATCH_RETRY");
+        promptPayload.activeDirectives.push(
+          `PENYESUAIAN_GERAK: Rekomendasi sebelumnya (${insight.isotemporalActionPlan.slice(0, 50)}) TIDAK SESUAI target. WAJIB fokus dan susun rekomendasi aksi spesifik untuk: ${jenisGerak}.`
+        );
+        try {
+          const retryRes = await caller(
+            [{ role: "user", content: JSON.stringify(promptPayload) }],
+            { timeoutMs: 120000 }
+          );
+          rawAttempt2 = { ...retryRes.insight };
+          const retryMatch = checkMovementMatch(retryRes.insight.isotemporalActionPlan, jenisGerak);
+          if (retryMatch.matches) {
+            insight = retryRes.insight;
+          } else {
+            // Bila masih beda setelah retry, ganti paragraf rekomendasi dengan template dari JENIS_GERAK
+            const duration = allowedRanges.durationMinutesRange[0];
+            insight = {
+              ...retryRes.insight,
+              isotemporalActionPlan: `Coba luangkan waktu untuk ${jenisGerak} selama ${duration} menit sekarang agar tubuh terasa lebih bugar.`,
+            };
+          }
+        } catch {
+          const duration = allowedRanges.durationMinutesRange[0];
+          insight = {
+            ...insight,
+            isotemporalActionPlan: `Coba luangkan waktu untuk ${jenisGerak} selama ${duration} menit sekarang agar tubuh terasa lebih bugar.`,
+          };
+        }
+      } else {
+        const duration = allowedRanges.durationMinutesRange[0];
+        insight = {
+          ...insight,
+          isotemporalActionPlan: `Coba luangkan waktu untuk ${jenisGerak} selama ${duration} menit sekarang agar tubuh terasa lebih bugar.`,
+        };
       }
     }
   } catch (err) {
@@ -553,9 +790,9 @@ export async function processChatCoachInput(
       ? ` pada ${promptPayload.detectedActivity}`
       : "";
     const hoursStr =
-    sedentaryHours !== null ? ` sekitar ${sedentaryHours} jam` : "";
+      sedentaryHours !== null ? ` sekitar ${sedentaryHours} jam` : "";
     const sleepStr =
-    sleepHours !== null ? ` dengan waktu tidur sekitar ${sleepHours} jam` : "";
+      sleepHours !== null ? ` dengan waktu tidur sekitar ${sleepHours} jam` : "";
 
     insight = {
       dominantMediator,
@@ -575,6 +812,32 @@ export async function processChatCoachInput(
   let sanitizedAction = sanitizeTimeWords(insight.isotemporalActionPlan, trimmed, period);
   sanitizedAction = sanitizeSleepInterpretation(sanitizedAction);
 
+  // POIN 2: Filter kebocoran directive & data state
+  const prevSumLeak = sanitizedSummary;
+  const sentenceRegexLeak = /[^.!?\n]+(?:[.!?]+|\n+|$)/g;
+  const leakSentences = sanitizedSummary.match(sentenceRegexLeak) || [sanitizedSummary];
+  sanitizedSummary = filterDirectiveLeakage(sanitizedSummary);
+  if (sanitizedSummary !== prevSumLeak) {
+    sentenceRemoved = true;
+    // Cek apakah kalimat setelah kalimat yang dihapus diawali kata sambung kontras/sebab
+    if (leakSentences.length > 1 && hasLeadingConjunction(leakSentences[1])) {
+      conjunctionStripped = true;
+    }
+  }
+
+  const prevActLeak = sanitizedAction;
+  sanitizedAction = filterDirectiveLeakage(sanitizedAction);
+  if (sanitizedAction !== prevActLeak) {
+    sentenceRemoved = true;
+  }
+
+  // POIN 3: Cek durasi menit di action plan vs JENIS_GERAK dan allowedRanges
+  const durCheck = sanitizeDurationMinutes(sanitizedAction, jenisGerak, allowedRanges);
+  if (durCheck.replaced) {
+    durationAdjusted = true;
+    sanitizedAction = durCheck.sanitized;
+  }
+
   // POIN 4: Hapus otomatis kalimat yang persis berulang dalam satu jawaban
   const deduped = deduplicateResponse(sanitizedSummary, sanitizedAction);
   sanitizedSummary = deduped.summary;
@@ -583,7 +846,7 @@ export async function processChatCoachInput(
   // Evaluasi kecocokan jenis gerak
   const movementMatch = checkMovementMatch(sanitizedAction, jenisGerak);
 
-  // POIN 1: Audit pasca-jawaban (angka tidak terverifikasi, klaim aktivitas tanpa data, klaim penyebab tidak berdasar)
+  // POIN 1: Audit pasca-jawaban (angka tidak terverifikasi, klaim aktivitas tanpa data, klaim penyebab/emosi tidak berdasar)
   let auditReport = auditResponse(
     sanitizedSummary,
     sanitizedAction,
@@ -593,20 +856,32 @@ export async function processChatCoachInput(
     sedentaryHours !== null,
     false, // tidak ada telemetry MVPA
     sleepHours !== null,
-    activity
+    activity,
+    {
+      dominantMediator,
+      escalationFlag,
+      contextChoice: clarChoice.isChoice ? clarChoice.choice : null,
+      activeDirectives: promptPayload.activeDirectives,
+    }
   );
 
-  // POIN 3: Jika audit masih menemukan klaim penyebab karangan setelah satu kali percobaan,
-  // bangun jawaban dari bagian-bagian: pembuka dari model/template, kalimat penjelasan diganti template netral
-  // (atau menyaring kalimat karangan jika masih ada fakta yang sah), dan paragraf rekomendasi diambil dari model.
+  // POIN 1 & 3: Jika audit masih menemukan klaim penyebab atau emosi karangan setelah percobaan,
+  // saring kalimat yang mengklaim stres/penyebab palsu atau ganti dengan template netral.
   let wasModularFallbackApplied = false;
-  if (auditReport.unverifiedCauseClaims.length > 0) {
+  if (auditReport.unverifiedCauseClaims.length > 0 || auditReport.unverifiedEmotionClaims.length > 0) {
     wasModularFallbackApplied = true;
 
     const userLower = trimmed.toLowerCase();
     const userMentionsSleep = /\b(tidur|begadang|ngantuk|kantuk|insomnia|lelap|merem)\b/i.test(userLower);
     const userMentionsSitting = /\b(duduk|nugas|laprak|skripsi|lab|kuliah|kursi|meja|layar|komputer|laptop|tv)\b/i.test(userLower);
     const userMentionsActivity = /\b(aktivitas|kegiatan|olahraga|kuliah|kelas|dosen|lab|laprak|skripsi|nugas|jadwal|padat|sibuk)\b/i.test(userLower);
+    const isStressContext =
+      /\b(stres|stress|cemas|kecemasan|tertekan|tekanan|panik|khawatir|kepikiran|beban\s+pikiran|penat|mumet|pusing)\b/i.test(
+        userLower
+      ) ||
+      clarChoice.choice === "4" ||
+      dominantMediator === "EXAM_ACUTE_STRESS" ||
+      escalationFlag;
 
     const sentenceRegex = /[^.!?\n]+(?:[.!?]+|\n+|$)/g;
     const sentences = sanitizedSummary.match(sentenceRegex) || [sanitizedSummary];
@@ -615,23 +890,41 @@ export async function processChatCoachInput(
       const isSleepClaim =
         sleepHours === null &&
         !userMentionsSleep &&
+        clarChoice.choice !== "2" &&
         /\b(?:masalah\s+(?:dengan\s+)?tidur|kurang\s+tidur|pola\s+tidur|kualitas\s+tidur|jam\s+tidur|tidurmu|begadang|istirahat\s+malam)\b/i.test(lowerS);
       const isSittingClaim =
         sedentaryHours === null &&
         !userMentionsSitting &&
+        clarChoice.choice !== "1" &&
         /\b(?:duduk\s+(?:cukup\s+)?lama|terlalu\s+lama\s+duduk|sudah\s+cukup\s+lama\s+duduk|banyak\s+duduk|posisi\s+duduk|lama\s+di\s+depan\s+layar|di\s+depan\s+(?:komputer|laptop|layar|tv)|berjam-jam\s+di\s+depan|menonton\s+tv)\b/i.test(lowerS);
       const isActivityClaim =
         !activity &&
         !userMentionsActivity &&
+        clarChoice.choice !== "3" &&
         /\b(?:aktivitas\s+padat|padatnya\s+aktivitas|jadwal\s+padat|setelah\s+berolahraga|banyak\s+aktivitas|kuliah\s+seharian|kegiatan\s+padat)\b/i.test(lowerS);
-      return !isSleepClaim && !isSittingClaim && !isActivityClaim;
+      const isEmotionClaim =
+        !isStressContext &&
+        /\b(?:mengalami\s+stres|meredakan\s+stres|tingkat\s+stres|stres\s+(?:yang\s+)?cukup\s+tinggi|stresmu|banyak\s+stres|meredakan\s+kecemasan|rasa\s+cemas|tertekan|stres)\b/i.test(lowerS);
+
+      return !isSleepClaim && !isSittingClaim && !isActivityClaim && !isEmotionClaim;
     });
+
+    if (filteredSentences.length < sentences.length) {
+      sentenceRemoved = true;
+    }
 
     const cleanedSummary = filteredSentences.join(" ").trim();
     if (cleanedSummary.length >= 10) {
       sanitizedSummary = cleanedSummary;
     } else {
       sanitizedSummary = getNextNeutralCauseFallback();
+    }
+
+    if (!isStressContext) {
+      sanitizedAction = sanitizedAction
+        .replace(/\b(?:meredakan|mengurangi|menghilangkan)\s+stres\b/gi, "memulihkan kesegaran tubuh")
+        .replace(/\b(?:dan\s+)?stres\b/gi, "ketegangan otot")
+        .replace(/\bmeredakan\s+kecemasan\b/gi, "menenangkan tubuh");
     }
 
     const reDeduped = deduplicateResponse(sanitizedSummary, sanitizedAction);
@@ -646,17 +939,33 @@ export async function processChatCoachInput(
       sedentaryHours !== null,
       false,
       sleepHours !== null,
-      activity
+      activity,
+      {
+        dominantMediator,
+        escalationFlag,
+        contextChoice: clarChoice.isChoice ? clarChoice.choice : null,
+        activeDirectives: promptPayload.activeDirectives,
+      }
     );
   }
 
-  const clarChoice = detectClarificationChoice(trimmed);
   if (clarChoice.isChoice && clarChoice.choice === "SKIP") {
     sanitizedSummary = getNextNeutralCauseFallback();
     wasModularFallbackApplied = true;
     const reDeduped = deduplicateResponse(sanitizedSummary, sanitizedAction);
     sanitizedSummary = reDeduped.summary;
     sanitizedAction = reDeduped.plan;
+  }
+
+  // POIN 2: Perbaiki kata janggal
+  sanitizedSummary = sanitizedSummary.replace(/\bperjalanan singkat\b/gi, "jalan singkat");
+  sanitizedAction = sanitizedAction.replace(/\bperjalanan singkat\b/gi, "jalan singkat");
+
+  // POIN 1: Pastikan kalimat yang tersisa tidak diawali kata sambung penghubung kontras/sebab
+  const preConjSummary = sanitizedSummary;
+  sanitizedSummary = stripLeadingConjunctions(sanitizedSummary);
+  if (sanitizedSummary !== preConjSummary) {
+    conjunctionStripped = true;
   }
 
   const isStillOutOfScope =
@@ -674,7 +983,13 @@ export async function processChatCoachInput(
       formattedOutput = wrapParagraph("Coach > ", outOfScopeFriendly, width, indent);
     }
   } else {
-    const opening = selectOpeningSentence(trimmed);
+    openingReplaced = true;
+    const opening = selectOpeningSentence(trimmed, {
+      clarChoice: clarChoice.isChoice ? clarChoice.choice : null,
+      isMovementSelection,
+      isRecoveryMode:
+        detectRecentlyExercised(trimmed) || (clarChoice.isChoice && clarChoice.choice === "3"),
+    });
     const condition = sanitizedSummary.trim();
     const action = formatActionPlanText(sanitizedAction);
 
@@ -688,19 +1003,16 @@ export async function processChatCoachInput(
   }
 
   const isRecoveryMode =
-    detectRecentlyExercised(trimmed) || (clarChoice.isChoice && clarChoice.choice === "C");
+    detectRecentlyExercised(trimmed) || (clarChoice.isChoice && clarChoice.choice === "3");
   const mediatorKey = isRecoveryMode
     ? "RECENTLY_EXERCISED"
     : escalationFlag
       ? "ESCALATION"
       : dominantMediator;
-  const movementOptions = (
-    MOVEMENT_OPTIONS_BY_MEDIATOR[mediatorKey] ||
-    MOVEMENT_OPTIONS_BY_MEDIATOR.OPTIMAL_BALANCE
-  ).slice(0, 3);
+  const movementOptions = getMovementOptionsForMediator(mediatorKey, isLateNight).slice(0, 3);
 
-  if (!isStillOutOfScope) {
-    const movementPrompt = formatMovementOptionsPrompt(mediatorKey);
+  if (!isStillOutOfScope && !isDistress) {
+    const movementPrompt = formatMovementOptionsPrompt(mediatorKey, isLateNight);
     formattedOutput = `${formattedOutput}\n\n${movementPrompt.trim()}`;
   }
 
@@ -712,6 +1024,7 @@ export async function processChatCoachInput(
     formattedOutput += `\n- Escalation Flag   : ${escalationFlag}`;
     formattedOutput += `\n- Sleep Hours       : ${sleepHours ?? "null"}`;
     formattedOutput += `\n- Sedentary Hours   : ${sedentaryHours ?? "null"}`;
+    formattedOutput += `\n- MVPA Flag         : MVPA_ASUMSI_NOL (telemetri MVPA kosong diasumsikan 0 menit)`;
     formattedOutput += `\n- Target Directive  : ${jenisGerak}`;
     formattedOutput += `\n- Jenis Gerak Match : ${movementMatch.note}`;
     if (auditReport.unverifiedNumbers.length > 0) {
@@ -719,6 +1032,9 @@ export async function processChatCoachInput(
     }
     if (auditReport.unverifiedActivityClaims.length > 0) {
       formattedOutput += `\n- [AUDIT] Klaim Aktivitas Tdk Sah : ${auditReport.unverifiedActivityClaims.join(", ")}`;
+    }
+    if (auditReport.unverifiedEmotionClaims && auditReport.unverifiedEmotionClaims.length > 0) {
+      formattedOutput += `\n- [AUDIT] Klaim Emosi Tdk Sah     : ${auditReport.unverifiedEmotionClaims.join(", ")}`;
     }
     if (auditReport.unverifiedCauseClaims.length > 0) {
       formattedOutput += `\n- [AUDIT] Klaim Penyebab Tdk Sah  : ${auditReport.unverifiedCauseClaims.join(", ")}`;
@@ -734,6 +1050,78 @@ export async function processChatCoachInput(
     formattedOutput += `\n--------------------`;
   }
 
+  if (rawAttempt1 && !isDistress && source !== "CRISIS_SAFETY_BYPASS") {
+    const finalResponseObj = {
+      dominantMediator,
+      diagnosisSummary: sanitizedSummary,
+      isotemporalActionPlan: sanitizedAction,
+      recommendedMetsToday: insight.recommendedMetsToday,
+      scientificCitationNote: insight.scientificCitationNote,
+    };
+
+    appendCoachRawLog(
+      {
+        timestamp: new Date().toISOString(),
+        userInput: trimmed,
+        dominantMediator,
+        rawModelResponse: {
+          dominantMediator: rawAttempt1.dominantMediator,
+          diagnosisSummary: rawAttempt1.diagnosisSummary,
+          isotemporalActionPlan: rawAttempt1.isotemporalActionPlan,
+          recommendedMetsToday: rawAttempt1.recommendedMetsToday,
+          scientificCitationNote: rawAttempt1.scientificCitationNote,
+        },
+        finalResponse: finalResponseObj,
+        rawAttempt1: {
+          dominantMediator: rawAttempt1.dominantMediator,
+          diagnosisSummary: rawAttempt1.diagnosisSummary,
+          isotemporalActionPlan: rawAttempt1.isotemporalActionPlan,
+          recommendedMetsToday: rawAttempt1.recommendedMetsToday,
+          scientificCitationNote: rawAttempt1.scientificCitationNote,
+        },
+        ...(rawAttempt2
+          ? {
+              rawAttempt2: {
+                dominantMediator: rawAttempt2.dominantMediator,
+                diagnosisSummary: rawAttempt2.diagnosisSummary,
+                isotemporalActionPlan: rawAttempt2.isotemporalActionPlan,
+                recommendedMetsToday: rawAttempt2.recommendedMetsToday,
+                scientificCitationNote: rawAttempt2.scientificCitationNote,
+              },
+            }
+          : {}),
+        rawInsight: rawAttempt1,
+        finalInsight: finalResponseObj,
+        flags: {
+          retryApplied,
+          retryReasons: retryReasons.length > 0 ? retryReasons : undefined,
+          sentenceRemoved,
+          durationAdjusted,
+          openingReplaced,
+          conjunctionStripped,
+        },
+      },
+      options.logFilePath
+    );
+  }
+
+  if (isShowRaw || options.showRaw) {
+    formattedOutput += `\n\n--- [JAWABAN MENTAH MODEL (RAW)] ---`;
+    formattedOutput += `\n` + JSON.stringify(rawInsight ?? insight, null, 2);
+    formattedOutput += `\nFlags Perbaikan: ` + JSON.stringify({
+      retryApplied,
+      retryReasons: retryReasons.length > 0 ? retryReasons : undefined,
+      sentenceRemoved,
+      durationAdjusted,
+      openingReplaced,
+      conjunctionStripped,
+    }, null, 2);
+    formattedOutput += `\n------------------------------------\n`;
+  }
+
+  const nextPendingPrompt: "clarification" | "movement" | null =
+    movementOptions.length > 0 && !isStillOutOfScope && !isDistress ? "movement" : null;
+
   return {
     promptPayload,
     dominantMediator,
@@ -746,12 +1134,23 @@ export async function processChatCoachInput(
       diagnosisSummary: sanitizedSummary,
       isotemporalActionPlan: sanitizedAction,
     },
+    rawInsight: rawInsight ?? insight,
+    flags: {
+      retryApplied,
+      retryReasons: retryReasons.length > 0 ? retryReasons : undefined,
+      sentenceRemoved,
+      durationAdjusted,
+      openingReplaced,
+      conjunctionStripped,
+    },
     source,
     movementMatchNote: movementMatch.note,
     auditReport,
     formattedOutput,
     needsClarification: false,
     movementOptions,
+    movementOptionsShown: movementOptions,
+    pendingPrompt: nextPendingPrompt,
   };
 }
 
@@ -783,17 +1182,93 @@ if (isDirectRun) {
       ? process.argv[argMovementIndex + 1]
       : null;
 
-  if (cliInput) {
-    const runOptions: {
-      hasClarified?: boolean;
-      forcedJenisGerak?: string;
-    } = {};
+  const argMockTimeIndex = process.argv.findIndex((a) => a === "--mock-time");
+  if (argMockTimeIndex !== -1 && process.argv[argMockTimeIndex + 1]) {
+    process.env.COACH_MOCK_TIME = process.argv[argMockTimeIndex + 1];
+  }
 
-    if (cliClarify) {
+  const argPendingPromptIndex = process.argv.findIndex((a) => a === "--pending-prompt");
+  const cliPendingPrompt =
+    argPendingPromptIndex !== -1 && process.argv[argPendingPromptIndex + 1]
+      ? (process.argv[argPendingPromptIndex + 1] as "clarification" | "movement")
+      : null;
+
+  const argPriorMediatorIndex = process.argv.findIndex((a) => a === "--prior-mediator");
+  const cliPriorMediator =
+    argPriorMediatorIndex !== -1 && process.argv[argPriorMediatorIndex + 1]
+      ? process.argv[argPriorMediatorIndex + 1]
+      : null;
+
+  const argPriorSedentaryIndex = process.argv.findIndex((a) => a === "--prior-sedentary");
+  const cliPriorSedentary =
+    argPriorSedentaryIndex !== -1 && process.argv[argPriorSedentaryIndex + 1]
+      ? process.argv[argPriorSedentaryIndex + 1]
+      : null;
+
+  const argPriorActivityIndex = process.argv.findIndex((a) => a === "--prior-activity");
+  const cliPriorActivity =
+    argPriorActivityIndex !== -1 && process.argv[argPriorActivityIndex + 1]
+      ? process.argv[argPriorActivityIndex + 1]
+      : null;
+
+  if (cliInput) {
+    const runOptions: ProcessChatCoachOptions = {};
+
+    if (cliPendingPrompt) {
+      runOptions.pendingPrompt = cliPendingPrompt;
+      if (cliPendingPrompt === "clarification") {
+        runOptions.hasClarified = true;
+      }
+    } else if (cliClarify || /^[1-4]$/.test(cliInput.trim())) {
+      runOptions.pendingPrompt = "clarification";
       runOptions.hasClarified = true;
     }
+
     if (cliMovement) {
       runOptions.forcedJenisGerak = cliMovement;
+    }
+
+    const { timeStr, period, isLateNight } = getSystemJakartaTime();
+
+    if (cliPendingPrompt === "movement" || (!cliPendingPrompt && /^[a-c]$/i.test(cliInput.trim()))) {
+      runOptions.pendingPrompt = "movement";
+      const priorMed = (cliPriorMediator as DominantMediator) || "SEDENTARY_OVERLOAD";
+      const priorSed = cliPriorSedentary !== null ? parseFloat(cliPriorSedentary) : 8;
+      const priorAct = cliPriorActivity || "nugas";
+      const priorMovOptions = getMovementOptionsForMediator(priorMed, isLateNight);
+
+      runOptions.previousMeta = {
+        dominantMediator: priorMed,
+        escalationFlag: false,
+        sleepHours: null,
+        sedentaryHours: priorSed,
+        detectedActivity: priorAct,
+        allowedRanges: { durationMinutesRange: [10, 20], metsRange: [170, 240] },
+        movementOptions: priorMovOptions,
+      };
+
+      runOptions.previousPayload = {
+        activeDirectives: [
+          "DATA_TIDAK_LENGKAP: jangan menyebut angka, durasi, atau tingkat aktivitas yang tidak ada di input user",
+          `JENIS_GERAK: ${priorMovOptions[0]}`,
+        ],
+        clinicalRuleEvaluation: {
+          dominantMediator: priorMed,
+          priorityMediator: priorMed,
+          flags: [priorMed],
+          escalationFlag: false,
+          missingDailyCheckIn: true,
+        },
+        allowedRanges: { durationMinutesRange: [10, 20], metsRange: [170, 240] },
+        skipAdaptation: { applied: false, consecutiveSkips: 0, previousRecommendedMets: null },
+        currentTime: `${timeStr} (${period})`,
+        timeOfDay: period,
+        detectedActivity: priorAct,
+        today: { totalSedentaryHours: priorSed },
+        history7Days: [],
+        latestPss10Score: null,
+        userNotes: "prior prompt",
+      };
     }
 
     processChatCoachInput(cliInput, runOptions)
@@ -819,6 +1294,7 @@ if (isDirectRun) {
           console.log(`- escalationFlag   : ${escalationFlag}`);
           console.log(`- sleepHours       : ${sleepHours !== null ? sleepHours : "null"}`);
           console.log(`- sedentaryHours   : ${sedentaryHours !== null ? sedentaryHours : "null"}`);
+          console.log(`- MVPA Flag        : MVPA_ASUMSI_NOL (telemetri MVPA kosong diasumsikan 0 menit)`);
           console.log(`- JENIS_GERAK      : ${jenisGerak}`);
           console.log(`- Gerak Match      : ${movementMatchNote}`);
           if (auditReport.unverifiedNumbers.length > 0) {
@@ -829,6 +1305,11 @@ if (isDirectRun) {
           if (auditReport.unverifiedActivityClaims.length > 0) {
             console.log(
               `- [AUDIT] Klaim Aktivitas Tdk Sah: ${auditReport.unverifiedActivityClaims.join(", ")}`
+            );
+          }
+          if (auditReport.unverifiedEmotionClaims && auditReport.unverifiedEmotionClaims.length > 0) {
+            console.log(
+              `- [AUDIT] Klaim Emosi Tdk Sah    : ${auditReport.unverifiedEmotionClaims.join(", ")}`
             );
           }
           if (auditReport.unverifiedCauseClaims.length > 0) {
@@ -864,8 +1345,13 @@ if (isDirectRun) {
       isClosed = true;
     });
 
-    let isAwaitingClarification = false;
-    let pendingMovementOptions: string[] = [];
+    let sessionState: {
+      pendingPrompt: "clarification" | "movement" | null;
+      previousPayload?: any;
+      previousMeta?: any;
+    } = {
+      pendingPrompt: null,
+    };
 
     console.log("\n==================================================================");
     console.log("  🌿 CampusFlow AI Coach — Sesi Percakapan Aktif");
@@ -877,7 +1363,7 @@ if (isDirectRun) {
       if (isClosed) return;
       rl.question("Kamu > ", async (input) => {
         const trimmed = input.trim();
-        if (!trimmed && !isAwaitingClarification) {
+        if (!trimmed && sessionState.pendingPrompt !== "clarification") {
           if (!isClosed) askPrompt();
           return;
         }
@@ -892,44 +1378,13 @@ if (isDirectRun) {
         process.stdout.write("Coach > Sedang memikirkan rekomendasi untukmu...");
 
         try {
-          const callOptions: {
-            hasClarified?: boolean;
-            forcedJenisGerak?: string;
-          } = {};
+          const callOptions: ProcessChatCoachOptions = {
+            pendingPrompt: sessionState.pendingPrompt,
+            previousPayload: sessionState.previousPayload,
+            previousMeta: sessionState.previousMeta,
+          };
 
-          if (isAwaitingClarification) {
-            isAwaitingClarification = false;
-            callOptions.hasClarified = true;
-          } else if (pendingMovementOptions.length > 0) {
-            const upper = trimmed.toUpperCase();
-            let selectedMovement: string | null = null;
-            if (upper === "A" || trimmed === "1") {
-              selectedMovement = pendingMovementOptions[0];
-            } else if (upper === "B" || trimmed === "2") {
-              selectedMovement = pendingMovementOptions[1];
-            } else if (upper === "C" || trimmed === "3") {
-              selectedMovement = pendingMovementOptions[2];
-            }
-
-            pendingMovementOptions = [];
-            if (selectedMovement) {
-              callOptions.forcedJenisGerak = selectedMovement;
-            }
-          }
-
-          const {
-            promptPayload,
-            dominantMediator,
-            escalationFlag,
-            sleepHours,
-            sedentaryHours,
-            jenisGerak,
-            movementMatchNote,
-            auditReport,
-            formattedOutput,
-            needsClarification,
-            movementOptions,
-          } = await processChatCoachInput(trimmed, callOptions);
+          const result = await processChatCoachInput(trimmed, callOptions);
 
           if (process.stdout.isTTY) {
             readline.clearLine(process.stdout, 0);
@@ -940,48 +1395,73 @@ if (isDirectRun) {
 
           if (isShowJson) {
             console.log("\n--- [JSON DIKIRIM KE MODEL] ---");
-            console.log(JSON.stringify(promptPayload, null, 2));
+            console.log(JSON.stringify(result.promptPayload, null, 2));
             console.log("-------------------------------\n");
           }
 
           if (isDebug) {
             console.log(`[DEBUG METADATA]`);
-            console.log(`- dominantMediator : ${dominantMediator}`);
-            console.log(`- escalationFlag   : ${escalationFlag}`);
-            console.log(`- sleepHours       : ${sleepHours !== null ? sleepHours : "null"}`);
-            console.log(`- sedentaryHours   : ${sedentaryHours !== null ? sedentaryHours : "null"}`);
-            console.log(`- JENIS_GERAK      : ${jenisGerak}`);
-            console.log(`- Gerak Match      : ${movementMatchNote}`);
-            if (auditReport.unverifiedNumbers.length > 0) {
+            console.log(`- dominantMediator : ${result.dominantMediator}`);
+            console.log(`- escalationFlag   : ${result.escalationFlag}`);
+            console.log(`- sleepHours       : ${result.sleepHours !== null ? result.sleepHours : "null"}`);
+            console.log(`- sedentaryHours   : ${result.sedentaryHours !== null ? result.sedentaryHours : "null"}`);
+            console.log(`- MVPA Flag        : MVPA_ASUMSI_NOL (telemetri MVPA kosong diasumsikan 0 menit)`);
+            console.log(`- JENIS_GERAK      : ${result.jenisGerak}`);
+            console.log(`- Gerak Match      : ${result.movementMatchNote}`);
+            if (result.auditReport.unverifiedNumbers.length > 0) {
               console.log(
-                `- [AUDIT] Angka Tdk Terverifikasi: ${auditReport.unverifiedNumbers.join(", ")}`
+                `- [AUDIT] Angka Tdk Terverifikasi: ${result.auditReport.unverifiedNumbers.join(", ")}`
               );
             }
-            if (auditReport.unverifiedActivityClaims.length > 0) {
+            if (result.auditReport.unverifiedActivityClaims.length > 0) {
               console.log(
-                `- [AUDIT] Klaim Aktivitas Tdk Sah: ${auditReport.unverifiedActivityClaims.join(", ")}`
+                `- [AUDIT] Klaim Aktivitas Tdk Sah: ${result.auditReport.unverifiedActivityClaims.join(", ")}`
               );
             }
-            if (auditReport.unverifiedCauseClaims.length > 0) {
+            if (result.auditReport.unverifiedEmotionClaims && result.auditReport.unverifiedEmotionClaims.length > 0) {
               console.log(
-                `- [AUDIT] Klaim Penyebab Tdk Sah : ${auditReport.unverifiedCauseClaims.join(", ")}`
+                `- [AUDIT] Klaim Emosi Tdk Sah    : ${result.auditReport.unverifiedEmotionClaims.join(", ")}`
               );
             }
-            if (auditReport.hasRepeatedSentences) {
+            if (result.auditReport.unverifiedCauseClaims.length > 0) {
               console.log(
-                `- [AUDIT] Kalimat Berulang       : ${auditReport.repeatedSentences.join(" | ")}`
+                `- [AUDIT] Klaim Penyebab Tdk Sah : ${result.auditReport.unverifiedCauseClaims.join(", ")}`
+              );
+            }
+            if (result.auditReport.hasRepeatedSentences) {
+              console.log(
+                `- [AUDIT] Kalimat Berulang       : ${result.auditReport.repeatedSentences.join(" | ")}`
               );
             }
             console.log();
           }
 
-          console.log(formattedOutput);
+          console.log(result.formattedOutput);
           console.log();
 
-          if (needsClarification) {
-            isAwaitingClarification = true;
-          } else if (movementOptions && movementOptions.length > 0) {
-            pendingMovementOptions = movementOptions;
+          if (result.needsClarification) {
+            sessionState = {
+              pendingPrompt: "clarification",
+            };
+          } else if (result.movementOptions && result.movementOptions.length > 0) {
+            sessionState = {
+              pendingPrompt: "movement",
+              previousPayload: result.promptPayload,
+              previousMeta: {
+                dominantMediator: result.dominantMediator,
+                escalationFlag: result.escalationFlag,
+                sleepHours: result.sleepHours,
+                sedentaryHours: result.sedentaryHours,
+                detectedActivity: result.promptPayload.detectedActivity,
+                allowedRanges: result.promptPayload.allowedRanges,
+                movementOptions: result.movementOptions,
+                movementOptionsShown: result.movementOptionsShown,
+              },
+            };
+          } else {
+            sessionState = {
+              pendingPrompt: null,
+            };
           }
         } catch (err) {
           if (process.stdout.isTTY) {

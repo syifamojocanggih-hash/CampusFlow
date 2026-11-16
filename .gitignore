@@ -38,3 +38,10 @@ coverage/
 */coverage/
 
 backend/ollama/*.gguf
+
+# Local debug logs
+backend/logs/
+
+# Scratch & experiments
+scratch/
+

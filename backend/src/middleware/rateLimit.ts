@@ -5,6 +5,7 @@ export interface RateLimiterOptions {
   maxRequests: number;
   keyPrefix: string;
   message?: string;
+  keyGenerator?: (req: Request) => string;
 }
 
 interface BucketEntry {
@@ -12,17 +13,28 @@ interface BucketEntry {
   resetAt: number;
 }
 
+export interface RateLimiterMiddleware {
+  (req: Request, res: Response, next: NextFunction): void;
+  reset: () => void;
+}
+
 /**
  * Middleware rate limiter in-memory sederhana tanpa dependensi eksternal.
  * Mengembalikan HTTP 429 dengan amplop error JSON standar saat batas terlampaui.
  */
-export function createRateLimiter(options: RateLimiterOptions) {
+export function createRateLimiter(options: RateLimiterOptions): RateLimiterMiddleware {
   const buckets = new Map<string, BucketEntry>();
 
-  return function rateLimitMiddleware(req: Request, res: Response, next: NextFunction): void {
+  const rateLimitMiddleware = function (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void {
     const now = Date.now();
-    const clientIp = req.ip || req.socket.remoteAddress || "unknown";
-    const key = `${options.keyPrefix}:${clientIp}`;
+    const identifier = options.keyGenerator
+      ? options.keyGenerator(req)
+      : req.ip || req.socket.remoteAddress || "unknown";
+    const key = `${options.keyPrefix}:${identifier}`;
 
     const existing = buckets.get(key);
     if (!existing || existing.resetAt <= now) {
@@ -55,4 +67,10 @@ export function createRateLimiter(options: RateLimiterOptions) {
     existing.count += 1;
     next();
   };
+
+  rateLimitMiddleware.reset = () => {
+    buckets.clear();
+  };
+
+  return rateLimitMiddleware;
 }

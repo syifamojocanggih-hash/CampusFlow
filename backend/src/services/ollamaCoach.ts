@@ -158,27 +158,32 @@ const SYSTEM_INSTRUCTION = `Kamu adalah CampusFlow AI Coach: asisten kesehatan m
   4. ESKALASI & EDGE CASE: Bila escalationFlag true, hanya sarankan aksi fisik ringan/relaksasi napas (dilarang olahraga berat) dan WAJIB sertakan frasa "konselor kampus" secara halus di diagnosisSummary tanpa menakut-nakuti. Bila missingDailyCheckIn true (pss4TotalScore null), jangan asumsikan skor stres/tidur dan WAJIB sertakan ajakan mengisi "check-in harian" di diagnosisSummary. Bila skipAdaptation.applied true, turunkan target dalam allowedRanges maksimal -40%.
   5. PENOLAKAN: Jika input di luar scope wellbeing kampus, kembalikan JSON valid dengan diagnosisSummary "Pertanyaan ini di luar cakupan CampusFlow Coach.".`;
 
-  /** Mendeteksi kata kunci stres darurat dari catatan bebas pengguna. */
-  export function detectDistressKeywords(userNotes?: string | null): boolean {
-    if (!userNotes) return false;
-    const normalized = userNotes.toLowerCase();
-    return EMERGENCY_DISTRESS_KEYWORDS.some((keyword) => normalized.includes(keyword));
-  }
+/** Mendeteksi kata kunci stres darurat dari catatan bebas pengguna. */
+export function detectDistressKeywords(userNotes?: string | null): boolean {
+  if (!userNotes) return false;
+  const normalized = userNotes.toLowerCase();
+  return EMERGENCY_DISTRESS_KEYWORDS.some((keyword) => normalized.includes(keyword));
+}
 
-  /** Mengevaluasi bendera batas klinis secara deterministik sesuai prioritas Martín-Rodríguez & González-Prieto (2026). */
-  export function evaluateClinicalRuleFlags(
-    today: Telemetry7DaysInput["today"],
-    options?: { userNotes?: string | null }
-  ): ClinicalRuleFlags {
-    const missingDailyCheckIn = today.pss4TotalScore === null;
+/** Mengevaluasi bendera batas klinis secara deterministik sesuai prioritas Martín-Rodríguez & González-Prieto (2026). */
+export function evaluateClinicalRuleFlags(
+  today: Telemetry7DaysInput["today"],
+  options?: { userNotes?: string | null }
+): ClinicalRuleFlags {
+  const missingDailyCheckIn = today.pss4TotalScore === null;
 
-    const sleepDeficit =
-      !missingDailyCheckIn &&
+  const sleepDeficit =
+    !missingDailyCheckIn &&
     today.pss4TotalScore !== null &&
     ((today.sleepHours !== null && today.sleepHours < 7.0) ||
       (today.sleepQualityScore !== null && today.sleepQualityScore <= 2)) &&
     today.pss4TotalScore >= 8;
 
+  // KEPUTUSAN KLINIS DATA KOSONG (MVPA_ASUMSI_NOL & Barbosa et al. 2024):
+  // Bila input/telemetri tidak mencatat durasi MVPA, mesin klinis secara konservatif
+  // mengasumsikan totalMvpaMinutes = 0 sehingga mvpaPerSedentaryRatio = 0.
+  // Untuk duduk > 6 jam (misal 8 jam nugas), rasio 0 < 25 memicu SEDENTARY_OVERLOAD
+  // demi melindungi mahasiswa dari risiko klinis depresi (OR 1.74) tanpa mengubah ambang batas.
   const sedentaryOverload =
     today.totalSedentaryHours >= 9.0 ||
     (today.totalSedentaryHours > 6 && today.mvpaPerSedentaryRatio < 25);
@@ -236,12 +241,12 @@ export function computeCoachConstraints(
   let allowedRanges: AllowedRanges = escalationFlag
     ? { durationMinutesRange: [5, 15], metsRange: [80, 160] }
     : {
-        durationMinutesRange: [...MEDIATOR_BASE_RANGES[mediator].durationMinutesRange] as [
-          number,
-          number,
-        ],
-        metsRange: [...MEDIATOR_BASE_RANGES[mediator].metsRange] as [number, number],
-      };
+      durationMinutesRange: [...MEDIATOR_BASE_RANGES[mediator].durationMinutesRange] as [
+        number,
+        number,
+      ],
+      metsRange: [...MEDIATOR_BASE_RANGES[mediator].metsRange] as [number, number],
+    };
 
   let consecutiveSkips = 0;
   for (const item of recentInsights ?? []) {
@@ -291,6 +296,20 @@ function clampMets(value: number, [minMets, maxMets]: [number, number]): number 
   return Math.max(minMets, Math.min(maxMets, Math.round(value)));
 }
 
+export const CHECK_IN_CLOSING_SENTENCE =
+  "Jangan lupa lengkapi check-in harian di aplikasi ya supaya rekomendasinya makin pas.";
+
+export function removeCheckInSentences(text: string): string {
+  const sentences = text
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const filtered = sentences.filter(
+    (s) => !/check-?in|kuesioner\s+harian/i.test(s)
+  );
+  return filtered.join(" ");
+}
+
 /** Menjamin hasil LLM memenuhi batas aturan klinis 1.1, rentang allowedRanges, & eskalasi keamanan.
  *  CATATAN: scientificCitationNote TIDAK lagi dipercayakan ke LLM -- dipilih deterministik dari
  *  CITATION_BANK berdasarkan dominantMediator (hasil rule engine), supaya selalu relevan & akurat
@@ -303,6 +322,9 @@ function enforceClinicalGuardrails(
   let summary = insight.diagnosisSummary.trim();
   let plan = insight.isotemporalActionPlan.trim();
 
+  // Hapus kalimat check-in buatan model bila ada agar tidak dobel
+  summary = removeCheckInSentences(summary);
+
   if (evaluation.escalationFlag) {
     const mentionsCounselor = /konselor|layanan kesehatan mental|psikolog|cerita/i.test(summary);
     if (!mentionsCounselor) {
@@ -313,8 +335,9 @@ function enforceClinicalGuardrails(
     }
   }
 
-  if (evaluation.missingDailyCheckIn && !/check-in|kuesioner/i.test(summary)) {
-    summary = `${summary} Kalau sempat nanti, lengkapi check-in harianmu ya supaya dukungannya makin pas.`;
+  // Kalimat penutup ditambahkan oleh kode secara tetap (append deterministik) bukan diminta dari model
+  if (evaluation.missingDailyCheckIn) {
+    summary = summary ? `${summary} ${CHECK_IN_CLOSING_SENTENCE}` : CHECK_IN_CLOSING_SENTENCE;
   }
 
   const isOutOfScope = /di luar cakupan/i.test(summary);
@@ -331,7 +354,10 @@ function enforceClinicalGuardrails(
 }
 
 /** Fallback klinis empatik deterministik bila server Ollama lokal belum menyala atau gagal merespons. */
-export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): GeneratedInsight {
+export function buildDeterministicFallbackInsight(
+  input: Telemetry7DaysInput,
+  options?: { forcedJenisGerak?: string }
+): GeneratedInsight {
   const { today } = input;
   const evaluation = evaluateClinicalRuleFlags(today, { userNotes: input.userNotes });
   const { allowedRanges, skipAdaptation } = computeCoachConstraints(
@@ -348,7 +374,7 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
   );
 
   const checkInSuffix = evaluation.missingDailyCheckIn
-    ? " Kalau ada waktu sebentar nanti, sekalian lengkapi check-in harianmu ya supaya gambarannya makin pas."
+    ? ` ${CHECK_IN_CLOSING_SENTENCE}`
     : "";
   const counselorSuffix = evaluation.escalationFlag
     ? " Kalau rasanya terus menumpuk, nggak apa-apa banget cerita ke konselor kampus atau layanan kesehatan mental mahasiswa."
@@ -416,7 +442,11 @@ export function buildDeterministicFallbackInsight(input: Telemetry7DaysInput): G
     },
   };
 
-  return baseByMediator[evaluation.dominantMediator];
+  const base = { ...baseByMediator[evaluation.dominantMediator] };
+  if (options?.forcedJenisGerak) {
+    base.isotemporalActionPlan = `Coba ${options.forcedJenisGerak} selama ${gentleDuration} menit sekarang agar tubuh lebih rileks.`;
+  }
+  return base;
 }
 
 export type OllamaPromptMode = "auto" | "user-only" | "chatml";
@@ -426,11 +456,18 @@ export interface GenerateInsightOptions {
   enforceGuardrails?: boolean;
   model?: string;
   promptMode?: OllamaPromptMode;
+  forcedJenisGerak?: string;
 }
 
 export interface OllamaChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
+}
+
+let customOllamaCaller: typeof callOllamaChatJson | null = null;
+
+export function setOllamaCallerForTest(fn: typeof callOllamaChatJson | null): void {
+  customOllamaCaller = fn;
 }
 
 /** Mengirim permintaan chat terstruktur ke `/api/chat` Ollama dan memvalidasi JSON output 5 field resmi. */
@@ -482,11 +519,8 @@ function buildActiveDirectives(
       "ESKALASI_AKTIF: WAJIB tulis kalimat penutup ini di diagnosisSummary: 'Kalau rasanya terus menumpuk, nggak apa-apa cerita ke konselor kampus.' dan isi isotemporalActionPlan hanya dengan relaksasi ringan."
     );
   }
-  if (evaluation.missingDailyCheckIn) {
-    directives.push(
-      "BELUM_CHECKIN_HARIAN: WAJIB tutup diagnosisSummary dengan kalimat: 'Jangan lupa lengkapi check-in harian di aplikasi ya supaya rekomendasinya makin pas.'"
-    );
-  }
+  // Tidak lagi menyisipkan directive BELUM_CHECKIN_HARIAN ke model;
+  // kalimat penutup check-in ditambahkan secara deterministik oleh kode di enforceClinicalGuardrails.
   if (skipAdaptation.applied) {
     directives.push(
       "ADAPTASI_SKIP: turunkan target ke rentang ringan dalam allowedRanges (penurunan wajar maks -40%)."
@@ -515,6 +549,8 @@ export async function generateClinicalWellbeingInsight(
       : (fetchOrOptions.model ?? env.OLLAMA_MODEL);
   const promptMode: OllamaPromptMode =
     typeof fetchOrOptions === "function" ? "auto" : (fetchOrOptions.promptMode ?? "auto");
+  const forcedJenisGerak =
+    typeof fetchOrOptions === "object" ? fetchOrOptions.forcedJenisGerak : undefined;
 
   // JALUR KRISIS BERSAMA: Bila catatan user mengindikasikan krisis berat, JANGAN panggil model.
   if (sharedDetectDistressKeywords(userTelemetry7Days.userNotes)) {
@@ -546,6 +582,10 @@ export async function generateClinicalWellbeingInsight(
   activeDirectives.push(
     "DATA_TIDAK_LENGKAP: jangan menyebut angka, durasi, atau tingkat aktivitas yang tidak ada di input user"
   );
+  if (forcedJenisGerak) {
+    activeDirectives.push(`JENIS_GERAK: ${forcedJenisGerak}`);
+    activeDirectives.push(`PILIHAN_GERAK_USER: user memilih opsi gerak '${forcedJenisGerak}'`);
+  }
   if (Object.keys(cleanToday).length === 0 && !userTelemetry7Days.userNotes) {
     activeDirectives.push(
       "PENYEBAB_TIDAK_DIKETAHUI: jangan menyebut penyebab (tidur, duduk, aktivitas, kuliah) yang tidak disebut user"
@@ -583,17 +623,18 @@ export async function generateClinicalWellbeingInsight(
   const messages: OllamaChatMessage[] = usesBakedModelfile
     ? [{ role: "user", content: JSON.stringify(promptPayload) }]
     : [
-        { role: "system", content: SYSTEM_INSTRUCTION },
-        {
-          role: "user",
-          content: `Analisis data telemetri mahasiswa 7 hari berikut dan berikan JSON terstruktur sesuai kontrak:\n${JSON.stringify(
-            promptPayload
-          )}`,
-        },
-      ];
+      { role: "system", content: SYSTEM_INSTRUCTION },
+      {
+        role: "user",
+        content: `Analisis data telemetri mahasiswa 7 hari berikut dan berikan JSON terstruktur sesuai kontrak:\n${JSON.stringify(
+          promptPayload
+        )}`,
+      },
+    ];
 
   try {
-    const { insight: parsed } = await callOllamaChatJson(messages, {
+    const caller = customOllamaCaller ?? callOllamaChatJson;
+    const { insight: parsed } = await caller(messages, {
       fetchFn,
       model: targetModel,
     });
@@ -617,7 +658,7 @@ export async function generateClinicalWellbeingInsight(
   } catch (err) {
     console.warn("[Ollama Coach Fallback]", err instanceof Error ? err.message : err);
     return {
-      insight: buildDeterministicFallbackInsight(userTelemetry7Days),
+      insight: buildDeterministicFallbackInsight(userTelemetry7Days, { forcedJenisGerak }),
       source: "CLINICAL_FALLBACK",
       model: targetModel,
       escalationFlag: evaluation.escalationFlag,

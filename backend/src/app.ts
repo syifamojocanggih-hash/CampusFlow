@@ -18,6 +18,17 @@ import { assessmentsRouter, wellbeingRouter } from "./routes/wellbeing.ts";
 export function createApp() {
   const app = express();
 
+  // Konfigurasi trust proxy untuk deployment reverse proxy (Nginx/Cloudflare/Docker/PaaS)
+  // Memastikan req.ip membaca client IP yang sebenarnya dari header X-Forwarded-For
+  app.set(
+    "trust proxy",
+    process.env.TRUST_PROXY
+      ? process.env.TRUST_PROXY === "true"
+        ? true
+        : Number(process.env.TRUST_PROXY) || 1
+      : 1
+  );
+
   app.use(helmet());
   app.use(
     cors({

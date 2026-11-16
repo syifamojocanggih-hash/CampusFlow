@@ -171,7 +171,7 @@ export interface TriadDashboardDTO {
 }
 
 export interface ClarificationOptionDTO {
-  id: "A" | "B" | "C" | "D";
+  id: "1" | "2" | "3" | "4" | "A" | "B" | "C" | "D";
   label: string;
 }
 
@@ -191,6 +191,7 @@ export interface AiCoachingInsightDTO {
   isCompleted?: boolean;
   clarification?: ClarificationDTO;
   movementOptions?: string[];
+  movementOptionsShown?: string[];
   generationSource?: string;
   escalationFlag?: boolean;
   model?: string;
