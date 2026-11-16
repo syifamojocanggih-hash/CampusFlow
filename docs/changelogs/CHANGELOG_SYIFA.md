@@ -21,6 +21,30 @@
 
 ---
 
+## [2026-11-16] — Penguatan Multi-Turn AI Coach, Guardrail Klinis Jam Malam, Append Check-in Deterministik, & Rate Limiting Per Akun (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
+- **Ringkasan:** Menyempurnakan alur interaksi terminal dan API AI Coach: menambahkan state machine `pendingPrompt` (`clarification` vs `movement`) agar balasan opsi tidak tertukar, payload reuse saat pemilihan gerak, pengiriman konteks pilihan sebagai directive terpisah, pemetaan `movementChoice` ke `movementOptionsShown` tersimpan di database, aturan jam malam ringan (>= 21.30 WIB), audit emosi/penyebab palsu, sanitasi durasi menit & kata sambung di awal, append deterministik penutup check-in di jalur API, mode chat tanpa check-in di terminal, logging evaluasi `coach-raw.jsonl` dan skrip analitik `coach-stats.ts`, isolasi rate limiter per user token (10 req/menit), serta penyusunan dokumen handoff varian respons.
+- **Daftar File Diubah:**
+  - `backend/scripts/chat-coach.ts`
+  - `backend/scripts/chat-coach.test.ts`
+  - `backend/scripts/coach-stats.ts`
+  - `backend/src/app.ts`
+  - `backend/src/app.test.ts`
+  - `backend/src/middleware/rateLimit.ts`
+  - `backend/src/middleware/rateLimit.test.ts`
+  - `backend/src/routes/aiCoach.ts`
+  - `backend/src/services/coachShared.ts`
+  - `backend/src/services/ollamaCoach.ts`
+  - `docs/backend/CLINICAL_SCORING.md`
+  - `docs/handoff/ai-coach-response-variants.md`
+  - `.gitignore`
+  - `shared/contracts/index.ts`
+- **Catatan Cross-Scope:**
+  - `[CROSS-SCOPE] docs/handoff/ai-coach-response-variants.md` — dokumentasi handoff varian respons AI Coach, alur request/response `POST /ai-coach/generate`, validasi `movementChoice`, dan penanganan error 400 konteks kedaluwarsa untuk tim frontend.
+  - `[CROSS-SCOPE] shared/contracts/index.ts` — penyesuaian tipe enum dan DTO AI Coach agar sinkron antara frontend dan backend.
+  - `[CROSS-SCOPE] .gitignore` — menambahkan entri pengabaian untuk direktori `scratch/` dan `backend/logs/`.
+- **Verifikasi:** `npm --prefix backend run typecheck`, `npm --prefix backend test` (68/68 lolos), dan `node scripts/guard-check.mjs backend` lolos hijau.
+
 ## [2026-11-12] — Pipeline Fine-Tuning Dataset, Evaluator Spesialis LLM, & Guardrail Sitasi Deterministik (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
 - **Ringkasan:** Menambahkan pipeline pembuatan & balancing dataset fine-tuning (`generate_combos.py`, `label_combos.cjs`, `balance_dataset.cjs`, `generate_narratives.cjs`, `generate_out_of_scope.cjs`, `merge_out_of_scope.cjs`), memperluas evaluator `eval-ollama.ts` dan `eval-checks.ts` untuk skenario klinis + 43 baris validasi `val_messages.jsonl` + perbandingan before/after, menambahkan guardrail sitasi deterministik (`CITATION_BANK` & `pickCitation`) pada `ollamaCoach.ts` + skrip uji `test_guardrail.ts`, menyelaraskan `Modelfile` model `campusflow-coach-ft`, dan memperbarui `eval-checks.test.ts` agar menerima penambahan 5 baris validasi `out_of_scope` (43 baris).
