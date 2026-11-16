@@ -59,6 +59,9 @@ model User {
   dailyWellbeingLogs  DailyWellbeingLog[]
   clinicalAssessments ClinicalAssessment[]
   aiCoachingInsights  AiCoachingInsight[]
+  academicSchedules   AcademicSchedule[]
+  dailyFussionLogs    DailyFussionLog[]
+  activeBreakSessions ActiveBreakSession[]
 }
 
 model SedentarySession {
@@ -148,6 +151,58 @@ model AiCoachingInsight {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+// ==============================================================================
+// PRD Versi 4.0 — Fusi Parameter & Strava Akademik Models
+// ==============================================================================
+
+model AcademicSchedule {
+  id          String   @id @default(uuid())
+  userId      String
+  dayOfWeek   Int      // 1 = Senin, ... 7 = Minggu
+  subjectName String   @db.VarChar(120)
+  creditHours Float    @default(2.0)
+  isPracticum Boolean  @default(false)
+  isExamWeek  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dayOfWeek])
+}
+
+model DailyFussionLog {
+  id                  String   @id @default(uuid())
+  userId              String
+  logDate             DateTime @db.Date
+  totalScreenTimeMins Int      @default(0)
+  sleepHours          Float    @default(7.0)
+  academicLoadScore   Float    @default(0.0)
+  screenFatigueScore  Float    @default(0.0)
+  recoveryScore       Float    @default(0.0)
+  verifiedBreakCount  Int      @default(0)
+  burnoutIndex        Float    @default(0.0)
+  status              String   @default("LOW") @db.VarChar(20)
+  createdAt           DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, logDate])
+}
+
+model ActiveBreakSession {
+  id           String   @id @default(uuid())
+  userId       String
+  startTime    DateTime @default(now())
+  durationMins Float    @default(2.0)
+  poseVerified Boolean  @default(false)
+  poseType     String   @default("OVERHEAD_STRETCH") @db.VarChar(50)
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startTime])
 }
 ```
 

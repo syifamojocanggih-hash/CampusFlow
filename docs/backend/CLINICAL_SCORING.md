@@ -86,3 +86,35 @@ $$\text{PSS4\_Score} = q_1 + (4 - q_2) + (4 - q_3) + q_4 \quad \in [0, 16]$$
   $$\text{mvpaPerSedentaryRatio} = \frac{0}{\text{totalSedentaryHours}} = 0$$
 - **Rujukan Klinis:**
   Sesuai temuan Barbosa et al. (2024), rasio MVPA terhadap jam duduk $< 25\text{ menit/jam}$ pada durasi duduk $> 6\text{ jam}$ berasosiasi signifikan dengan peningkatan risiko depresi ($\text{OR} = 1.74$). Oleh sebab itu, kondisi duduk statis panjang tanpa olahraga protektif diklasifikasikan sebagai `SEDENTARY_OVERLOAD` untuk segera memicu intervensi pemutus duduk statis (peregangan meja / jeda berdiri) tanpa mengubah batas ambang klinis baku.
+
+---
+
+## 7. Algoritma Burnout Risk Index (PRD Versi 4.0 — `burnoutScoring.ts`)
+
+Berdasarkan *Effort-Recovery Model* (Meijman & Mulder), kelelahan belajar dihitung melalui integrasi faktor beban dan pemulihan:
+
+$$\text{Burnout Risk Index} = (\text{Academic Load Score} + \text{Screen Time Fatigue}) - \text{Recovery Score}$$
+
+### 7.1 Formulasi Beban (Load Factors)
+1. **Academic Load Score (AL):**
+   $$\text{AL} = \sum (\text{SKS} \times \text{Bobot}) + \text{Penalti Ujian}$$
+   - Mata kuliah teori = $1.0\text{ poin / SKS}$
+   - Mata kuliah praktikum = $1.5\text{ poin / SKS}$
+   - Pekan menjelang ujian ($\le H-7$) = $+3.0\text{ poin penalti}$
+2. **Screen Time Fatigue (ST):**
+   $$\text{ST} = \max(0, \text{Total Jam Layar} - 8.0) \times 2.5$$
+   - Ambang batas aman: $8.0\text{ jam/hari}$ (Alshahrani et al., 2025). Setiap kelebihan 1 jam menambah $2.5\text{ poin}$.
+
+### 7.2 Formulasi Pemulihan (Recovery Factors)
+1. **Skor Tidur:**
+   $$\text{Skor Tidur} = \min\left(40, \left(\frac{\text{Jam Tidur}}{8.0}\right) \times 40\right)$$
+   - Memberikan kontribusi hingga $40\text{ poin pemulihan}$ untuk tidur ideal 7–9 jam.
+2. **Active Break Terverifikasi:**
+   $$\text{Skor Break} = \text{Jumlah Active Break Terverifikasi} \times 10$$
+   - Setiap sesi peregangan 2 menit yang tervalidasi kamera memberi $+10\text{ poin pemulihan}$.
+
+### 7.3 Kategori Klasifikasi
+- $\text{Burnout Index} < 40.0$ $\rightarrow$ `LOW` (Optimal Balance / Hijau)
+- $40.0 \le \text{Burnout Index} \le 75.0$ $\rightarrow$ `MODERATE` (Waspada / Kuning)
+- $\text{Burnout Index} > 75.0$ $\rightarrow$ `HIGH` (Risiko Burnout Tinggi / Merah)
+

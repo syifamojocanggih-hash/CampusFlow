@@ -1,6 +1,6 @@
 # Dokumentasi Teknis CampusFlow (Techcomfest 2027)
 
-Indeks dokumentasi resmi, arsitektur sistem, kontrak data, panduan domain, dan tata kelola 3-branch bebas konflik untuk **CampusFlow — AI-Driven Active Wellbeing & Stress Management PWA**.
+Indeks dokumentasi resmi, arsitektur sistem, kontrak data, panduan domain, dan tata kelola 3-branch bebas konflik untuk **CampusFlow — Academic Strava & Predictive Burnout Management PWA (PRD v4.0)**.
 
 ---
 
@@ -11,38 +11,39 @@ docs/
 ├── README.md                              <- Dokumen indeks utama & matriks wewenang ini
 │
 ├── universal/                             <- [MAIN -> DITURUNKAN] Sumber Kebenaran Tunggal
-│   ├── PRD.md                             <- Master PRD & Build Guide Versi 3.0 (Bagian 01–18)
-│   ├── ARCHITECTURE.md                    <- Arsitektur 4 lapis & pemrosesan on-device vs server
+│   ├── PRD.md                             <- Master PRD & Cetak Biru Versi 4.0
+│   ├── PRD_V4_PIVOT_EXPLANATION.md        <- Analisis Pivot v4.0, formulasi Burnout Index, & panduan lintas branch
+│   ├── ARCHITECTURE.md                    <- Arsitektur 4 lapis (Zero Continuous Camera, Strava PWA, Burnout Engine, Ollama)
 │   ├── BOUNDARIES_AND_CONTRACTS.md        <- Aturan batas, hak akses fleksibel & protokol [CROSS-SCOPE]
-│   ├── INTERFACES.md                      <- Kontrak pasti DTO Vision, Sensor, REST API, & Ollama LLM
+│   ├── INTERFACES.md                      <- Kontrak DTO Burnout Index, Academic Schedule, Active Break, & REST API
 │   ├── GIT_WORKFLOW.md                    <- Alur 3 branch (main, backend, frontend) & anti-konflik
 │   ├── INTEGRATION_RUNBOOK.md             <- Prosedur sinkronisasi, verifikasi E2E demo juri, & rilis
 │   ├── DECISIONS.md                       <- Architecture Decision Records (ADR-001 s.d. ADR-007)
 │   └── ROADMAP.md                         <- Peta jalan pengembangan Tahap 1 s.d. Tahap 5
 │
 ├── vision/                                <- [MAIN -> DITURUNKAN] Domain AI Vision (PIC: Ibra)
-│   ├── README.md                          <- Mandat Project Leader & Vision AI Engineer
-│   ├── VISION_SPEC.md                     <- MediaPipe 33 Pose + 478 Face, kalibrasi 5s, & poseHeuristics
+│   ├── README.md                          <- Mandat Project Leader & Vision AI Engineer (PRD v4.0)
+│   ├── VISION_SPEC.md                     <- ActiveBreakValidator (MediaPipe 33 Pose WASM, on-demand 2 menit)
 │   └── TASK_GUIDE.md                      <- Checklist tugas LEAD-1.x & VIS-1.x
 │
 ├── backend/                               <- [BRANCH: backend] Backend & LLM (PIC: Syifa)
-│   ├── README.md                          <- Mandat & lingkup Backend + Ollama AI Coach
+│   ├── README.md                          <- Mandat & lingkup Backend, Burnout Engine, + Ollama AI Coach
 │   ├── TASK_GUIDE.md                      <- Daftar tugas BE-1.x s.d. BE-5.x
-│   ├── DATABASE_SCHEMA.md                 <- Skema Prisma MySQL (6 tabel, enum, & seed 14 hari)
-│   ├── API_SPECIFICATION.md               <- Spesifikasi lengkap endpoint REST /api/v1/*
-│   ├── CLINICAL_SCORING.md                <- Rumus PSS-4/10 reverse-score, PSQI, IPAQ METs, & Triad
-│   ├── LLM_AI_COACH.md                    <- Integrasi Ollama Lokal (/api/chat JSON Schema) & Fallback
+│   ├── DATABASE_SCHEMA.md                 <- Skema Prisma MySQL (AcademicSchedule, DailyFussionLog, ActiveBreakSession)
+│   ├── API_SPECIFICATION.md               <- Spesifikasi lengkap endpoint REST /api/v1/* (termasuk /burnout & /academic-schedule)
+│   ├── CLINICAL_SCORING.md                <- Rumus Burnout Risk Index, Academic Load Score, dan Recovery Score
+│   ├── LLM_AI_COACH.md                    <- Integrasi Ollama Lokal (/api/chat JSON Schema), Crisis Gateway, & Fallback
 │   └── SETUP.md                           <- Panduan setup MySQL, Prisma migrate, Ollama, & server lokal
 │
 ├── frontend/                              <- [BRANCH: frontend] Frontend & PWA (PIC: Tiara + Ibra)
-│   ├── README.md                          <- Mandat Frontend & kolaborasi bebas antar-UI
+│   ├── README.md                          <- Mandat Frontend PWA & visualisasi Strava Akademik
 │   ├── TASK_GUIDE.md                      <- Daftar tugas FE-1.x s.d. FE-5.x
-│   ├── DESIGN_SYSTEM.md                   <- Palet warna Calm & Supportif, Poppins/Inter, & komponen
-│   ├── PAGES_AND_FLOWS.md                 <- Sitemap 10 layar, user flow, & graceful fallback
-│   ├── UI_COMPONENTS.md                   <- Katalog komponen React & state antarmuka
-│   ├── PEDOMETER_SENSOR.md                <- DSP DeviceMotionEvent 3-sumbu & HTTPS lokal
-│   ├── MOCK_DATA.md                       <- Fixture JSON offline untuk dev independen
-│   └── SETUP.md                           <- Panduan Vite + PWA + model MediaPipe lokal
+│   ├── DESIGN_SYSTEM.md                   <- Palet warna pastel Calm & Supportif, tipografi, & komponen kartu
+│   ├── PAGES_AND_FLOWS.md                 <- Sitemap layar utama: Strava Dashboard, Modal Active Break, Smart Planner KRS
+│   ├── UI_COMPONENTS.md                   <- Katalog komponen React, Burnout Gauge, Progress Ring, ActiveBreakModal
+│   ├── PEDOMETER_SENSOR.md                <- Pelacakan aktivitas fisik & integrasi data tidur/layar HP
+│   ├── MOCK_DATA.md                       <- Fixture JSON offline untuk dev independen tanpa server
+│   └── SETUP.md                           <- Panduan Vite + PWA + setup model MediaPipe lokal
 │
 └── changelogs/                            <- [TERPISAH PER USER] Anti-Konflik saat Merge
     ├── README.md                          <- Template & aturan wajib pengisian changelog
@@ -65,17 +66,8 @@ Sistem menggunakan **3 branch resmi** (`main`, `backend`, `frontend`) dengan kep
 
 ---
 
-## 3. Empat Prinsip Utama Arsitektur & Kolaborasi
+## 3. Tiga Prinsip Inti Arsitektur PRD v4.0
 
-1. **Main sebagai Sumber Turunan (`main` → `backend` & `frontend`):** Spesifikasi produk, kontrak data (`INTERFACES.md`), dan modul inti Vision AI dibangun di `main` terlebih dahulu, lalu ditarik oleh `backend` dan `frontend` melalui `git merge origin/main`.
-2. **Isolasi Merge Anti-Konflik:** `backend/` dan `frontend/` memiliki `package-lock.json` terpisah serta folder dokumen terpisah. Setiap user memiliki file Changelog sendiri di `docs/changelogs/` sehingga merge ke `main` tidak saling menimpa.
-3. **Fleksibel Namun Terlacak (`[CROSS-SCOPE]`):** Jika ada kebutuhan mendesak mengubah file milik domain lain atau file bersama di `main`, user tetap diperbolehkan melakukannya selama menuliskan tag `[CROSS-SCOPE]`, nama file, dan alasannya pada Changelog pribadi (`scripts/guard-check.sh` memverifikasi aturan ini secara otomatis).
-4. **Privasi Citra On-Device & Validitas Klinis:** Webcam MediaPipe berjalan 100% lokal di browser (tidak ada unggahan gambar/video ke server), sementara seluruh ambang batas dan skoring mengacu ketat pada kajian sistematis Martín-Rodríguez & González-Prieto (2026).
-
----
-
-## 4. Navigasi Cepat Berdasarkan Peran
-
-- **Jika Anda Ibra (`@flyingdutchman` — Leader & Vision AI di `main`):** Baca [`DESIGN.md`](../DESIGN.md), [`docs/vision/VISION_SPEC.md`](vision/VISION_SPEC.md), [`docs/vision/TASK_GUIDE.md`](vision/TASK_GUIDE.md), dan [`docs/universal/INTEGRATION_RUNBOOK.md`](universal/INTEGRATION_RUNBOOK.md).
-- **Jika Anda Syifa (`@syifamojocanggih-hash` — Backend & LLM di `backend`):** Baca [`docs/backend/README.md`](backend/README.md), [`docs/backend/TASK_GUIDE.md`](backend/TASK_GUIDE.md), [`docs/backend/DATABASE_SCHEMA.md`](backend/DATABASE_SCHEMA.md), dan [`docs/universal/INTERFACES.md`](universal/INTERFACES.md).
-- **Jika Anda Tiara (`@mutiaradewanda` — Frontend & PWA di `frontend`):** Baca [`docs/frontend/README.md`](frontend/README.md), [`docs/frontend/TASK_GUIDE.md`](frontend/TASK_GUIDE.md), [`docs/frontend/DESIGN_SYSTEM.md`](frontend/DESIGN_SYSTEM.md), dan [`docs/frontend/MOCK_DATA.md`](frontend/MOCK_DATA.md).
+1. **Zero Continuous Camera (Privasi Terjaga Penuh):** Kamera laptop default MATI selama belajar. Kamera hanya hidup maksimal 2 menit saat tombol *Active Break* ditekan untuk memvalidasi gerakan fisik secara lokal di browser, lalu langsung mati otomatis.
+2. **Konsep 'Academic Strava' & Burnout Risk Index (0–100):** Menyatukan 4 variabel (Beban Kuliah/KRS, Screen Time via `document.hidden`, Jam Tidur, dan Active Break) menjadi satu skor kesimpulan harian.
+3. **Proactive AI Coaching & Crisis Gateway:** Model AI lokal (Ollama / `campusflow-coach`) mendampingi mahasiswa, merujuk ke Hotline 119 saat krisis, dan memberikan rekomendasi preventif malam hari berbasis jadwal kuliah esok.

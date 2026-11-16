@@ -107,3 +107,57 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
 - `POST /api/v1/notifications/subscribe` — Menyimpan subscription VAPID Web Push.
 - `DELETE /api/v1/notifications/subscribe` — Menghapus subscription Web Push pengguna.
 - `POST /api/v1/notifications/test` — Mengirim notifikasi uji Web Push.
+
+---
+
+## 5. Endpoints PRD Versi 4.0 (Academic Schedule, Burnout Scoring, & Active Break)
+
+### 5.1 Academic Schedule (`/api/v1/academic-schedule`)
+- `GET /api/v1/academic-schedule` — Mengambil jadwal kuliah mingguan pengguna.
+- `POST /api/v1/academic-schedule` — Menambah atau mengunggah matakuliah baru:
+  ```json
+  {
+    "dayOfWeek": 1,
+    "subjectName": "Sistem Terdistribusi",
+    "creditHours": 3.0,
+    "isPracticum": true,
+    "isExamWeek": false
+  }
+  ```
+- `DELETE /api/v1/academic-schedule/:id` — Menghapus jadwal kuliah.
+
+### 5.2 Burnout Scoring Engine (`/api/v1/burnout`)
+- `POST /api/v1/burnout/calculate-today` — Menghitung fusi harian Burnout Risk Index (0–100):
+  ```json
+  {
+    "logDate": "2026-11-16",
+    "totalScreenTimeMins": 540,
+    "sleepHours": 6.5
+  }
+  ```
+  **Respons:**
+  ```json
+  {
+    "data": {
+      "academicLoadScore": 4.5,
+      "screenFatigueScore": 2.5,
+      "recoveryScore": 42.5,
+      "burnoutIndex": 0.0,
+      "status": "LOW"
+    },
+    "meta": { "timestamp": "2026-11-16T13:00:00.000Z", "version": "v1.0" }
+  }
+  ```
+- `GET /api/v1/burnout/history?days=14` — Mengambil riwayat tren Burnout Index selama 14 hari.
+
+### 5.3 On-Demand Active Break (`/api/v1/active-break`)
+- `POST /api/v1/active-break/verify` — Mencatat sesi jeda aktif 2 menit yang tervalidasi kamera MediaPipe:
+  ```json
+  {
+    "durationMins": 2.0,
+    "poseVerified": true,
+    "poseType": "OVERHEAD_ARM_STRETCH"
+  }
+  ```
+  *(Menambah +10 poin pemulihan pada Recovery Score hari ini).*
+

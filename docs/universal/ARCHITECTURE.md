@@ -1,45 +1,51 @@
-# ARCHITECTURE.md — Arsitektur Sistem CampusFlow
+# ARCHITECTURE.md — Arsitektur Sistem CampusFlow (PRD v4.0)
 
 > **STATUS:** SUMBER KEBENARAN ARSITEKTURAL (Dikelola di `main` → Diturunkan ke `backend` & `frontend`)  
+> **VERSI:** 4.0 (*Academic Strava, Zero Continuous Camera, & Predictive Burnout Management*)  
 > **KONTRIBUTOR ARSITEKTUR:** Ibra (`@flyingdutchman` — Project Leader & Vision AI)
 
 ---
 
-## 1. Topologi Sistem 4 Lapis
+## 1. Topologi Sistem 4 Lapis (PRD v4.0)
 
-CampusFlow membagi pemrosesan menjadi empat lapis terpisah agar pemrosesan citra kamera dan sensor gerak tetap privat, cepat, serta hemat bandwidth:
+CampusFlow membagi pemrosesan sistem menjadi empat lapis terpisah untuk menjamin **privasi pengguna 100%**, efisiensi daya komputasi, dan fusi parameter tunggal yang holistik:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ LAPIS 1 — EDGE SENSING & TELEMETRY EXTRACTION (100% On-Device Browser)       │
-│  [Laptop Webcam] ─► MediaPipe PoseLandmarker (33) + FaceMesh (6 mata)        │
-│    • Kalibrasi 5 detik (100 frame) · EMA alpha = 0.25 · 24+ FPS              │
-│    • Mengeluarkan metrik angka (bukan video/gambar!) via Vision heuristics   │
-│  [Smartphone]    ─► HTML5 DeviceMotionEvent (Accelerometer ax, ay, az)       │
-│    • Moving-average High-Pass 25 sampel + Anti-Shake (250–1200 ms, >=6 step) │
-│    • Mengeluarkan langkah, cadence (SPM), dan kategori intensitas IPAQ-SF    │
+│ LAPIS 1 — PRIVACY-PRESERVING EDGE SENSING (100% On-Device Browser)           │
+│  [Webcam On-Demand] ─► ActiveBreakValidator (MediaPipe Pose WASM)            │
+│    • Kamera default OFF; HANYA menyala MAKSIMAL 2 MENIT saat Active Break    │
+│    • Verifikasi peregangan (overhead reach, bahu) -> +10 Poin Pemulihan      │
+│  [Screen Time Sensor] ─► Page Visibility API (document.hidden & Focus)       │
+│    • Melacak waktu layar fokus secara pasif di tab tanpa menyalakan webcam   │
+│  [Input Pemulihan]   ─► Log jam tidur harian & sinkronisasi Digital Wellbeing│
 └───────────────────────────────────────┬──────────────────────────────────────┘
-                                        │ JSON Metrik Ringkas (HTTPS)
+                                        │ Metrik Harian Ringkas (HTTPS)
 ┌───────────────────────────────────────▼──────────────────────────────────────┐
-│ LAPIS 2 — PROGRESSIVE WEB APP LAYER (React 18 + Vite + Tailwind + Workbox)   │
-│  • 10 Layar UI responsif (Mobile <640px fokus Pedometer; Desktop >1024px 3-col)│
-│  • ActiveBreakModal Anti-Cheat · TriadDashboard · PanicReliefMode 15 menit   │
-│  • Offline Resilience: LocalStorage/IndexedDB queue + lokal .task cache      │
+│ LAPIS 2 — ACADEMIC STRAVA PWA LAYER (React 18 + Vite + Tailwind + Workbox)   │
+│  • Visualisasi 'Academic Strava': Beban Belajar Mingguan vs Pemulihan        │
+│  • Metrik Tunggal: Burnout Risk Index (0–100) dengan status Hijau/Kuning/Merah│
+│  • Modal Active Break 2 Menit (Timer & Skeleton overlay otomatis mati)       │
+│  • Smart Academic Planner: Upload & preview jadwal kuliah / KRS              │
+│  • Offline Resilience: LocalStorage / IndexedDB queue + Mock Mode Fallback   │
 └───────────────────────────────────────┬──────────────────────────────────────┘
                                         │ REST API /api/v1/* (JWT Bearer)
 ┌───────────────────────────────────────▼──────────────────────────────────────┐
-│ LAPIS 3 — BACKEND SERVICE & CLINICAL SCORING ENGINE (Express TS + Prisma)    │
-│  • ClinicalScoring: PSS-4 (reverse Q2,Q3), PSS-10 (4,5,7,8), PSQI, IPAQ METs │
-│  • 24-Hour Movement Evaluator (MVPA + Tidur + Sedentary Ratio)               │
-│  • Persistence: MySQL via Prisma ORM (6 tabel relasional + 14-day seed)      │
-│  • Push Notifier: Web Push Notification (VAPID Keys) untuk jeda aktif        │
+│ LAPIS 3 — BACKEND SERVICE & BURNOUT SCORING ENGINE (Express TS + Prisma)     │
+│  • Burnout Scoring Service:                                                  │
+│      Burnout Index = (Academic Load Score + Screen Fatigue) - Recovery Score │
+│  • Academic Schedule Manager: Ekstraksi jadwal kuliah, SKS teori vs praktikum │
+│  • Database MySQL (Prisma ORM): User, AcademicSchedule, DailyFussionLog,     │
+│    ActiveBreakSession, AiCoachingInsight                                     │
+│  • Web Push Notifier (VAPID): Pengingat jeda cerdas saat waktu layar tinggi  │
 └───────────────────────────────────────┬──────────────────────────────────────┘
-                                        │ Telemetry 7 Hari + Prompt Klinis
+                                        │ Konteks 7 Hari + Jadwal Kuliah Esok
 ┌───────────────────────────────────────▼──────────────────────────────────────┐
-│ LAPIS 4 — AGENTIC WELLBEING AI COACH (Ollama Lokal /api/chat + Fallback)     │
-│  • format JSON Schema ketat (tanpa API key berbayar / data keluar cloud)     │
-│  • Mengidentifikasi mediator dominan (SLEEP_MEDIATION_DEFICIT, dll.)         │
-│  • Menghasilkan resep substitusi isotemporal 10–20 menit + sitasi ilmiah     │
+│ LAPIS 4 — WELLBEING AI COACH & PROACTIVE FORECAST (Ollama Lokal /api/chat)   │
+│  • Model lokal (campusflow-coach via Qwen2.5) dengan format JSON terstruktur │
+│  • Proactive Forecast: Rekomendasi istirahat malam berbasis beban kuliah esok│
+│  • Crisis Gateway: Deteksi darurat distres berat -> Rujukan Hotline 119      │
+│  • Guardrail Deterministik: Rekomendasi gerak aman dari beban malam hari     │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -47,26 +53,43 @@ CampusFlow membagi pemrosesan menjadi empat lapis terpisah agar pemrosesan citra
 
 ## 2. Aliran Data End-to-End
 
-1. **Sesi Belajar Laptop (Vision Guard):**
-   - Mahasiswa menjalankan **Kalibrasi 5 Detik** → objek `PostureBaseline` disimpan di state/LocalStorage & dikirim ke `PATCH /api/v1/vision/baseline`.
-   - Saat belajar, `poseHeuristics.ts` mengevaluasi postur setiap 500 ms (2 Hz).
-   - Bila duduk kontinu mencapai ambang (50 menit normal / 15 detik `DEMO_MODE`), **ActiveBreakModal** mengunci UI hingga pengguna menyelesaikan 3 repetisi *Overhead Arm Stretch* dan berdiri/menjauh.
-   - Ringkasan sesi (`durationMinutes`, `slouchCount`, `tooCloseCount`, `avgNeckRatio`, `breakCompleted`) dikirim ke `POST /api/v1/sedentary/sessions`.
+```
+[ PDF KRS ] ──────────────► [ /api/v1/academic-schedule ] ──┐
+                                                            │
+[ SCREEN TIME (document.hidden) ] ──► [ Local Tracker ] ────┼──► [ BURNOUT SCORING ENGINE ]
+                                                            │         │
+[ KAMERA BREAK 2 MENIT ] ──► [ /api/v1/active-break ] ──────┤         ▼
+                                                            │   Burnout Risk Index (0–100)
+[ LOG TIDUR & HARIAN ] ────► [ /api/v1/wellbeing ] ─────────┘         │
+                                                                      ▼
+                                                            [ DASHBOARD STRAVA ]
+                                                            [ OLLAMA PROACTIVE COACH ]
+```
 
-2. **Mobilitas Kampus (Mobile Pedometer):**
-   - Mahasiswa mengaktifkan sensor gerak di HP (HTTPS).
-   - `PedometerProcessor` menghitung langkah, SPM, dan intensitas (`WALKING` 3.3 / `MODERATE` 4.0 / `VIGOROUS` 8.0 METs), lalu menyinkronkan ke `POST /api/v1/activities`.
-
-3. **Check-in Stres & AI Coach:**
-   - Mahasiswa mengisi **PSS-4 Harian** + kualitas tidur (`POST /api/v1/wellbeing/daily`).
-   - Backend menghitung skor terbalik (*reverse scoring*), rasio `mvpaPerSedentaryRatio`, dan jumlah pilar *24-Hour Movement* (0–3).
-   - Ketika mahasiswa membuka **AI Coach** (`POST /api/v1/ai-coach/generate`), backend merangkum data 7 hari ke server Ollama lokal (`OLLAMA_BASE_URL/api/chat`) dengan fallback klinis otomatis dan menyimpan hasilnya di tabel `AiCoachingInsight`.
+1. **Input Jadwal Kuliah & Beban Akademik:**
+   - Mahasiswa mengunggah file PDF atau screenshot jadwal kuliah di awal semester.
+   - Sistem menyimpan daftar mata kuliah ke database (`POST /api/v1/academic-schedule`).
+   - Setiap hari, bobot SKS dihitung otomatis: SKS Teori ($1.0$), Praktikum ($1.5$), dan pekan ujian ($+3.0$).
+2. **Pelacakan Waktu Layar Pasif (Screen Time):**
+   - Menggunakan Page Visibility API (`document.hidden`) dan event `focus`/`blur` di browser.
+   - Durasi layar di atas $8\text{ jam/hari}$ otomatis dikonversi menjadi poin penalti *Screen Time Fatigue* ($(\text{Jam} - 8) \times 2.5$).
+3. **Jeda Aktif Terverifikasi Kamera 2 Menit (Active Break):**
+   - Setelah waktu layar kontinu $> 90$ menit, muncul notifikasi jeda.
+   - Mahasiswa menekan *"Mulai Active Break"* $\rightarrow$ kamera menyala selama 2 menit.
+   - MediaPipe Pose memvalidasi gerakan peregangan (*overhead arm reach*) $\rightarrow$ jika lolos, poin pemulihan bertambah $+10$ dan kamera **otomatis mati**.
+4. **Perhitungan Burnout Risk Index Harian:**
+   - Backend memadukan faktor beban dan pemulihan:
+     $$\text{Burnout Index} = (\text{Academic Load} + \text{Screen Fatigue}) - \text{Recovery Score}$$
+   - Status dikategorikan: Hijau ($< 40$), Kuning ($40 - 75$), Merah ($> 75$).
+5. **Proactive AI Coaching:**
+   - AI Coach membaca pola 7 hari dan jadwal kuliah esok hari.
+   - Memberikan rekomendasi preventif malam hari (misal menyarankan tidur lebih awal jika esok jadwal praktikum padat) dan mengawal keselamatan dengan rujukan krisis 119.
 
 ---
 
 ## 3. Arsitektur Isolasi Pengembangan 3 Branch
 
-Agar pengembangan paralel tidak saling merusak:
-- **Branch `main` (Ibra):** Menyimpan fondasi bersama (`shared/contracts`, `shared/vision`, `docs/universal`, `docs/vision`, `scripts/`, `.github/`) yang diturunkan ke `backend` dan `frontend`.
-- **Branch `backend` (Syifa):** Mengembangkan `backend/` secara terisolasi (termasuk `backend/package.json` & `backend/package-lock.json` tersendiri).
-- **Branch `frontend` (Tiara + kolaborasi Ibra):** Mengembangkan `frontend/` secara terisolasi (termasuk `frontend/package.json` & `frontend/package-lock.json` tersendiri) dan dapat berjalan mandiri menggunakan `docs/frontend/MOCK_DATA.md`.
+Untuk menjaga kelancaran kolaborasi monorepo:
+- **Branch `main` (Ibra — Leader & Vision AI):** Sumber kebenaran tunggal (`shared/contracts`, `shared/vision`, `docs/universal`, `docs/vision`, `scripts/`, `.github/`) yang diturunkan ke `backend` dan `frontend`.
+- **Branch `backend` (Syifa — Backend & AI):** Mengembangkan API Express, Prisma ORM, Burnout Scoring, dan integrasi Ollama secara terisolasi di folder `backend/`.
+- **Branch `frontend` (Tiara & Ibra — UI & PWA):** Mengembangkan antarmuka React 18, Tailwind, PWA, dan modul visualisasi di folder `frontend/` dengan dukungan penuh mode offline mock data.

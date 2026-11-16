@@ -54,3 +54,14 @@
 | Layar HP `< 640px` atau tanpa webcam | Sembunyikan komponen kamera postur; tampilkan ringkasan waktu duduk manual & utamakan `PedometerCard`. |
 | Browser desktop tanpa `DeviceMotionEvent` | Nonaktifkan sensor otomatis; tampilkan form *Manual Activity Log* (Jalan/Moderate/Vigorous/MSE). |
 | Internet terputus saat sesi berjalan | Simpan log sementara ke LocalStorage/IndexedDB dan tampilkan badge *"Mode Offline — Menunggu Sinkronisasi"*. |
+
+---
+
+## 4. Penyesuaian Alur & Layar pada PRD Versi 4.0
+
+### 4.1 Modifikasi Alur Utama (PRD v4.0)
+1. **Academic Strava Dashboard:** Menampilkan ritme mingguan Beban Belajar vs Tingkat Pemulihan (*Weekly Training Load vs Recovery*) dan skor **Burnout Risk Index (0–100)**.
+2. **Zero Continuous Camera (Active Break 2 Menit):** Kamera default OFF saat belajar. Saat screen time aktif $> 90$ menit, modal Active Break muncul meminta 2 menit peregangan fisik. Kamera menyala 2 menit untuk verifikasi pose, lalu otomatis mati.
+3. **Smart Academic Planner (Upload KRS):** Mahasiswa mengunggah file PDF / screenshot KRS jadwal perkuliahan untuk kalkulasi otomatis beban akademik SKS harian.
+4. **Pelacakan Screen Time Pasif:** Menggunakan Page Visibility API (`document.hidden`) saat tab aktif tanpa menyalakan webcam.
+

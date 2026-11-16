@@ -19,6 +19,21 @@
 
 <!-- Tambahkan entri baru Ibra di bawah garis ini (urutan terbaru di atas) -->
 
+## [2026-11-16] — Penyelarasan Menyeluruh Dokumen Arsitektur & README Sub-Direktori ke PRD v4.0 (Branch: `main`)
+- **ID Tugas / Referensi:** `LEAD-4.0` (Penyelarasan PRD v4.0 Monorepo)
+- **Ringkasan:** Menyelaraskan seluruh dokumen arsitektur, master design, dan README per direktori domain ke paradigma PRD Versi 4.0 (*Academic Strava, Zero Continuous Camera, Burnout Risk Index 0–100, & Proactive AI Coach*).
+- **Daftar File Diubah:**
+  - `DESIGN.md` (Pembaruan Versi 4.0, 3 pilar pivot, diagram 4-lapis, dan rumus Burnout Risk Index).
+  - `docs/universal/ARCHITECTURE.md` (Topologi 4-lapis & aliran data end-to-end PRD v4.0).
+  - `docs/universal/PRD.md` (Penyelarasan isi cetak biru menjadi PRD Versi 4.0).
+  - `docs/universal/INTERFACES.md` (Penambahan Kontrak 5: DTO Academic Schedule, Burnout Calculation, dan Active Break Session).
+  - `docs/README.md` (Pembaruan peta indeks dokumentasi monorepo ke PRD v4.0).
+  - `docs/backend/README.md`, `docs/backend/DATABASE_SCHEMA.md`, `docs/backend/API_SPECIFICATION.md`, `docs/backend/CLINICAL_SCORING.md` (Dokumentasi model dan endpoint v4.0).
+  - `docs/frontend/README.md`, `docs/frontend/PAGES_AND_FLOWS.md` (Pembaruan sitemap & alur Strava Akademik, Modal Active Break 2 menit, & Screen Time Tracker).
+  - `docs/vision/README.md` (Penyederhanaan fokus Vision menjadi On-Demand ActiveBreakValidator 2 menit).
+- **Verifikasi:** Seluruh dokumen konsisten dengan skema Prisma, endpoints Express, dan implementasi kode PRD v4.0. Semua unit test (`npm run test:shared`, `npm run test:frontend`, `npm run test:backend`) lulus 100%.
+
+
 ## [2026-11-11] — Penyelarasan Dokumentasi Global & Kontrak ke Ollama Lokal (Branch: `main`)
 - **ID Tugas / Referensi:** `LEAD-1.3`
 - **Ringkasan:** Menyelaraskan seluruh dokumentasi global (`README.md`, `DESIGN.md`, `docs/README.md`, `docs/universal/*`, `docs/frontend/*`, `backend/.env.example`, `frontend/.env.example`) dari Google Gemini API menjadi **Ollama Lokal** (`/api/chat` JSON Schema + fallback klinis deterministik) sesuai implementasi backend tanpa API key eksternal.

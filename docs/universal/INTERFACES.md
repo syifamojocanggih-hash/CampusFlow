@@ -189,3 +189,70 @@ export interface PedometerSampleResult {
 ```
 Nilai valid `dominantMediator`:
 `SEDENTARY_OVERLOAD` | `SLEEP_MEDIATION_DEFICIT` | `LOW_MVPA_VOLUME` | `EXAM_ACUTE_STRESS` | `OPTIMAL_BALANCE`.
+
+---
+
+## 5. Kontrak 5: PRD Versi 4.0 (Academic Strava & Burnout Risk Index)
+
+### 5.1 Konstanta Algoritma Burnout (`BURNOUT_CONSTANTS`)
+```ts
+export const BURNOUT_CONSTANTS = {
+  MAX_SAFE_SCREEN_HOURS: 8.0,
+  SCREEN_FATIGUE_COEFFICIENT: 2.5,
+  THEORY_SKS_WEIGHT: 1.0,
+  PRACTICUM_SKS_WEIGHT: 1.5,
+  EXAM_PROXIMITY_PENALTY: 3.0,
+  SLEEP_RECOVERY_MAX_SCORE: 40.0,
+  ACTIVE_BREAK_SCORE_PER_SESSION: 10.0,
+  BURNOUT_THRESHOLD_LOW: 40.0,
+  BURNOUT_THRESHOLD_HIGH: 75.0,
+} as const;
+```
+
+### 5.2 Endpoint Jadwal Kuliah / Academic Schedule
+- `GET /api/v1/academic-schedule` — Mengambil daftar jadwal kuliah pengguna.
+- `POST /api/v1/academic-schedule` — Menambahkan jadwal kuliah baru:
+  ```json
+  {
+    "dayOfWeek": 1,
+    "subjectName": "Pemrograman Web Lanjut",
+    "creditHours": 3.0,
+    "isPracticum": true,
+    "isExamWeek": false
+  }
+  ```
+- `DELETE /api/v1/academic-schedule/:id` — Menghapus jadwal perkuliahan.
+
+### 5.3 Endpoint Burnout Scoring (`/api/v1/burnout`)
+- `POST /api/v1/burnout/calculate-today` — Menghitung fusi harian dan menyimpan log:
+  ```json
+  {
+    "logDate": "2026-11-16",
+    "totalScreenTimeMins": 480,
+    "sleepHours": 7.0
+  }
+  ```
+  **Respons (`DailyFussionLogDTO`):**
+  ```json
+  {
+    "data": {
+      "academicLoadScore": 4.5,
+      "screenFatigueScore": 0.0,
+      "recoveryScore": 45.0,
+      "burnoutIndex": 0.0,
+      "status": "LOW"
+    }
+  }
+  ```
+- `GET /api/v1/burnout/history?days=14` — Mengambil deret waktu riwayat Burnout Index 14 hari.
+
+### 5.4 Endpoint Active Break 2 Menit (`/api/v1/active-break`)
+- `POST /api/v1/active-break/verify` — Mencatat sesi peregangan tervalidasi kamera:
+  ```json
+  {
+    "durationMins": 2.0,
+    "poseVerified": true,
+    "poseType": "OVERHEAD_ARM_STRETCH"
+  }
+  ```
+
