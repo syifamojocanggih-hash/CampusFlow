@@ -21,6 +21,15 @@
 
 ---
 
+## [2026-11-16] — Dokumentasi Pivot Strategis PRD v4.0 & Panduan Dampak Lintas Branch (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-DOC-4.0`
+- **Ringkasan:** Menyusun dokumen panduan komprehensif mengenai pivot PRD v4.0 ("Academic Strava & Predictive Burnout Management") dibandingkan PRD v3.0, mencakup analisis privasi Zero Continuous Camera, formulasi algoritma Burnout Risk Index, rancangan skema database fusi (AcademicSchedule, DailyFussionLog, ActiveBreakSession), serta panduan dampak teknis untuk branch main, backend, dan frontend.
+- **Daftar File Diubah:**
+  - `docs/universal/PRD_V4_PIVOT_EXPLANATION.md`
+- **Catatan Cross-Scope:**
+  - `[CROSS-SCOPE] docs/universal/PRD_V4_PIVOT_EXPLANATION.md` — dokumen universal penjabaran perbandingan PRD v3.0 vs v4.0 dan dampaknya untuk semua branch.
+- **Verifikasi:** `npm run guard` lolos hijau.
+
 ## [2026-11-16] — Panduan Gerakan Deterministik Bebas Model, Filter Alternatif Gerak, & Audit Halusinasi Aktivitas (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
 - **Ringkasan:** Mengganti alur respons pemilihan opsi gerak (`movementChoice` / balasan pilihan terminal) menjadi template instruksi 3-4 langkah deterministik dari `coachShared.ts` tanpa memanggil model Ollama; menyaring opsi alternatif agar rekomendasi utama tidak berulang dengan header "Mau alternatif lain?" (disembunyikan bila < 2); menghilangkan movementOptions pada respons pemilihan gerak di API serta menambahkan field `guidance: string[]`; memperluas `auditResponse` untuk mendeteksi dan memotong klaim karangan kuliah, tugas, dan evaluasi telemetri tanpa data; menyediakan template 3-4 langkah untuk seluruh 19 opsi gerakan PRD yang lolos uji kata dobel berurutan; serta menambahkan automated tests integrasi terminal dan API (73/73 test lolos).
