@@ -11,13 +11,16 @@ import {
 import {
   checkOllamaStatus,
   generateClinicalWellbeingInsight,
+  pickCitation,
 } from "../services/ollamaCoach.ts";
 import {
   ALL_OFFICIAL_MOVEMENT_OPTIONS,
   detectClarificationChoice,
   detectDistressKeywords,
   detectMovementChoice,
+  getAlternativeMovementOptions,
   getJakartaDateString,
+  getMovementGuidance,
   getMovementOptionsForMediator,
   getSystemJakartaTime,
   isBareGeneralComplaint,
@@ -262,6 +265,39 @@ aiCoachRouter.post(
     } else if (matchedOfficial) {
       forcedJenisGerak = matchedOfficial;
     }
+
+    // POIN 3: Respons pilihan gerak dibuat dari template di coachShared.ts TANPA MEMANGGIL MODEL
+    const chosenOption = forcedJenisGerak || availableOptions[0] || "peregangan meja";
+    const guidance = getMovementGuidance(chosenOption);
+    const chosenMediator = latestInsight.dominantMediator || "SEDENTARY_OVERLOAD";
+
+    const savedChoice = await prisma.aiCoachingInsight.create({
+      data: {
+        userId,
+        dominantMediator: chosenMediator,
+        diagnosisSummary: guidance.confirmation,
+        isotemporalActionPlan: guidance.fullPlanText,
+        recommendedMetsToday: latestInsight.recommendedMetsToday || 180,
+        scientificCitationNote:
+          latestInsight.scientificCitationNote || pickCitation(chosenMediator as any),
+      },
+    });
+
+    userRecentMovementOptionsCache.delete(userId);
+
+    // POIN 1: Jangan sertakan movementOptions pada respons balasan pilihan (hanya kirim guidance)
+    sendSuccess(
+      res,
+      {
+        ...savedChoice,
+        generationSource: "TEMPLATE_GUIDANCE",
+        model: "campusflow-template",
+        escalationFlag: false,
+        guidance: guidance.steps,
+      },
+      201
+    );
+    return;
   }
 
   const { insight, source, model, escalationFlag } =
@@ -288,13 +324,25 @@ aiCoachRouter.post(
   const mediatorKey = escalationFlag
     ? "ESCALATION"
     : (insight.dominantMediator as string);
-  const movementOptionsShown = getMovementOptionsForMediator(mediatorKey, isLateNight).slice(0, 3);
 
-  userRecentMovementOptionsCache.set(userId, {
-    insightId: saved.id,
-    createdAt: saved.createdAt,
-    options: movementOptionsShown,
-  });
+  // POIN 2: Jangan tampilkan opsi yang sama dengan rekomendasi. Tampilkan hanya alternatif.
+  // Jika alternatif kurang dari 2, jangan tampilkan daftar sama sekali.
+  const alternatives = getAlternativeMovementOptions(
+    insight.isotemporalActionPlan,
+    mediatorKey,
+    isLateNight
+  );
+  const movementOptionsShown = alternatives.length >= 2 ? alternatives : [];
+
+  if (movementOptionsShown.length > 0) {
+    userRecentMovementOptionsCache.set(userId, {
+      insightId: saved.id,
+      createdAt: saved.createdAt,
+      options: movementOptionsShown,
+    });
+  } else {
+    userRecentMovementOptionsCache.delete(userId);
+  }
 
   sendSuccess(
     res,
@@ -303,7 +351,7 @@ aiCoachRouter.post(
       generationSource: source,
       model,
       escalationFlag,
-      movementOptions: movementOptionsShown,
+      movementOptions: movementOptionsShown.length > 0 ? movementOptionsShown : undefined,
       movementOptionsShown,
     },
     201

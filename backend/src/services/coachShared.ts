@@ -470,20 +470,277 @@ export function getNextMovementOption(mediatorKey: string, isLateNight: boolean 
   return options[nextIdx];
 }
 
-/** Format pilihan 2-3 gerakan di akhir jawaban Coach untuk terminal */
+/** Format pilihan gerakan alternatif di akhir jawaban Coach untuk terminal */
 export function formatMovementOptionsPrompt(
-  mediatorKey: string,
-  isLateNight: boolean = false
+  mediatorKeyOrOptions: string | string[],
+  isLateNight: boolean = false,
+  recommendedJenisGerak?: string
 ): string {
-  const rawOptions = getMovementOptionsForMediator(mediatorKey, isLateNight);
-  const options = rawOptions.slice(0, 3);
+  let options: string[];
+  if (Array.isArray(mediatorKeyOrOptions)) {
+    options = mediatorKeyOrOptions;
+  } else {
+    options = getAlternativeMovementOptions(
+      recommendedJenisGerak || "",
+      mediatorKeyOrOptions,
+      isLateNight
+    );
+  }
+
+  // Jika alternatif kurang dari 2, jangan tampilkan daftar sama sekali (Poin 2)
+  if (options.length < 2) {
+    return "";
+  }
+
   const letters = ["A", "B", "C"];
   const lines = [
-    "\nPilihan gerak untukmu:",
+    "\nMau alternatif lain?",
     ...options.map((opt, i) => `  ${letters[i]}. ${opt.charAt(0).toUpperCase() + opt.slice(1)}`),
-    "  (Ketik A/B/C untuk memilih, atau ketik bebas)",
+    `  (Ketik ${letters.slice(0, options.length).join("/")} untuk memilih, atau ketik bebas)`,
   ];
   return lines.join("\n");
+}
+
+/** Memeriksa apakah dua string opsi gerak merujuk pada gerakan yang sama */
+export function isSameMovementOption(opt: string, target: string): boolean {
+  const normOpt = opt.toLowerCase().trim();
+  const normTarget = target.toLowerCase().trim();
+  if (normOpt === normTarget) return true;
+
+  const signatures = [
+    { key: "peregangan meja lembut malam", re: /peregangan\s+meja\s+lembut.*jalan\s+pelan/i },
+    { key: "peregangan meja", re: /peregangan\s+meja/i },
+    { key: "jeda berdiri kamar malam", re: /jeda\s+berdiri\s+santai.*kamar/i },
+    { key: "jeda berdiri", re: /jeda\s+berdiri|berdiri\s+dari\s+kursi/i },
+    { key: "peregangan relaksasi matras malam", re: /tempat\s+tidur\s+atau\s+matras/i },
+    { key: "peregangan matras lantai malam", re: /lantai\s+atau\s+matras/i },
+    { key: "peregangan tubuh meja", re: /peregangan\s+tubuh\s+lembut.*sekitar\s+meja/i },
+    { key: "napas 4-7-8 rebahan", re: /posisi\s+duduk\s+atau\s+rebahan|rebahan\s+untuk\s+menenangkan/i },
+    { key: "napas 4-7-8 otot lembut", re: /peregangan\s+relaksasi\s+otot\s+lembut\s+dan\s+latihan\s+napas/i },
+    { key: "jalan cepat", re: /jalan\s+cepat/i },
+    { key: "tangga", re: /tangga/i },
+    { key: "ketegangan akademik", re: /ketegangan\s+akademik/i },
+    { key: "ruang terbuka hijau", re: /ruang\s+terbuka\s+hijau|berjalan\s+santai\s+10-15/i },
+    { key: "eskalasi", re: /tidak\s+ada\s+rekomendasi\s+olahraga|konselor\s+kampus/i },
+    { key: "pemulihan aktif rehidrasi", re: /pemulihan\s+aktif|rehidrasi\s+cairan/i },
+    { key: "pendinginan statis", re: /pendinginan\s+statis/i },
+    { key: "kebugaran harian", re: /memelihara\s+kebugaran\s+harian/i },
+    { key: "menyegarkan suasana pikiran", re: /menyegarkan\s+suasana\s+pikiran/i },
+    { key: "keseimbangan energi", re: /keseimbangan\s+energi|jeda\s+minum\s+air/i },
+    { key: "jalan pelan ruangan malam", re: /jalan\s+pelan\s+di\s+dalam\s+ruangan/i },
+    { key: "jalan lorong kos malam", re: /kamar\s+atau\s+lorong\s+kos/i },
+  ];
+
+  for (const sig of signatures) {
+    if (sig.re.test(normOpt) && sig.re.test(normTarget)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Mengambil daftar opsi gerak alternatif (tidak menyertakan opsi yang sama dengan yang direkomendasikan).
+ * Jika alternatif kurang dari 2, mengembalikan array kosong agar tidak ditampilkan sama sekali.
+ */
+export function getAlternativeMovementOptions(
+  recommendedJenisGerak: string,
+  mediatorKey: string,
+  isLateNight: boolean = false
+): string[] {
+  const allOptions = getMovementOptionsForMediator(mediatorKey, isLateNight);
+  if (!recommendedJenisGerak) {
+    return allOptions.slice(0, 3);
+  }
+
+  const alternatives = allOptions.filter((opt) => !isSameMovementOption(opt, recommendedJenisGerak));
+  if (alternatives.length < 2) {
+    return [];
+  }
+  return alternatives.slice(0, 3);
+}
+
+/** Template 3-4 langkah panduan ringkas untuk setiap jenis gerak PRD (tanpa memanggil model) */
+export const MOVEMENT_GUIDANCE_TEMPLATES: Record<string, string[]> = {
+  "peregangan meja (fokus bahu, leher, pergelangan tangan, dan punggung bawah)": [
+    "Duduk tegak di kursi, tarik bahu ke belakang, lalu putar perlahan 5 kali.",
+    "Miringkan kepala lembut ke arah bahu kanan dan kiri, tahan 10 detik pada tiap sisi.",
+    "Luruskan kedua lengan ke depan, tarik jemari ke belakang untuk meregangkan pergelangan tangan.",
+    "Tautkan jemari di belakang punggung bawah lalu dorong dada terbuka perlahan sambil bernapas teratur.",
+  ],
+  "jeda berdiri dari kursi dan jalan singkat di koridor atau sekitar ruangan": [
+    "Dorong kursi ke belakang dan berdiri tegak dengan kedua kaki berpijak mantap di lantai.",
+    "Berjalan santai mengitari ruangan atau koridor selama beberapa menit untuk melancarkan sirkulasi darah.",
+    "Ayunkan kedua lengan perlahan sambil mengambil jeda melihat pandangan jauh dari layar.",
+    "Minum beberapa teguk air putih sebelum kembali duduk dengan postur lebih nyaman.",
+  ],
+  "peregangan tubuh lembut dan jalan santai 10 menit di sekitar meja": [
+    "Berdiri dari meja, angkat kedua tangan lurus ke atas dan rasakan regangan di tulang belakang.",
+    "Miringkan tubuh secara perlahan ke arah kiri dan kanan untuk melemaskan otot samping pinggang.",
+    "Lakukan jalan santai langkah kecil di sekitar meja selama 10 menit dengan ritme teratur.",
+    "Turunkan kedua bahu secara relaks dan atur napas panjang sebelum melanjutkan aktivitas.",
+  ],
+  "peregangan relaksasi otot lembut dan latihan napas 4-7-8 (tanpa olahraga berat bila malam)": [
+    "Duduk atau rebahkan tubuh dalam posisi nyaman dan pejamkan mata perlahan.",
+    "Lemaskan otot rahang, leher, dan bahu yang terasa tegang dengan gerakan memutar lembut.",
+    "Tarik napas lewat hidung selama 4 hitungan, tahan selama 7 hitungan, lalu hembuskan lewat mulut selama 8 hitungan.",
+    "Ulangi siklus napas 4-7-8 ini sebanyak 4 kali putaran hingga pikiran terasa tenang.",
+  ],
+  "latihan napas 4-7-8 santai dalam posisi duduk atau rebahan untuk menenangkan tubuh (tanpa olahraga berat)": [
+    "Cari posisi duduk bersandar yang tenang atau rebahan santai di kasur.",
+    "Letakkan satu tangan di dada dan tangan lainnya di perut untuk merasakan irama napas.",
+    "Tarik napas dalam melalui hidung selama 4 detik, tahan napas dengan tenang selama 7 detik.",
+    "Hembuskan napas perlahan melalui bibir terbuka selama 8 detik, lalu rasakan tubuh semakin rileks.",
+  ],
+  "jalan cepat 15-20 menit di area kampus atau kos": [
+    "Kenakan alas kaki yang nyaman dan siapkan air minum sebelum melangkah keluar.",
+    "Mulai dengan jalan santai 3 menit sebagai pemanasan di sekitar lorong atau halaman.",
+    "Tingkatkan kecepatan ke jalan cepat selama 15-20 menit dengan ayunan lengan aktif.",
+    "Turunkan tempo langkah di 2 menit terakhir dan lakukan peregangan betis ringan.",
+  ],
+  "naik-turun tangga dan jalan aktif yang boleh dipecah 2-3 sesi 10 menit": [
+    "Gunakan tangga terdekat dengan tempo langkah stabil dan berpegangan tangan bila perlu.",
+    "Lakukan naik-turun tangga santai selama 5-10 menit tanpa terburu-buru.",
+    "Sambung dengan jalan aktif mendatar di koridor untuk menyeimbangkan denyut jantung.",
+    "Istirahat sejenak, rehidrasi cairan tubuh, dan ulangi sesi berikutnya bila ada waktu luang.",
+  ],
+  "latihan napas fokus 10-15 menit untuk menenangkan ketegangan akademik": [
+    "Jauhkan buku atau layar gawai sejenak dan duduk bersandar dengan nyaman.",
+    "Tarik napas dalam melalui hidung selama 4 hitungan hingga rongga dada mengembang.",
+    "Hembuskan napas panjang dan teratur melalui mulut sambil melepaskan beban ketegangan di kepala.",
+    "Lanjutkan pernapasan terarah ini selama 10-15 menit hingga detak jantung terasa lebih stabil.",
+  ],
+  "jeda sejenak melihat ruang terbuka hijau atau berjalan santai 10-15 menit": [
+    "Melangkah ke luar ruangan, balkon, atau dekat jendela yang menghadap pepohonan terbuka.",
+    "Alihkan pandangan ke objek hijau di kejauhan selama 2-3 menit untuk mengistirahatkan mata lelah.",
+    "Berjalan santai langkah tenang di area terbuka selama 10-15 menit sambil menghirup udara segar.",
+    "Rasakan udara bersih menyegarkan pikiran sebelum kembali melanjutkan kegiatan belajar.",
+  ],
+  "TIDAK ada rekomendasi olahraga; hanya latihan napas pelan atau duduk tenang 5-10 menit di ruangan yang nyaman dan ajakan berkonsultasi ke Konselor Kampus": [
+    "Cari tempat yang tenang, aman, dan teduh untuk duduk bersandar dengan relaks.",
+    "Letakkan tangan di atas paha dan pejamkan mata sejenak tanpa memaksakan pikiran apa pun.",
+    "Tarik napas pelan dan hembuskan dengan lembut selama 5-10 menit untuk menenangkan diri.",
+    "Ingat bahwa kamu tidak sendirian; jangan ragu menghubungi layanan konselor kampus atau Hotline 119 bila butuh teman cerita.",
+  ],
+  "pemulihan aktif dengan peregangan pendinginan otot lembut dan rehidrasi cairan (tanpa olahraga tambahan)": [
+    "Minum satu atau dua gelas air putih secara berkala untuk memulihkan hidrasi tubuh.",
+    "Lakukan peregangan statis pada otot paha, betis, dan punggung tanpa sentakan tiba-tiba.",
+    "Tahan setiap posisi regangan selama 15-20 detik sambil bernapas santai dan tenang.",
+    "Duduk atau rebahan santai sejenak agar suhu tubuh kembali ke kondisi normal.",
+  ],
+  "latihan napas rileks dan peregangan pendinginan statis untuk memulihkan otot yang sudah dipakai berolahraga": [
+    "Berdiri atau duduk santai dan atur pernapasan panjang untuk menurunkan denyut nadi.",
+    "Regangkan otot paha depan dengan menarik satu pergelangan kaki ke belakang perlahan, tahan 15 detik.",
+    "Luruskan satu kaki ke depan dan bungkukkan badan lembut untuk meregangkan paha belakang.",
+    "Ambil napas dalam, regangkan kedua bahu, lalu minum air putih untuk mendukung pemulihan.",
+  ],
+  "peregangan santai dan jalan ringan untuk memelihara kebugaran harian": [
+    "Bangkit dari tempat duduk dan regangkan seluruh badan dari ujung jari tangan ke kaki.",
+    "Lakukan jalan ringan mengelilingi ruangan atau koridor dengan langkah santai selama 5-10 menit.",
+    "Putar pinggang lembut ke kiri dan kanan untuk melemaskan otot persendian punggung.",
+    "Tarik napas lega dan lanjutkan sisa hari dengan energi yang lebih seimbang.",
+  ],
+  "jalan santai 10-15 menit di luar ruangan untuk menyegarkan suasana pikiran": [
+    "Beranjak ke luar ruangan atau halaman kos dan nikmati pergantian suasana sekitarmu.",
+    "Berjalan santai dengan ritme nyaman selama 10-15 menit tanpa memikirkan beban tugas.",
+    "Perhatikan lingkungan sekitar dan rasakan embusan udara segar menyegarkan kepalamu.",
+    "Akhiri dengan mengatur napas tenang dan minum segelas air saat tiba kembali di kamar.",
+  ],
+  "peregangan tubuh lembut dan jeda minum air untuk menjaga keseimbangan energi": [
+    "Ambil segelas air putih dan minum perlahan sambil merasakan kesegaran tubuhmu.",
+    "Tautkan jemari tangan lalu dorong telapak tangan ke arah langit-langit setinggi mungkin.",
+    "Miringkan badan ke kiri dan kanan secara bergantian masing-masing selama 10 detik.",
+    "Lemaskan lengan ke samping badan dan hembuskan napas panjang dengan relaks.",
+  ],
+  "peregangan relaksasi seluruh tubuh dan jalan pelan di dalam ruangan 10-15 menit (tanpa jalan cepat di luar)": [
+    "Tetap di dalam kamar atau ruangan yang tenang tanpa perlu keluar malam hari.",
+    "Lakukan jalan perlahan di dalam kamar selama 5 menit untuk melemaskan persendian kaki.",
+    "Regangkan otot leher, bahu, dan punggung atas dengan gerakan memutar lembut.",
+    "Akhiri dengan duduk tenang sambil menarik napas panjang untuk menyiapkan tubuh beristirahat.",
+  ],
+  "jalan santai di dalam kamar atau lorong kos 10 menit untuk melancarkan sirkulasi sebelum tidur": [
+    "Lepaskan alas kaki yang kaku dan mulailah melangkah santai di lantai kamar atau lorong kos.",
+    "Berjalan pelan bolak-balik selama 10 menit dengan ritme langkah yang tenang dan stabil.",
+    "Ayunkan kedua tangan dengan bebas untuk melancarkan aliran darah ke seluruh tubuh.",
+    "Minum sedikit air hangat lalu bersiaplah untuk beristirahat di tempat tidur.",
+  ],
+  "peregangan ringan di lantai atau matras dan latihan napas tenang 10 menit": [
+    "Duduk bersila atau rebahan di atas matras atau lantai beralas karpet yang bersih.",
+    "Dekapkan kedua lutut ke dada perlahan untuk melepaskan tekanan pada punggung bawah.",
+    "Buka kedua lengan ke samping dan miringkan lutut bergantian ke kiri dan kanan secara lembut.",
+    "Lakukan pernapasan perut yang tenang selama 5 menit hingga kelopak mata terasa berat.",
+  ],
+  "peregangan meja lembut (bahu, leher, punggung bawah) dan jalan pelan di dalam ruangan 10 menit": [
+    "Duduk bersandar di kursi dan putar bahu ke belakang sebanyak 5 kali dengan lembut.",
+    "Tolehkan kepala perlahan ke samping kiri dan kanan untuk melonggarkan otot leher kaku.",
+    "Berdiri lalu jalan perlahan di dalam ruangan selama 5-10 menit tanpa terburu-buru.",
+    "Kembali ke tempat tidur atau kursi dengan perasaan tubuh yang lebih longgar dan relaks.",
+  ],
+  "jeda berdiri santai dan peregangan tubuh ringan di dalam kamar 5-10 menit": [
+    "Berdiri tegak di samping tempat tidur dan rasakan kedua telapak kaki menapak rileks.",
+    "Angkat kedua tangan ke atas lalu condongkan tubuh lembut ke samping kiri dan kanan.",
+    "Berjalan langkah kecil di dalam kamar selama 5 menit untuk melemaskan tungkai kaki.",
+    "Duduk di tepi kasur sambil menghembuskan napas panjang untuk menyudahi kegiatan hari ini.",
+  ],
+  "peregangan relaksasi di tempat tidur atau matras untuk mengurai kaku duduk": [
+    "Rebahkan tubuh lurus di atas kasur atau matras dengan bantal yang menyangga nyaman.",
+    "Tarik satu lutut ke arah dada, tahan 15 detik, lalu ganti dengan kaki yang satunya.",
+    "Rentangkan kedua tangan ke atas kepala dan regangkan ujung jemari kaki sejauh mungkin.",
+    "Lemaskan seluruh otot tubuh, tarik napas dalam, dan biarkan rasa kaku duduk menghilang.",
+  ],
+};
+
+export const MOVEMENT_GUIDANCE_CLOSING = "Kalau sudah selesai, ceritakan ya bagaimana rasanya.";
+
+/** Mengambil panduan template konfirmasi dan 3-4 langkah gerak resmi */
+export function getMovementGuidance(optionText: string): {
+  confirmation: string;
+  steps: string[];
+  closing: string;
+  fullPlanText: string;
+} {
+  const norm = optionText.toLowerCase().trim();
+  let matchedSteps: string[] | undefined;
+
+  for (const [key, steps] of Object.entries(MOVEMENT_GUIDANCE_TEMPLATES)) {
+    if (key.toLowerCase().trim() === norm) {
+      matchedSteps = steps;
+      break;
+    }
+  }
+
+  if (!matchedSteps) {
+    for (const [key, steps] of Object.entries(MOVEMENT_GUIDANCE_TEMPLATES)) {
+      if (isSameMovementOption(key, optionText)) {
+        matchedSteps = steps;
+        break;
+      }
+    }
+  }
+
+  if (!matchedSteps) {
+    matchedSteps = [
+      "Ambil posisi duduk atau berdiri tegak yang nyaman dan rileks.",
+      "Lakukan peregangan lembut pada area leher, bahu, dan punggung selama 5 menit.",
+      "Tarik napas dalam secara teratur dan minum segelas air putih.",
+      "Rasakan tubuh kembali segar sebelum melanjutkan aktivitas.",
+    ];
+  }
+
+  const cleanOption = optionText.trim();
+  const confirmation = `Pilihan tepat, mari lakukan ${cleanOption} sekarang.`;
+  const closing = MOVEMENT_GUIDANCE_CLOSING;
+  const fullPlanText = `Ikuti panduan langkah ${cleanOption} berikut:\n${matchedSteps
+    .map((s, i) => `${i + 1}. ${s}`)
+    .join("\n")}\n\n${closing}`;
+
+  return {
+    confirmation,
+    steps: matchedSteps,
+    closing,
+    fullPlanText,
+  };
 }
 
 /** Sanitasi kata waktu */
@@ -907,8 +1164,11 @@ export function auditResponse(
   // 2. Klaim aktivitas saat data null
   const unverifiedActivityClaims: string[] = [];
   if (!hasMvpaData) {
-    if (/\b(?:sudah\s+cukup\s+aktif|cukup\s+aktif|aktivitas\s+intensif)\b/i.test(fullText)) {
-      unverifiedActivityClaims.push("Klaim aktif/intensif tanpa data gerak");
+    const activeMatches = fullText.matchAll(
+      /\b(?:sudah\s+cukup\s+aktif|cukup\s+aktif|kurang\s+aktif|terlihat\s+kurang\s+aktif|ritme\s+gerak(?:mu)?|aktivitas\s+intensif)\b/gi
+    );
+    for (const m of activeMatches) {
+      unverifiedActivityClaims.push(`Klaim aktivitas tanpa data: "${m[0]}"`);
     }
   }
   if (!hasSedentaryData) {
@@ -917,9 +1177,18 @@ export function auditResponse(
     }
   }
 
-  // 3. Klaim penyebab & emosi tidak ada di input user atau data (Poin 1)
+  // 3. Klaim penyebab & emosi tidak ada di input user atau data (Poin 1 & 4)
   const unverifiedCauseClaims: string[] = [];
   const unverifiedEmotionClaims: string[] = [];
+
+  // Salin klaim aktivitas tanpa data ke unverifiedCauseClaims agar memicu retry/filter
+  if (!hasMvpaData && unverifiedActivityClaims.length > 0) {
+    for (const ac of unverifiedActivityClaims) {
+      if (!unverifiedCauseClaims.includes(ac)) {
+        unverifiedCauseClaims.push(ac);
+      }
+    }
+  }
 
   // a. Klaim tidur saat field kosong & user tidak sebut tidur
   const userMentionsSleep =
@@ -950,7 +1219,33 @@ export function auditResponse(
     }
   }
 
-  // c. Klaim aktivitas padat/kuliah saat field kosong & user tidak sebut
+  // c. Klaim kuliah saat user tidak sebut kuliah & detectedActivity bukan KULIAH (Poin 4)
+  const userMentionsCollege =
+    /\b(kuliah|kampus|kelas|matkul|dosen)\b/i.test(userLower) ||
+    detectedActivity === "KULIAH";
+  if (!userMentionsCollege) {
+    const collegeMatches = fullText.matchAll(
+      /\b(?:setelah\s+kuliah|kegiatan\s+kuliah|jadwal\s+kuliah|di\s+kampus|kuliah)\b/gi
+    );
+    for (const m of collegeMatches) {
+      unverifiedCauseClaims.push(`Klaim kuliah tanpa disebut user: "${m[0]}"`);
+    }
+  }
+
+  // d. Klaim tugas saat user tidak sebut tugas/nugas & detectedActivity bukan TUGAS (Poin 4)
+  const userMentionsTasks =
+    /\b(tugas|nugas|laprak|skripsi|pr|makalah)\b/i.test(userLower) ||
+    detectedActivity === "TUGAS";
+  if (!userMentionsTasks) {
+    const taskMatches = fullText.matchAll(
+      /\b(?:mengerjakan\s+tugas(?:\s+kuliah)?|setelah\s+(?:mengerjakan\s+)?tugas|nugas|banyak\s+tugas)\b/gi
+    );
+    for (const m of taskMatches) {
+      unverifiedCauseClaims.push(`Klaim tugas tanpa disebut user: "${m[0]}"`);
+    }
+  }
+
+  // e. Klaim aktivitas padat saat field kosong & user tidak sebut
   const userMentionsActivity =
     /\b(aktivitas|kegiatan|olahraga|kuliah|kelas|dosen|lab|laprak|skripsi|nugas|jadwal|padat|sibuk)\b/i.test(
       userLower

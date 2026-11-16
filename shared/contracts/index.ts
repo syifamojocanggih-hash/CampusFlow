@@ -190,6 +190,7 @@ export interface AiCoachingInsightDTO {
   scientificCitationNote?: string;
   isCompleted?: boolean;
   clarification?: ClarificationDTO;
+  guidance?: string[];
   movementOptions?: string[];
   movementOptionsShown?: string[];
   generationSource?: string;

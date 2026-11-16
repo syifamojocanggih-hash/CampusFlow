@@ -37,7 +37,7 @@ interface GenerateCoachRequestBody {
 |---|---|---|---|
 | **1. Normal Coaching Insight** | `201 Created` | Input pengguna memiliki konteks keluhan spesifik (misal: "pegal habis nugas 8 jam", "kurang tidur semalam") atau merupakan balasan klarifikasi/pilihan gerak. | Mengandung data insight (`dominantMediator`, `diagnosisSummary`, `isotemporalActionPlan`), `movementOptions` (array 2-3 pilihan), dan `recommendedMetsToday` (number). |
 | **2. Proactive Clarification** | `200 OK` | Input pengguna berupa keluhan fisik/mental yang sangat umum tanpa konteks pemicu (contoh: "capek banget", "lemes", "mager"). | Tidak memanggil LLM demi mencegah halusinasi data. Mengembalikan objek `clarification: { question, options }` untuk memandu user memilih konteks keluhan. |
-| **3. Movement Choice Confirmation** | `201 Created` | Klien mengirimkan field `movementChoice` ("A" / "B" / "C") untuk mengonfirmasi gerakan yang ingin diambil dari giliran sebelumnya. | Menggunakan mediator dan telemetri giliran sebelumnya dari riwayat server, lalu menyusun action plan terfokus pada gerakan yang dipilih. |
+| **3. Movement Choice Confirmation** | `201 Created` | Klien mengirimkan field `movementChoice` ("A" / "B" / "C") untuk mengonfirmasi gerakan yang ingin diambil dari giliran sebelumnya. | Respons dibuat instan dari template panduan tanpa memanggil LLM. Berisi satu kalimat konfirmasi di `diagnosisSummary`, langkah di `isotemporalActionPlan`, array 3-4 langkah di field `guidance`, penutup ramah, dan **TIDAK** menyertakan `movementOptions` lagi. |
 | **4. Crisis Safety Bypass** | `201 Created` | Input pengguna terdeteksi memuat kata kunci distres berat, keputusasaan, atau ide menyakiti diri (*self-harm / suicide ideation*). | Tidak memanggil LLM (bypass keselamatan klinis). `escalationFlag: true`, `dominantMediator: "EXAM_ACUTE_STRESS"`, **TIDAK ADA** rekomendasi METs/olahraga (`recommendedMetsToday: null / omitted`), dan memuat rujukan darurat resmi (Kemenkes 119 ext 8, healing119.id). |
 
 ---
@@ -144,25 +144,26 @@ Authorization: Bearer <token>
 ```
 
 #### 2. Respons Server (`201 Created`)
-Server mengunci `JENIS_GERAK` sesuai opsi B dan menghasilkan panduan tindakan yang terfokus:
+Server menyusun respons dari template panduan gerak deterministik **tanpa memanggil LLM** (zero latency), menyertakan daftar langkah terstruktur di field `guidance`, kalimat penutup evaluasi rasa, dan **TIDAK menyertakan `movementOptions` lagi**:
 ```json
 {
   "success": true,
   "data": {
     "id": "cly9876543210",
     "dominantMediator": "OPTIMAL_BALANCE",
-    "diagnosisSummary": "Pilihan yang sangat tepat untuk menenangkan sistem saraf dan mengendurkan otot-otot yang tegang.",
-    "isotemporalActionPlan": "Coba lakukan latihan napas rileks dan peregangan pendinginan statis untuk memulihkan otot selama 10 menit sekarang.",
-    "recommendedMetsToday": 180,
-    "scientificCitationNote": "Sesuai kerangka pemulihan aktif dan penurunan ketegangan fisik.",
-    "generationSource": "OLLAMA_LOCAL",
-    "model": "campusflow-coach:latest",
-    "escalationFlag": false,
-    "movementOptions": [
-      "pemulihan aktif dengan peregangan pendinginan otot lembut dan rehidrasi cairan (tanpa olahraga tambahan)",
-      "latihan napas rileks dan peregangan pendinginan statis untuk memulihkan otot yang sudah dipakai berolahraga",
-      "peregangan santai dan jalan ringan untuk memelihara kebugaran harian"
+    "diagnosisSummary": "Pilihan tepat, mari lakukan latihan napas rileks dan peregangan pendinginan statis untuk memulihkan otot yang sudah dipakai berolahraga sekarang.",
+    "isotemporalActionPlan": "Ikuti panduan langkah latihan napas rileks dan peregangan pendinginan statis untuk memulihkan otot yang sudah dipakai berolahraga berikut:\n1. Berdiri atau duduk santai dan atur pernapasan panjang untuk menurunkan denyut nadi.\n2. Regangkan otot paha depan dengan menarik satu pergelangan kaki ke belakang perlahan, tahan 15 detik.\n3. Luruskan satu kaki ke depan dan bungkukkan badan lembut untuk meregangkan paha belakang.\n4. Ambil napas dalam, regangkan kedua bahu, lalu minum air putih untuk mendukung pemulihan.\n\nKalau sudah selesai, ceritakan ya bagaimana rasanya.",
+    "guidance": [
+      "Berdiri atau duduk santai dan atur pernapasan panjang untuk menurunkan denyut nadi.",
+      "Regangkan otot paha depan dengan menarik satu pergelangan kaki ke belakang perlahan, tahan 15 detik.",
+      "Luruskan satu kaki ke depan dan bungkukkan badan lembut untuk meregangkan paha belakang.",
+      "Ambil napas dalam, regangkan kedua bahu, lalu minum air putih untuk mendukung pemulihan."
     ],
+    "recommendedMetsToday": 180,
+    "scientificCitationNote": "Prinsip pemulihan aktif dan keseimbangan gerak harian.",
+    "generationSource": "TEMPLATE_GUIDANCE",
+    "model": "campusflow-template",
+    "escalationFlag": false,
     "createdAt": "2026-11-16T06:31:00.000Z"
   }
 }

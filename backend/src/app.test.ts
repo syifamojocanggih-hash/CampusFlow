@@ -621,50 +621,66 @@ test("POST /ai-coach/generate mendukung movementChoice untuk memilih opsi geraka
     isCompleted: false,
   };
 
-  await withStubbedPrisma(
-    {
-      user: { findUnique: async () => demoUser },
-      dailyWellbeingLog: { findMany: async () => [] },
-      clinicalAssessment: { findFirst: async () => null },
-      sedentarySession: { aggregate: async () => ({ _sum: { durationMinutes: 480 } }) },
-      physicalActivity: { aggregate: async () => ({ _sum: { durationMinutes: 0 } }) },
-      aiCoachingInsight: {
-        findMany: async () => [priorInsight],
-        create: async (args: { data: Record<string, unknown> }) => ({
-          id: "insight-movement-choice-test",
-          createdAt: new Date().toISOString(),
-          isCompleted: false,
-          ...args.data,
-        }),
-      },
-    },
-    async () => {
-      const loginRes = await fetch(`${baseUrl}/auth/demo`, { method: "POST" });
-      const { data: loginData } = (await loginRes.json()) as { data: { token: string } };
-      const res = await fetch(`${baseUrl}/ai-coach/generate`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${loginData.token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          movementChoice: "B",
-        }),
-      });
-      const json = (await res.json()) as {
-        data: {
-          dominantMediator: string;
-          isotemporalActionPlan: string;
-          movementOptions?: string[];
-        };
-      };
+  // Mock Ollama harus gagal jika dipanggil saat movementChoice (Poin 5c)
+  setOllamaCallerForTest(async () => {
+    throw new Error("FAIL: Ollama tidak boleh dipanggil saat movementChoice!");
+  });
 
-      assert.equal(res.status, 201);
-      assert.equal(json.data.dominantMediator, "SEDENTARY_OVERLOAD");
-      assert.ok(json.data.isotemporalActionPlan.length > 0);
-      assert.ok(Array.isArray(json.data.movementOptions));
-    }
-  );
+  try {
+    await withStubbedPrisma(
+      {
+        user: { findUnique: async () => demoUser },
+        dailyWellbeingLog: { findMany: async () => [] },
+        clinicalAssessment: { findFirst: async () => null },
+        sedentarySession: { aggregate: async () => ({ _sum: { durationMinutes: 480 } }) },
+        physicalActivity: { aggregate: async () => ({ _sum: { durationMinutes: 0 } }) },
+        aiCoachingInsight: {
+          findMany: async () => [priorInsight],
+          create: async (args: { data: Record<string, unknown> }) => ({
+            id: "insight-movement-choice-test",
+            createdAt: new Date().toISOString(),
+            isCompleted: false,
+            ...args.data,
+          }),
+        },
+      },
+      async () => {
+        const loginRes = await fetch(`${baseUrl}/auth/demo`, { method: "POST" });
+        const { data: loginData } = (await loginRes.json()) as { data: { token: string } };
+        const res = await fetch(`${baseUrl}/ai-coach/generate`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${loginData.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            movementChoice: "B",
+          }),
+        });
+        const json = (await res.json()) as {
+          data: {
+            dominantMediator: string;
+            isotemporalActionPlan: string;
+            movementOptions?: string[];
+            guidance?: string[];
+          };
+        };
+
+        assert.equal(res.status, 201);
+        assert.equal(json.data.dominantMediator, "SEDENTARY_OVERLOAD");
+        assert.ok(json.data.isotemporalActionPlan.length > 0);
+        assert.equal(
+          json.data.movementOptions,
+          undefined,
+          "Respons balasan pilihan tidak boleh membawa movementOptions"
+        );
+        assert.ok(Array.isArray(json.data.guidance), "Respons balasan pilihan harus membawa guidance");
+        assert.ok(json.data.guidance.length >= 3, "Guidance harus berisi 3-4 langkah");
+      }
+    );
+  } finally {
+    setOllamaCallerForTest(null);
+  }
 });
 
 test("POST /ai-coach/generate menolak movementChoice berisi instruksi sisipan / injection dengan 400", async () => {

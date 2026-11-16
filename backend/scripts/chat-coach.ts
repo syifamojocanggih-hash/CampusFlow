@@ -2,6 +2,7 @@ import path from "node:path";
 import readline from "node:readline";
 import {
   callOllamaChatJson,
+  pickCitation,
   type AllowedRanges,
   type DominantMediator,
   type GeneratedInsight,
@@ -25,8 +26,10 @@ import {
   extractSleepHours,
   filterDirectiveLeakage,
   formatMovementOptionsPrompt,
+  getAlternativeMovementOptions,
   getCoachRawLogPath,
   getJakartaDateString,
+  getMovementGuidance,
   getMovementOptionsForMediator,
   getNextMovementOption,
   getNextNeutralCauseFallback,
@@ -34,7 +37,10 @@ import {
   hasLeadingConjunction,
   IN_SCOPE_WELLBEING_PATTERN,
   isBareGeneralComplaint,
+  isSameMovementOption,
   LATE_NIGHT_MOVEMENT_OPTIONS,
+  MOVEMENT_GUIDANCE_CLOSING,
+  MOVEMENT_GUIDANCE_TEMPLATES,
   MOVEMENT_OPTIONS_BY_MEDIATOR,
   NEUTRAL_CAUSE_FALLBACK_TEXT,
   NEUTRAL_CAUSE_FALLBACK_VARIANTS,
@@ -70,8 +76,10 @@ export {
   extractSleepHours,
   filterDirectiveLeakage,
   formatMovementOptionsPrompt,
+  getAlternativeMovementOptions,
   getCoachRawLogPath,
   getJakartaDateString,
+  getMovementGuidance,
   getMovementOptionsForMediator,
   getNextMovementOption,
   getNextNeutralCauseFallback,
@@ -79,7 +87,10 @@ export {
   hasLeadingConjunction,
   IN_SCOPE_WELLBEING_PATTERN,
   isBareGeneralComplaint,
+  isSameMovementOption,
   LATE_NIGHT_MOVEMENT_OPTIONS,
+  MOVEMENT_GUIDANCE_CLOSING,
+  MOVEMENT_GUIDANCE_TEMPLATES,
   MOVEMENT_OPTIONS_BY_MEDIATOR,
   NEUTRAL_CAUSE_FALLBACK_TEXT,
   NEUTRAL_CAUSE_FALLBACK_VARIANTS,
@@ -629,18 +640,73 @@ export async function processChatCoachInput(
     allowedRanges = prevMeta?.allowedRanges ?? prevPayload.allowedRanges;
     jenisGerak = chosenOption;
 
-    const filteredDirectives = prevPayload.activeDirectives.filter(
-      (d: string) => !d.startsWith("JENIS_GERAK:") && !d.startsWith("PILIHAN_GERAK_USER:")
-    );
-    filteredDirectives.push(`JENIS_GERAK: ${jenisGerak}`);
-    filteredDirectives.push(`PILIHAN_GERAK_USER: user memilih opsi gerak '${jenisGerak}'`);
+    // POIN 3: Respons setelah user memilih opsi dibuat dari template di coachShared.ts TANPA MEMANGGIL MODEL
+    const guidance = getMovementGuidance(chosenOption);
+    const diagnosisSummary = guidance.confirmation;
+    const stepsFormatted = guidance.steps.map((s, i) => `${i + 1}. ${s}`).join("\n");
+    const isotemporalActionPlan = guidance.fullPlanText;
 
-    promptPayload = {
-      ...prevPayload,
-      activeDirectives: filteredDirectives,
-      currentTime: `${timeStr} (${period})`,
-      timeOfDay: period,
-      userNotes: trimmed, // userNotes selalu teks asli user ("B")
+    const formattedOutput = wrapParagraph(
+      "Coach > ",
+      `${diagnosisSummary}\n\nPanduan langkah:\n${stepsFormatted}\n\n${guidance.closing}`,
+      width,
+      indent
+    );
+
+    const templateInsight: GeneratedInsight = {
+      dominantMediator,
+      diagnosisSummary,
+      isotemporalActionPlan,
+      recommendedMetsToday: 180,
+      scientificCitationNote: pickCitation(dominantMediator),
+    };
+
+    // Catat ke coach-raw.jsonl bila ada path log
+    if (options.logFilePath) {
+      appendCoachRawLog(
+        {
+          timestamp: new Date().toISOString(),
+          userInput: trimmed,
+          dominantMediator,
+          rawModelResponse: templateInsight,
+          finalResponse: templateInsight,
+          flags: {
+            retryApplied: false,
+            sentenceRemoved: false,
+            conjunctionStripped: false,
+            durationAdjusted: false,
+            openingReplaced: false,
+          },
+        },
+        options.logFilePath
+      );
+    }
+
+    // POIN 1: Jangan tampilkan daftar opsi lagi setelah user memilih (pendingPrompt = null)
+    return {
+      promptPayload: prevPayload,
+      dominantMediator,
+      escalationFlag,
+      sleepHours,
+      sedentaryHours,
+      jenisGerak: chosenOption,
+      insight: templateInsight,
+      source: "TEMPLATE_GUIDANCE",
+      movementMatchNote: "SESUAI (Template panduan gerakan)",
+      auditReport: {
+        unverifiedNumbers: [],
+        unverifiedActivityClaims: [],
+        unverifiedCauseClaims: [],
+        unverifiedEmotionClaims: [],
+        hasRepeatedSentences: false,
+        repeatedSentences: [],
+      },
+      formattedOutput,
+      needsClarification: false,
+      movementOptions: [],
+      movementOptionsShown: [],
+      pendingPrompt: null,
+      guidance: guidance.steps,
     };
   } else {
     const built = buildChatCoachPayload(trimmed, {
@@ -723,12 +789,17 @@ export async function processChatCoachInput(
       }
     );
 
-    if (!hasRetried && (preAudit.unverifiedEmotionClaims.length > 0 || preAudit.unverifiedCauseClaims.length > 0)) {
+    if (
+      !hasRetried &&
+      (preAudit.unverifiedEmotionClaims.length > 0 ||
+        preAudit.unverifiedCauseClaims.length > 0 ||
+        preAudit.unverifiedActivityClaims.length > 0)
+    ) {
       hasRetried = true;
       retryApplied = true;
       retryReasons.push("UNVERIFIED_CAUSE_EMOTION_RETRY");
       promptPayload.activeDirectives.push(
-        "KLAIM_TIDAK_TERVERIFIKASI: Jangan menyebut kata/klaim stres, cemas, tidur, atau kesibukan yang tidak ada di input user. Fokus HANYA pada kondisi fisik riil dan JENIS_GERAK."
+        "KLAIM_TIDAK_TERVERIFIKASI: Jangan menyebut kata/klaim kuliah, tugas, kurang aktif, cukup aktif, stres, cemas, tidur, atau kesibukan yang tidak ada di input user atau data telemetri. Fokus HANYA pada kondisi fisik riil dan JENIS_GERAK."
       );
       try {
         const retryRes = await caller(
@@ -875,6 +946,13 @@ export async function processChatCoachInput(
     const userMentionsSleep = /\b(tidur|begadang|ngantuk|kantuk|insomnia|lelap|merem)\b/i.test(userLower);
     const userMentionsSitting = /\b(duduk|nugas|laprak|skripsi|lab|kuliah|kursi|meja|layar|komputer|laptop|tv)\b/i.test(userLower);
     const userMentionsActivity = /\b(aktivitas|kegiatan|olahraga|kuliah|kelas|dosen|lab|laprak|skripsi|nugas|jadwal|padat|sibuk)\b/i.test(userLower);
+    const userMentionsCollege =
+      /\b(kuliah|kampus|kelas|matkul|dosen)\b/i.test(userLower) ||
+      activity === "KULIAH";
+    const userMentionsTasks =
+      /\b(tugas|nugas|laprak|skripsi|pr|makalah)\b/i.test(userLower) ||
+      activity === "TUGAS";
+
     const isStressContext =
       /\b(stres|stress|cemas|kecemasan|tertekan|tekanan|panik|khawatir|kepikiran|beban\s+pikiran|penat|mumet|pusing)\b/i.test(
         userLower
@@ -905,8 +983,24 @@ export async function processChatCoachInput(
       const isEmotionClaim =
         !isStressContext &&
         /\b(?:mengalami\s+stres|meredakan\s+stres|tingkat\s+stres|stres\s+(?:yang\s+)?cukup\s+tinggi|stresmu|banyak\s+stres|meredakan\s+kecemasan|rasa\s+cemas|tertekan|stres)\b/i.test(lowerS);
+      const isCollegeClaim =
+        !userMentionsCollege &&
+        /\b(?:setelah\s+kuliah|kegiatan\s+kuliah|jadwal\s+kuliah|di\s+kampus|kuliah)\b/i.test(lowerS);
+      const isTaskClaim =
+        !userMentionsTasks &&
+        /\b(?:mengerjakan\s+tugas(?:\s+kuliah)?|setelah\s+(?:mengerjakan\s+)?tugas|nugas|banyak\s+tugas)\b/i.test(lowerS);
+      const isActivityTelemetryClaim =
+        /\b(?:sudah\s+cukup\s+aktif|cukup\s+aktif|kurang\s+aktif|terlihat\s+kurang\s+aktif|ritme\s+gerak(?:mu)?|aktivitas\s+intensif)\b/i.test(lowerS);
 
-      return !isSleepClaim && !isSittingClaim && !isActivityClaim && !isEmotionClaim;
+      return (
+        !isSleepClaim &&
+        !isSittingClaim &&
+        !isActivityClaim &&
+        !isEmotionClaim &&
+        !isCollegeClaim &&
+        !isTaskClaim &&
+        !isActivityTelemetryClaim
+      );
     });
 
     if (filteredSentences.length < sentences.length) {
@@ -1009,10 +1103,13 @@ export async function processChatCoachInput(
     : escalationFlag
       ? "ESCALATION"
       : dominantMediator;
-  const movementOptions = getMovementOptionsForMediator(mediatorKey, isLateNight).slice(0, 3);
 
-  if (!isStillOutOfScope && !isDistress) {
-    const movementPrompt = formatMovementOptionsPrompt(mediatorKey, isLateNight);
+  // POIN 2: Jangan tampilkan opsi yang sama dengan rekomendasi. Tampilkan hanya alternatif.
+  // Jika alternatif kurang dari 2, jangan tampilkan daftar sama sekali.
+  const movementOptions = getAlternativeMovementOptions(jenisGerak, mediatorKey, isLateNight);
+
+  if (!isStillOutOfScope && !isDistress && movementOptions.length >= 2) {
+    const movementPrompt = formatMovementOptionsPrompt(movementOptions);
     formattedOutput = `${formattedOutput}\n\n${movementPrompt.trim()}`;
   }
 
@@ -1120,7 +1217,7 @@ export async function processChatCoachInput(
   }
 
   const nextPendingPrompt: "clarification" | "movement" | null =
-    movementOptions.length > 0 && !isStillOutOfScope && !isDistress ? "movement" : null;
+    movementOptions.length >= 2 && !isStillOutOfScope && !isDistress ? "movement" : null;
 
   return {
     promptPayload,

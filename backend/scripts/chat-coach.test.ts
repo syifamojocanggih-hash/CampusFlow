@@ -20,8 +20,14 @@ import {
   detectClarificationChoice,
   detectMovementChoice,
   filterDirectiveLeakage,
+  formatMovementOptionsPrompt,
+  getAlternativeMovementOptions,
+  getMovementGuidance,
   isBareGeneralComplaint,
+  isSameMovementOption,
   LATE_NIGHT_MOVEMENT_OPTIONS,
+  MOVEMENT_GUIDANCE_CLOSING,
+  MOVEMENT_GUIDANCE_TEMPLATES,
   MOVEMENT_OPTIONS_BY_MEDIATOR,
   PROACTIVE_CLARIFICATION_OPTIONS,
   PROACTIVE_CLARIFICATION_QUESTION,
@@ -379,19 +385,10 @@ import { computeCoachStats } from "./coach-stats.ts";
       });
 
       test("state machine movement: balasan 'B' saat pendingPrompt=movement memakai ulang payload lama (8 jam duduk dipertahankan)", async () => {
-        let sentPayload: any = null;
-        const caller = async (messages: any[]) => {
-          sentPayload = JSON.parse(messages[0].content);
-          return {
-            insight: {
-              dominantMediator: "SEDENTARY_OVERLOAD" as const,
-              diagnosisSummary: "Duduk 8 jam nugas.",
-              isotemporalActionPlan: "Jeda berdiri dan jalan singkat 15 menit.",
-              recommendedMetsToday: 200,
-              scientificCitationNote: "Barbosa et al. (2024)",
-            },
-            model: "campusflow-coach",
-          };
+        let modelCalled = false;
+        const caller = async () => {
+          modelCalled = true;
+          throw new Error("Model tidak boleh dipanggil saat user memilih opsi gerakan!");
         };
 
         const priorPayload: any = {
@@ -438,9 +435,12 @@ import { computeCoachStats } from "./coach-stats.ts";
 
         assert.equal(res.dominantMediator, "SEDENTARY_OVERLOAD", "Mediator TIDAK boleh berubah ke SLEEP_MEDIATION_DEFICIT");
         assert.equal(res.sedentaryHours, 8, "Konteks 8 jam duduk harus dipertahankan");
-        assert.equal(sentPayload.today.totalSedentaryHours, 8);
-        assert.equal(sentPayload.userNotes, "B", "userNotes harus teks asli user");
+        assert.equal(modelCalled, false, "Model TIDAK boleh dipanggil saat balasan pilihan gerak");
+        assert.equal(res.promptPayload.today.totalSedentaryHours, 8);
         assert.equal(res.jenisGerak, "jeda berdiri dari kursi dan jalan singkat di koridor");
+        assert.ok(res.guidance && res.guidance.length >= 3, "Harus menyertakan langkah guidance");
+        assert.equal(res.pendingPrompt, null, "pendingPrompt harus reset ke null setelah memilih");
+        assert.doesNotMatch(res.formattedOutput, /Mau alternatif lain\?/i, "Tidak boleh menampilkan daftar opsi lagi");
       });
 
       test("rotasi varian NEUTRAL_CAUSE_FALLBACK_VARIANTS: tidak mengandung kata capek dan berotasi", () => {
@@ -491,10 +491,10 @@ import { computeCoachStats } from "./coach-stats.ts";
         });
 
         assert.ok(res.movementOptions && res.movementOptions.length >= 2);
-        assert.match(res.formattedOutput, /Pilihan gerak untukmu:/);
+        assert.match(res.formattedOutput, /Mau alternatif lain\?/i);
         assert.match(res.formattedOutput, /A\./);
         assert.match(res.formattedOutput, /B\./);
-        assert.match(res.formattedOutput, /Ketik A\/B\/C untuk memilih, atau ketik bebas/);
+        assert.match(res.formattedOutput, /Ketik A\/B untuk memilih, atau ketik bebas/);
       });
 
       test("auditResponse: mendeteksi klaim emosi/stres palsu saat tidak ada di input user/data", () => {
@@ -767,4 +767,157 @@ import { computeCoachStats } from "./coach-stats.ts";
           /check-?in/i,
           "Respons chat terminal tidak boleh memuat kata check-in"
         );
+      });
+
+      test("auditResponse: mendeteksi kalimat karangan kuliah, tugas, dan aktivitas tanpa data", () => {
+        const ranges = { durationMinutesRange: [10, 20] as [number, number], metsRange: [150, 220] as [number, number] };
+        const userInput = "aku capek karena terlalu lama duduk menghadap laptop selama 3 jam di rumah";
+
+        const audit = auditResponse(
+          "Tubuhmu terasa lelah setelah kuliah dan mengerjakan tugas seharian, dan kamu terlihat kurang aktif hari ini.",
+          "Coba lakukan peregangan meja selama 15 menit.",
+          userInput,
+          ranges,
+          "peregangan meja",
+          true,  // hasSedentaryData (3 jam disebut)
+          false, // hasMvpaData (tidak ada data aktivitas)
+          false, // hasSleepData
+          null   // detectedActivity null
+        );
+
+        assert.ok(
+          audit.unverifiedCauseClaims.some((c) => c.includes("kuliah")),
+          "Harus menandai klaim kuliah tanpa disebut user"
+        );
+        assert.ok(
+          audit.unverifiedCauseClaims.some((c) => c.includes("tugas")),
+          "Harus menandai klaim tugas tanpa disebut user"
+        );
+        assert.ok(
+          audit.unverifiedActivityClaims.some((c) => c.includes("kurang aktif")),
+          "Harus menandai klaim kurang aktif tanpa data"
+        );
+      });
+
+      test("transkrip keluhan duduk di rumah: membersihkan klaim setelah kuliah/mengerjakan tugas/kurang aktif", async () => {
+        const mockCaller = async () => ({
+          insight: {
+            dominantMediator: "SEDENTARY_OVERLOAD" as const,
+            diagnosisSummary:
+              "Tubuhmu terasa lelah setelah kuliah dan mengerjakan tugas seharian, dan kamu terlihat kurang aktif hari ini.",
+            isotemporalActionPlan: "Lakukan peregangan meja selama 15 menit sekarang.",
+            recommendedMetsToday: 180,
+            scientificCitationNote: "Pedoman ergonomi.",
+          },
+        });
+
+        const res = await processChatCoachInput(
+          "aku capek karena terlalu lama duduk menghadap laptop selama 3 jam di rumah",
+          {
+            callModelFn: mockCaller as any,
+          }
+        );
+
+        assert.doesNotMatch(res.formattedOutput, /setelah kuliah/i);
+        assert.doesNotMatch(res.formattedOutput, /mengerjakan tugas/i);
+        assert.doesNotMatch(res.formattedOutput, /kurang aktif/i);
+        assert.equal(res.dominantMediator, "SEDENTARY_OVERLOAD");
+      });
+
+      test("pilihan gerak: setelah balasan 'A' tidak ada daftar opsi di output (terminal)", async () => {
+        let modelCalled = false;
+        const mockCaller = async () => {
+          modelCalled = true;
+          throw new Error("Model tidak boleh dipanggil!");
+        };
+
+        const priorPayload: any = {
+          activeDirectives: ["JENIS_GERAK: jeda berdiri dari kursi"],
+          clinicalRuleEvaluation: { dominantMediator: "SEDENTARY_OVERLOAD", flags: ["SEDENTARY_OVERLOAD"], escalationFlag: false, missingDailyCheckIn: false },
+          allowedRanges: { durationMinutesRange: [10, 20], metsRange: [170, 240] },
+          skipAdaptation: { applied: false, consecutiveSkips: 0, previousRecommendedMets: null },
+          currentTime: "14.00 WIB (siang)",
+          timeOfDay: "siang",
+          detectedActivity: null,
+          today: { totalSedentaryHours: 3 },
+          history7Days: [],
+          latestPss10Score: null,
+          userNotes: "aku capek duduk",
+        };
+
+        const res = await processChatCoachInput("A", {
+          callModelFn: mockCaller as any,
+          pendingPrompt: "movement",
+          previousPayload: priorPayload,
+          previousMeta: {
+            dominantMediator: "SEDENTARY_OVERLOAD",
+            escalationFlag: false,
+            sleepHours: null,
+            sedentaryHours: 3,
+            detectedActivity: null,
+            allowedRanges: { durationMinutesRange: [10, 20], metsRange: [170, 240] },
+            movementOptions: [
+              "jeda berdiri dari kursi dan jalan singkat di koridor atau sekitar ruangan",
+              "peregangan tubuh lembut dan jalan santai 10 menit di sekitar meja",
+            ],
+          },
+        });
+
+        assert.equal(modelCalled, false, "Model tidak boleh dipanggil");
+        assert.equal(res.pendingPrompt, null, "pendingPrompt harus reset ke null");
+        assert.equal(res.movementOptions.length, 0, "movementOptions harus kosong");
+        assert.doesNotMatch(res.formattedOutput, /Mau alternatif lain\?/i);
+        assert.doesNotMatch(res.formattedOutput, /Pilihan gerak untukmu/i);
+        assert.match(res.formattedOutput, /Pilihan tepat, mari lakukan/i);
+        assert.match(res.formattedOutput, /Kalau sudah selesai, ceritakan ya bagaimana rasanya\./i);
+      });
+
+      test("pilihan gerak: opsi yang sama dengan rekomendasi tidak muncul di daftar alternatif", () => {
+        const recommended = "peregangan meja (fokus bahu, leher, pergelangan tangan, dan punggung bawah)";
+        const alternatives = getAlternativeMovementOptions(recommended, "SEDENTARY_OVERLOAD", false);
+
+        assert.ok(alternatives.length >= 2, "Harus ada minimal 2 alternatif");
+        assert.ok(
+          !alternatives.some((opt) => isSameMovementOption(opt, recommended)),
+          "Daftar alternatif TIDAK boleh memuat opsi yang sama dengan rekomendasi"
+        );
+        for (const opt of alternatives) {
+          assert.notEqual(opt, recommended);
+        }
+      });
+
+      test("template MOVEMENT_GUIDANCE_TEMPLATES: tiap template panduan lolos cek kata dobel dan kalimat berulang", () => {
+        const entries = Object.entries(MOVEMENT_GUIDANCE_TEMPLATES);
+        assert.ok(entries.length >= 19, "Harus mencakup minimal 19 varian gerak PRD");
+
+        for (const [optionName, steps] of entries) {
+          assert.ok(
+            steps.length >= 3 && steps.length <= 4,
+            `Template "${optionName}" harus berisi 3-4 langkah (ditemukan: ${steps.length})`
+          );
+
+          // Cek kata berurutan yang sama dalam tiap langkah
+          for (const step of steps) {
+            const doubleWord = step.match(/\b(\w+)\s+\1\b/i);
+            assert.equal(
+              doubleWord,
+              null,
+              `Template "${optionName}" memuat kata ganda berurutan "${doubleWord?.[0]}" di langkah: "${step}"`
+            );
+          }
+
+          // Cek tidak ada kalimat persis yang diulang dalam template yang sama
+          const uniqueSteps = new Set(steps.map((s) => s.trim().toLowerCase()));
+          assert.equal(
+            uniqueSteps.size,
+            steps.length,
+            `Template "${optionName}" memuat langkah yang diulang`
+          );
+
+          // Uji fungsi getMovementGuidance
+          const guidance = getMovementGuidance(optionName);
+          assert.ok(guidance.confirmation.includes(optionName));
+          assert.equal(guidance.closing, MOVEMENT_GUIDANCE_CLOSING);
+          assert.ok(guidance.fullPlanText.includes(MOVEMENT_GUIDANCE_CLOSING));
+        }
       });

@@ -103,7 +103,7 @@ const CITATION_BANK: Record<DominantMediator, string[]> = {
   ],
 };
 
-function pickCitation(mediator: DominantMediator): string {
+export function pickCitation(mediator: DominantMediator): string {
   const options = CITATION_BANK[mediator];
   return options[Math.floor(Math.random() * options.length)];
 }

@@ -21,6 +21,23 @@
 
 ---
 
+## [2026-11-16] — Panduan Gerakan Deterministik Bebas Model, Filter Alternatif Gerak, & Audit Halusinasi Aktivitas (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
+- **Ringkasan:** Mengganti alur respons pemilihan opsi gerak (`movementChoice` / balasan pilihan terminal) menjadi template instruksi 3-4 langkah deterministik dari `coachShared.ts` tanpa memanggil model Ollama; menyaring opsi alternatif agar rekomendasi utama tidak berulang dengan header "Mau alternatif lain?" (disembunyikan bila < 2); menghilangkan movementOptions pada respons pemilihan gerak di API serta menambahkan field `guidance: string[]`; memperluas `auditResponse` untuk mendeteksi dan memotong klaim karangan kuliah, tugas, dan evaluasi telemetri tanpa data; menyediakan template 3-4 langkah untuk seluruh 19 opsi gerakan PRD yang lolos uji kata dobel berurutan; serta menambahkan automated tests integrasi terminal dan API (73/73 test lolos).
+- **Daftar File Diubah:**
+  - `backend/scripts/chat-coach.ts`
+  - `backend/scripts/chat-coach.test.ts`
+  - `backend/src/app.test.ts`
+  - `backend/src/routes/aiCoach.ts`
+  - `backend/src/services/coachShared.ts`
+  - `backend/src/services/ollamaCoach.ts`
+  - `docs/handoff/ai-coach-response-variants.md`
+  - `shared/contracts/index.ts`
+- **Catatan Cross-Scope:**
+  - `[CROSS-SCOPE] docs/handoff/ai-coach-response-variants.md` — pembaruan dokumentasi kontrak skenario pemilihan gerak, ketiadaan movementOptions pada respons pilihan, dan penambahan field `guidance: string[]`.
+  - `[CROSS-SCOPE] shared/contracts/index.ts` — penambahan properti opsional `guidance?: string[]` pada `AiCoachingInsightDTO`.
+- **Verifikasi:** `npm --prefix backend run typecheck` (0 error), `npm --prefix backend test` (73/73 lolos), dan `node scripts/guard-check.mjs backend` lolos hijau.
+
 ## [2026-11-16] — Penguatan Multi-Turn AI Coach, Guardrail Klinis Jam Malam, Append Check-in Deterministik, & Rate Limiting Per Akun (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-4.1`, `BE-5.2`
 - **Ringkasan:** Menyempurnakan alur interaksi terminal dan API AI Coach: menambahkan state machine `pendingPrompt` (`clarification` vs `movement`) agar balasan opsi tidak tertukar, payload reuse saat pemilihan gerak, pengiriman konteks pilihan sebagai directive terpisah, pemetaan `movementChoice` ke `movementOptionsShown` tersimpan di database, aturan jam malam ringan (>= 21.30 WIB), audit emosi/penyebab palsu, sanitasi durasi menit & kata sambung di awal, append deterministik penutup check-in di jalur API, mode chat tanpa check-in di terminal, logging evaluasi `coach-raw.jsonl` dan skrip analitik `coach-stats.ts`, isolasi rate limiter per user token (10 req/menit), serta penyusunan dokumen handoff varian respons.
