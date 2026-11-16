@@ -36,3 +36,4 @@ frontend.on("exit", (code) => {
     console.error(`[Frontend] berhenti dengan kode ${code}`);
   }
 });
+
