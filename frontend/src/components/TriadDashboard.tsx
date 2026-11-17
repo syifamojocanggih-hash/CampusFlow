@@ -76,12 +76,12 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
 }) => {
   // 1. Data States
   const [schedules, setSchedules] = useState<AcademicScheduleDTO[]>(INITIAL_SCHEDULES);
-  const [sleepHours, setSleepHours] = useState<number>(7.2);
+  const [sleepHours] = useState<number>(7.2);
   const [screenTimeHours, setScreenTimeHours] = useState<number>(() => {
     const tracked = screenTimeTracker.getTodayScreenTimeHours();
     return tracked > 0 ? tracked : 5.4;
   });
-  const [verifiedBreakCount, setVerifiedBreakCount] = useState<number>(1);
+  const [verifiedBreakCount] = useState<number>(1);
   const [isKrsModalOpen, setIsKrsModalOpen] = useState<boolean>(false);
   const [krsModalTab, setKrsModalTab] = useState<"upload" | "manual">("upload");
   const [isExtractingPdf, setIsExtractingPdf] = useState<boolean>(false);
@@ -350,7 +350,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
       </div>
 
       {/* ========================================================
-          2. ROW OF 4 CORE PARAMETER CARDS (PRD v4.0 Pillars)
+          2. ROW OF 4 CORE PARAMETER CARDS (Clean Output Display)
           ======================================================== */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Academic Load (KRS) */}
@@ -367,14 +367,10 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               <BookOpen className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-3 pt-2.5 border-t border-[#E8E8E8] flex items-center justify-between">
-            <span className="text-[11px] text-[#9A9A9A]">{todaySchedules.length} Kuliah Hari Ini</span>
-            <button
-              onClick={() => setIsKrsModalOpen(true)}
-              className="text-[10px] font-extrabold text-[#1A1A1A] bg-[#FFF29A] hover:bg-[#FFE966] px-2.5 py-0.5 rounded-full transition-colors"
-            >
-              KRS &rarr;
-            </button>
+          <div className="mt-2.5">
+            <span className="text-[11px] text-[#9A9A9A] font-medium">
+              {todaySchedules.length > 0 ? `${todaySchedules.length} Kuliah Hari Ini` : "Total beban SKS aktif"}
+            </span>
           </div>
         </div>
 
@@ -392,12 +388,9 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               <Monitor className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-3 pt-2.5 border-t border-[#E8E8E8] flex items-center justify-between">
-            <span className="text-[11px] text-[#9A9A9A]">Batas Aman: &le; 8.0h</span>
-            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
-              screenTimeHours <= 8.0 ? "bg-[#CDE8B5] text-[#166534]" : "bg-[#F7A8B0] text-[#9F1239]"
-            }`}>
-              {screenTimeHours <= 8.0 ? "AMAN" : `+${screenFatigueScore} PENALTI`}
+          <div className="mt-2.5">
+            <span className="text-[11px] text-[#9A9A9A] font-medium">
+              Total waktu layar terdeteksi
             </span>
           </div>
         </div>
@@ -416,24 +409,10 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               <Moon className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-3 pt-2.5 border-t border-[#E8E8E8] flex items-center justify-between">
-            <span className="text-[11px] text-[#9A9A9A]">{rawSleepScore}/40 Poin</span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setSleepHours((prev) => Math.max(3, Number((prev - 0.5).toFixed(1))))}
-                className="w-5 h-5 rounded-full bg-[#F6F6F6] hover:bg-[#E8E8E8] text-xs font-bold flex items-center justify-center"
-                title="Kurangi 30 menit"
-              >
-                -
-              </button>
-              <button
-                onClick={() => setSleepHours((prev) => Math.min(12, Number((prev + 0.5).toFixed(1))))}
-                className="w-5 h-5 rounded-full bg-[#F6F6F6] hover:bg-[#E8E8E8] text-xs font-bold flex items-center justify-center"
-                title="Tambah 30 menit"
-              >
-                +
-              </button>
-            </div>
+          <div className="mt-2.5">
+            <span className="text-[11px] text-[#9A9A9A] font-medium">
+              Total jam tidur user terdata
+            </span>
           </div>
         </div>
 
@@ -451,23 +430,10 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               <Play className="w-4 h-4 fill-[#1A1A1A] ml-0.5" />
             </div>
           </div>
-          <div className="mt-3 pt-2.5 border-t border-[#1A1A1A]/10 flex items-center justify-between">
-            <span className="text-[11px] font-bold text-[#1A1A1A]/80">+{activeBreakBonus} Poin Pemulihan</span>
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => setVerifiedBreakCount((prev) => prev + 1)}
-                className="text-[10px] font-extrabold bg-white/80 hover:bg-white text-[#1A1A1A] px-2 py-0.5 rounded-full transition-colors"
-                title="Catat manual 1 sesi jeda aktif (+10 Poin)"
-              >
-                +1 Jeda
-              </button>
-              <button
-                onClick={onNavigateToFocus}
-                className="text-[10px] font-extrabold bg-white text-[#1A1A1A] px-2.5 py-0.5 rounded-full shadow-xs hover:bg-[#F6F6F6] transition-colors"
-              >
-                Mulai &rarr;
-              </button>
-            </div>
+          <div className="mt-2.5">
+            <span className="text-[11px] font-bold text-[#1A1A1A]/80">
+              +{activeBreakBonus} Poin Pemulihan
+            </span>
           </div>
         </div>
       </div>

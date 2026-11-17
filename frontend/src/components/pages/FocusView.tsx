@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  BookOpen,
   CheckCircle2,
   X,
   Play,
@@ -187,28 +186,6 @@ export const FocusView: React.FC = () => {
                 Tetap di sini, satu langkah lagi.
               </span>
             </div>
-
-            {/* Bottom Status Pill on the arc */}
-            <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#FFF29A] text-[#1A1A1A] text-xs font-bold px-4 py-1 rounded-full shadow-2xs border border-[#FFE966] select-none">
-              {isTimerRunning
-                ? `Sesi ${completedBouts + 1} · sedang berjalan`
-                : `Sesi ${completedBouts + 1} · siap dimulai`}
-            </div>
-          </div>
-        </div>
-
-        {/* Selected Course / Task Box */}
-        <div className="w-full max-w-lg mx-auto bg-[#FAFAFA] rounded-2xl p-4 flex items-center gap-3.5 border border-[#F0F0F0]">
-          <div className="w-8 h-8 rounded-xl bg-white border border-[#E8E8E8] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-2xs">
-            <BookOpen className="w-4 h-4" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-bold text-sm text-[#1A1A1A] leading-tight truncate">
-              Interaksi Manusia &amp; Komputer
-            </p>
-            <p className="text-xs text-[#737373] mt-0.5 truncate">
-              Menyusun wireframe tugas akhir
-            </p>
           </div>
         </div>
 
@@ -283,14 +260,9 @@ export const FocusView: React.FC = () => {
                   <Play className="w-5 h-5 fill-[#166534] ml-0.5" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-                      On-Demand Active Break (2 Menit)
-                    </h3>
-                    <span className="text-[10px] font-extrabold bg-[#CDE8B5] text-[#166534] px-2.5 py-0.5 rounded-full">
-                      Kamera Aktif
-                    </span>
-                  </div>
+                  <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                    On-Demand Active Break (2 Menit)
+                  </h3>
                   <p className="text-[11px] text-[#9A9A9A]">
                     Rentangkan tangan di atas kepala (Overhead Reach) atau beranjak berdiri selama 3 repetisi.
                   </p>

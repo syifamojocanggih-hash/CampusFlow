@@ -21,6 +21,32 @@
 
 ---
 
+## [2026-11-17] — Pembersihan Tombol Kontrol pada 4 Kartu Metrik Triad Dashboard (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.42`
+- **Ringkasan:** 
+  1. **Pembersihan Elemen Tombol Foto 1 (`TriadDashboard.tsx`):**
+     - Menghapus tombol pemicu `KRS &rarr;` pada kartu Beban Kuliah.
+     - Menghapus badge pill `AMAN / PENALTI` pada kartu Waktu Layar Pasif.
+     - Menghapus tombol interaksi `-` dan `+` pada kartu Durasi Tidur Malam.
+     - Menghapus tombol aksi `+1 Jeda` dan `Mulai &rarr;` pada kartu Active Break 2 Menit.
+  2. **Penyajian Murni Output & Keterangan Informatif (Sesuai Foto 2):**
+     - Keempat kartu metrik kini bersih (*clean output summary cards*) tanpa tombol interaksi yang membebani visual.
+     - Menampilkan keterangan output yang rapi dan informatif:
+       - Kartu 1: Keterangan beban SKS kuliah aktif.
+       - Kartu 2: Keterangan total waktu layar terdeteksi.
+       - Kartu 3: Keterangan total jam tidur user terdata.
+       - Kartu 4: Keterangan poin pemulihan terverifikasi.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` sukses memvalidasi zona kerja branch `frontend`.
+
+---
+
 ## [2026-11-17] — Implementasi Pusat Notifikasi Interaktif & Pengingat Aktivitas Kampus (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.41`
 - **Ringkasan:** 

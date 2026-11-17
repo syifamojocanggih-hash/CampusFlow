@@ -6,7 +6,6 @@ import {
   Moon,
   ShieldCheck,
   ArrowRight,
-  ArrowUpRight,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -26,7 +25,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
   const [userName, setUserName] = useState<string>("Tiara");
   const [inputText, setInputText] = useState<string>("");
   const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [showCrisisAlert, setShowCrisisAlert] = useState<boolean>(true);
 
   // Initial messages matching the exact conversation shown in the reference design
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -92,7 +90,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
         lower.includes("darurat") ||
         lower.includes("tolong")
       ) {
-        setShowCrisisAlert(true);
         reply =
           "Keselamatan dan kesehatan mentalmu adalah prioritas nomor satu saat ini. Kamu sangat berharga dan tidak sendirian. Silakan hubungi nomor bantuan darurat 119 ekstensi 8 atau kunjungi healing119.id sekarang juga.";
       } else if (lower.includes("tidur") || lower.includes("lelah") || lower.includes("capek")) {
@@ -299,41 +296,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                   <span className="w-2 h-2 rounded-full bg-[#9A9A9A] animate-pulse" />
                   <span className="w-2 h-2 rounded-full bg-[#9A9A9A] animate-pulse delay-150" />
                   <span className="w-2 h-2 rounded-full bg-[#9A9A9A] animate-pulse delay-300" />
-                </div>
-              </div>
-            )}
-
-            {/* Crisis / Guardrail 119 Warning Card */}
-            {showCrisisAlert && (
-              <div className="bg-[#FDE2E4] rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-[#F7BFC4] space-y-3.5 animate-in fade-in duration-300">
-                <div className="flex items-center gap-2.5">
-                  <Heart className="w-5 h-5 text-[#1A1A1A] stroke-[2]" />
-                  <h4 className="font-heading font-extrabold text-sm sm:text-base text-[#1A1A1A]">
-                    Keselamatanmu yang paling penting.
-                  </h4>
-                </div>
-
-                <p className="text-xs text-[#525252] leading-relaxed">
-                  Jika kamu merasa tidak aman atau berpikir menyakiti diri, hubungi orang tepercaya dan
-                  bantuan profesional sekarang.
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3 pt-1">
-                  <a
-                    href="tel:119"
-                    className="inline-flex items-center justify-center bg-[#1A1A1A] hover:bg-black text-white font-bold text-xs py-3 px-5 rounded-2xl transition-colors active:scale-95 shadow-xs"
-                  >
-                    Hubungi 119 · Ekstensi 8
-                  </a>
-                  <a
-                    href="https://healing119.id"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1.5 bg-[#F7A8B0]/70 hover:bg-[#F7A8B0] text-[#1A1A1A] font-bold text-xs py-3 px-5 rounded-2xl transition-colors active:scale-95"
-                  >
-                    <span>healing119.id</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </a>
                 </div>
               </div>
             )}
