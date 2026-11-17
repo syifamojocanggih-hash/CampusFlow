@@ -12,6 +12,7 @@ import {
   LogOut,
   User,
 } from "lucide-react";
+import { NotificationPopover } from "@/components/notifications/NotificationPopover";
 import type { TabKey } from "@/types";
 
 interface NavbarProps {
@@ -23,7 +24,7 @@ interface NavbarProps {
 
 export const navItems: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-  { key: "focus", label: "Vision Focus", icon: <Eye className="w-5 h-5" /> },
+  { key: "focus", label: "Workstation & Jeda", icon: <Eye className="w-5 h-5" /> },
   { key: "activity", label: "Aktivitas & Check-in", icon: <Footprints className="w-5 h-5" /> },
   { key: "coach", label: "AI Coach", icon: <Bot className="w-5 h-5" /> },
   { key: "history", label: "Riwayat", icon: <History className="w-5 h-5" /> },
@@ -46,9 +47,6 @@ export const DesktopSidebar: React.FC<NavbarProps> = ({
           <div>
             <span className="font-heading font-extrabold text-lg text-[#1A1A1A] tracking-tight block">
               CampusFlow
-            </span>
-            <span className="text-[10px] text-[#9A9A9A] font-semibold tracking-wide">
-              Smart Wellbeing LMS
             </span>
           </div>
         </div>
@@ -121,19 +119,26 @@ export const DesktopTopHeader: React.FC<{
   activeTab?: TabKey;
   onSelectTab?: (tab: TabKey) => void;
 }> = ({ userName, onBackToLanding: _onBackToLanding, activeTab, onSelectTab }) => {
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(3);
+
   return (
-    <header className="hidden lg:flex items-center justify-between pb-6 mb-2">
-      <div>
-        <h1 className="font-heading font-extrabold text-2xl text-[#1A1A1A] flex items-center gap-2">
-          Hello, {userName.split(" ")[0]}!{" "}
-          <span className="text-xl inline-block transition-transform duration-200 hover:rotate-12 origin-bottom-right cursor-default select-none">
-            👋
-          </span>
-        </h1>
-        <p className="text-xs text-[#9A9A9A] font-medium mt-0.5">
-          Your boards look so good! Let&apos;s keep the active momentum.
-        </p>
-      </div>
+    <header className={`hidden lg:flex items-center justify-between ${activeTab === "dashboard" ? "pb-6 mb-2" : "pb-4 mb-2"}`}>
+      {activeTab === "dashboard" ? (
+        <div>
+          <h1 className="font-heading font-extrabold text-2xl text-[#1A1A1A] flex items-center gap-2">
+            Hello, {userName.split(" ")[0]}!{" "}
+            <span className="text-xl inline-block transition-transform duration-200 hover:rotate-12 origin-bottom-right cursor-default select-none">
+              👋
+            </span>
+          </h1>
+          <p className="text-xs text-[#9A9A9A] font-medium mt-0.5">
+            Your boards look so good! Let&apos;s keep the active momentum.
+          </p>
+        </div>
+      ) : (
+        <div />
+      )}
 
       <div className="flex items-center gap-3">
         {/* Search Bar */}
@@ -146,14 +151,35 @@ export const DesktopTopHeader: React.FC<{
           />
         </div>
 
-        {/* Notification Bell */}
-        <button
-          className="relative w-10 h-10 rounded-full bg-[#F6F6F6] border border-[#E8E8E8] flex items-center justify-center text-[#1A1A1A] hover:bg-white transition-colors shadow-xs"
-          title="Notifikasi"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="w-2.5 h-2.5 rounded-full bg-[#F7A8B0] absolute top-2 right-2 ring-2 ring-white" />
-        </button>
+        {/* Notification Bell with interactive popover */}
+        <div className="relative">
+          <button
+            onClick={() => setIsNotifOpen((prev) => !prev)}
+            className={`relative w-10 h-10 rounded-full border flex items-center justify-center transition-colors shadow-xs ${
+              isNotifOpen
+                ? "bg-[#FFF29A] border-[#FFE966] text-[#1A1A1A]"
+                : "bg-[#F6F6F6] border-[#E8E8E8] text-[#1A1A1A] hover:bg-white"
+            }`}
+            title="Notifikasi & Pengingat"
+            aria-label="Buka notifikasi"
+            aria-expanded={isNotifOpen}
+          >
+            <Bell className="w-4 h-4" />
+            {unreadNotifCount > 0 && (
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#F7A8B0] text-[#9F1239] font-extrabold text-[10px] flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white shadow-xs animate-in zoom-in-75">
+                {unreadNotifCount}
+              </span>
+            )}
+          </button>
+
+          <NotificationPopover
+            isOpen={isNotifOpen}
+            onClose={() => setIsNotifOpen(false)}
+            onSelectTab={onSelectTab}
+            unreadCount={unreadNotifCount}
+            onUnreadCountChange={setUnreadNotifCount}
+          />
+        </div>
 
         {/* Settings Button with Gear Icon at the Top */}
         {onSelectTab && (
@@ -198,22 +224,56 @@ export const MobileHeader: React.FC<{
   onSelectTab?: (tab: TabKey) => void;
 }> = ({ userName, onBackToLanding, activeTab, onSelectTab }) => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(3);
 
   return (
-    <div className="lg:hidden flex items-center justify-between pb-4 relative z-30">
-      <div>
-        <h1 className="font-heading font-bold text-lg text-[#1A1A1A] flex items-center gap-1.5">
-          Hello, {userName.split(" ")[0]}!{" "}
-          <span className="text-base inline-block transition-transform duration-200 hover:rotate-12 origin-bottom-right cursor-default select-none">
-            👋
-          </span>
-        </h1>
-        <p className="text-[11px] text-[#9A9A9A] font-medium">
-          Duduk Sehat &bull; Gerak Terukur
-        </p>
-      </div>
+    <div className={`lg:hidden flex items-center justify-between relative z-30 ${activeTab === "dashboard" ? "pb-4" : "pb-3"}`}>
+      {activeTab === "dashboard" ? (
+        <div>
+          <h1 className="font-heading font-bold text-lg text-[#1A1A1A] flex items-center gap-1.5">
+            Hello, {userName.split(" ")[0]}!{" "}
+            <span className="text-base inline-block transition-transform duration-200 hover:rotate-12 origin-bottom-right cursor-default select-none">
+              👋
+            </span>
+          </h1>
+          <p className="text-[11px] text-[#9A9A9A] font-medium">
+            Duduk Sehat &bull; Gerak Terukur
+          </p>
+        </div>
+      ) : (
+        <div />
+      )}
 
       <div className="flex items-center gap-2">
+        {/* Mobile Notification Bell */}
+        <div className="relative">
+          <button
+            onClick={() => setIsNotifOpen((prev) => !prev)}
+            className={`relative w-9 h-9 rounded-full border flex items-center justify-center transition-colors shadow-xs ${
+              isNotifOpen
+                ? "bg-[#FFF29A] border-[#FFE966] text-[#1A1A1A]"
+                : "bg-white border-[#E8E8E8] text-[#1A1A1A]"
+            }`}
+            title="Notifikasi"
+            aria-label="Buka notifikasi"
+            aria-expanded={isNotifOpen}
+          >
+            <Bell className="w-4 h-4" />
+            {unreadNotifCount > 0 && (
+              <span className="w-2.5 h-2.5 rounded-full bg-[#F7A8B0] absolute top-1 right-1 ring-2 ring-white" />
+            )}
+          </button>
+
+          <NotificationPopover
+            isOpen={isNotifOpen}
+            onClose={() => setIsNotifOpen(false)}
+            onSelectTab={onSelectTab}
+            unreadCount={unreadNotifCount}
+            onUnreadCountChange={setUnreadNotifCount}
+          />
+        </div>
+
         {/* User Logo Avatar with Dropdown containing Settings */}
         <div className="relative">
           <button

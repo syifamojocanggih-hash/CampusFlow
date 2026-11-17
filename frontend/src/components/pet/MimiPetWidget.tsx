@@ -12,8 +12,6 @@ import {
   STAGE_MAP,
   STAGE_NAMES,
   STAGE_STARTS,
-  STAGE_LOOKS,
-  STAGE_BENEFITS,
   PET_CHATS,
   PetMood,
 } from "./mimiSvg";
@@ -79,7 +77,6 @@ export const MimiPetWidget: React.FC = () => {
 
   // 2. UI View State
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"stage" | "evolution">("stage");
   const [showTooltip, setShowTooltip] = useState(true);
 
   // 3. Draggable Position State
@@ -391,30 +388,28 @@ export const MimiPetWidget: React.FC = () => {
           {showTooltip && (
             <div className="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white border border-[#E8E8E8] text-[#1A1A1A] font-extrabold text-[11px] px-3 py-1.5 rounded-2xl shadow-md pointer-events-none animate-in fade-in zoom-in-95 duration-200">
               <span className="flex items-center gap-1">
-                <span>Halo! Ketuk {petName}</span>
-                <span className="text-[#9A9A9A] text-[9px] font-normal">• Geser</span>
+                <span>Hai! apa kabar hari ini?</span>
               </span>
               <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-2.5 h-2.5 bg-white border-b border-r border-[#E8E8E8] rotate-45" />
             </div>
           )}
 
-          {/* Draggable Pet Container Card */}
-          <div className="relative group p-1.5 rounded-3xl bg-white/95 backdrop-blur-sm border-2 border-[#1A1A1A] shadow-card hover:shadow-cardHover transition-all flex flex-col items-center justify-center w-20 h-24">
-            {/* Grip Drag Handle Pill */}
-            <div className="w-6 h-1 rounded-full bg-[#E8E8E8] group-hover:bg-[#1A1A1A] mb-1 transition-colors" />
-
-            {/* Mimi Animated SVG */}
+          {/* Draggable Pet Container - Borderless, Large Pet Icon + Streak Below */}
+          <div className="relative group flex flex-col items-center justify-center p-1 transition-transform duration-200 hover:scale-105">
+            {/* Mimi Animated SVG - Large Pet Icon */}
             <div
-              className={`w-14 h-14 ${isDragging ? "" : "animate-mimi-bob"}`}
+              className={`w-20 h-20 sm:w-22 sm:h-22 drop-shadow-md select-none pointer-events-none ${
+                isDragging ? "" : "animate-mimi-bob"
+              }`}
               dangerouslySetInnerHTML={{
                 __html: getMimiSvg(STAGE_MAP[st], currentMood, completedCount > 0 && st === 0),
               }}
             />
 
-            {/* Streak Counter Flame Badge */}
-            <div className="absolute -bottom-2 bg-[#FFF29A] text-[#1A1A1A] border-2 border-[#1A1A1A] px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-0.5 shadow-xs">
-              <Flame className="w-3 h-3 fill-[#F9B99A] text-[#1A1A1A]" />
-              <span>{streak}d</span>
+            {/* Streak Counter Beneath Pet (Clean & Stroke-free) */}
+            <div className="mt-1 bg-[#FFF29A] text-[#1A1A1A] px-2.5 py-0.5 rounded-full text-[11px] font-extrabold flex items-center gap-1 shadow-xs select-none">
+              <Flame className="w-3.5 h-3.5 fill-[#F9B99A] text-[#1A1A1A]" />
+              <span>{streak} Hari</span>
             </div>
           </div>
         </div>
@@ -503,52 +498,23 @@ export const MimiPetWidget: React.FC = () => {
 
             {/* Scrollable Body Content */}
             <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-4">
-              {/* Navigation Tabs (Stage Pet vs Evolusi Sheet) */}
-              <div className="flex items-center gap-1.5 p-1 bg-[#F6F6F6] rounded-2xl border border-[#E8E8E8] text-xs font-bold">
-                <button
-                  onClick={() => setActiveTab("stage")}
-                  className={`flex-1 py-1.5 rounded-xl transition-all ${
-                    activeTab === "stage"
-                      ? "bg-white text-[#1A1A1A] shadow-xs"
-                      : "text-[#9A9A9A] hover:text-[#1A1A1A]"
-                  }`}
-                >
-                  Panggung {petName} &amp; Misi
-                </button>
-                <button
-                  onClick={() => setActiveTab("evolution")}
-                  className={`flex-1 py-1.5 rounded-xl transition-all ${
-                    activeTab === "evolution"
-                      ? "bg-white text-[#1A1A1A] shadow-xs"
-                      : "text-[#9A9A9A] hover:text-[#1A1A1A]"
-                  }`}
-                >
-                  Lembar Evolusi (5 Level)
-                </button>
-              </div>
+              {/* Stage Arena (Pastel Mint Green #CDE8B5) */}
+              <div className="relative rounded-3xl bg-[#CDE8B5] p-5 sm:p-6 border border-[#B6DF97] overflow-hidden text-center text-[#1A1A1A] shadow-xs">
+                {/* Top Stat Pills */}
+                <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+                  <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full font-bold shadow-xs">
+                    <Flame className="w-4 h-4 fill-[#F9B99A] text-[#1A1A1A]" />
+                    <span className="text-base font-extrabold">{streak}</span>
+                    <span className="text-[11px] text-[#9A9A9A]">hari streak</span>
+                  </div>
 
-              {activeTab === "stage" ? (
-                <>
-                  {/* Stage Arena (Pastel Mint Green #CDE8B5) */}
-                  <div className="relative rounded-3xl bg-[#CDE8B5] p-5 sm:p-6 border border-[#B6DF97] overflow-hidden text-center text-[#1A1A1A] shadow-xs">
-                    {/* Top Stat Pills */}
-                    <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
-                      <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full font-bold shadow-xs">
-                        <Flame className="w-4 h-4 fill-[#F9B99A] text-[#1A1A1A]" />
-                        <span className="text-base font-extrabold">{streak}</span>
-                        <span className="text-[11px] text-[#9A9A9A]">hari streak</span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <span className="bg-[#1A1A1A] text-white px-3 py-1.5 rounded-full font-extrabold text-[11px]">
-                          Level {st + 1} &bull; {STAGE_NAMES[st]}
-                        </span>
-                        <span className="bg-white/70 px-2.5 py-1.5 rounded-full font-bold text-[11px] flex items-center gap-1">
-                          <Snowflake className="w-3.5 h-3.5 text-blue-500" />
-                          <span>{freeze} Freeze</span>
-                        </span>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-white/70 px-2.5 py-1.5 rounded-full font-bold text-[11px] flex items-center gap-1">
+                      <Snowflake className="w-3.5 h-3.5 text-blue-500" />
+                      <span>{freeze} Freeze</span>
+                    </span>
+                  </div>
+                </div>
 
                     {/* Speech Bubble */}
                     <div className="relative bg-white rounded-2xl px-4 py-2.5 mt-4 mx-auto max-w-sm text-xs font-bold text-[#1A1A1A] shadow-xs min-h-[44px] flex items-center justify-center">
@@ -594,21 +560,7 @@ export const MimiPetWidget: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 -mt-1 flex-wrap">
-                      <p className="text-[11px] text-[#1A1A1A]/70 font-semibold">
-                        Ketuk {petName} untuk menyapa &amp; lihat reaksinya!
-                      </p>
-                      <span className="text-[#1A1A1A]/30 text-xs">&bull;</span>
-                      <button
-                        type="button"
-                        onClick={handleStartEditing}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1A1A1A] hover:underline"
-                        title="Ganti nama panggilan pet"
-                      >
-                        <Pencil className="w-3 h-3 text-[#1A1A1A]" />
-                        <span>Ganti Nama</span>
-                      </button>
-                    </div>
+
 
                     {/* Progress to Next Level */}
                     <div className="mt-4 text-left space-y-1.5">
@@ -739,72 +691,6 @@ export const MimiPetWidget: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                </>
-              ) : (
-                /* Tab 2: Evolution Sheet */
-                <div className="space-y-3 pb-2">
-                  <div className="bg-[#FFFCEB] border border-[#FFE966] rounded-2xl p-3 text-xs text-[#1A1A1A]">
-                    <p className="font-bold">5 Tingkat Transformasi {petName}</p>
-                    <p className="text-[11px] text-[#9A9A9A] mt-0.5">
-                      {petName} bertransformasi seiring konsistensi hari Anda menjaga postur tegak dan kebugaran aktif.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {STAGE_NAMES.map((name, i) => {
-                      const isUnlocked = streak >= (STAGE_STARTS[i] || 0) || i === 0;
-                      const isCurrent = i === st;
-                      return (
-                        <div
-                          key={name}
-                          className={`p-3.5 rounded-3xl border transition-all flex flex-col justify-between ${
-                            isCurrent
-                              ? "bg-white border-2 border-[#1A1A1A] shadow-md"
-                              : isUnlocked
-                              ? "bg-white border-[#E8E8E8]"
-                              : "bg-[#FAFAFA] border-[#E8E8E8] opacity-60"
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="w-16 h-16 rounded-2xl bg-[#FFF29A] p-1 flex items-center justify-center shrink-0 border border-[#FFE966]">
-                              <div
-                                className="w-full h-full"
-                                dangerouslySetInnerHTML={{
-                                  __html: getMimiSvg(STAGE_MAP[i], "happy", false),
-                                }}
-                              />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-bold uppercase text-[#9A9A9A]">
-                                  Level {i + 1}
-                                </span>
-                                {isCurrent && (
-                                  <span className="text-[9px] font-extrabold bg-[#1A1A1A] text-white px-2 py-0.2 rounded-full">
-                                    Aktif
-                                  </span>
-                                )}
-                              </div>
-                              <h5 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                                {name}
-                              </h5>
-                              <p className="text-[10px] font-bold text-[#9A9A9A]">
-                                {i === 0 ? "Awal Mulai" : `Hari ke-${STAGE_STARTS[i]}`}
-                                {isUnlocked ? " &bull; Terbuka" : " &bull; Terkunci"}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-2.5 pt-2 border-t border-[#F6F6F6] text-[11px] text-[#1A1A1A]/80 font-medium space-y-1">
-                            <p className="text-[#9A9A9A] text-[10px]">{STAGE_LOOKS[i]}</p>
-                            <p className="font-bold text-xs text-[#1A1A1A]">🎁 {STAGE_BENEFITS[i]}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Bottom Modal Footer with Drag Tip */}

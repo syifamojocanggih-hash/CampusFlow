@@ -40,10 +40,13 @@ import {
   type PostureEvaluationResult,
 } from "@/utils/poseHeuristics";
 import { CLINICAL_CONSTANTS, type PostureBaseline, type SedentarySessionPayload } from "@/types";
+import { api } from "@/lib/api";
 
 interface VisionGuardProps {
   onSessionComplete?: (payload: SedentarySessionPayload) => void;
   className?: string;
+  autoStartCamera?: boolean;
+  onActiveBreakCompleted?: () => void;
 }
 
 // Landmark connectivity for skeleton drawing
@@ -65,6 +68,8 @@ const SKELETON_CONNECTIONS: [number, number][] = [
 export const VisionGuard: React.FC<VisionGuardProps> = ({
   onSessionComplete,
   className = "",
+  autoStartCamera = false,
+  onActiveBreakCompleted,
 }) => {
   // DOM References
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -216,7 +221,9 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
         if (isMounted) {
           landmarkerRef.current = landmarker;
           setIsInitializing(false);
-          await startCamera();
+          if (autoStartCamera) {
+            await startCamera();
+          }
         }
       } catch (err: unknown) {
         console.error("[VisionGuard] Gagal menginisialisasi MediaPipe:", err);
@@ -652,6 +659,17 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
     if (onSessionComplete) {
       onSessionComplete(payload);
+    }
+
+    // PRD v4.0 Active Break verification API (+10 Recovery Points)
+    api.verifyActiveBreak({
+      durationMins: demoMode ? 1 : 2,
+      poseVerified: true,
+      poseType: "OVERHEAD_STRETCH",
+    }).catch((err) => console.warn("[VisionGuard] Error verifying active break:", err));
+
+    if (onActiveBreakCompleted) {
+      onActiveBreakCompleted();
     }
 
     setTimeout(() => {

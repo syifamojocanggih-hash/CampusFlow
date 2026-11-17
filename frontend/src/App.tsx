@@ -40,9 +40,23 @@ export function App() {
 
   const userName = user?.name || "Mutiara Dewanda";
 
+  const handleLogout = () => {
+    api.setToken(null);
+    setUser(null);
+    setIsLandingPage(true);
+  };
+
   // 1. Tampilkan Halaman Sebelum Login (Landing Page) jika isLandingPage true
   if (isLandingPage) {
-    return <LandingPage onEnterApp={() => setIsLandingPage(false)} />;
+    return (
+      <LandingPage
+        onEnterApp={() => setIsLandingPage(false)}
+        onLoginSuccess={(loggedInUser) => {
+          setUser(loggedInUser);
+          setIsLandingPage(false);
+        }}
+      />
+    );
   }
 
   // 2. Tampilkan Aplikasi Dashboard Utama
@@ -56,7 +70,7 @@ export function App() {
           setActiveTab(tab);
         }}
         userName={userName}
-        onBackToLanding={() => setIsLandingPage(true)}
+        onBackToLanding={handleLogout}
       />
 
       {/* 2. Main Content Wrapper */}
@@ -65,13 +79,13 @@ export function App() {
           {/* Top Header: Desktop Greeting & Search / Mobile Greeting */}
           <DesktopTopHeader
             userName={userName}
-            onBackToLanding={() => setIsLandingPage(true)}
+            onBackToLanding={handleLogout}
             activeTab={activeTab}
             onSelectTab={setActiveTab}
           />
           <MobileHeader
             userName={userName}
-            onBackToLanding={() => setIsLandingPage(true)}
+            onBackToLanding={handleLogout}
             activeTab={activeTab}
             onSelectTab={setActiveTab}
           />
