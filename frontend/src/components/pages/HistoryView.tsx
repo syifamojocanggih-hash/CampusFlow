@@ -65,9 +65,6 @@ export const HistoryView: React.FC = () => {
           <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
             Lencana Pencapaian (Badges)
           </h3>
-          <span className="text-xs font-extrabold text-[#1A1A1A] bg-[#FFF29A] px-2.5 py-0.5 rounded-full">
-            4/4 Terbuka
-          </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

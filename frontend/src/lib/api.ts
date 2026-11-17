@@ -97,6 +97,73 @@ class ApiClient {
     return this.request<UserResponse>("/users/me");
   }
 
+  async login(email: string, password: string): Promise<UserResponse> {
+    if (USE_MOCK) {
+      this.setToken("mock-jwt-token-" + Date.now());
+      const savedProfile = localStorage.getItem("cf_user_profile");
+      let customData = {};
+      if (savedProfile) {
+        try {
+          customData = JSON.parse(savedProfile);
+        } catch {
+          // ignore
+        }
+      }
+      const user: UserResponse = {
+        ...MOCK_USER,
+        data: {
+          ...MOCK_USER.data,
+          email,
+          ...customData,
+        },
+      };
+      localStorage.setItem("cf_user_profile", JSON.stringify(user.data));
+      return user;
+    }
+    const res = await this.request<{ data: { token: string; user: UserProfileDTO }; meta: unknown }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+    this.setToken(res.data.token);
+    return { data: res.data.user, meta: res.meta } as UserResponse;
+  }
+
+  async register(payload: { name: string; nim: string; email: string; password: string; department?: string }): Promise<UserResponse> {
+    if (USE_MOCK) {
+      this.setToken("mock-jwt-token-" + Date.now());
+      const user: UserResponse = {
+        ...MOCK_USER,
+        data: {
+          ...MOCK_USER.data,
+          name: payload.name,
+          nim: payload.nim,
+          email: payload.email,
+          department: payload.department || "Teknik Informatika",
+        },
+      };
+      localStorage.setItem("cf_user_profile", JSON.stringify(user.data));
+      return user;
+    }
+    const res = await this.request<{ data: { token: string; user: UserProfileDTO }; meta: unknown }>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    this.setToken(res.data.token);
+    return { data: res.data.user, meta: res.meta } as UserResponse;
+  }
+
+  async loginDemo(): Promise<UserResponse> {
+    if (USE_MOCK) {
+      this.setToken("mock-jwt-demo-token");
+      return MOCK_USER;
+    }
+    const res = await this.request<{ data: { token: string; user: UserProfileDTO }; meta: unknown }>("/auth/demo", {
+      method: "POST",
+    });
+    this.setToken(res.data.token);
+    return { data: res.data.user, meta: res.meta } as UserResponse;
+  }
+
   async updateUserProfile(payload: Partial<UserProfileDTO>): Promise<UserProfileDTO> {
     const saved = localStorage.getItem("cf_user_profile");
     let currentData = { ...MOCK_USER.data };

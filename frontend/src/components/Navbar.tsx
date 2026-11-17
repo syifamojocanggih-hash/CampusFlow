@@ -12,6 +12,7 @@ import {
   LogOut,
   User,
 } from "lucide-react";
+import { NotificationPopover } from "@/components/notifications/NotificationPopover";
 import type { TabKey } from "@/types";
 
 interface NavbarProps {
@@ -121,6 +122,9 @@ export const DesktopTopHeader: React.FC<{
   activeTab?: TabKey;
   onSelectTab?: (tab: TabKey) => void;
 }> = ({ userName, onBackToLanding: _onBackToLanding, activeTab, onSelectTab }) => {
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(3);
+
   return (
     <header className="hidden lg:flex items-center justify-between pb-6 mb-2">
       <div>
@@ -146,14 +150,35 @@ export const DesktopTopHeader: React.FC<{
           />
         </div>
 
-        {/* Notification Bell */}
-        <button
-          className="relative w-10 h-10 rounded-full bg-[#F6F6F6] border border-[#E8E8E8] flex items-center justify-center text-[#1A1A1A] hover:bg-white transition-colors shadow-xs"
-          title="Notifikasi"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="w-2.5 h-2.5 rounded-full bg-[#F7A8B0] absolute top-2 right-2 ring-2 ring-white" />
-        </button>
+        {/* Notification Bell with interactive popover */}
+        <div className="relative">
+          <button
+            onClick={() => setIsNotifOpen((prev) => !prev)}
+            className={`relative w-10 h-10 rounded-full border flex items-center justify-center transition-colors shadow-xs ${
+              isNotifOpen
+                ? "bg-[#FFF29A] border-[#FFE966] text-[#1A1A1A]"
+                : "bg-[#F6F6F6] border-[#E8E8E8] text-[#1A1A1A] hover:bg-white"
+            }`}
+            title="Notifikasi & Pengingat"
+            aria-label="Buka notifikasi"
+            aria-expanded={isNotifOpen}
+          >
+            <Bell className="w-4 h-4" />
+            {unreadNotifCount > 0 && (
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#F7A8B0] text-[#9F1239] font-extrabold text-[10px] flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white shadow-xs animate-in zoom-in-75">
+                {unreadNotifCount}
+              </span>
+            )}
+          </button>
+
+          <NotificationPopover
+            isOpen={isNotifOpen}
+            onClose={() => setIsNotifOpen(false)}
+            onSelectTab={onSelectTab}
+            unreadCount={unreadNotifCount}
+            onUnreadCountChange={setUnreadNotifCount}
+          />
+        </div>
 
         {/* Settings Button with Gear Icon at the Top */}
         {onSelectTab && (
@@ -198,6 +223,8 @@ export const MobileHeader: React.FC<{
   onSelectTab?: (tab: TabKey) => void;
 }> = ({ userName, onBackToLanding, activeTab, onSelectTab }) => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(3);
 
   return (
     <div className="lg:hidden flex items-center justify-between pb-4 relative z-30">
@@ -214,6 +241,34 @@ export const MobileHeader: React.FC<{
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Mobile Notification Bell */}
+        <div className="relative">
+          <button
+            onClick={() => setIsNotifOpen((prev) => !prev)}
+            className={`relative w-9 h-9 rounded-full border flex items-center justify-center transition-colors shadow-xs ${
+              isNotifOpen
+                ? "bg-[#FFF29A] border-[#FFE966] text-[#1A1A1A]"
+                : "bg-white border-[#E8E8E8] text-[#1A1A1A]"
+            }`}
+            title="Notifikasi"
+            aria-label="Buka notifikasi"
+            aria-expanded={isNotifOpen}
+          >
+            <Bell className="w-4 h-4" />
+            {unreadNotifCount > 0 && (
+              <span className="w-2.5 h-2.5 rounded-full bg-[#F7A8B0] absolute top-1 right-1 ring-2 ring-white" />
+            )}
+          </button>
+
+          <NotificationPopover
+            isOpen={isNotifOpen}
+            onClose={() => setIsNotifOpen(false)}
+            onSelectTab={onSelectTab}
+            unreadCount={unreadNotifCount}
+            onUnreadCountChange={setUnreadNotifCount}
+          />
+        </div>
+
         {/* User Logo Avatar with Dropdown containing Settings */}
         <div className="relative">
           <button

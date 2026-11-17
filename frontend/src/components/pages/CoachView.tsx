@@ -1,23 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Bot,
-  CheckCircle,
-  Moon,
-  Footprints,
-  Armchair,
-  ArrowRight,
-  Send,
-  HelpCircle,
+  Heart,
   BookOpen,
-  Compass,
-  HeartPulse,
-  Flame,
-  AlertCircle,
-  PhoneCall,
+  Monitor,
+  Moon,
+  ShieldCheck,
+  ArrowRight,
+  ArrowUpRight,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { MOCK_AI_COACH } from "@/mocks/campusflowMock";
-import type { AiCoachingInsightDTO } from "@/types";
 
 interface CoachViewProps {
   onNavigateToFocus?: () => void;
@@ -27,515 +18,354 @@ interface CoachViewProps {
 
 interface ChatMessage {
   id: string;
-  sender: "user" | "coach";
+  sender: "coach" | "user";
   text: string;
-  time: string;
 }
 
-const PRESET_QUESTIONS = [
-  {
-    q: "Bagaimana cara mengatasi rasa kantuk di kelas siang?",
-    a: "Rasa kantuk siang (post-lunch dip) umumnya dipicu oleh dehidrasi dan duduk pasif. Cobalah minum 1 gelas air putih dingin, lakukan jalan santai 5 menit di lorong kampus untuk menaikkan denyut nadi, dan hindari makan siang dengan karbohidrat olahan terlalu tinggi.",
-  },
-  {
-    q: "Berapa target langkah ideal untuk mahasiswa?",
-    a: "Target minimal WHO setara 600 MET-menit (sekitar 5.000–7.500 langkah/hari). Untuk mahasiswa yang banyak duduk di perpustakaan atau lab, menargetkan 7.500–10.000 langkah membantu menyeimbangkan metabolisme dan menjaga kejernihan berpikir.",
-  },
-  {
-    q: "Peregangan apa yang paling cepat meredakan pegal leher?",
-    a: "Lakukan 'Chin Tuck' (tarik dagu ke belakang perlahan selama 5 detik) dan 'Overhead Reach' (rentangkan kedua tangan lurus ke atas kepala sambil menarik napas dalam). Gerakan ini membuka otot dada depan dan meregangkan leher atas yang condong ke layar.",
-  },
-  {
-    q: "Kenapa tidur 6 jam bikin gampang stres dibanding 7.5 jam?",
-    a: "Fase tidur REM (Rapid Eye Movement) yang memproses emosi dan stres terjadi lebih dominan di jam ke-6 hingga ke-8 tidur. Kehilangan 1.5 jam fase ini menurunkan daya tahan emosional korteks prefrontal hingga 40%.",
-  },
-];
+export const CoachView: React.FC<CoachViewProps> = () => {
+  const [userName, setUserName] = useState<string>("Tiara");
+  const [inputText, setInputText] = useState<string>("");
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const [showCrisisAlert, setShowCrisisAlert] = useState<boolean>(true);
 
-export const CoachView: React.FC<CoachViewProps> = ({
-  onNavigateToFocus,
-  onNavigateToActivity,
-  onStartPanicRelief,
-}) => {
-  const [insight, setInsight] = useState<AiCoachingInsightDTO>(MOCK_AI_COACH.data);
-  const [completed, setCompleted] = useState<boolean>(() => {
-    return localStorage.getItem("cf_coach_completed_today") === "true";
-  });
-  const [claimToast, setClaimToast] = useState<boolean>(false);
-
-  // Mini Interactive Coach Consultation
+  // Initial messages matching the exact conversation shown in the reference design
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      id: "welcome",
+      id: "msg-1",
       sender: "coach",
-      text: "Halo! Saya AI Coach kesehatan Anda. Berdasarkan pola 7 hari terakhir, kualitas tidur dan waktu gerak Anda adalah kunci menjaga energi hari ini. Ada yang ingin Anda diskusikan?",
-      time: "Baru saja",
+      text: "Hai Tiara. Pekan ujian bisa terasa penuh, ya. Waktu layarmu sudah 10 jam dan tidurmu baru 6 jam. Bagaimana perasaanmu sekarang?",
+    },
+    {
+      id: "msg-2",
+      sender: "user",
+      text: "Aku tidak sanggup lagi, tugas menumpuk.",
+    },
+    {
+      id: "msg-3",
+      sender: "coach",
+      text: "Terima kasih sudah cerita. Kedengarannya ini terasa sangat berat. Kamu tidak harus menghadapi semuanya sendiri. Apa kamu berada di tempat yang aman saat ini?",
     },
   ]);
-  const [inputQuestion, setInputQuestion] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const [isCrisisActive, setIsCrisisActive] = useState(false);
 
   useEffect(() => {
     api
-      .getAiCoachInsight()
+      .getCurrentUser()
       .then((res) => {
-        if (res?.data) {
-          setInsight(res.data);
-          const isSavedCompleted = localStorage.getItem("cf_coach_completed_today") === "true";
-          setCompleted(res.data.isCompleted || isSavedCompleted);
+        if (res?.data?.name) {
+          const firstName = res.data.name.split(" ")[0];
+          setUserName(firstName);
         }
       })
       .catch((err) => {
-        console.warn("Gagal memuat AI Coach dari server, menggunakan data lokal:", err);
-        // Fallback anggun ke MOCK_AI_COACH agar pengguna tidak pernah terjebak loading
-        setInsight(MOCK_AI_COACH.data);
+        console.warn("Gagal memuat profil pengguna:", err);
       });
   }, []);
 
-  const handleClaimMission = () => {
-    setCompleted(true);
-    localStorage.setItem("cf_coach_completed_today", "true");
-    setClaimToast(true);
-    setTimeout(() => setClaimToast(false), 4000);
-  };
-
-  const handleAskPreset = (question: string, answer: string) => {
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      sender: "user",
-      text: question,
-      time: "Sekarang",
-    };
-    setMessages((prev) => [...prev, userMsg]);
-    setIsTyping(true);
-
-    setTimeout(() => {
-      const coachMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        sender: "coach",
-        text: answer,
-        time: "Sekarang",
-      };
-      setMessages((prev) => [...prev, coachMsg]);
-      setIsTyping(false);
-    }, 600);
-  };
-
-  const handleSendCustomQuestion = (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputQuestion.trim() || isTyping) return;
+    if (!inputText.trim() || isTyping) return;
 
-    const q = inputQuestion.trim();
-    setInputQuestion("");
+    const userText = inputText.trim();
+    setInputText("");
 
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
+    const newMsg: ChatMessage = {
+      id: `user-${Date.now()}`,
       sender: "user",
-      text: q,
-      time: "Sekarang",
+      text: userText,
     };
-    setMessages((prev) => [...prev, userMsg]);
+
+    setMessages((prev) => [...prev, newMsg]);
     setIsTyping(true);
 
     setTimeout(() => {
-      // Respons cerdas kontekstual mahasiswa
       let reply =
-        "Pertanyaan yang bagus! Kunci menjaga fokus belajar adalah menjaga ritme jeda 50 menit duduk diimbangi 5 menit jalan atau peregangan ringan. Pastikan juga asupan air mineral cukup agar sirkulasi oksigen ke otak optimal.";
-      
-      const lower = q.toLowerCase();
+        "Aku mendengarkanmu. Bernapaslah perlahan sejenak. Kamu sudah berjuang sebaik mungkin hari ini, dan tidak apa-apa untuk beristirahat sebentar.";
+
+      const lower = userText.toLowerCase();
       if (
-        lower.includes("putus asa") ||
-        lower.includes("menyerah") ||
         lower.includes("mati") ||
-        lower.includes("bunuh diri") ||
+        lower.includes("bunuh") ||
+        lower.includes("menyerah") ||
+        lower.includes("tidak sanggup") ||
+        lower.includes("putus asa") ||
+        lower.includes("menyakiti") ||
         lower.includes("darurat") ||
-        lower.includes("tidak kuat lagi") ||
-        lower.includes("distres")
+        lower.includes("tolong")
       ) {
-        setIsCrisisActive(true);
+        setShowCrisisAlert(true);
         reply =
-          "Kami sangat peduli dengan keselamatan Anda. Beban dan stres akademik saat ini mungkin terasa luar biasa berat, namun Anda tidak sendirian. Mohon segera hubungi Hotline Darurat Kesehatan Mental Indonesia di 119 (ext. 8) atau akses healing119.id. Layanan ini bebas pulsa, rahasia, dan aktif 24 jam untuk mendampingi Anda.";
-      } else if (lower.includes("tidur") || lower.includes("insomnia") || lower.includes("begadang")) {
+          "Keselamatan dan kesehatan mentalmu adalah prioritas nomor satu saat ini. Kamu sangat berharga dan tidak sendirian. Silakan hubungi nomor bantuan darurat 119 ekstensi 8 atau kunjungi healing119.id sekarang juga.";
+      } else if (lower.includes("tidur") || lower.includes("lelah") || lower.includes("capek")) {
         reply =
-          "Jika Anda terpaksa tidur larut malam, usahakan tidur minimal 1.5 jam (1 siklus tidur penuh) dan hindari layar HP 20 menit sebelum memejamkan mata. Sore nanti, luangkan jalan santai 15 menit untuk merangsang produksi melatonin alami malam hari.";
-      } else if (lower.includes("pegal") || lower.includes("punggung") || lower.includes("postur") || lower.includes("leher")) {
+          "Tubuhmu mengirimkan sinyal bahwa ia membutuhkan pemulihan fisik dan mental. Cobalah tutup laptop, redupkan lampu, dan luangkan waktu untuk tidur lebih awal malam ini.";
+      } else if (lower.includes("tugas") || lower.includes("ujian") || lower.includes("kuliah")) {
         reply =
-          "Pegal di leher dan punggung biasanya akibat monitor terlalu rendah atau posisi kepala maju (forward head posture). Pastikan layar sejajar dengan mata dan manfaatkan fitur Kamera Deteksi Duduk di tab Fokus.";
-      } else if (lower.includes("stres") || lower.includes("cemas") || lower.includes("panik") || lower.includes("tugas")) {
-        reply =
-          "Saat stres tugas menumpuk, sistem saraf simpatis bekerja berlebihan. Luangkan 1 menit untuk latihan pernapasan rileks (tarik napas 4 detik, tahan 7 detik, hembuskan 8 detik) pada fitur Redakan Panik.";
-      } else if (lower.includes("langkah") || lower.includes("jalan") || lower.includes("olahraga")) {
-        reply =
-          "Untuk mahasiswa, langkah harian tidak harus dilakukan sekaligus di gym. Berjalan kaki antar gedung kuliah atau naik tangga 2 lantai sudah menyumbang 100-200 MET-menit energi gerak yang signifikan.";
+          "Beban akademik memang bisa sangat menekan di pekan ujian. Cobalah bagi tugas menjadi bagian-bagian kecil (mikro-tugas 15 menit) dan berikan dirimu jeda 5 menit untuk relaksasi.";
       }
 
       const coachMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: `coach-${Date.now()}`,
         sender: "coach",
         text: reply,
-        time: "Sekarang",
       };
+
       setMessages((prev) => [...prev, coachMsg]);
       setIsTyping(false);
-    }, 800);
+    }, 700);
   };
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto pb-12">
-      {/* Toast Notifikasi Sukses Klaim XP */}
-      {claimToast && (
-        <div className="fixed top-5 right-5 z-50 bg-[#1A1A1A] text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce">
-          <div className="w-7 h-7 rounded-xl bg-[#CDE8B5] text-[#1A1A1A] flex items-center justify-center font-bold text-xs">
-            +50
-          </div>
-          <div>
-            <p className="text-xs font-bold">Misi Harian Berhasil Diklaim!</p>
-            <p className="text-[11px] text-gray-300">Poin XP telah ditambahkan ke riwayat profil Anda.</p>
-          </div>
-        </div>
-      )}
-
-      {/* 1. Header Banner */}
-      <div className="learnova-card p-6 border-[#E8E8E8] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs border border-[#A7DBE7]">
-            <Bot className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
-                Wellbeing AI Coach
-              </h2>
-              <span className="bg-[#CDE8B5] text-[#1A1A1A] text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-[#B6DF97]">
-                Aktif Hari Ini
-              </span>
-              <span className="text-[10px] font-extrabold bg-[#BDE6F0] text-[#1A1A1A] px-2 py-0.5 rounded-full border border-[#8ECAD7]">
-                Ollama Local AI &bull; Guardrail 119
-              </span>
-            </div>
-            <p className="text-xs text-[#9A9A9A] mt-0.5">
-              Saran kesehatan harian berbasis pola aktivitas &amp; kualitas tidur Anda selama 7 hari terakhir.
-            </p>
-          </div>
-        </div>
+    <div className="max-w-6xl mx-auto space-y-6 pb-12 font-sans">
+      {/* ========================================================
+          1. TOP PAGE HEADER
+          ======================================================== */}
+      <div>
+        <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] tracking-tight">
+          Kamu tidak sendirian.
+        </h1>
+        <p className="text-sm text-[#737373] mt-2">
+          Kenali kebutuhan tubuh dan pikiranmu bersama Wellbeing AI Coach.
+        </p>
       </div>
 
-      {/* 2. Main Diagnostic & Action Plan Card */}
-      <div className="learnova-card p-6 space-y-5 border-[#E8E8E8]">
-        {/* Diagnosis Header & Alert Pill */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#1A1A1A] bg-[#FFF29A] px-2.5 py-1 rounded-lg border border-[#FFE966]">
-              Diagnosis Kebugaran
-            </span>
-            <span className="text-xs text-[#9A9A9A] font-medium">
-              Analisis Komprehensif Triad Mahasiswa
-            </span>
-          </div>
-          <h3 className="font-heading font-bold text-base sm:text-lg text-[#1A1A1A] leading-snug">
-            {insight.diagnosisSummary}
-          </h3>
-        </div>
+      {/* ========================================================
+          2. TWO COLUMNS LAYOUT: LEFT SIDEBAR + RIGHT CHAT PANEL
+          ======================================================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* --------------------------------------------------------
+            LEFT COLUMN (3 Cards)
+            -------------------------------------------------------- */}
+        <div className="lg:col-span-4 space-y-5">
+          {/* CARD 1: Cerita tubuhmu hari ini */}
+          <div className="bg-white rounded-[1.75rem] p-6 shadow-xs border border-[#F0F0F0] space-y-5">
+            <h2 className="font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A]">
+              Cerita tubuhmu hari ini
+            </h2>
 
-        {/* 3 Indikator Status Pilar Kesehatan Hari Ini */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-          {/* Pilar Tidur */}
-          <div className="p-3.5 rounded-2xl bg-[#C9B3E6]/25 border border-[#C9B3E6] space-y-1.5">
-            <div className="flex items-center justify-between text-xs font-bold text-[#1A1A1A]">
-              <span className="flex items-center gap-1.5">
-                <Moon className="w-4 h-4 text-[#8C6BB8]" />
-                Tidur Semalam
-              </span>
-              <span className="text-[11px] bg-white/80 px-2 py-0.5 rounded-md font-extrabold">
-                6.5 Jam
-              </span>
-            </div>
-            <p className="text-[11px] text-[#555] leading-snug">
-              Kurang ~1 jam dari target ideal 7.5 jam. Perlu regenerasi kognitif malam ini.
-            </p>
-          </div>
-
-          {/* Pilar Gerak/Aktivitas */}
-          <div className="p-3.5 rounded-2xl bg-[#CDE8B5]/30 border border-[#CDE8B5] space-y-1.5">
-            <div className="flex items-center justify-between text-xs font-bold text-[#1A1A1A]">
-              <span className="flex items-center gap-1.5">
-                <Footprints className="w-4 h-4 text-[#5D8E38]" />
-                Energi Gerak
-              </span>
-              <span className="text-[11px] bg-white/80 px-2 py-0.5 rounded-md font-extrabold">
-                850 Poin
-              </span>
-            </div>
-            <p className="text-[11px] text-[#555] leading-snug">
-              Butuh tambahan ~240 poin jalan santai sore untuk seimbangkan waktu duduk.
-            </p>
-          </div>
-
-          {/* Pilar Waktu Duduk */}
-          <div className="p-3.5 rounded-2xl bg-[#FFF29A]/30 border border-[#FFF29A] space-y-1.5">
-            <div className="flex items-center justify-between text-xs font-bold text-[#1A1A1A]">
-              <span className="flex items-center gap-1.5">
-                <Armchair className="w-4 h-4 text-[#A8881A]" />
-                Waktu Duduk
-              </span>
-              <span className="text-[11px] bg-white/80 px-2 py-0.5 rounded-md font-extrabold">
-                4.8 Jam
-              </span>
-            </div>
-            <p className="text-[11px] text-[#555] leading-snug">
-              Potensi pegal leher &amp; bahu. Wajib jeda peregangan tiap 50 menit.
-            </p>
-          </div>
-        </div>
-
-        {/* Isotemporal Action Plan Card (Mint Green Card Accent) */}
-        <div className="bg-[#CDE8B5]/35 rounded-2xl p-5 border border-[#CDE8B5] space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">
-              <span>Rencana Sehat &amp; Jeda Aktif Hari Ini</span>
-            </div>
-            <span className="text-xs font-extrabold text-[#1A1A1A] bg-white/80 px-2.5 py-0.5 rounded-lg border border-[#B6DF97]">
-              Misi Harian
-            </span>
-          </div>
-
-          <p className="text-xs sm:text-sm font-semibold text-[#1A1A1A] leading-relaxed">
-            {insight.isotemporalActionPlan}
-          </p>
-
-          <div className="pt-1 flex flex-wrap items-center gap-2 text-xs text-[#1A1A1A] font-bold">
-            <span className="bg-[#CDE8B5] px-2.5 py-1 rounded-lg border border-[#B6DF97]">
-              Target Tambahan: ~{insight.recommendedMetsToday} Poin Gerak
-            </span>
-            <span className="text-[11px] text-[#555] font-normal">
-              (Setara jalan santai ~45 menit atau 2 sesi peregangan aktif)
-            </span>
-          </div>
-
-          {/* Catatan Dasar Riset & Ilmiah */}
-          {insight.scientificCitationNote && (
-            <div className="pt-2 border-t border-[#CDE8B5]/60 flex items-start gap-2 text-[11px] text-[#555] leading-snug">
-              <BookOpen className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#446A27]" />
-              <span>
-                <strong>Dasar Analisis:</strong> {insight.scientificCitationNote}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Completion Claim Button */}
-        <button
-          onClick={handleClaimMission}
-          disabled={completed}
-          className={`w-full py-3.5 rounded-2xl font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer ${
-            completed
-              ? "bg-[#CDE8B5] text-[#1A1A1A] border border-[#B6DF97] shadow-none cursor-default"
-              : "bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
-          }`}
-        >
-          {completed ? (
-            <>
-              <CheckCircle className="w-4 h-4 text-[#1A1A1A]" />
-              Misi Telah Diselesaikan Hari Ini (+50 XP Didapat)
-            </>
-          ) : (
-            <>
-              <Flame className="w-4 h-4 text-[#1A1A1A] fill-[#1A1A1A]" />
-              Selesaikan Misi &amp; Klaim +50 XP
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* 3. Quick Action Shortcuts (Pintasan Aksi Cepat) */}
-      <div className="space-y-3">
-        <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A] flex items-center gap-2">
-          <Compass className="w-4 h-4" />
-          <span>Aksi Cepat Mendukung Misi Hari Ini</span>
-        </h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Shortcut 1: Vision Focus */}
-          <button
-            onClick={onNavigateToFocus}
-            className="learnova-card p-4 text-left border-[#E8E8E8] hover:border-[#1A1A1A] transition-all group flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-9 h-9 rounded-xl bg-[#FFF29A] text-[#1A1A1A] flex items-center justify-center mb-2.5 border border-[#FFE966]">
-                <Armchair className="w-5 h-5" />
+            <div className="space-y-4">
+              {/* Item 1: Beban kuliah */}
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-[#FCE4E6] text-[#E11D48] flex items-center justify-center shrink-0 shadow-2xs">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Beban kuliah</p>
+                  <p className="text-xs text-[#737373] mt-0.5">24 SKS · Pekan ujian</p>
+                </div>
               </div>
-              <h4 className="font-bold text-xs sm:text-sm text-[#1A1A1A]">
-                Sesi Fokus &amp; Postur
-              </h4>
-              <p className="text-[11px] text-[#9A9A9A] mt-1 leading-snug">
-                Deteksi slouching &amp; jeda peregangan anti-curang via kamera AI.
-              </p>
-            </div>
-            <div className="mt-3 flex items-center gap-1 text-[11px] font-bold text-[#1A1A1A] group-hover:translate-x-1 transition-transform">
-              <span>Buka Fokus</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-          </button>
 
-          {/* Shortcut 2: Pedometer */}
-          <button
-            onClick={() => onNavigateToActivity?.("pedometer")}
-            className="learnova-card p-4 text-left border-[#E8E8E8] hover:border-[#1A1A1A] transition-all group flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-9 h-9 rounded-xl bg-[#CDE8B5] text-[#1A1A1A] flex items-center justify-center mb-2.5 border border-[#B6DF97]">
-                <Footprints className="w-5 h-5" />
+              {/* Item 2: Paparan layar */}
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFF29A] text-[#B45309] flex items-center justify-center shrink-0 shadow-2xs">
+                  <Monitor className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Paparan layar</p>
+                  <p className="text-xs text-[#737373] mt-0.5">10 jam · Butuh jeda</p>
+                </div>
               </div>
-              <h4 className="font-bold text-xs sm:text-sm text-[#1A1A1A]">
-                Hitung Langkah HP
-              </h4>
-              <p className="text-[11px] text-[#9A9A9A] mt-1 leading-snug">
-                Pantau jumlah langkah &amp; poin energi jalan kaki di kampus.
-              </p>
-            </div>
-            <div className="mt-3 flex items-center gap-1 text-[11px] font-bold text-[#1A1A1A] group-hover:translate-x-1 transition-transform">
-              <span>Buka Pedometer</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-          </button>
 
-          {/* Shortcut 3: Panic Relief */}
-          <button
-            onClick={onStartPanicRelief}
-            className="learnova-card p-4 text-left border-[#E8E8E8] hover:border-[#1A1A1A] transition-all group flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-9 h-9 rounded-xl bg-[#F7A8B0] text-[#1A1A1A] flex items-center justify-center mb-2.5 border border-[#EE929C]">
-                <HeartPulse className="w-5 h-5" />
+              {/* Item 3: Pemulihan tidur */}
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-[#BDE6F0] text-[#0369A1] flex items-center justify-center shrink-0 shadow-2xs">
+                  <Moon className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Pemulihan tidur</p>
+                  <p className="text-xs text-[#737373] mt-0.5">6 jam dari target 8 jam</p>
+                </div>
               </div>
-              <h4 className="font-bold text-xs sm:text-sm text-[#1A1A1A]">
-                Redakan Panik 60 Detik
-              </h4>
-              <p className="text-[11px] text-[#9A9A9A] mt-1 leading-snug">
-                Pernapasan terpadu 4-7-8 untuk menenangkan detak jantung dan pikiran.
-              </p>
             </div>
-            <div className="mt-3 flex items-center gap-1 text-[11px] font-bold text-[#1A1A1A] group-hover:translate-x-1 transition-transform">
-              <span>Mulai Rileks</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-          </button>
-        </div>
-      </div>
+          </div>
 
-      {/* 4. Konsultasi Tanya AI Coach Interaktif */}
-      <div className="learnova-card p-6 border-[#E8E8E8] space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <HelpCircle className="w-4 h-4 text-[#1A1A1A]" />
-            <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-              Tanya AI Coach (Konsultasi Cepat Kebugaran)
+          {/* CARD 2: Sedikit lebih baik, hari ini. */}
+          <div className="bg-[#F2F8EE] rounded-[1.75rem] p-6 border border-[#E2EED8] space-y-5">
+            <h2 className="font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A]">
+              Sedikit lebih baik, hari ini.
+            </h2>
+
+            <div className="space-y-4">
+              {/* Step 01 */}
+              <div className="flex items-start gap-3.5">
+                <div className="w-9 h-9 rounded-full bg-[#CDE8B5] text-[#1A1A1A] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                  01
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Ambil 2 jeda aktif</p>
+                  <p className="text-xs text-[#737373] mt-0.5 leading-relaxed">
+                    Peregangan singkat di sela tugas.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 02 */}
+              <div className="flex items-start gap-3.5">
+                <div className="w-9 h-9 rounded-full bg-[#CDE8B5] text-[#1A1A1A] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                  02
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Jalan santai 20 menit</p>
+                  <p className="text-xs text-[#737373] mt-0.5 leading-relaxed">
+                    Bergerak tanpa melihat layar.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 03 */}
+              <div className="flex items-start gap-3.5">
+                <div className="w-9 h-9 rounded-full bg-[#CDE8B5] text-[#1A1A1A] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                  03
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Tidur lebih awal</p>
+                  <p className="text-xs text-[#737373] mt-0.5 leading-relaxed">
+                    Tambah 2 jam untuk capai target.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CARD 3: Ruang aman untuk bercerita */}
+          <div className="bg-[#BDE6F0] rounded-[1.75rem] p-6 border border-[#A9DFEC] space-y-2">
+            <div className="w-7 h-7 flex items-center justify-center text-[#1A1A1A]">
+              <ShieldCheck className="w-6 h-6 stroke-[2]" />
+            </div>
+            <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A] pt-0.5">
+              Ruang aman untuk bercerita
             </h3>
-          </div>
-          <span className="text-[11px] text-[#9A9A9A]">
-            Respons Instan &amp; Empatik
-          </span>
-        </div>
-
-        {/* Crisis Gateway 119 Alert Banner if Triggered */}
-        {isCrisisActive && (
-          <div className="p-4 rounded-2xl bg-[#FFF1F2] border border-[#F7A8B0] text-[#9F1239] space-y-2 animate-in zoom-in-95">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 shrink-0 text-[#9F1239]" />
-              <h4 className="font-heading font-extrabold text-xs sm:text-sm">
-                Crisis Gateway 119 &bull; Bantuan Segera Tersedia
-              </h4>
-            </div>
-            <p className="text-xs leading-relaxed">
-              Jika Anda merasa kewalahan atau mengalami keputusasaan mendalam, hubungi Hotline Kesehatan Mental Indonesia di <strong>119 ext. 8</strong> atau akses situs resmi <a href="https://healing119.id" target="_blank" rel="noreferrer" className="underline font-bold">healing119.id</a>. Layanan ini rahasia, bebas pulsa, dan siaga 24 jam.
+            <p className="text-xs text-[#1A1A1A] leading-relaxed">
+              AI Coach bukan diagnosis atau pengganti tenaga profesional. Saat butuh, bantuan manusia
+              selalu penting.
             </p>
-            <div className="pt-1 flex items-center gap-2">
-              <a
-                href="tel:119"
-                className="px-3.5 py-1.5 rounded-xl bg-[#9F1239] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs"
-              >
-                <PhoneCall className="w-3.5 h-3.5" />
-                <span>Telepon Hotline 119</span>
-              </a>
-              <button
-                type="button"
-                onClick={() => setIsCrisisActive(false)}
-                className="text-xs font-semibold text-[#9F1239] hover:underline px-2"
-              >
-                Tutup Peringatan
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Preset FAQ Chips */}
-        <div className="space-y-1.5">
-          <p className="text-[11px] text-[#9A9A9A] font-semibold">
-            Pilih pertanyaan umum mahasiswa:
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {PRESET_QUESTIONS.map((item, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleAskPreset(item.q, item.a)}
-                className="text-[11px] font-medium bg-[#F6F6F6] hover:bg-[#FFF29A] text-[#1A1A1A] px-3 py-1.5 rounded-xl border border-[#E8E8E8] transition-colors text-left"
-              >
-                {item.q}
-              </button>
-            ))}
           </div>
         </div>
 
-        {/* Conversation Stream */}
-        <div className="p-4 rounded-2xl bg-[#F6F6F6] border border-[#E8E8E8] max-h-72 overflow-y-auto space-y-3">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex flex-col ${
-                msg.sender === "user" ? "items-end" : "items-start"
-              }`}
-            >
-              <div
-                className={`max-w-[85%] p-3.5 rounded-2xl text-xs leading-relaxed ${
-                  msg.sender === "user"
-                    ? "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] rounded-br-none font-medium"
-                    : "bg-white text-[#1A1A1A] border border-[#E8E8E8] rounded-bl-none shadow-xs"
-                }`}
-              >
-                {msg.text}
+        {/* --------------------------------------------------------
+            RIGHT COLUMN: CHAT PANEL
+            -------------------------------------------------------- */}
+        <div className="lg:col-span-8 bg-white rounded-[1.75rem] shadow-xs border border-[#F0F0F0] overflow-hidden flex flex-col">
+          {/* Header Chat Panel */}
+          <div className="bg-[#BDE6F0] px-6 py-4 flex items-center justify-between border-b border-[#A9DFEC]">
+            <div className="flex items-center gap-3">
+              <Heart className="w-6 h-6 text-[#1A1A1A] stroke-[2]" />
+              <div>
+                <h3 className="font-heading font-extrabold text-base text-[#1A1A1A] leading-tight">
+                  Wellbeing AI Coach
+                </h3>
+                <p className="text-xs text-[#525252] mt-0.5">Pendamping ritme sehatmu</p>
               </div>
-              <span className="text-[10px] text-[#9A9A9A] mt-1 px-1">
-                {msg.time}
+            </div>
+
+            <span className="px-3.5 py-1.5 rounded-full bg-white/90 text-xs font-semibold text-[#1A1A1A] shadow-2xs">
+              Hari ini
+            </span>
+          </div>
+
+          {/* Chat Messages Body */}
+          <div className="p-6 space-y-5 flex-1 overflow-y-auto max-h-[580px]">
+            {/* Timestamp Separator */}
+            <div className="text-center">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#9A9A9A]">
+                17 NOVEMBER · 17.10
               </span>
             </div>
-          ))}
 
-          {isTyping && (
-            <div className="flex items-center gap-2 text-xs text-[#9A9A9A] italic p-2">
-              <Bot className="w-3.5 h-3.5 animate-spin" />
-              <span>AI Coach sedang merumuskan jawaban...</span>
-            </div>
-          )}
+            {/* Render Messages */}
+            {messages.map((msg) => {
+              const isUser = msg.sender === "user";
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex ${isUser ? "justify-end" : "justify-start"} animate-in fade-in duration-200`}
+                >
+                  <div
+                    className={`text-sm leading-relaxed ${
+                      isUser
+                        ? "bg-[#E5F5D9] text-[#1A1A1A] rounded-2xl sm:rounded-3xl p-4 max-w-lg shadow-2xs"
+                        : "bg-[#F2F2F2] text-[#1A1A1A] rounded-2xl sm:rounded-3xl p-5 max-w-xl shadow-2xs"
+                    }`}
+                  >
+                    {msg.text.replace("Tiara", userName)}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="bg-[#F2F2F2] rounded-2xl px-4 py-3 flex items-center gap-1.5 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-[#9A9A9A] animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-[#9A9A9A] animate-pulse delay-150" />
+                  <span className="w-2 h-2 rounded-full bg-[#9A9A9A] animate-pulse delay-300" />
+                </div>
+              </div>
+            )}
+
+            {/* Crisis / Guardrail 119 Warning Card */}
+            {showCrisisAlert && (
+              <div className="bg-[#FDE2E4] rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-[#F7BFC4] space-y-3.5 animate-in fade-in duration-300">
+                <div className="flex items-center gap-2.5">
+                  <Heart className="w-5 h-5 text-[#1A1A1A] stroke-[2]" />
+                  <h4 className="font-heading font-extrabold text-sm sm:text-base text-[#1A1A1A]">
+                    Keselamatanmu yang paling penting.
+                  </h4>
+                </div>
+
+                <p className="text-xs text-[#525252] leading-relaxed">
+                  Jika kamu merasa tidak aman atau berpikir menyakiti diri, hubungi orang tepercaya dan
+                  bantuan profesional sekarang.
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <a
+                    href="tel:119"
+                    className="inline-flex items-center justify-center bg-[#1A1A1A] hover:bg-black text-white font-bold text-xs py-3 px-5 rounded-2xl transition-colors active:scale-95 shadow-xs"
+                  >
+                    Hubungi 119 · Ekstensi 8
+                  </a>
+                  <a
+                    href="https://healing119.id"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 bg-[#F7A8B0]/70 hover:bg-[#F7A8B0] text-[#1A1A1A] font-bold text-xs py-3 px-5 rounded-2xl transition-colors active:scale-95"
+                  >
+                    <span>healing119.id</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Chat Input Bar */}
+          <div className="px-6 pb-6 pt-2 space-y-2 border-t border-[#F0F0F0]">
+            <form
+              onSubmit={handleSendMessage}
+              className="flex items-center gap-2 bg-white rounded-full border border-[#E0E0E0] pl-5 pr-2 py-2 focus-within:border-[#1A1A1A] transition-colors shadow-2xs"
+            >
+              <input
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Ceritakan yang sedang kamu rasakan..."
+                className="flex-1 bg-transparent text-xs sm:text-sm text-[#1A1A1A] placeholder-[#9A9A9A] focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={!inputText.trim() || isTyping}
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#1A1A1A] hover:bg-black text-white flex items-center justify-center transition-colors active:scale-95 shrink-0 disabled:opacity-40"
+                title="Kirim pesan"
+              >
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+            <p className="text-[11px] text-[#9A9A9A] pl-3">
+              Jika ada bahaya langsung, cari pertolongan darurat terdekat.
+            </p>
+          </div>
         </div>
-
-        {/* Chat Input Box */}
-        <form onSubmit={handleSendCustomQuestion} className="flex gap-2">
-          <input
-            type="text"
-            value={inputQuestion}
-            onChange={(e) => setInputQuestion(e.target.value)}
-            placeholder="Tanyakan hal seputar tidur, rasa lelah, atau tips fokus belajar..."
-            className="flex-1 bg-[#F6F6F6] border border-[#E8E8E8] rounded-2xl px-4 py-2.5 text-xs text-[#1A1A1A] placeholder-[#9A9A9A] focus:outline-none focus:border-[#1A1A1A] transition-colors"
-          />
-          <button
-            type="submit"
-            disabled={!inputQuestion.trim() || isTyping}
-            className="px-4 py-2.5 rounded-2xl bg-[#1A1A1A] hover:bg-[#333] text-white text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-xs"
-          >
-            <span>Kirim</span>
-            <Send className="w-3 h-3" />
-          </button>
-        </form>
       </div>
     </div>
   );

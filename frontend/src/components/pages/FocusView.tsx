@@ -1,35 +1,33 @@
 import React, { useState, useEffect } from "react";
 import {
-  Monitor,
-  Play,
-  Pause,
-  RotateCcw,
+  BookOpen,
   CheckCircle2,
   X,
+  Play,
 } from "lucide-react";
 import { VisionGuard } from "@/components/vision/VisionGuard";
 import { screenTimeTracker } from "@/utils/screenTimeTracker";
 
 export const FocusView: React.FC = () => {
-  // Focus Timer States (Default 25 mins Pomodoro)
+  // Focus Timer States (Default: 25 mins Pomodoro, starting at 18:42 for session 6)
   const [sessionDurationMins, setSessionDurationMins] = useState<number>(25);
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(25 * 60);
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
-  const [completedBouts, setCompletedBouts] = useState<number>(0);
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(18 * 60 + 42); // 18:42
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(true);
+  const [completedBouts, setCompletedBouts] = useState<number>(5);
 
-  // Screen Time Passive State
+  // Passive Screen Time State
   const [screenMinutes, setScreenMinutes] = useState<number>(() =>
-    screenTimeTracker.getTodayScreenTimeMinutes()
+    Math.max(600, screenTimeTracker.getTodayScreenTimeMinutes())
   );
 
-  // Active Break On-Demand Modal State
+  // Active Break Incidental Modal State
   const [isActiveBreakOpen, setIsActiveBreakOpen] = useState<boolean>(false);
   const [activeBreakSuccess, setActiveBreakSuccess] = useState<boolean>(false);
 
   // Update passive screen time every 10 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setScreenMinutes(screenTimeTracker.getTodayScreenTimeMinutes());
+      setScreenMinutes(Math.max(600, screenTimeTracker.getTodayScreenTimeMinutes()));
     }, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -70,173 +68,210 @@ export const FocusView: React.FC = () => {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const progressPct = Math.round(
-    ((sessionDurationMins * 60 - secondsRemaining) / (sessionDurationMins * 60 || 1)) * 100
+  // Circular SVG progress calculation
+  const totalSessionSeconds = sessionDurationMins * 60;
+  const progressPct = Math.min(
+    100,
+    Math.max(
+      0,
+      Math.round(((totalSessionSeconds - secondsRemaining) / totalSessionSeconds) * 100)
+    )
   );
 
+  // Format completed focus duration
+  const totalCompletedMinutes = completedBouts * sessionDurationMins;
+  const formattedFocusHours = `${Math.floor(totalCompletedMinutes / 60)} j ${
+    (totalCompletedMinutes % 60).toString().padStart(2, "0")
+  } m`;
+
+  const radius = 105;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference * (1 - progressPct / 100);
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+    <div className="max-w-4xl mx-auto space-y-6 pb-12 font-sans">
       {/* ========================================================
-          1. HEADER BANNER WITH ZERO CONTINUOUS CAMERA BADGE
+          1. TOP PAGE HEADER
           ======================================================== */}
-      <div className="learnova-card p-6 border-[#E8E8E8] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
-            <Monitor className="w-6 h-6" />
-          </div>
-          <div>
-            <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
-              Workstation Belajar &amp; Active Break
-            </h2>
-            <p className="text-xs text-[#9A9A9A] mt-0.5">
-              Fokus belajar produktif dengan pelacakan layar pasif. Kamera HANYA menyala insidental 2 menit saat jeda.
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => setIsActiveBreakOpen(true)}
-          className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] text-xs font-extrabold transition-colors shadow-xs flex items-center justify-center gap-2"
-        >
-          <Play className="w-4 h-4 fill-[#1A1A1A]" />
-          Mulai Active Break (2 Menit)
-        </button>
+      <div>
+        <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] tracking-tight">
+          Satu hal dalam satu waktu.
+        </h1>
+        <p className="text-sm text-[#737373] mt-2">
+          Beri ruang untuk fokus. Jangan lupa beri waktu untuk pulih.
+        </p>
       </div>
 
       {/* ========================================================
-          2. FOCUS STUDY WORKSTATION (Camera OFF by Default)
+          2. MAIN FOCUS WORKSTATION CARD
           ======================================================== */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-        {/* Left Card: Focus Timer (7 cols) */}
-        <div className="md:col-span-7 learnova-card p-6 flex flex-col justify-between space-y-6">
-          <div className="flex items-center justify-between pb-3 border-b border-[#F0F0F0]">
-            <div>
-              <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-                Timer Sesi Belajar Mandiri
-              </h3>
-              <p className="text-xs text-[#9A9A9A]">Pilih target durasi fokus sebelum jeda aktif</p>
-            </div>
-            <span className="text-xs font-bold text-[#1A1A1A] bg-[#FAFAFA] border border-[#E8E8E8] px-2.5 py-1 rounded-xl">
-              {completedBouts} Sesi Selesai
-            </span>
+      <div className="bg-white rounded-[1.75rem] p-6 sm:p-8 shadow-xs border border-[#F0F0F0] space-y-6 sm:space-y-7">
+        {/* Top Header Row of Card */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <span className="text-xs font-extrabold tracking-wider text-[#525252] uppercase shrink-0">
+            SESI FOKUS
+          </span>
+
+          {/* Preset Duration Switcher */}
+          <div className="bg-[#F0F0F0] p-1 rounded-2xl flex items-center gap-1 shadow-2xs">
+            <button
+              onClick={() => handleSelectPreset(25)}
+              className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                sessionDurationMins === 25
+                  ? "bg-[#FFF29A] text-[#1A1A1A] shadow-2xs"
+                  : "text-[#525252] hover:text-[#1A1A1A]"
+              }`}
+            >
+              25 menit
+            </button>
+            <button
+              onClick={() => handleSelectPreset(50)}
+              className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                sessionDurationMins === 50
+                  ? "bg-[#FFF29A] text-[#1A1A1A] shadow-2xs"
+                  : "text-[#525252] hover:text-[#1A1A1A]"
+              }`}
+            >
+              50 menit
+            </button>
           </div>
 
-          {/* Preset Buttons */}
-          <div className="flex items-center gap-2">
-            {[
-              { label: "Pomodoro (25m)", val: 25 },
-              { label: "Deep Work (50m)", val: 50 },
-              { label: "Sprint (15m)", val: 15 },
-            ].map((p) => (
-              <button
-                key={p.val}
-                onClick={() => handleSelectPreset(p.val)}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all ${
-                  sessionDurationMins === p.val && !isTimerRunning
-                    ? "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] shadow-xs"
-                    : "bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#9A9A9A] border border-[#EEEEEE]"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
+          {/* Privacy Camera Status Badge */}
+          <button
+            onClick={() => setIsActiveBreakOpen(true)}
+            className="px-4 py-1.5 rounded-full bg-[#BDE6F0] hover:bg-[#A8DFEC] text-xs font-semibold text-[#1A1A1A] transition-colors shrink-0"
+            title="Klik jika ingin melakukan jeda peregangan 2 menit dengan validasi AI"
+          >
+            Kamera mati
+          </button>
+        </div>
 
-          {/* Timer Display */}
-          <div className="text-center py-4 space-y-2">
-            <div className="text-6xl sm:text-7xl font-mono font-extrabold text-[#1A1A1A] tracking-tight">
-              {formatTimer(secondsRemaining)}
-            </div>
-            <div className="w-full max-w-xs mx-auto bg-[#F6F6F6] h-2.5 rounded-full overflow-hidden border border-[#E8E8E8]">
-              <div
-                className="bg-[#CDE8B5] h-full transition-all duration-500 rounded-full"
-                style={{ width: `${progressPct}%` }}
+        {/* Circular Countdown Progress Timer (Centered) */}
+        <div className="flex flex-col items-center justify-center my-6 sm:my-8">
+          <div className="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center">
+            {/* SVG Circle */}
+            <svg
+              className="w-full h-full -rotate-90 select-none pointer-events-none"
+              viewBox="0 0 250 250"
+            >
+              {/* Background Track */}
+              <circle
+                cx="125"
+                cy="125"
+                r={radius}
+                fill="none"
+                stroke="#EDF6E8"
+                strokeWidth="11"
               />
-            </div>
-            <p className="text-[11px] text-[#9A9A9A] font-medium pt-1">
-              {isTimerRunning
-                ? "Sesi belajar sedang berlangsung. Kamera laptop tetap MATI."
-                : "Tekan tombol Mulai untuk memulai sesi belajar mandiri."}
-            </p>
-          </div>
+              {/* Active Progress Arc */}
+              <circle
+                cx="125"
+                cy="125"
+                r={radius}
+                fill="none"
+                stroke="#CDE8B5"
+                strokeWidth="11"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                className="transition-all duration-500 ease-linear"
+              />
+            </svg>
 
-          {/* Control Buttons */}
-          <div className="flex items-center justify-center gap-3 pt-2">
-            {!isTimerRunning ? (
-              <button
-                onClick={() => setIsTimerRunning(true)}
-                className="px-6 py-3 rounded-2xl bg-[#1A1A1A] hover:bg-black text-white text-xs font-extrabold transition-all shadow-xs flex items-center gap-2"
-              >
-                <Play className="w-4 h-4 fill-white" />
-                Mulai Sesi Belajar
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsTimerRunning(false)}
-                className="px-6 py-3 rounded-2xl bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] text-xs font-extrabold transition-all border border-[#FFE966] shadow-xs flex items-center gap-2"
-              >
-                <Pause className="w-4 h-4" />
-                Jeda Sesi
-              </button>
-            )}
-            <button
-              onClick={handleResetTimer}
-              className="p-3 rounded-2xl bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#9A9A9A] hover:text-[#1A1A1A] border border-[#EEEEEE] transition-all"
-              title="Reset Timer"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
+            {/* Inner Center Display (Centered vertically & horizontally) */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 select-none">
+              <span className="font-heading font-extrabold text-5xl sm:text-6xl text-[#1A1A1A] tracking-tight tabular-nums leading-none">
+                {formatTimer(secondsRemaining)}
+              </span>
+              <span className="text-xs sm:text-[13px] text-[#737373] mt-3 font-medium">
+                Tetap di sini, satu langkah lagi.
+              </span>
+            </div>
+
+            {/* Bottom Status Pill on the arc */}
+            <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#FFF29A] text-[#1A1A1A] text-xs font-bold px-4 py-1 rounded-full shadow-2xs border border-[#FFE966] select-none">
+              {isTimerRunning
+                ? `Sesi ${completedBouts + 1} · sedang berjalan`
+                : `Sesi ${completedBouts + 1} · siap dimulai`}
+            </div>
           </div>
         </div>
 
-        {/* Right Card: Passive Screen Time & Privacy Notice (5 cols) */}
-        <div className="md:col-span-5 space-y-4 flex flex-col justify-between">
-          {/* Screen Time Metric */}
-          <div className="learnova-card p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#9A9A9A]">Waktu Layar Pasif Hari Ini</span>
+        {/* Selected Course / Task Box */}
+        <div className="w-full max-w-lg mx-auto bg-[#FAFAFA] rounded-2xl p-4 flex items-center gap-3.5 border border-[#F0F0F0]">
+          <div className="w-8 h-8 rounded-xl bg-white border border-[#E8E8E8] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-2xs">
+            <BookOpen className="w-4 h-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-bold text-sm text-[#1A1A1A] leading-tight truncate">
+              Interaksi Manusia &amp; Komputer
+            </p>
+            <p className="text-xs text-[#737373] mt-0.5 truncate">
+              Menyusun wireframe tugas akhir
+            </p>
+          </div>
+        </div>
+
+        {/* Action Control Buttons */}
+        <div className="flex items-center justify-center gap-3 pt-1">
+          <button
+            onClick={() => setIsTimerRunning(!isTimerRunning)}
+            className="py-3 px-8 rounded-2xl bg-[#1A1A1A] hover:bg-black text-white font-extrabold text-xs transition-colors shadow-xs active:scale-95"
+          >
+            {isTimerRunning ? "Jeda sesi" : "Lanjutkan sesi"}
+          </button>
+          <button
+            onClick={handleResetTimer}
+            className="py-3 px-8 rounded-2xl bg-[#F0F0F0] hover:bg-[#E8E8E8] text-[#1A1A1A] font-bold text-xs transition-colors active:scale-95"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+
+      {/* ========================================================
+          3. BOTTOM METRIC CARD: RITME FOKUS HARI INI
+          ======================================================== */}
+      <div className="bg-white rounded-[1.75rem] p-6 sm:p-7 shadow-xs border border-[#F0F0F0] space-y-4">
+        <h3 className="font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A]">
+          Ritme fokus hari ini
+        </h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-1">
+          {/* Total sesi selesai */}
+          <div>
+            <div className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A] tracking-tight">
+              {formattedFocusHours}
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
-                {Math.floor(screenMinutes / 60)}
-                <span className="text-sm font-semibold text-[#9A9A9A] ml-1">Jam</span>
-              </span>
-              <span className="text-2xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
-                {screenMinutes % 60}
-                <span className="text-sm font-semibold text-[#9A9A9A] ml-1">Mnt</span>
-              </span>
-            </div>
-            <p className="text-[11px] text-[#9A9A9A] leading-relaxed">
-              Dilacak secara otomatis oleh browser saat tab CampusFlow aktif, tanpa perlu menyalakan webcam.
+            <p className="text-xs text-[#737373] mt-1 font-medium">
+              Total sesi selesai
             </p>
           </div>
 
-          {/* Active Break Quick Trigger Card */}
-          <div className="bg-[#FFF29A] rounded-3xl p-5 text-[#1A1A1A] border border-[#FFE966] shadow-softPill space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold">
-                Kamera Insidental 2 Menit
-              </span>
-              <span className="text-[10px] font-extrabold bg-white px-2 py-0.5 rounded-full shadow-xs">
-                +10 Poin
-              </span>
+          {/* Pomodoro selesai */}
+          <div>
+            <div className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A] tracking-tight">
+              {completedBouts} sesi
             </div>
-            <p className="text-xs text-[#1A1A1A]/80 font-medium">
-              Cegah leher kaku dan mata lelah dengan validasi pose peregangan overhead reach.
+            <p className="text-xs text-[#737373] mt-1 font-medium">
+              Pomodoro selesai
             </p>
-            <button
-              onClick={() => setIsActiveBreakOpen(true)}
-              className="w-full mt-2 py-2 px-3 rounded-xl bg-white hover:bg-[#FAFAFA] text-[#1A1A1A] text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5"
-            >
-              <Play className="w-3.5 h-3.5 fill-[#1A1A1A]" />
-              Buka Validator Active Break
-            </button>
+          </div>
+
+          {/* Waktu layar pasif */}
+          <div>
+            <div className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A] tracking-tight">
+              {Math.floor(screenMinutes / 60)} jam
+            </div>
+            <p className="text-xs text-[#737373] mt-1 font-medium">
+              Waktu layar pasif
+            </p>
           </div>
         </div>
       </div>
 
       {/* ========================================================
-          3. ACTIVE BREAK 2-MINUTE ON-DEMAND MODAL
+          4. ACTIVE BREAK 2-MINUTE ON-DEMAND MODAL
           ======================================================== */}
       {isActiveBreakOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">

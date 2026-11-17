@@ -14,20 +14,43 @@ import {
   Send,
   CheckCircle2,
   HelpCircle,
+  LogIn,
+  UserPlus,
 } from "lucide-react";
+import { AuthModal } from "@/components/auth/AuthModal";
+import type { UserProfileDTO } from "@/types";
 
 interface LandingPageProps {
   onEnterApp: () => void;
+  onLoginSuccess?: (user: UserProfileDTO) => void;
 }
 
 type LandingNav = "home" | "courses" | "about" | "contact";
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuccess }) => {
   const [activeNav, setActiveNav] = useState<LandingNav>("home");
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Sign in / Sign up Modal State
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authInitialTab, setAuthInitialTab] = useState<"login" | "register">("login");
+
+  const handleOpenAuth = (defaultTab: "login" | "register" = "login") => {
+    setAuthInitialTab(defaultTab);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleAuthSuccess = (user: UserProfileDTO) => {
+    setIsAuthModalOpen(false);
+    if (onLoginSuccess) {
+      onLoginSuccess(user);
+    } else {
+      onEnterApp();
+    }
+  };
 
   // Contact form state
   const [contactName, setContactName] = useState("");
@@ -195,17 +218,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#8ED6DB] via-[#A6E1E6] to-[#CDE8B5] font-sans scroll-smooth flex flex-col items-center">
+    <div className="min-h-screen bg-white font-sans scroll-smooth flex flex-col">
       {/* ========================================================
           TOP NAVIGATION BAR (FIXED AT THE VERY TOP OF SCREEN)
           ======================================================== */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E8E8E8] shadow-xs">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#FDF0F2]/95 backdrop-blur-md border-b border-[#F7D6DC] shadow-xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between">
           {/* Left Brand & Mobile Menu Toggle */}
           <div className="flex items-center gap-3 sm:gap-4">
             <button
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="md:hidden p-2 rounded-xl hover:bg-[#F6F6F6] text-[#1A1A1A] transition-colors focus:outline-none"
+              className="md:hidden p-2 rounded-xl hover:bg-white/80 text-[#1A1A1A] transition-colors focus:outline-none"
               title="Menu Navigasi"
               aria-label="Toggle menu navigasi"
               aria-expanded={mobileMenuOpen}
@@ -240,7 +263,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   className={`px-4 py-1.5 rounded-full uppercase transition-all duration-200 ${
                     isActive
                       ? "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] font-extrabold shadow-xs scale-105"
-                      : "text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#F6F6F6]"
+                      : "text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-white/80"
                   }`}
                 >
                   {navKey}
@@ -249,13 +272,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             })}
           </nav>
 
-          {/* Right Action Button */}
+          {/* Right Action Buttons: Masuk (Login) & Daftar (Register) */}
           <div className="flex items-center gap-2">
             <button
-              onClick={onEnterApp}
-              className="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] transition-colors shadow-xs border border-[#B6DF97] active:scale-95 shrink-0 flex items-center gap-1.5 group"
+              onClick={() => handleOpenAuth("login")}
+              className="px-3.5 py-1.5 rounded-full text-xs font-bold text-[#1A1A1A] hover:bg-white/80 transition-colors border border-transparent hover:border-[#F7D6DC] active:scale-95 flex items-center gap-1.5"
+              title="Masuk ke Akun Mahasiswa"
             >
-              <span>Sign up / Masuk</span>
+              <LogIn className="w-3.5 h-3.5 text-[#1A1A1A]" />
+              <span>Masuk</span>
+            </button>
+            <button
+              onClick={() => handleOpenAuth("register")}
+              className="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] transition-colors shadow-xs border border-[#B6DF97] active:scale-95 shrink-0 flex items-center gap-1.5 group"
+              title="Daftar Akun Mahasiswa Baru"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Daftar</span>
               <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
             </button>
           </div>
@@ -264,7 +297,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
       {/* Mobile Navigation Dropdown (Fixed under top navbar) */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed top-[61px] left-0 right-0 z-40 px-4 py-3 bg-white/98 backdrop-blur-md border-b border-[#E8E8E8] shadow-md transition-all animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="md:hidden fixed top-[61px] left-0 right-0 z-40 px-4 py-3 bg-[#FDF0F2]/98 backdrop-blur-md border-b border-[#F7D6DC] shadow-md transition-all animate-in fade-in slide-in-from-top-2 duration-150">
           <nav className="flex flex-col gap-1 text-xs font-bold tracking-wider text-[#1A1A1A] max-w-6xl mx-auto">
             {(["home", "courses", "about", "contact"] as const).map((navKey) => {
               const isActive = activeNav === navKey;
@@ -278,21 +311,44 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                   className={`py-2 px-3 rounded-xl text-left uppercase transition-colors ${
                     isActive
                       ? "bg-[#FFF29A] text-[#1A1A1A] font-extrabold border border-[#FFE966]"
-                      : "text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#F6F6F6]"
+                      : "text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-white/80"
                   }`}
                 >
                   {navKey}
                 </button>
               );
             })}
+            <div className="pt-2 mt-1 border-t border-[#F7D6DC] flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleOpenAuth("login");
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-white/90 text-[#1A1A1A] font-bold text-center text-xs flex items-center justify-center gap-2 border border-[#E8E8E8] shadow-xs active:scale-95"
+              >
+                <LogIn className="w-3.5 h-3.5 text-[#1A1A1A]" />
+                <span>Masuk (Login)</span>
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleOpenAuth("register");
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] font-bold text-center text-xs flex items-center justify-center gap-2 shadow-xs border border-[#B6DF97] active:scale-95"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Daftar Akun (Register)</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </nav>
         </div>
       )}
 
-      {/* Main Content Area (With pt-20 to clear fixed navbar) */}
-      <main className="w-full pt-20 sm:pt-24 pb-12 px-3 sm:px-6 lg:px-8 flex flex-col items-center">
-        {/* Main White Desktop Mockup Window (Single Continuous Flowing Page) */}
-        <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-6xl mx-auto border border-white/60 relative flex flex-col overflow-hidden">
+      {/* Main Content Area (Full width with pt-16 sm:pt-20 to clear fixed navbar) */}
+      <main className="w-full pt-16 sm:pt-20 flex-1 flex flex-col">
+        {/* Main Single Continuous Flowing Page Container */}
+        <div className="w-full max-w-6xl mx-auto flex flex-col flex-1">
 
         {/* ========================================================
             1. HOME / HERO SECTION
@@ -362,6 +418,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <Bot className="w-3.5 h-3.5" /> Wellbeing AI Coach
               </button>
             </div>
+
+            {/* Action CTA: Register & Login Buttons */}
+            <div className="flex flex-wrap items-center gap-3 pt-3">
+              <button
+                onClick={() => handleOpenAuth("register")}
+                className="px-5 py-2.5 rounded-full bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] font-extrabold text-xs transition-colors shadow-xs border border-[#B6DF97] active:scale-95 flex items-center gap-2 group"
+                title="Mulai Mendaftar Akun Mahasiswa"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Daftar Akun Mahasiswa (Register)</span>
+                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+              </button>
+              <button
+                onClick={() => handleOpenAuth("login")}
+                className="px-5 py-2.5 rounded-full bg-white hover:bg-[#FAFAFA] text-[#1A1A1A] font-bold text-xs transition-colors shadow-xs border border-[#E8E8E8] active:scale-95 flex items-center gap-2"
+                title="Masuk Menggunakan Akun yang Sudah Ada"
+              >
+                <LogIn className="w-4 h-4 text-[#9A9A9A]" />
+                <span>Masuk ke Akun (Login)</span>
+              </button>
+            </div>
           </div>
 
           {/* RIGHT COLUMN: Brain Study Laptop Illustration */}
@@ -424,7 +501,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
                 <div className="pt-4 mt-5 border-t border-black/5 flex items-center justify-end">
                   <button
-                    onClick={onEnterApp}
+                    onClick={() => handleOpenAuth("register")}
                     className="px-4 py-2 rounded-full bg-white hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] font-bold text-xs transition-colors active:scale-95 flex items-center gap-1.5 border border-black/10 shadow-xs group/btn"
                   >
                     <span>Ikuti Modul</span>
@@ -708,20 +785,53 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </div>
         </section>
 
+        </div>
+
         {/* ========================================================
             5. FOOTER SECTION
             ======================================================== */}
-        <footer className="px-6 sm:px-12 py-5 flex items-center justify-end border-t border-[#F6F6F6] text-xs bg-[#FAFAFA] rounded-b-[2.5rem] shrink-0">
-          <button
-            onClick={onEnterApp}
-            className="text-[#1A1A1A] font-extrabold hover:underline flex items-center gap-1.5 text-xs transition-colors active:scale-95"
-          >
-            <span>Masuk Dashboard</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+        <footer className="w-full border-t border-[#F0F0F0] text-xs bg-[#FAFAFA] shrink-0 mt-8">
+          <div className="max-w-6xl mx-auto px-6 sm:px-12 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5 text-[#9A9A9A]">
+              <div className="w-8 h-8 rounded-xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shadow-xs">
+                <GraduationCap className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-heading font-extrabold text-sm text-[#1A1A1A] block">
+                  CampusFlow
+                </span>
+                <span className="text-[11px] text-[#9A9A9A]">
+                  &copy; 2026 Academic Strava &amp; Predictive Wellbeing
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => handleOpenAuth("login")}
+                className="text-[#1A1A1A] font-bold hover:underline flex items-center gap-1.5 text-xs transition-colors active:scale-95"
+              >
+                <LogIn className="w-3.5 h-3.5 text-[#9A9A9A]" />
+                <span>Masuk (Login)</span>
+              </button>
+              <button
+                onClick={() => handleOpenAuth("register")}
+                className="px-4 py-2 rounded-full bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] font-extrabold text-xs transition-colors shadow-xs border border-[#B6DF97] active:scale-95 flex items-center gap-1.5"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Daftar Akun Baru</span>
+              </button>
+            </div>
+          </div>
         </footer>
-      </div>
-    </main>
-  </div>
-);
+      </main>
+
+      {/* Sign In & Sign Up Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+        defaultTab={authInitialTab}
+      />
+    </div>
+  );
 };

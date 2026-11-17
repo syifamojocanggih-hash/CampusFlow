@@ -610,9 +610,6 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   Perbandingan Burnout Index vs Skor Pemulihan
                 </p>
               </div>
-              <span className="text-[10px] font-extrabold text-[#1A1A1A] bg-[#FFF29A] px-2.5 py-0.5 rounded-full shadow-xs">
-                Strava View
-              </span>
             </div>
 
             <div className="h-48 w-full pt-2">

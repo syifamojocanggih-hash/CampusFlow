@@ -21,6 +21,222 @@
 
 ---
 
+## [2026-11-17] — Implementasi Pusat Notifikasi Interaktif & Pengingat Aktivitas Kampus (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.41`
+- **Ringkasan:** 
+  1. **Komponen Pusat Notifikasi (`NotificationPopover.tsx`):**
+     - Membangun popover panel floating interaktif dengan tema *Fresh Pastel Health* yang dapat diakses langsung dari tombol lonceng navigasi.
+     - Menyediakan indikator badge counter dinamis berwarna merah muda `#F7A8B0` saat terdapat notifikasi belum dibaca.
+     - Menyediakan tab filter **Semua** dan **Belum Dibaca** beserta tombol **Tandai Dibaca** secara massal (*mark all as read*).
+     - Menghubungkan setiap notifikasi dengan aksi langsung (*actionable direct link*):
+       - Notifikasi Active Break: langsung mengarahkan ke tab `focus` (Workstation & Jeda).
+       - Notifikasi Pekan Ujian UAS: langsung mengarahkan ke tab `dashboard` (Strava Akademik).
+       - Notifikasi AI Coach: langsung mengarahkan ke tab `coach`.
+       - Notifikasi Streak Mimi Pet (+50 XP): langsung mengarahkan ke tab `profile`.
+     - Menyediakan fitur hapus per-notifikasi dan tombol **"Simulasi Notifikasi Masuk (+ Baru)"** untuk pengujian langsung oleh pengguna.
+     - Menyimpan status baca/hapus secara persisten di `localStorage` (`cf_notifications`).
+  2. **Integrasi Bilah Navigasi (`Navbar.tsx`):**
+     - **Desktop Header (`DesktopTopHeader`):** Tombol lonceng kini membuka popover mengambang yang responsif dengan efek klik luar (*click outside to close*).
+     - **Mobile Header (`MobileHeader`):** Menyematkan tombol lonceng notifikasi di samping avatar pengguna agar fitur dapat digunakan penuh pada layar ponsel pintar.
+- **Daftar File Diubah:**
+  - `frontend/src/components/notifications/NotificationPopover.tsx` (baru)
+  - `frontend/src/components/Navbar.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` sukses memvalidasi zona kerja branch `frontend`.
+
+---
+
+## [2026-11-17] — Redesain Timer Sesi Fokus & Kerapian Lingkaran Hijau Workstation (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.40`
+- **Ringkasan:** 
+  1. **Header Halaman Fokus (`FocusView.tsx`):**
+     - Mengubah judul menjadi *"Satu hal dalam satu waktu."* dan subjudul *"Beri ruang untuk fokus. Jangan lupa beri waktu untuk pulih."*
+  2. **Kartu Utama Workstation Timer Sesuai Referensi Visual:**
+     - Menata header kartu dengan label uppercase `SESI FOKUS`, switcher durasi preset `25 menit` (aktif warna kuning `#FFF29A`) / `50 menit`, dan badge privasi `Kamera mati` warna biru muda `#BDE6F0`.
+     - **Pemusatan Lingkaran & Teks Timer (*Perfect Centering*):**
+       - Menghitung ulang koordinat SVG lingkaran progress (`stroke-[#CDE8B5]` dengan track background `#EDF6E8`) di tengah container `viewBox 0 0 250 250` pada radius 105.
+       - Teks countdown (default `18:42`) dan subteks *"Tetap di sini, satu langkah lagi."* diposisikan presisi di titik pusat lingkaran menggunakan flexbox centering dan font `tabular-nums` agar tidak ada pergeseran angka saat countdown berjalan.
+       - Meletakkan pill kuning status sesi *"Sesi 6 · sedang berjalan"* rapi tepat di tepi bawah lingkaran.
+     - **Kotak Mata Kuliah:** Menampilkan detail tugas aktif *"Interaksi Manusia & Komputer — Menyusun wireframe tugas akhir"*.
+     - **Tombol Kontrol:** Tombol utama hitam *"Jeda sesi"* dan tombol sekunder abu-abu *"Reset"*.
+  3. **Kartu Statistik Bawah ("Ritme fokus hari ini"):**
+     - Menyajikan metrik 3 kolom rapi: *2 j 05 m Total sesi selesai*, *5 sesi Pomodoro selesai*, dan *10 jam Waktu layar pasif*.
+  4. **Active Break On-Demand:**
+     - Modal jeda aktif 2 menit dengan validasi pose kamera laptop (`VisionGuard`) tetap terintegrasi aman saat sesi selesai atau dibuka melalui badge status kamera.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` sukses validasi batasan scope kerja.
+
+---
+
+## [2026-11-17] — Redesain Penuh Halaman AI Coach Sesuai Referensi Visual (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.39`
+- **Ringkasan:** 
+  1. **Header Halaman Empatik (`CoachView.tsx`):**
+     - Mengubah judul utama menjadi *"Kamu tidak sendirian."* dengan tipografi tebal kontras dan subjudul *"Kenali kebutuhan tubuh dan pikiranmu bersama Wellbeing AI Coach."*.
+  2. **Kolom Kiri 3 Kartu Kontekstual Mahasiswa:**
+     - **Kartu 1 ("Cerita tubuhmu hari ini"):** Menampilkan 3 pilar metrik harian dengan ikon kontainer pastel: Beban kuliah (24 SKS · Pekan ujian) berikon merah muda, Paparan layar (10 jam · Butuh jeda) berikon kuning, dan Pemulihan tidur (6 jam dari target 8 jam) berikon biru muda.
+     - **Kartu 2 ("Sedikit lebih baik, hari ini."):** Berlatar hijau pastel lembut `#F2F8EE` dengan 3 nomor pill `01`, `02`, `03` (Ambil 2 jeda aktif, Jalan santai 20 menit, dan Tidur lebih awal).
+     - **Kartu 3 ("Ruang aman untuk bercerita"):** Berlatar biru muda `#BDE6F0` dengan ikon perisai (`ShieldCheck`) menegaskan privasi dan etika pendamping non-medis.
+  3. **Panel Chat Interaktif & Safety Guardrail:**
+     - Header bilah atas warna `#BDE6F0` dengan ikon hati, nama bot, subjudul *"Pendamping ritme sehatmu"*, serta badge *"Hari ini"*.
+     - Tata letak balon pesan persis gambar: pesan AI berlatar abu-abu netral `#F2F2F2` dan pesan mahasiswa berlatar hijau pastel `#E5F5D9` di sisi kanan.
+     - Banner keselamatan krisis *"Keselamatanmu yang paling penting."* berlatar pink lembut `#FDE2E4` dengan tombol aksi telepon darurat *"Hubungi 119 · Ekstensi 8"* dan tautan rujukan *"healing119.id ↗"*.
+     - Bilah input pesan melengkung rapi (*pill shape*) dengan tombol kirim panah hitam bulat dan teks jaminan bantuan darurat di bagian bawah.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` sukses tanpa error TypeScript.
+  - `npm run test:frontend` lulus 13/13 tes unit.
+  - `npm run test:shared` lulus 5/5 tes unit.
+  - `npm run guard` sukses memvalidasi zona kerja branch `frontend`.
+
+---
+
+## [2026-11-17] — Pemisahan Tombol & Penyempurnaan Alur Penuh Masuk (Login) dan Daftar (Register) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.38`
+- **Ringkasan:** 
+  1. **Pemisahan Tombol Masuk (Login) & Daftar (Register) pada Navigasi (`LandingPage.tsx`):**
+     - Memisahkan tombol gabungan menjadi dua tombol terpisah yang jelas pada header desktop: tombol teks/ghost **Masuk** (`LogIn` icon) dan tombol pill pastel hijau **Daftar** (`UserPlus` icon).
+     - Menyediakan dua tombol terpisah pada drawer navigasi mobile untuk pengalaman pengguna perangkat sentuh.
+     - Menambahkan Action Bar CTA terdedikasi pada Hero Section: **Daftar Akun Mahasiswa (Register)** dan **Masuk ke Akun (Login)**.
+     - Menyediakan tombol Masuk dan Daftar terpisah pada footer bawah.
+  2. **Penyempurnaan Reaktivitas & Fitur Modal (`AuthModal.tsx`):**
+     - Menambahkan hook `useEffect` agar state tab modal selalu sinkron secara reaktif dengan parameter tombol pemicu (`login` vs `register`).
+     - Menambahkan fitur intip/sembunyikan password (`Eye` / `EyeOff`) pada form Masuk dan form Daftar.
+     - Menambahkan tautan silang instan di bawah setiap form: *"Belum memiliki akun? Daftar di sini"* dan *"Sudah memiliki akun? Masuk di sini"*.
+  3. **Manajemen Sesi Logout (`App.tsx`):**
+     - Mengintegrasikan fungsi `handleLogout` yang membersihkan auth token di `localStorage` dan mereset data profil pengguna ketika kembali ke Landing Page.
+- **Daftar File Diubah:**
+  - `frontend/src/components/auth/AuthModal.tsx`
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `frontend/src/App.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` sukses validasi batasan scope kerja.
+
+---
+
+## [2026-11-17] — Implementasi Modal Autentikasi Interaktif (Sign In & Sign Up) Landing Page (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.37`
+- **Ringkasan:** 
+  1. **Komponen Modal Autentikasi Interaktif (`AuthModal.tsx`):**
+     - Membangun modal autentikasi pop-up elegan dengan backdrop blur (`bg-black/40 backdrop-blur-xs`) dan animasi buka/tutup halus.
+     - Menyediakan tab switcher ramah pengguna: **Masuk (Sign In)** dan **Daftar (Sign Up)** dengan aksen warna aktif `#FFF29A`.
+     - Form Sign In dilengkapi field Email Kampus (`Mail`), Password (`Lock`), toggle visibilitas sandi, submit button `#CDE8B5`, dan fitur pintas **"Masuk Cepat (Akun Demo Mahasiswa)"** untuk eksplorasi instan tanpa input manual.
+     - Form Sign Up dilengkapi Nama Lengkap (`User`), NIM (`Hash`), Program Studi (`BookOpen`), Email Kampus, dan Password dengan validasi kelengkapan data.
+  2. **Integrasi Klien API Autentikasi (`api.ts`):**
+     - Mengimplementasikan fungsi `login(email, password)`, `register(payload)`, dan `loginDemo()` yang terintegrasi dengan penyimpanan token dan profil di `localStorage` (`cf_auth_token`, `cf_user_profile`) serta siap tersambung ke backend API.
+  3. **Wiring Tombol Landing Page & State App (`LandingPage.tsx` & `App.tsx`):**
+     - Menghubungkan tombol "Sign up / Masuk" di navbar utama, menu hamburger mobile, tombol modul kursus, dan footer ke pembukaan `AuthModal`.
+     - Menyambungkan callback `onLoginSuccess` ke `App.tsx` agar state profil pengguna langsung terisi dinamis ke seluruh panel dashboard.
+- **Daftar File Diubah:**
+  - `frontend/src/components/auth/AuthModal.tsx` (baru)
+  - `frontend/src/lib/api.ts`
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `frontend/src/App.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` sukses tanpa error TypeScript.
+  - `npm run test:frontend` lulus 13/13 unit test.
+  - `npm run test:shared` lulus 5/5 unit test.
+  - `npm run guard` lulus validasi scope kerja monorepo.
+
+---
+
+## [2026-11-17] — Pembaruan Warna Background Navbar Landing Page (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.36`
+- **Ringkasan:** 
+  1. **Warna Navbar Pastel Blush Pink (`LandingPage.tsx`):**
+     - Mengubah warna latar belakang header navigasi atas Landing Page menjadi soft pastel blush pink (`bg-[#FDF0F2]/95 backdrop-blur-md`) sesuai sampel warna foto 1 (`#FDF0F2`).
+     - Menyelaraskan warna border pemisah menjadi `#F7D6DC` dan memperbarui menu dropdown mobile (`bg-[#FDF0F2]/98 border-b border-[#F7D6DC]`).
+     - Memperbarui efek hover item navigasi desktop dan mobile menjadi `hover:bg-white/80` yang kontras dan lembut di atas latar `#FDF0F2`.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-17] — Transformasi Landing Page Full-Width & Penghapusan Background Gradient Biru (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.35`
+- **Ringkasan:** 
+  1. **Landing Page Full-Width Edge-to-Edge (`LandingPage.tsx`):**
+     - Mengubah arsitektur layout Landing Page dari tampilan bingkai kartu melayang (*floating mockup container*) dengan sudut membulat tebal (`rounded-[2.5rem] shadow-2xl`) menjadi tata letak halaman web penuh (*full-width edge-to-edge*).
+     - Menghapus latar belakang gradient cyan/biru (`bg-gradient-to-br from-[#8ED6DB] via-[#A6E1E6] to-[#CDE8B5]`) yang sebelumnya membingkai konten di belakang kartu, menggantinya dengan latar belakang putih bersih (`bg-white`).
+     - Menyusun seksi berurutan (#home, #courses, #about, #contact) di dalam container terpusat `max-w-6xl mx-auto` yang mengalir mulus tanpa celah tepi atau shadow tebal yang membebani mata.
+     - Memperbarui footer menjadi bilah penuh (*full-width border-t*) dengan identitas brand CampusFlow di sisi kiri dan tombol cepat masuk dashboard di sisi kanan.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
+## [2026-11-17] — Pembuatan Dokumen Desain Sistem & Arsitektur UI/UX Master (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.34`
+- **Ringkasan:** 
+  1. **Penyusunan Dokumen Desain Master `desain.md`:**
+     - Menyusun dokumen spesifikasi desain sistem dan arsitektur UI/UX komprehensif (`desain.md` di root dan `docs/frontend/desain.md`) selaras dengan PRD v4.0.
+     - Merangkum 9 bab utama: Visi & Positioning Produk (*Academic Strava*), Filosofi Desain *Fresh Pastel Health* (Token `#CDE8B5`, `#FFF29A`, `#F7A8B0`, `#BDE6F0`, `#1A1A1A`), Formulasi Matematis Algoritma Burnout Risk Index (0–100), Arsitektur Privasi *Zero Continuous Camera*, Peta Halaman & Alur Pengguna (Landing Page, Triad Dashboard, Focus View, Coach View, Profile View, History View), Fitur Maskot Interaktif Mimi (Draggable, Customizable Name, Audio Synth, 4 Tahap Evolusi), Arsitektur Teknis Frontend & PWA, Standar Aksesibilitas WCAG AA & Anti-Slop, serta Tata Kelola 3-Branch Monorepo.
+- **Daftar File Diubah:**
+  - `desain.md` (baru)
+  - `docs/frontend/desain.md` (baru)
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Catatan Cross-Scope:** `[CROSS-SCOPE] desain.md` — Pembuatan dokumen desain master repositori di root project atas instruksi eksplisit pengguna, dilengkapi salinan di `docs/frontend/desain.md`.
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi monorepo dengan cross-scope advisory tercatat resmi.
+
+---
+
+## [2026-11-17] — Pembersihan Badge Status AI Coach, Diagnosis Kebugaran & Pill View (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.33`
+- **Ringkasan:** 
+  1. **Hapus Badge Pill "Aktif Hari Ini" & "Ollama Local AI • Guardrail 119" (`CoachView.tsx`):**
+     - Menghapus sepasang badge pill status pada header Wellbeing AI Coach (Foto 1) agar judul header lebih bersih dan fokus.
+  2. **Hapus Badge Pill "DIAGNOSIS KEBUGARAN" & Subjudul Analisis (`CoachView.tsx`):**
+     - Menghapus label kuning "Diagnosis Kebugaran" beserta teks deskripsi "Analisis Komprehensif Triad Mahasiswa" (Foto 2) sehingga ringkasan diagnosa utama langsung ditampilkan tanpa label redundan.
+  3. **Hapus Badge Pill "4/4 Terbuka" (`HistoryView.tsx`):**
+     - Menghapus badge pill kuning pada kartu "Lencana Pencapaian (Badges)" (Foto 3).
+  4. **Hapus Badge Pill "Strava View" (`TriadDashboard.tsx`):**
+     - Menghapus badge pill kuning pada kartu grafik tren burnout & pemulihan 14 hari (Foto 4).
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `frontend/src/components/pages/HistoryView.tsx`
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 unit test lolos).
+  - `npm run test:shared` (5/5 unit test lolos).
+  - `npm run guard` lolos validasi monorepo.
+
+---
+
 ## [2026-11-16] — Pembersihan Kartu Pitching CCTV, Badge Distres/API & Ikon Dekoratif (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.32`
 - **Ringkasan:** 
