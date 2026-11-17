@@ -21,6 +21,82 @@
 
 ---
 
+## [2026-11-17] — Implementasi Fitur Rekomendasi Chat Bergaya Meta AI pada AI Coach (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.45`
+- **Ringkasan:** 
+  1. **Kartu Rekomendasi Chat Vertikal (`CoachView.tsx`):**
+     - Menambahkan 5 kartu rekomendasi obrolan bergaya Meta AI (kartu putih rounded, ikon di kiri, teks ramah, dan transisi hover tanpa translasi Y) sesuai referensi tangkapan layar `media_1794888200440_6058eb62.jpg`:
+       - 📖 *"Saya ingin bantuan terkait tugas dan beban kuliah"*
+       - ⏱ *"Saya ingin mengatur jadwal belajar dan istirahat seimbang"*
+       - 🖥 *"Saya butuh saran peregangan leher dan mata lelah"*
+       - 🌙 *"Saya ingin memulihkan kualitas tidur malam ini"*
+       - ✨ *"Saya butuh saran untuk menenangkan pikiran saat stres"*
+  2. **Hero State Awal / Sesi Baru dengan Spiral Motif:**
+     - Menghadirkan logo motif spiral Meta AI bersama sapaan waktu dinamis (*"Selamat pagi/siang/sore/malam, {userName}"*) ketika percakapan baru dimulai atau setelah menekan tombol *"Sesi Baru"*.
+  3. **Drawer & Toggle Rekomendasi Cepat:**
+     - Pengguna dapat membuka atau menyembunyikan kartu rekomendasi kapan saja melalui tombol header *"Rekomendasi"* maupun pill pintasan di atas input chat.
+  4. **Respons Interaktif Otomatis:**
+     - Mengklik kartu rekomendasi langsung mengirim prompt ke thread obrolan, memicu efek mengetik real-time, memberikan jawaban empati berbasis manajemen burnout/ergonomi, dan mengarahkan auto-scroll ke pesan terbaru.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Pembersihan Filter/Deskripsi Notifikasi dan Pembatasan Header Greeting Dashboard (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.44`
+- **Ringkasan:** 
+  1. **Pembersihan Header & Tab Filter Notifikasi (`NotificationPopover.tsx` — Foto 1):**
+     - Menghapus subjudul teks *"Aktivitas, jeda & ritme akademik"* dan bilah filter tab *"Semua / Belum Dibaca"* pada popover notifikasi agar popover lebih ringkas dan tidak memakan ruang vertikal berlebih.
+  2. **Penyederhanaan Teks Isi Notifikasi (`NotificationPopover.tsx` — Foto 2):**
+     - Menghapus paragraf pesan deskripsi (`notif.message`, seperti *"Layar telah aktif lebih dari 45 menit. Tarik bahu ke belakang dan lakukan regangan leher."*) dari setiap kartu notifikasi sehingga item hanya menyajikan judul utama, penanda belum dibaca, waktu, dan tautan aksi secara bersih.
+  3. **Pembatasan Greeting Header Khusus Dashboard (`Navbar.tsx` — Foto 3):**
+     - Mengatur tampilan sapaan *"Hello, Mahasiswa! 👋 Your boards look so good! Let's keep the active momentum."* pada `DesktopTopHeader` dan `MobileHeader` agar hanya muncul pada halaman Dashboard (`activeTab === "dashboard"`). Pada halaman lain (Focus, Vision Lab, AI Coach, dll.) sapaan disembunyikan sehingga tidak bertumpuk dengan judul masing-masing halaman.
+- **Daftar File Diubah:**
+  - `frontend/src/components/notifications/NotificationPopover.tsx`
+  - `frontend/src/components/Navbar.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Penghapusan 5 Elemen Antarmuka Berdasarkan Permintaan Visual Pengguna (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.43`
+- **Ringkasan:** 
+  1. **Penghapusan Badge Kamera Aktif (`FocusView.tsx`):**
+     - Menghapus badge hijau `Kamera Aktif` pada header modal Active Break sesuai referensi foto 1.
+  2. **Penghapusan Status Sesi & Kotak Tugas Kuliah (`FocusView.tsx`):**
+     - Menghapus pill status kuning `Sesi 6 · sedang berjalan` pada tepi busur lingkaran timer.
+     - Menghapus kotak penugasan mata kuliah `Interaksi Manusia & Komputer — Menyusun wireframe tugas akhir` sesuai referensi foto 2.
+  3. **Penghapusan Banner Krisis Pink (`CoachView.tsx`):**
+     - Menghapus kartu peringatan krisis berlatar pink *"Keselamatanmu yang paling penting."* beserta tombol Hotline 119 dan tautan healing119.id sesuai referensi foto 3.
+  4. **Penghapusan Badge Target Sehat (`HistoryView.tsx`):**
+     - Menghapus badge hijau pill `{row.triadPillarsMet}/3 Target Sehat` pada setiap baris tabel catatan harian 14 hari sesuai referensi foto 4.
+  5. **Penghapusan Tombol Simulasi Notifikasi (`NotificationPopover.tsx`):**
+     - Menghapus tombol footer *"Simulasi Notifikasi Masuk (+ Baru)"* pada popover bilah notifikasi sesuai referensi foto 5.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `frontend/src/components/pages/HistoryView.tsx`
+  - `frontend/src/components/notifications/NotificationPopover.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` sukses memvalidasi batasan scope kerja.
+
+---
+
 ## [2026-11-17] — Pembersihan Tombol Kontrol pada 4 Kartu Metrik Triad Dashboard (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.42`
 - **Ringkasan:** 

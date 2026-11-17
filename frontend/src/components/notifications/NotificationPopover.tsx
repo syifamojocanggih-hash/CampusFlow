@@ -93,7 +93,6 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
     return INITIAL_NOTIFICATIONS;
   });
 
-  const [activeFilter, setActiveFilter] = useState<"all" | "unread">("all");
   const popoverRef = useRef<HTMLDivElement>(null);
 
   // Sync unread count to parent
@@ -136,64 +135,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
-  const simulateNewNotif = () => {
-    const categories: NotificationItem["category"][] = ["break", "coach", "academic", "streak"];
-    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-
-    let newSample: NotificationItem;
-    if (randomCategory === "break") {
-      newSample = {
-        id: `notif-${Date.now()}`,
-        title: "Pengingat Postur & Duduk Tegak",
-        message: "Layar telah aktif lebih dari 45 menit. Tarik bahu ke belakang dan lakukan regangan leher.",
-        category: "break",
-        time: "Baru saja",
-        isRead: false,
-        actionLabel: "Cek Workstation",
-        actionTab: "focus",
-      };
-    } else if (randomCategory === "coach") {
-      newSample = {
-        id: `notif-${Date.now()}`,
-        title: "Pesan Baru dari AI Coach",
-        message: "Halo Tiara! Bagaimana energimu siang ini? Jangan lupa minum 1 gelas air mineral.",
-        category: "coach",
-        time: "Baru saja",
-        isRead: false,
-        actionLabel: "Buka AI Coach",
-        actionTab: "coach",
-      };
-    } else if (randomCategory === "streak") {
-      newSample = {
-        id: `notif-${Date.now()}`,
-        title: "Mimi Pet Semakin Bugar!",
-        message: "Kamu baru saja menyelesaikan aktivitas jalan santai. XP harianmu bertambah +30 poin.",
-        category: "streak",
-        time: "Baru saja",
-        isRead: false,
-        actionLabel: "Lihat Profil",
-        actionTab: "profile",
-      };
-    } else {
-      newSample = {
-        id: `notif-${Date.now()}`,
-        title: "Pembaruan Beban Akademik",
-        message: "Tugas mata kuliah Pemrograman Berorientasi Objek telah selesai diverifikasi.",
-        category: "academic",
-        time: "Baru saja",
-        isRead: false,
-        actionLabel: "Buka Dashboard",
-        actionTab: "dashboard",
-      };
-    }
-
-    setNotifications((prev) => [newSample, ...prev]);
-  };
-
-  const filteredNotifs =
-    activeFilter === "unread"
-      ? notifications.filter((n) => !n.isRead)
-      : notifications;
+  const filteredNotifs = notifications;
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -238,22 +180,19 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
       className="absolute right-0 top-12 z-50 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-[#E8E8E8] overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]"
     >
       {/* Header Popover */}
-      <div className="p-4 sm:p-5 pb-3 border-b border-[#F0F0F0] flex items-center justify-between">
+      <div className="p-4 sm:p-5 border-b border-[#F0F0F0] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shadow-2xs">
             <Bell className="w-4 h-4" />
           </div>
-          <div>
-            <h3 className="font-heading font-extrabold text-sm sm:text-base text-[#1A1A1A] leading-tight flex items-center gap-2">
-              <span>Notifikasi</span>
-              {unreadCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-[#F7A8B0] text-[#9F1239] text-[10px] font-extrabold">
-                  {unreadCount} Baru
-                </span>
-              )}
-            </h3>
-            <p className="text-[11px] text-[#9A9A9A]">Aktivitas, jeda &amp; ritme akademik</p>
-          </div>
+          <h3 className="font-heading font-extrabold text-sm sm:text-base text-[#1A1A1A] leading-tight flex items-center gap-2">
+            <span>Notifikasi</span>
+            {unreadCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-[#F7A8B0] text-[#9F1239] text-[10px] font-extrabold">
+                {unreadCount} Baru
+              </span>
+            )}
+          </h3>
         </div>
 
         <div className="flex items-center gap-1">
@@ -275,33 +214,6 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="px-4 pt-2.5 pb-2 flex items-center gap-1.5 border-b border-[#F6F6F6] bg-[#FAFAFA]/70 text-xs font-bold">
-        <button
-          onClick={() => setActiveFilter("all")}
-          className={`px-3 py-1 rounded-full transition-all ${
-            activeFilter === "all"
-              ? "bg-[#1A1A1A] text-white shadow-xs font-extrabold"
-              : "text-[#737373] hover:text-[#1A1A1A] hover:bg-white"
-          }`}
-        >
-          Semua ({notifications.length})
-        </button>
-        <button
-          onClick={() => setActiveFilter("unread")}
-          className={`px-3 py-1 rounded-full transition-all flex items-center gap-1.5 ${
-            activeFilter === "unread"
-              ? "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] shadow-xs font-extrabold"
-              : "text-[#737373] hover:text-[#1A1A1A] hover:bg-white"
-          }`}
-        >
-          <span>Belum Dibaca</span>
-          {unreadCount > 0 && (
-            <span className="w-2 h-2 rounded-full bg-[#F7A8B0]" />
-          )}
-        </button>
       </div>
 
       {/* Notification List Body */}
@@ -351,11 +263,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                   )}
                 </div>
 
-                <p className="text-[11px] text-[#737373] mt-1 leading-snug">
-                  {notif.message}
-                </p>
-
-                <div className="flex items-center justify-between pt-2 mt-1">
+                <div className="flex items-center justify-between pt-1.5 mt-0.5">
                   <span className="text-[10px] text-[#9A9A9A] flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {notif.time}
@@ -381,17 +289,6 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
             </div>
           ))
         )}
-      </div>
-
-      {/* Footer: Quick Add Test Notification Button */}
-      <div className="p-3 border-t border-[#F0F0F0] bg-[#FAFAFA] flex items-center justify-between">
-        <button
-          onClick={simulateNewNotif}
-          className="w-full py-2 px-3 rounded-xl bg-white hover:bg-[#F0F0F0] text-[#1A1A1A] font-bold text-xs border border-[#E8E8E8] transition-colors flex items-center justify-center gap-1.5 shadow-2xs active:scale-95"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-[#EAB308]" />
-          <span>Simulasi Notifikasi Masuk (+ Baru)</span>
-        </button>
       </div>
     </div>
   );

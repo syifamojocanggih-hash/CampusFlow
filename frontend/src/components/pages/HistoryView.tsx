@@ -105,9 +105,6 @@ export const HistoryView: React.FC = () => {
                 <span className="hidden sm:inline">Waktu Duduk: <strong>{row.totalSedentaryHours}h</strong></span>
                 <span>Olahraga: <strong>{row.totalMvpaMinutes}m</strong></span>
                 <span>Tidur: <strong>{row.sleepHours}h</strong></span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#CDE8B5] text-[#1A1A1A]">
-                  {row.triadPillarsMet}/3 Target Sehat
-                </span>
               </div>
             </div>
           ))}
