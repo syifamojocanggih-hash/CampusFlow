@@ -561,21 +561,7 @@ export const MimiPetWidget: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 -mt-1 flex-wrap">
-                      <p className="text-[11px] text-[#1A1A1A]/70 font-semibold">
-                        Ketuk {petName} untuk menyapa &amp; lihat reaksinya!
-                      </p>
-                      <span className="text-[#1A1A1A]/30 text-xs">&bull;</span>
-                      <button
-                        type="button"
-                        onClick={handleStartEditing}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1A1A1A] hover:underline"
-                        title="Ganti nama panggilan pet"
-                      >
-                        <Pencil className="w-3 h-3 text-[#1A1A1A]" />
-                        <span>Ganti Nama</span>
-                      </button>
-                    </div>
+
 
                     {/* Progress to Next Level */}
                     <div className="mt-4 text-left space-y-1.5">

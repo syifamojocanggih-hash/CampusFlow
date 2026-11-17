@@ -58,48 +58,31 @@ const CHAT_RECOMMENDATIONS: RecommendationItem[] = [
   },
 ];
 
-const getTimeOfDayGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour >= 4 && hour < 11) return "pagi";
-  if (hour >= 11 && hour < 15) return "siang";
-  if (hour >= 15 && hour < 18) return "sore";
-  return "malam";
-};
-
-const INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    id: "msg-1",
-    sender: "coach",
-    text: "Hai Tiara. Pekan ujian bisa terasa penuh, ya. Waktu layarmu sudah 10 jam dan tidurmu baru 6 jam. Bagaimana perasaanmu sekarang?",
-  },
-  {
-    id: "msg-2",
-    sender: "user",
-    text: "Aku tidak sanggup lagi, tugas menumpuk.",
-  },
-  {
-    id: "msg-3",
-    sender: "coach",
-    text: "Terima kasih sudah cerita. Kedengarannya ini terasa sangat berat. Kamu tidak harus menghadapi semuanya sendiri. Apa kamu berada di tempat yang aman saat ini?",
-  },
-];
-
 export const CoachView: React.FC<CoachViewProps> = () => {
   const [userName, setUserName] = useState<string>("Tiara");
   const [inputText, setInputText] = useState<string>("");
   const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [hasChatted, setHasChatted] = useState<boolean>(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
-
-  // Initial messages matching the exact conversation shown in the reference design
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleResetSession = () => {
-    setMessages(INITIAL_MESSAGES);
-    setHasChatted(false);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    setMessages([]);
     setInputText("");
     setIsTyping(false);
   };
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     api
@@ -121,7 +104,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
   const handleSendQuickPrompt = (promptText: string) => {
     if (isTyping) return;
-    setHasChatted(true);
     setInputText("");
 
     const newMsg: ChatMessage = {
@@ -133,7 +115,11 @@ export const CoachView: React.FC<CoachViewProps> = () => {
     setMessages((prev) => [...prev, newMsg]);
     setIsTyping(true);
 
-    setTimeout(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
       let reply = "";
       const lower = promptText.toLowerCase();
 
@@ -165,6 +151,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
       setMessages((prev) => [...prev, coachMsg]);
       setIsTyping(false);
+      typingTimeoutRef.current = null;
     }, 650);
   };
 
@@ -172,7 +159,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
     e.preventDefault();
     if (!inputText.trim() || isTyping) return;
 
-    setHasChatted(true);
     const userText = inputText.trim();
     setInputText("");
 
@@ -185,7 +171,11 @@ export const CoachView: React.FC<CoachViewProps> = () => {
     setMessages((prev) => [...prev, newMsg]);
     setIsTyping(true);
 
-    setTimeout(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
       let reply =
         "Aku mendengarkanmu. Bernapaslah perlahan sejenak. Kamu sudah berjuang sebaik mungkin hari ini, dan tidak apa-apa untuk beristirahat sebentar.";
 
@@ -218,6 +208,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
       setMessages((prev) => [...prev, coachMsg]);
       setIsTyping(false);
+      typingTimeoutRef.current = null;
     }, 700);
   };
 
@@ -388,7 +379,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
               <div className="py-8 px-2 sm:px-6 flex flex-col items-center justify-center text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
                 <div>
                   <h3 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A]">
-                    Selamat {getTimeOfDayGreeting()}, {userName}
+                    Hai, {userName}! Apa kabar hari ini?
                   </h3>
                   <p className="text-xs sm:text-sm text-[#737373] mt-1.5 max-w-md mx-auto leading-relaxed">
                     Kenali ritme tubuh dan pikiranmu. Pilih salah satu rekomendasi topik di bawah untuk memulai sesi obrolan sehat:
@@ -461,33 +452,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
               </>
             )}
           </div>
-
-          {/* Quick Prompt Recommendations: only shown before user chats or clicks a recommendation */}
-          {!hasChatted && (
-            <div className="px-6 py-3 bg-[#FAFAF8] border-t border-[#F0F0F0] space-y-2 animate-in fade-in duration-150">
-              <div className="space-y-1.5 max-h-[190px] overflow-y-auto pr-1">
-                {CHAT_RECOMMENDATIONS.map((rec) => (
-                  <button
-                    key={rec.id}
-                    type="button"
-                    onClick={() => handleSendQuickPrompt(rec.prompt)}
-                    disabled={isTyping}
-                    className="w-full bg-white hover:bg-[#F2F8EE] border border-[#E5E5E5] hover:border-[#CDE8B5] rounded-xl p-2.5 sm:py-3 sm:px-3.5 flex items-center justify-between gap-3 text-left transition-all shadow-2xs group active:scale-[0.99] disabled:opacity-50"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-[#F6F6F6] group-hover:bg-white text-[#1A1A1A] flex items-center justify-center shrink-0 border border-transparent group-hover:border-[#E0E0E0] shadow-2xs transition-colors">
-                        {rec.icon}
-                      </div>
-                      <span className="text-xs sm:text-sm font-semibold text-[#1A1A1A] truncate group-hover:text-black">
-                        {rec.prompt}
-                      </span>
-                    </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#9A9A9A] group-hover:text-[#1A1A1A] shrink-0 transition-colors" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Chat Input Bar */}
           <div className="px-6 pb-6 pt-2 border-t border-[#F0F0F0]">

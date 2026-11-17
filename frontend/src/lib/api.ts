@@ -242,9 +242,11 @@ class ApiClient {
     if (USE_MOCK) {
       return {
         data: [
-          { dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: true },
-          { dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false },
-          { dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 2, isPracticum: true },
+          { id: "sch-1", dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: true },
+          { id: "sch-2", dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false },
+          { id: "sch-3", dayOfWeek: 3, subjectName: "Basis Data Terdistribusi", creditHours: 3, isPracticum: true },
+          { id: "sch-4", dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 2, isPracticum: true },
+          { id: "sch-5", dayOfWeek: 5, subjectName: "Etika Profesi & Komunikasi", creditHours: 2, isPracticum: false },
         ],
         meta: { timestamp: new Date().toISOString(), version: "4.0" },
       };
@@ -260,6 +262,17 @@ class ApiClient {
     await this.request("/schedule", {
       method: "POST",
       body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteAcademicSchedule(id?: string): Promise<void> {
+    if (USE_MOCK) {
+      console.log("[MOCK] Delete Schedule:", id);
+      return;
+    }
+    if (!id) return;
+    await this.request(`/schedule/${id}`, {
+      method: "DELETE",
     });
   }
 

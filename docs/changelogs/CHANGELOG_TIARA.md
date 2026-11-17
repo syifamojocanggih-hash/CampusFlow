@@ -21,6 +21,103 @@
 
 ---
 
+## [2026-11-17] — Pembersihan & Penghapusan Sub-elemen/Label yang Tidak Diperlukan (`FocusView.tsx`, `TriadDashboard.tsx`, `MimiPetWidget.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.58`
+- **Ringkasan:** 
+  1. **Penghilangan Subteks & Badge Footer pada 3 Kartu Fokus (`FocusView.tsx`):**
+     - Menghapus baris bawah footer ("Akumulasi fokus [Hari ini]", "Sesi tercapai [Aktif]", "Tercatat aktif [Tercatat]") dari ketiga kartu ritme fokus untuk tampilan metrik yang lebih bersih dan lapang.
+  2. **Penghilangan Subteks Footer pada 4 Kartu Parameter Dashboard (`TriadDashboard.tsx`):**
+     - Menghapus baris info footer ("1 Kuliah Hari Ini", "Total waktu layar terdeteksi", "Total jam tidur user terdata", "+10 Poin Pemulihan") sehingga kartu fokus menampilkan ikon, judul, nilai metrik, dan satuan secara seragam.
+  3. **Penghilangan Deskripsi Subjudul Jadwal Kuliah (`TriadDashboard.tsx`):**
+     - Menghapus teks deskripsi "Daftar mata kuliah aktif dan estimasi beban kognitif" di bawah judul "Jadwal Kuliah Hari Ini".
+  4. **Penyederhanaan Baris Item Jadwal Kuliah (`TriadDashboard.tsx`):**
+     - Menghapus badge jenis kuliah ("Praktikum (1.5x) / Teori (1.0x)") dan nilai beban poin per baris ("4.5 Poin"), menyisakan kotak SKS, nama matakuliah, dan tombol aksi hapus.
+  5. **Penghilangan Teks Panduan Pet Mimi (`MimiPetWidget.tsx`):**
+     - Menghapus baris panduan "Ketuk Mimi untuk menyapa & lihat reaksinya! • Ganti Nama" dari bawah avatar pet.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `frontend/src/components/pet/MimiPetWidget.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Perapian & Penyelarasan Layout Card Dashboard Strava (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.57`
+- **Ringkasan:** 
+  1. **Penyelarasan Tinggi & Struktur Dua Kolom Utama (*Equal Card Heights*):**
+     - Mengubah grid section utama dua kolom (`lg:grid-cols-12`) dengan `items-stretch` serta container flexbox `flex flex-col` dan `h-full flex flex-col justify-between`.
+     - Memperbaiki kartu *"Jadwal Kuliah Hari Ini"* (`lg:col-span-7`) dan kartu *"Tren Burnout & Pemulihan 14 Hari"* (`lg:col-span-5`) agar memiliki tinggi yang seragam (*equal height*), menghilangkan rongga kosong (*blank gap*) di bawah kartu jadwal.
+     - Menyematkan garis pembatas footer (`border-t border-[#E8E8E8] mt-4 pt-3`) di kedua kartu pada baseline horizontal yang sejajar sempurna.
+     - Menyamakan hierarki tipografi header kedua kartu menjadi `text-base font-heading font-extrabold text-[#1A1A1A]` dengan subjudul pendukung `text-[11px] text-[#9A9A9A]`.
+  2. **Harmonisasi Empat Kartu Parameter Inti (*4 Core Parameter Metric Cards*):**
+     - Memastikan seluruh kartu memiliki tinggi yang sama (`h-full flex flex-col justify-between`) dan padding konsisten (`p-4 sm:p-5`).
+     - Menyeragamkan kapitalisasi judul (*Title Case*): *"Beban Kuliah"*, *"Waktu Layar"*, *"Tidur Semalam"*, *"Active Break"*.
+     - Menyelaraskan tipografi subteks/footer pada kartu Active Break menjadi abu-abu netral terstruktur (`text-[11px] text-[#9A9A9A] font-medium`) agar konsisten dengan tiga kartu lainnya.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Penambahan Fitur Hapus Jadwal Kuliah pada Smart Academic Planner (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.56`
+- **Ringkasan:** 
+  1. **Tombol Hapus pada Kartu Jadwal Hari Ini:**
+     - Menambahkan tombol hapus interaktif dengan ikon tempat sampah (`Trash2`) di sisi kanan setiap baris matakuliah pada bagian *"Jadwal Kuliah Hari Ini"*.
+     - Dilengkapi efek hover merah pastel lembut (`bg-[#FEE2E2]` dan ikon `text-[#DC2626]`) dengan tooltip dan `aria-label` aksesibel.
+  2. **Tab Kelola & Hapus Seluruh Matakuliah pada Modal KRS:**
+     - Menambahkan tab *"Daftar (N)"* pada modal Smart Academic Planner untuk melihat seluruh matakuliah lintas hari (Senin s/d Minggu) dengan tombol hapus individual.
+  3. **Penyesuaian State & Sinkronisasi Metrik:**
+     - Menghubungkan fungsi `handleDeleteSchedule` ke state `schedules` dan pemanggilan `api.deleteAcademicSchedule(id)`.
+     - Otomatis memperbarui total bobot SKS, skor beban kognitif akademik (`academicLoadScore`), dan indeks risiko kelelahan (*Burnout Risk Index*) secara real-time saat jadwal dihapus.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `frontend/src/lib/api.ts`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Pembersihan Chat Dummy Awal, Perbaikan Fitur Reset Otomatis, dan Penyembunyian Rekomendasi Chat saat Obrolan Aktif (`CoachView.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.55`
+- **Ringkasan:** 
+  1. **Inisialisasi Chat Kosong Bersih (*Zero Dummy Messages*):**
+     - Mengubah inisialisasi state `messages` dari mock dummy 3 balon chat menjadi array kosong (`[]`).
+     - Menampilkan salam personal ringkas *"Hai, {userName}! Apa kabar hari ini?"* beserta tumpukan kartu rekomendasi chat topik sehat.
+  2. **Penghilangan Rekomendasi Chat Bawah saat Obrolan Berlangsung:**
+     - Menghapus duplikasi container rekomendasi chat di bagian bawah panel (`bg-[#FAFAF8]`).
+     - Rekomendasi chat di area utama otomatis disembunyikan segera setelah pengguna mengklik salah satu rekomendasi atau mengirimkan pesan baru, sehingga antarmuka berfokus penuh pada dialog aktif.
+  3. **Fungsionalitas Tombol Reset Otomatis Total:**
+     - Tombol *"Reset"* di header AI Coach kini bekerja secara otomatis dan tuntas: membatalkan timer pengetikan asisten yang sedang berjalan (`typingTimeoutRef`), mengosongkan seluruh riwayat obrolan (`messages = []`), mengosongkan teks input, dan mengembalikan tampilan ke keadaan awal bersih dengan rekomendasi chat siap klik.
+  4. **Perbaikan Syntax Popover Notifikasi:**
+     - Memperbaiki tag div penutup pada `NotificationPopover.tsx` agar proses build TypeScript monorepo berjalan mulus 100%.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `frontend/src/components/notifications/NotificationPopover.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
 ## [2026-11-17] — Pembersihan Ikon Melayang dan Menu Titik Tiga pada Tiga Kartu Ritme Fokus (`FocusView.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.54`
 - **Ringkasan:** 

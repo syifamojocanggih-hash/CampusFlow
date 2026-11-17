@@ -228,20 +228,10 @@ export const FocusView: React.FC = () => {
             </div>
 
             {/* Big Metric Value */}
-            <div className="my-4">
+            <div className="my-2">
               <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] sensor-num tracking-tight">
                 {formattedFocusHours}
               </div>
-            </div>
-
-            {/* Bottom Report Info & Pink Pill Badge */}
-            <div className="pt-3 border-t border-[#F6F6F6] flex items-center justify-between text-xs">
-              <span className="text-[11px] text-[#9A9A9A] font-medium">
-                Akumulasi fokus
-              </span>
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FFE9EE] text-[#BE123C]">
-                Hari ini
-              </span>
             </div>
           </div>
 
@@ -256,19 +246,10 @@ export const FocusView: React.FC = () => {
               </p>
             </div>
 
-            <div className="my-4">
+            <div className="my-2">
               <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] sensor-num tracking-tight">
                 {completedBouts} sesi
               </div>
-            </div>
-
-            <div className="pt-3 border-t border-[#F6F6F6] flex items-center justify-between text-xs">
-              <span className="text-[11px] text-[#9A9A9A] font-medium">
-                Sesi tercapai
-              </span>
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FFE9EE] text-[#BE123C]">
-                Aktif
-              </span>
             </div>
           </div>
 
@@ -283,19 +264,10 @@ export const FocusView: React.FC = () => {
               </p>
             </div>
 
-            <div className="my-4">
+            <div className="my-2">
               <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] sensor-num tracking-tight">
                 {Math.floor(screenMinutes / 60)} jam
               </div>
-            </div>
-
-            <div className="pt-3 border-t border-[#F6F6F6] flex items-center justify-between text-xs">
-              <span className="text-[11px] text-[#9A9A9A] font-medium">
-                Tercatat aktif
-              </span>
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FFE9EE] text-[#BE123C]">
-                Tercatat
-              </span>
             </div>
           </div>
         </div>

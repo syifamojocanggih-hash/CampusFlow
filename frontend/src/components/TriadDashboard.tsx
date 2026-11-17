@@ -9,6 +9,7 @@ import {
   Calendar,
   UploadCloud,
   FileText,
+  Trash2,
 } from "lucide-react";
 import {
   AreaChart,
@@ -22,7 +23,6 @@ import { api } from "@/lib/api";
 import { screenTimeTracker } from "@/utils/screenTimeTracker";
 import {
   calculateBurnoutRiskIndex,
-  BURNOUT_CONSTANTS,
   type ScheduleItemInput,
 } from "@/utils/burnoutCalculator";
 import type { AcademicScheduleDTO } from "@/types";
@@ -43,11 +43,11 @@ const DAY_NAMES = [
 ];
 
 const INITIAL_SCHEDULES: AcademicScheduleDTO[] = [
-  { dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: true, isExamWeek: false },
-  { dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false, isExamWeek: false },
-  { dayOfWeek: 3, subjectName: "Basis Data Terdistribusi", creditHours: 3, isPracticum: true, isExamWeek: false },
-  { dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 2, isPracticum: true, isExamWeek: false },
-  { dayOfWeek: 5, subjectName: "Etika Profesi & Komunikasi", creditHours: 2, isPracticum: false, isExamWeek: false },
+  { id: "sch-1", dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: true, isExamWeek: false },
+  { id: "sch-2", dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false, isExamWeek: false },
+  { id: "sch-3", dayOfWeek: 3, subjectName: "Basis Data Terdistribusi", creditHours: 3, isPracticum: true, isExamWeek: false },
+  { id: "sch-4", dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 2, isPracticum: true, isExamWeek: false },
+  { id: "sch-5", dayOfWeek: 5, subjectName: "Etika Profesi & Komunikasi", creditHours: 2, isPracticum: false, isExamWeek: false },
 ];
 
 const MOCK_14_DAY_TREND = [
@@ -80,7 +80,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   });
   const [verifiedBreakCount] = useState<number>(1);
   const [isKrsModalOpen, setIsKrsModalOpen] = useState<boolean>(false);
-  const [krsModalTab, setKrsModalTab] = useState<"upload" | "manual">("upload");
+  const [krsModalTab, setKrsModalTab] = useState<"upload" | "manual" | "manage">("upload");
   const [isExtractingPdf, setIsExtractingPdf] = useState<boolean>(false);
 
   // New Course Form State
@@ -145,8 +145,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
     status: burnoutStatus,
   } = burnoutResult;
 
-  // Calculations for display
-  const activeBreakBonus = verifiedBreakCount * BURNOUT_CONSTANTS.ACTIVE_BREAK_SCORE_PER_SESSION;
+
 
   // Status Styling
   const statusMeta = useMemo(() => {
@@ -186,6 +185,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
     if (!newSubjectName.trim()) return;
 
     const newCourse: AcademicScheduleDTO = {
+      id: `sch-${Date.now()}`,
       dayOfWeek: newDayOfWeek,
       subjectName: newSubjectName.trim(),
       creditHours: newCreditHours,
@@ -206,16 +206,37 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
     }
   };
 
+  // Handle Delete Course from KRS
+  const handleDeleteSchedule = async (scheduleToDelete: AcademicScheduleDTO) => {
+    setSchedules((prev) =>
+      prev.filter((s) => {
+        if (scheduleToDelete.id && s.id) {
+          return s.id !== scheduleToDelete.id;
+        }
+        return !(
+          s.dayOfWeek === scheduleToDelete.dayOfWeek &&
+          s.subjectName === scheduleToDelete.subjectName
+        );
+      })
+    );
+
+    try {
+      await api.deleteAcademicSchedule(scheduleToDelete.id);
+    } catch (err) {
+      console.warn("Gagal menghapus jadwal dari API:", err);
+    }
+  };
+
   // Handle Smart PDF KRS Parser simulation (PRD v4.0 Section 3.1)
   const handleSimulatePdfParse = () => {
     setIsExtractingPdf(true);
     setTimeout(() => {
       const extractedCourses: AcademicScheduleDTO[] = [
-        { dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: true, isExamWeek: false },
-        { dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false, isExamWeek: false },
-        { dayOfWeek: 3, subjectName: "Basis Data Terdistribusi", creditHours: 3, isPracticum: true, isExamWeek: false },
-        { dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 3, isPracticum: true, isExamWeek: false },
-        { dayOfWeek: 5, subjectName: "Jaringan Komputer Lanjut", creditHours: 3, isPracticum: true, isExamWeek: false },
+        { id: "ext-1", dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: true, isExamWeek: false },
+        { id: "ext-2", dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false, isExamWeek: false },
+        { id: "ext-3", dayOfWeek: 3, subjectName: "Basis Data Terdistribusi", creditHours: 3, isPracticum: true, isExamWeek: false },
+        { id: "ext-4", dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 3, isPracticum: true, isExamWeek: false },
+        { id: "ext-5", dayOfWeek: 5, subjectName: "Jaringan Komputer Lanjut", creditHours: 3, isPracticum: true, isExamWeek: false },
       ];
       setSchedules(extractedCourses);
       setIsExtractingPdf(false);
@@ -286,159 +307,127 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           ======================================================== */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Academic Load (KRS) */}
-        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-[#F7A8B0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
-                <BookOpen className="w-4 h-4 text-[#1A1A1A]" />
-              </div>
-              <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Beban kuliah</p>
+        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-center h-full">
+          <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-[#F7A8B0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+              <BookOpen className="w-4 h-4 text-[#1A1A1A]" />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
-              {academicLoadScore}
-              <span className="text-xs font-medium text-[#9A9A9A] ml-1">Poin</span>
-            </h3>
+            <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Beban Kuliah</p>
           </div>
-          <div className="mt-2.5">
-            <span className="text-[11px] text-[#9A9A9A] font-medium">
-              {todaySchedules.length > 0 ? `${todaySchedules.length} Kuliah Hari Ini` : "Total beban SKS aktif"}
-            </span>
-          </div>
+          <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
+            {academicLoadScore}
+            <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Poin</span>
+          </h3>
         </div>
 
         {/* Card 2: Screen Time (Passive Page Visibility API) */}
-        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-[#FFF29A] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
-                <Monitor className="w-4 h-4 text-[#1A1A1A]" />
-              </div>
-              <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Waktu layar</p>
+        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-center h-full">
+          <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-[#FFF29A] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+              <Monitor className="w-4 h-4 text-[#1A1A1A]" />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
-              {screenTimeHours}
-              <span className="text-xs font-medium text-[#9A9A9A] ml-1">Jam</span>
-            </h3>
+            <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Waktu Layar</p>
           </div>
-          <div className="mt-2.5">
-            <span className="text-[11px] text-[#9A9A9A] font-medium">
-              Total waktu layar terdeteksi
-            </span>
-          </div>
+          <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
+            {screenTimeHours}
+            <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Jam</span>
+          </h3>
         </div>
 
         {/* Card 3: Sleep Duration & Recovery */}
-        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
-                <Moon className="w-4 h-4 text-[#1A1A1A]" />
-              </div>
-              <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Tidur semalam</p>
+        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-center h-full">
+          <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+              <Moon className="w-4 h-4 text-[#1A1A1A]" />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
-              {sleepHours}
-              <span className="text-xs font-medium text-[#9A9A9A] ml-1">Jam</span>
-            </h3>
+            <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Tidur Semalam</p>
           </div>
-          <div className="mt-2.5">
-            <span className="text-[11px] text-[#9A9A9A] font-medium">
-              Total jam tidur user terdata
-            </span>
-          </div>
+          <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
+            {sleepHours}
+            <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Jam</span>
+          </h3>
         </div>
 
         {/* Card 4: Verified Active Break (On-Demand MediaPipe 2 Mins) */}
-        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-[#CDE8B5] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
-                <Play className="w-4 h-4 fill-[#1A1A1A] text-[#1A1A1A] ml-0.5" />
-              </div>
-              <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Active break</p>
+        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-center h-full">
+          <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-[#CDE8B5] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+              <Play className="w-4 h-4 fill-[#1A1A1A] text-[#1A1A1A] ml-0.5" />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
-              {verifiedBreakCount}
-              <span className="text-xs font-medium text-[#9A9A9A] ml-1">Sesi</span>
-            </h3>
+            <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Active Break</p>
           </div>
-          <div className="mt-2.5">
-            <span className="text-[11px] font-bold text-emerald-700">
-              +{activeBreakBonus} Poin Pemulihan
-            </span>
-          </div>
+          <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
+            {verifiedBreakCount}
+            <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Sesi</span>
+          </h3>
         </div>
       </div>
 
       {/* ========================================================
           3. MAIN TWO-COLUMN SECTION (KRS Today & 14-Day History Trend)
           ======================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Left Column: Smart Academic Planner - Today's KRS (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="learnova-card p-5 sm:p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-                  Jadwal Kuliah Hari Ini
-                </h3>
-              </div>
-              <button
-                onClick={() => setIsKrsModalOpen(true)}
-                className="text-xs font-bold text-[#1A1A1A] bg-[#F6F6F6] hover:bg-[#E8E8E8] px-3 py-1.5 rounded-full border border-[#E8E8E8] flex items-center gap-1.5 transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Tambah / Edit KRS
-              </button>
-            </div>
-
-            {/* Schedule List */}
-            <div className="space-y-3">
-              {todaySchedules.length === 0 ? (
-                <div className="p-6 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] text-center space-y-2">
-                  <Calendar className="w-8 h-8 text-[#9A9A9A] mx-auto" />
-                  <p className="text-xs font-bold text-[#1A1A1A]">Tidak Ada Jadwal Kuliah Hari Ini</p>
-                  <p className="text-[11px] text-[#9A9A9A]">
-                    Bagus untuk pemulihan energi! Anda dapat fokus pada tugas mandiri atau istirahat aktif.
-                  </p>
+        <div className="lg:col-span-7 flex flex-col">
+          <div className="learnova-card p-5 sm:p-6 flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-center justify-between pb-3">
+                <div>
+                  <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                    Jadwal Kuliah Hari Ini
+                  </h3>
                 </div>
-              ) : (
-                todaySchedules.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3.5 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] flex items-center justify-between hover:bg-white hover:border-[#BDE6F0] transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-[#E8E8E8] flex flex-col items-center justify-center text-[#1A1A1A] shrink-0 font-mono">
-                        <span className="text-xs font-extrabold">{item.creditHours}</span>
-                        <span className="text-[9px] text-[#9A9A9A] uppercase">SKS</span>
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-[#1A1A1A]">{item.subjectName}</h4>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className={`text-[10px] font-extrabold px-2 py-0.2 rounded-full ${
-                            item.isPracticum ? "bg-[#BDE6F0] text-[#1A1A1A]" : "bg-[#FFF29A] text-[#1A1A1A]"
-                          }`}>
-                            {item.isPracticum ? "Praktikum (1.5x)" : "Teori (1.0x)"}
-                          </span>
-                          {item.isExamWeek && (
-                            <span className="text-[10px] font-extrabold bg-[#F7A8B0] text-[#9F1239] px-2 py-0.2 rounded-full">
-                              Pekan Ujian (+3.0)
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-mono font-bold text-[#1A1A1A]">
-                      {item.creditHours * (item.isPracticum ? 1.5 : 1.0) + (item.isExamWeek ? 3.0 : 0)} Poin
-                    </span>
+                <button
+                  onClick={() => setIsKrsModalOpen(true)}
+                  className="text-xs font-bold text-[#1A1A1A] bg-[#F6F6F6] hover:bg-[#E8E8E8] px-3 py-1.5 rounded-full border border-[#E8E8E8] flex items-center gap-1.5 transition-colors shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Tambah / Edit KRS
+                </button>
+              </div>
+
+              {/* Schedule List */}
+              <div className="space-y-3 pt-1">
+                {todaySchedules.length === 0 ? (
+                  <div className="flex-1 flex flex-col items-center justify-center p-6 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] text-center space-y-2 min-h-[160px]">
+                    <Calendar className="w-8 h-8 text-[#9A9A9A] mx-auto" />
+                    <p className="text-xs font-bold text-[#1A1A1A]">Tidak Ada Jadwal Kuliah Hari Ini</p>
+                    <p className="text-[11px] text-[#9A9A9A] max-w-xs">
+                      Bagus untuk pemulihan energi! Anda dapat fokus pada tugas mandiri atau istirahat aktif.
+                    </p>
                   </div>
-                ))
-              )}
+                ) : (
+                  <div className="space-y-3 max-h-[260px] overflow-y-auto pr-0.5">
+                    {todaySchedules.map((item, idx) => (
+                      <div
+                        key={item.id || `${item.subjectName}-${item.dayOfWeek}-${idx}`}
+                        className="p-3.5 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] flex items-center justify-between hover:bg-white hover:border-[#BDE6F0] transition-colors group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white border border-[#E8E8E8] flex flex-col items-center justify-center text-[#1A1A1A] shrink-0 font-mono">
+                            <span className="text-xs font-extrabold">{item.creditHours}</span>
+                            <span className="text-[9px] text-[#9A9A9A] uppercase">SKS</span>
+                          </div>
+                          <h4 className="text-xs font-bold text-[#1A1A1A]">{item.subjectName}</h4>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSchedule(item)}
+                          className="w-7 h-7 rounded-xl bg-white hover:bg-[#FEE2E2] text-[#9A9A9A] hover:text-[#DC2626] border border-[#E8E8E8] hover:border-[#FCA5A5] flex items-center justify-center transition-colors shadow-2xs group/del"
+                          title={`Hapus jadwal ${item.subjectName}`}
+                          aria-label={`Hapus jadwal ${item.subjectName}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-[#9A9A9A] group-hover/del:text-[#DC2626] transition-colors" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* KRS Load Summary Bar */}
-            <div className="pt-3 border-t border-[#E8E8E8] flex items-center justify-between text-xs">
+            <div className="pt-3 border-t border-[#E8E8E8] flex items-center justify-between text-xs mt-4">
               <span className="text-[#9A9A9A]">
                 Total Bobot SKS Hari Ini: <strong>{todaySchedules.reduce((acc, s) => acc + s.creditHours, 0)} SKS</strong>
               </span>
@@ -450,77 +439,77 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         </div>
 
         {/* Right Column: 14-Day Performance Overview Chart (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="learnova-card p-5 sm:p-6 space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
+        <div className="lg:col-span-5 flex flex-col">
+          <div className="learnova-card p-5 sm:p-6 flex flex-col justify-between h-full">
+            <div>
+              <div className="pb-3">
+                <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
                   Tren Burnout &amp; Pemulihan 14 Hari
                 </h3>
                 <p className="text-[11px] text-[#9A9A9A]">
                   Perbandingan Burnout Index vs Skor Pemulihan
                 </p>
               </div>
+
+              <div className="h-52 w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={MOCK_14_DAY_TREND} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="burnoutGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#F7A8B0" stopOpacity={0.7} />
+                        <stop offset="95%" stopColor="#F7A8B0" stopOpacity={0.05} />
+                      </linearGradient>
+                      <linearGradient id="recoveryGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#CDE8B5" stopOpacity={0.7} />
+                        <stop offset="95%" stopColor="#CDE8B5" stopOpacity={0.05} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="logDate"
+                      tick={{ fontSize: 10, fill: "#9A9A9A" }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 10, fill: "#9A9A9A" }}
+                      axisLine={false}
+                      tickLine={false}
+                      domain={[0, 100]}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#FFFFFF",
+                        color: "#1A1A1A",
+                        borderRadius: "16px",
+                        border: "1px solid #E8E8E8",
+                        fontSize: "11px",
+                        boxShadow: "0 8px 20px -4px rgba(26,26,26,0.08)",
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="burnoutIndex"
+                      name="Burnout Index"
+                      stroke="#F7A8B0"
+                      strokeWidth={2}
+                      fillOpacity={1}
+                      fill="url(#burnoutGradient)"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="recoveryScore"
+                      name="Skor Pemulihan"
+                      stroke="#8ECAD7"
+                      strokeWidth={2}
+                      fillOpacity={1}
+                      fill="url(#recoveryGradient)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            <div className="h-48 w-full pt-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={MOCK_14_DAY_TREND} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="burnoutGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#F7A8B0" stopOpacity={0.7} />
-                      <stop offset="95%" stopColor="#F7A8B0" stopOpacity={0.05} />
-                    </linearGradient>
-                    <linearGradient id="recoveryGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#CDE8B5" stopOpacity={0.7} />
-                      <stop offset="95%" stopColor="#CDE8B5" stopOpacity={0.05} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis
-                    dataKey="logDate"
-                    tick={{ fontSize: 10, fill: "#9A9A9A" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 10, fill: "#9A9A9A" }}
-                    axisLine={false}
-                    tickLine={false}
-                    domain={[0, 100]}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#FFFFFF",
-                      color: "#1A1A1A",
-                      borderRadius: "16px",
-                      border: "1px solid #E8E8E8",
-                      fontSize: "11px",
-                      boxShadow: "0 8px 20px -4px rgba(26,26,26,0.08)",
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="burnoutIndex"
-                    name="Burnout Index"
-                    stroke="#F7A8B0"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#burnoutGradient)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="recoveryScore"
-                    name="Skor Pemulihan"
-                    stroke="#8ECAD7"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#recoveryGradient)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="flex items-center justify-center gap-5 text-xs font-semibold text-[#1A1A1A] pt-1">
+            <div className="pt-3 border-t border-[#E8E8E8] flex items-center justify-center gap-5 text-xs font-semibold text-[#1A1A1A] mt-4">
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#F7A8B0]" />
                 <span>Burnout Index</span>
@@ -560,7 +549,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               </button>
             </div>
 
-            {/* Modal Tabs: PDF Upload vs Manual Form */}
+            {/* Modal Tabs: PDF Upload vs Manual Form vs Daftar Matakuliah */}
             <div className="flex gap-2 p-1 bg-[#F6F6F6] rounded-2xl border border-[#E8E8E8]">
               <button
                 type="button"
@@ -572,7 +561,8 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 }`}
               >
                 <UploadCloud className="w-3.5 h-3.5" />
-                <span>Upload PDF KRS (Auto)</span>
+                <span className="hidden sm:inline">Upload PDF</span>
+                <span className="sm:hidden">PDF</span>
               </button>
               <button
                 type="button"
@@ -584,7 +574,20 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 }`}
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Input Manual</span>
+                <span className="hidden sm:inline">Input Manual</span>
+                <span className="sm:hidden">Manual</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setKrsModalTab("manage")}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  krsModalTab === "manage"
+                    ? "bg-white text-[#1A1A1A] shadow-xs"
+                    : "text-[#9A9A9A] hover:text-[#1A1A1A]"
+                }`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Daftar ({schedules.length})</span>
               </button>
             </div>
 
@@ -625,7 +628,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   </button>
                 </div>
               </div>
-            ) : (
+            ) : krsModalTab === "manual" ? (
               /* Tab 2: Manual Form */
               <form onSubmit={handleAddCourse} className="space-y-4">
                 <div>
@@ -714,6 +717,56 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   </button>
                 </div>
               </form>
+            ) : (
+              /* Tab 3: Daftar & Hapus Matakuliah */
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs text-[#737373]">
+                  <span>Total Matakuliah: <strong>{schedules.length}</strong></span>
+                  <span>Total Beban: <strong>{schedules.reduce((acc, s) => acc + s.creditHours, 0)} SKS</strong></span>
+                </div>
+
+                {schedules.length === 0 ? (
+                  <div className="p-6 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] text-center space-y-2">
+                    <Calendar className="w-8 h-8 text-[#9A9A9A] mx-auto" />
+                    <p className="text-xs font-bold text-[#1A1A1A]">Belum Ada Matakuliah</p>
+                    <p className="text-[11px] text-[#9A9A9A]">
+                      Tambahkan matakuliah baru melalui tab Input Manual atau Upload PDF.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 divide-y divide-[#F0F0F0]">
+                    {schedules.map((item, idx) => (
+                      <div
+                        key={item.id || `${item.subjectName}-${item.dayOfWeek}-${idx}`}
+                        className="pt-2 pb-1 flex items-center justify-between gap-3 text-xs"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="w-14 text-center px-2 py-1 rounded-lg bg-[#F6F6F6] text-[10px] font-extrabold text-[#1A1A1A] shrink-0">
+                            {DAY_NAMES[item.dayOfWeek - 1] || `Hari ${item.dayOfWeek}`}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-bold text-[#1A1A1A] truncate">{item.subjectName}</p>
+                            <p className="text-[10px] text-[#9A9A9A]">
+                              {item.creditHours} SKS · {item.isPracticum ? "Praktikum (1.5x)" : "Teori (1.0x)"}
+                              {item.isExamWeek ? " · Ujian (+3.0)" : ""}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSchedule(item)}
+                          className="w-7 h-7 rounded-xl bg-white hover:bg-[#FEE2E2] text-[#9A9A9A] hover:text-[#DC2626] border border-[#E8E8E8] hover:border-[#FCA5A5] flex items-center justify-center transition-colors shadow-2xs shrink-0 group/del"
+                          title={`Hapus ${item.subjectName}`}
+                          aria-label={`Hapus ${item.subjectName}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-[#9A9A9A] group-hover/del:text-[#DC2626] transition-colors" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
