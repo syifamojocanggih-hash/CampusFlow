@@ -8,6 +8,8 @@ export interface ScheduleItemInput {
   creditHours: number;
   isPracticum?: boolean;
   isExamWeek?: boolean;
+  classType?: "teori" | "praktikum" | string;
+  class_type?: "teori" | "praktikum" | string;
 }
 
 /**
@@ -20,7 +22,10 @@ export interface ScheduleItemInput {
 export function calculateAcademicLoadScore(schedules: ScheduleItemInput[]): number {
   let total = 0;
   for (const s of schedules) {
-    const weight = s.isPracticum
+    const isPracticum =
+      s.isPracticum ??
+      (s.classType === "praktikum" || s.class_type === "praktikum");
+    const weight = isPracticum
       ? BURNOUT_CONSTANTS.PRACTICUM_SKS_WEIGHT
       : BURNOUT_CONSTANTS.THEORY_SKS_WEIGHT;
     total += s.creditHours * weight;

@@ -74,3 +74,15 @@ export function createRateLimiter(options: RateLimiterOptions): RateLimiterMiddl
 
   return rateLimitMiddleware;
 }
+
+/**
+ * Rate limiter terpisah untuk endpoint upload PDF jadwal perkuliahan.
+ * Membatasi maksimal 20 unggahan per hari per pengguna login (atau IP).
+ */
+export const scheduleUploadLimiter = createRateLimiter({
+  windowMs: 24 * 60 * 60 * 1000, // 24 jam / 1 hari
+  maxRequests: 20,
+  keyPrefix: "schedule-pdf-upload",
+  keyGenerator: (req) => (req as any).user?.sub || req.ip || "anonymous",
+  message: "Batas harian upload dokumen jadwal tercapai (maksimal 20 upload/hari). Coba lagi besok.",
+});

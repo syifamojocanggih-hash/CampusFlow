@@ -156,6 +156,9 @@ model AcademicSchedule {
   creditHours Float    @default(2.0)
   isPracticum Boolean  @default(false)
   isExamWeek  Boolean  @default(false)
+  classType   String   @default("teori") @db.VarChar(20)
+  startTime   String?  @db.VarChar(10)
+  endTime     String?  @db.VarChar(10)
   createdAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

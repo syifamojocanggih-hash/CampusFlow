@@ -3,13 +3,24 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma.ts";
 import { AppError, sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
-import { uploadKrs } from "../middleware/upload.ts";
+import { scheduleUploadLimiter } from "../middleware/rateLimit.ts";
+import { uploadKrs, uploadSchedulePdf } from "../middleware/upload.ts";
+import {
+  calculateAcademicLoadScore,
+  calculateBurnoutRiskIndex,
+} from "../services/burnoutScoring.ts";
 import {
   computeKrsStressBreakdown,
   INDONESIAN_DAY_NAMES,
   parseKrsDocument,
   type ParsedCourseItem,
 } from "../services/krsParserService.ts";
+import {
+  computeScheduleSummary,
+  DAY_TO_NUMBER,
+  parseSchedulePdf,
+  scheduleItemSchema as parsedScheduleItemSchema,
+} from "../services/scheduleParser.ts";
 
 export const scheduleRouter = Router();
 
@@ -26,6 +37,188 @@ const scheduleItemSchema = z.object({
 const bulkScheduleSchema = z.object({
   schedules: z.array(scheduleItemSchema).min(1),
 });
+
+const confirmScheduleSchema = z.object({
+  schedules: z.array(parsedScheduleItemSchema).min(1, "Minimal 1 mata kuliah harus disertakan."),
+  replaceExisting: z.boolean().default(true),
+});
+
+/**
+ * POST /api/academic-schedule/upload atau /api/v1/schedule/upload
+ * Menerima PDF jadwal kuliah (multipart/form-data), memanggil Gemini API via scheduleParser.ts,
+ * dan mengembalikan PREVIEW hasil ekstraksi (TIDAK langsung commit ke database agar user bisa koreksi).
+ */
+scheduleRouter.post(
+  "/upload",
+  scheduleUploadLimiter,
+  uploadSchedulePdf.single("file"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      let buffer: Buffer | null = null;
+
+      if (req.file && req.file.buffer) {
+        buffer = req.file.buffer;
+      } else if (req.body && req.body.fileBase64) {
+        buffer = Buffer.from(req.body.fileBase64, "base64");
+      }
+
+      if (!buffer || buffer.length === 0) {
+        throw new AppError(
+          400,
+          "VALIDATION_ERROR",
+          "File PDF tidak ditemukan. Unggah file pada form data 'file' atau sertakan 'fileBase64'."
+        );
+      }
+
+      const apiKey = (req.headers["x-gemini-api-key"] as string) || undefined;
+      const parseResult = await parseSchedulePdf(buffer, { apiKey });
+      const summary = computeScheduleSummary(parseResult.items);
+
+      sendSuccess(res, {
+        previewOnly: true,
+        extractedCount: parseResult.items.length,
+        source: parseResult.source,
+        summary,
+        items: parseResult.items,
+        message:
+          "Jadwal berhasil diekstrak. Silakan periksa atau sesuaikan data sebelum melakukan konfirmasi penyimpanan.",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/academic-schedule/confirm atau /api/v1/schedule/confirm
+ * Menerima data jadwal yang sudah dikoreksi/disetujui user -> simpan ke tabel AcademicSchedule,
+ * lalu panggil ulang fungsi perhitungan Academic Load & Burnout Index di burnoutScoring.ts
+ * agar Burnout Index otomatis ter-update begitu jadwal baru masuk.
+ */
+scheduleRouter.post(
+  "/confirm",
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user!.sub;
+      const parsed = confirmScheduleSchema.parse(req.body);
+
+      // Simpan ke database via Prisma transaction
+      await prisma.$transaction(async (tx) => {
+        if (parsed.replaceExisting) {
+          await tx.academicSchedule.deleteMany({
+            where: { userId },
+          });
+        }
+
+        await tx.academicSchedule.createMany({
+          data: parsed.schedules.map((s) => ({
+            userId,
+            dayOfWeek: DAY_TO_NUMBER[s.day_of_week] || 1,
+            subjectName: s.subject_name,
+            creditHours: s.credit_hours,
+            isPracticum: s.class_type === "praktikum",
+            classType: s.class_type,
+            startTime: s.start_time,
+            endTime: s.end_time,
+            isExamWeek: s.is_exam_week,
+          })),
+        });
+      });
+
+      // Hitung ulang Academic Load dan fusi Burnout Index hari ini
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const dayOfWeek = today.getDay() === 0 ? 7 : today.getDay();
+
+      const todaySchedules = await prisma.academicSchedule.findMany({
+        where: { userId, dayOfWeek },
+      });
+
+      const activeBreaksCount = await prisma.activeBreakSession.count({
+        where: {
+          userId,
+          startTime: { gte: today },
+          poseVerified: true,
+        },
+      });
+
+      const existingLog = await prisma.dailyFussionLog.findUnique({
+        where: {
+          userId_logDate: {
+            userId,
+            logDate: today,
+          },
+        },
+      });
+
+      const totalScreenHours = existingLog ? existingLog.totalScreenTimeMins / 60.0 : 0.0;
+      const sleepHours = existingLog ? existingLog.sleepHours : 7.0;
+
+      const calc = calculateBurnoutRiskIndex(
+        todaySchedules.map((s) => ({
+          creditHours: s.creditHours,
+          isPracticum: s.isPracticum,
+          classType: s.classType,
+          isExamWeek: s.isExamWeek,
+        })),
+        totalScreenHours,
+        sleepHours,
+        activeBreaksCount
+      );
+
+      // Simpan hasil fusi terbaru ke DailyFussionLog
+      const updatedLog = await prisma.dailyFussionLog.upsert({
+        where: {
+          userId_logDate: {
+            userId,
+            logDate: today,
+          },
+        },
+        update: {
+          academicLoadScore: calc.academicLoadScore,
+          screenFatigueScore: calc.screenFatigueScore,
+          recoveryScore: calc.recoveryScore,
+          burnoutIndex: calc.burnoutIndex,
+          status: calc.status,
+        },
+        create: {
+          userId,
+          logDate: today,
+          totalScreenTimeMins: Math.round(totalScreenHours * 60),
+          sleepHours,
+          academicLoadScore: calc.academicLoadScore,
+          screenFatigueScore: calc.screenFatigueScore,
+          recoveryScore: calc.recoveryScore,
+          verifiedBreakCount: activeBreaksCount,
+          burnoutIndex: calc.burnoutIndex,
+          status: calc.status,
+        },
+      });
+
+      sendSuccess(
+        res,
+        {
+          saved: true,
+          savedCount: parsed.schedules.length,
+          items: parsed.schedules,
+          updatedBurnout: {
+            logDate: today.toISOString().split("T")[0],
+            dayOfWeek,
+            academicLoadScore: calc.academicLoadScore,
+            screenFatigueScore: calc.screenFatigueScore,
+            recoveryScore: calc.recoveryScore,
+            burnoutIndex: calc.burnoutIndex,
+            status: calc.status,
+            fussionLogId: updatedLog.id,
+          },
+        },
+        201
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 /**
  * GET /api/v1/schedule

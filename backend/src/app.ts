@@ -66,6 +66,8 @@ export function createApp() {
   app.use("/api/v1/ai-coach", aiCoachRouter);
   app.use("/api/v1/notifications", notificationsRouter);
   app.use("/api/v1/schedule", scheduleRouter);
+  app.use("/api/academic-schedule", scheduleRouter);
+  app.use("/api/v1/academic-schedule", scheduleRouter);
   app.use("/api/v1/burnout", burnoutRouter);
   app.use("/api/v1/active-break", activeBreakRouter);
 
