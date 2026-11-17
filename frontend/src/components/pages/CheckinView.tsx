@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ClipboardCheck, Moon, Check, Smartphone } from "lucide-react";
+import { ClipboardCheck, Moon, Check, Smartphone, Activity } from "lucide-react";
 import { api } from "@/lib/api";
 
 interface CheckinViewProps {
@@ -7,19 +7,26 @@ interface CheckinViewProps {
 }
 
 export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) => {
-  const [sleepHours, setSleepHours] = useState(7);
-  const [screenHours, setScreenHours] = useState(4);
-  const [answers, setAnswers] = useState<[number, number, number, number]>([2, 2, 2, 2]);
+  const [sleepHours, setSleepHours] = useState<number | string>(7);
+  const [screenHours, setScreenHours] = useState<number | string>(4);
+  const [answers, setAnswers] = useState<[number, number, number, number]>([3, 3, 3, 3]);
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const finalSleep = typeof sleepHours === "number" && !isNaN(sleepHours) ? sleepHours : parseFloat(String(sleepHours)) || 0;
+    const finalScreen = typeof screenHours === "number" && !isNaN(screenHours) ? screenHours : parseFloat(String(screenHours)) || 0;
+    // Konversi skala UI (1-5) ke kontrak Likert PSS-4 standar (0-4)
+    const pss4AnswersPayload = answers.map((val) =>
+      Math.max(0, Math.min(4, (val || 1) - 1))
+    ) as [number, number, number, number];
+
     await api.submitDailyWellbeing({
       logDate: new Date().toISOString().slice(0, 10),
-      sleepHours,
+      sleepHours: finalSleep,
       sleepQualityScore: 4,
-      nonAcademicScreenHours: screenHours,
-      pss4Answers: answers,
+      nonAcademicScreenHours: finalScreen,
+      pss4Answers: pss4AnswersPayload,
     });
     setSubmitted(true);
   };
@@ -79,16 +86,31 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
                 </div>
                 <span>Durasi Tidur Semalam (Target 7.0–9.0 Jam)</span>
               </div>
-              <span className="font-heading font-extrabold text-lg text-[#1A1A1A] sensor-num">
-                {sleepHours} Jam
-              </span>
+              <div className="flex items-center gap-1.5 bg-[#F6F6F6] focus-within:bg-white border border-[#E8E8E8] focus-within:border-[#1A1A1A] rounded-xl px-2.5 py-1 transition-all shadow-xs">
+                <input
+                  type="number"
+                  min="0"
+                  max="24"
+                  step="0.1"
+                  value={sleepHours}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSleepHours(val === "" ? ("" as unknown as number) : parseFloat(val));
+                  }}
+                  className="w-14 text-center font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  aria-label="Ketik durasi tidur dalam jam"
+                />
+                <span className="font-heading font-extrabold text-xs sm:text-sm text-[#1A1A1A] select-none pr-0.5">
+                  Jam
+                </span>
+              </div>
             </div>
             <input
               type="range"
-              min="3"
-              max="12"
+              min="0"
+              max="16"
               step="0.5"
-              value={sleepHours}
+              value={typeof sleepHours === "number" && !isNaN(sleepHours) ? Math.min(16, Math.max(0, sleepHours)) : 0}
               onChange={(e) => setSleepHours(parseFloat(e.target.value))}
               className="w-full accent-[#1A1A1A] h-2 bg-[#F6F6F6] rounded-lg cursor-pointer"
             />
@@ -108,16 +130,31 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
                 </div>
                 <span>Waktu Layar Non-Akademik / Hiburan</span>
               </div>
-              <span className="font-heading font-extrabold text-lg text-[#1A1A1A] sensor-num">
-                {screenHours} Jam
-              </span>
+              <div className="flex items-center gap-1.5 bg-[#F6F6F6] focus-within:bg-white border border-[#E8E8E8] focus-within:border-[#1A1A1A] rounded-xl px-2.5 py-1 transition-all shadow-xs">
+                <input
+                  type="number"
+                  min="0"
+                  max="24"
+                  step="0.1"
+                  value={screenHours}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setScreenHours(val === "" ? ("" as unknown as number) : parseFloat(val));
+                  }}
+                  className="w-14 text-center font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  aria-label="Ketik waktu layar non-akademik dalam jam"
+                />
+                <span className="font-heading font-extrabold text-xs sm:text-sm text-[#1A1A1A] select-none pr-0.5">
+                  Jam
+                </span>
+              </div>
             </div>
             <input
               type="range"
               min="0"
-              max="12"
+              max="16"
               step="0.5"
-              value={screenHours}
+              value={typeof screenHours === "number" && !isNaN(screenHours) ? Math.min(16, Math.max(0, screenHours)) : 0}
               onChange={(e) => setScreenHours(parseFloat(e.target.value))}
               className="w-full accent-[#1A1A1A] h-2 bg-[#F6F6F6] rounded-lg cursor-pointer"
             />
@@ -132,7 +169,7 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
               <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
                 Evaluasi Tingkat Stres (24 Jam Terakhir)
               </h3>
-              <span className="text-[11px] text-[#9A9A9A] font-medium">Skala 0 (Tidak Pernah) &ndash; 4 (Sangat Sering)</span>
+              <span className="text-[11px] text-[#9A9A9A] font-medium">Skala 1 (Tidak Pernah) &ndash; 5 (Sangat Sering)</span>
             </div>
 
             {[
@@ -144,7 +181,7 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
               <div key={idx} className="space-y-2.5 pt-1">
                 <p className="text-xs font-semibold text-[#1A1A1A] leading-snug">{q}</p>
                 <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-                  {[0, 1, 2, 3, 4].map((val) => (
+                  {[1, 2, 3, 4, 5].map((val) => (
                     <button
                       type="button"
                       key={val}
@@ -165,6 +202,62 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
                 </div>
               </div>
             ))}
+
+            {/* Live Diagnostic & Recovery Preview */}
+            {(() => {
+              const numSleep = typeof sleepHours === "number" && !isNaN(sleepHours) ? sleepHours : parseFloat(String(sleepHours)) || 0;
+              const numScreen = typeof screenHours === "number" && !isNaN(screenHours) ? screenHours : parseFloat(String(screenHours)) || 0;
+              const stressSum = answers.reduce((a, b) => a + b, 0);
+
+              const sleepLabel = numSleep >= 7 && numSleep <= 9 ? "+40 Poin (Optimal)" : numSleep >= 6 ? "+25 Poin (Cukup)" : numSleep > 9 ? "+30 Poin (Lebih)" : "+10 Poin (Kurang)";
+              const screenLabel = numScreen <= 4 ? "Aman (Rendah)" : numScreen <= 7 ? "Moderat" : "Tinggi (Kelelahan)";
+              const stressLabel = stressSum <= 10 ? "Rendah (Rileks)" : stressSum <= 15 ? "Sedang (Wajar)" : "Tinggi (Stres)";
+
+              const isOptimal = numSleep >= 7 && numScreen <= 5 && stressSum <= 14;
+              const isWarning = numSleep < 6 || numScreen > 7 || stressSum > 16;
+              const statusBadge = isOptimal
+                ? { label: "Kebugaran Optimal", style: "bg-[#CDE8B5] text-[#166534] border-[#B6DF97]" }
+                : isWarning
+                ? { label: "Perlu Pemulihan", style: "bg-[#F7A8B0] text-[#1A1A1A] border-[#F27885]" }
+                : { label: "Waspada Ringan", style: "bg-[#FFF29A] text-[#1A1A1A] border-[#FFE966]" };
+
+              return (
+                <div className="bg-[#FAFAFA] rounded-2xl p-4 border border-[#E8E8E8] space-y-3 mt-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-[#1A1A1A]" />
+                      <span className="font-heading font-extrabold text-xs text-[#1A1A1A]">
+                        Pratinjau Kebugaran &amp; Pemulihan Instan
+                      </span>
+                    </div>
+                    <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${statusBadge.style}`}>
+                      {statusBadge.label}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-xs">
+                    <div className="p-2.5 rounded-xl bg-white border border-[#E8E8E8]">
+                      <span className="text-[10px] text-[#9A9A9A] block mb-0.5">Pemulihan Tidur</span>
+                      <strong className="text-xs font-heading font-extrabold text-[#1A1A1A]">
+                        {sleepLabel}
+                      </strong>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-white border border-[#E8E8E8]">
+                      <span className="text-[10px] text-[#9A9A9A] block mb-0.5">Beban Layar Hiburan</span>
+                      <strong className="text-xs font-heading font-extrabold text-[#1A1A1A]">
+                        {screenLabel}
+                      </strong>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-white border border-[#E8E8E8]">
+                      <span className="text-[10px] text-[#9A9A9A] block mb-0.5">Tingkat Stres PSS-4</span>
+                      <strong className="text-xs font-heading font-extrabold text-[#1A1A1A]">
+                        {stressLabel}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             <button
               type="submit"

@@ -21,6 +21,219 @@
 
 ---
 
+## [2026-11-17] — Pengayaan Fitur Workstation & Jeda (`FocusView.tsx`) dan Aktivitas & Check-in (`ActivityView.tsx`, `PedometerCard.tsx`, `CheckinView.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.76`
+- **Ringkasan:** 
+  1. **Pengayaan Halaman Workstation & Jeda (`FocusView.tsx`):**
+     - **Target Tugas Sesi Ini (*Focus Tasks Checklist*):** Menambahkan manajemen tugas belajar dengan input tugas baru, tag kategori (Tugas, Praktikum, Ujian, Skripsi), checklist penyelesaian, dan indikator target aktif di atas timer Pomodoro.
+     - **Generator Suara Ambience Belajar (*Study Soundscapes*):** Mengintegrasikan synthesizer audio Web Audio API bawaan peramban (100% offline tanpa unduhan aset eksternal) dengan 4 opsi suara relaksasi fokus (*Hujan Tenang*, *Gelombang Alpha 432Hz*, *White Noise*, dan *Kafe Kampus*), kontrol volume slider, dan animasi gelombang audio visual.
+     - **Widget Ergonomi & Aturan 20-20-20 (*Eye Rest & Posture Guide*):** Menyediakan pengingat interaktif aturan 20-20-20 dengan modal hitung mundur jeda mata 20 detik serta checklist panduan postur duduk sehat (layar sejajar mata, bahu rileks, kaki stabil).
+     - **Garis Waktu Sesi Fokus Hari Ini (*Focus Timeline Bar*):** Menampilkan rekapitulasi riwayat sesi Pomodoro yang telah diselesaikan sepanjang hari ini beserta durasi dan topiknya.
+  2. **Pengayaan Halaman Aktivitas & Check-in (`ActivityView.tsx`, `PedometerCard.tsx`, `CheckinView.tsx`):**
+     - **Kalender Strip Konsistensi 7 Hari (`ActivityView.tsx`):** Menampilkan baris status check-in harian (Senin–Minggu) dengan badge streak "5 Hari Streak Konsisten" yang terhubung dengan maskot Mimi.
+     - **Milestone Rute Kampus (`PedometerCard.tsx`):** Menghubungkan akumulasi langkah kaki mahasiswa ke rute nyata kampus (Halte Gerbang Utama, Perpustakaan, Danau Rektorat, hingga Target Harian 6.000 Langkah WHO/IPAQ-SF) dilengkapi estimasi kalori (kkal) dan jarak tempuh (km).
+     - **Pencatat Cepat Aktivitas Fisik Kampus (`PedometerCard.tsx`):** Menambahkan tombol pintas pencatatan aktivitas non-jalan kaki (Naik Tangga Kampus 5 mnt, Bersepeda 15 mnt, Olahraga Sore 30 mnt) yang langsung menambahkan MET-menit dan ekuivalen langkah.
+     - **Pratinjau Kebugaran & Pemulihan Instan (`CheckinView.tsx`):** Menambahkan kartu evaluasi live di atas tombol submit check-in yang langsung menghitung proyeksi skor pemulihan tidur, beban layar, dan tingkat stres sebelum formulir dikirim.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `frontend/src/components/pages/ActivityView.tsx`
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `frontend/src/components/pages/CheckinView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2199 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Perapian Komposisi Visual Banner Hero & Integrasi Kapsul Kontrol Waktu/Suasana (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.75`
+- **Ringkasan:** 
+  1. **Penyatuan Widget Jam, Tanggal, & Mode Suasana dalam Satu Kapsul (*Unified Control Capsule*):**
+     - Menggabungkan badge jam digital, tanggal kalender, dan tombol ganti mode Siang/Malam yang sebelumnya terpisah menjadi satu kapsul kontrol tunggal (*single sleek pill*) di sudut kanan atas banner hero.
+     - Menghapus label teks tambahan `(Ganti)` dan menggantikannya dengan tombol chip interaktif yang proporsional dan bersih (`☀️ Siang` / `🌙 Malam`).
+  2. **Pemberian Ruang Lapang (*Breathing Room*) Ilustrasi Langit & Awan:**
+     - Menurunkan wadah ilustrasi benda langit ke bagian bawah kartu hero (`bottom-0 sm:bottom-1` dengan tinggi `h-32 sm:h-36`) sehingga posisi matahari dan bulan sabit tidak lagi bertabrakan atau terhimpit tepat di bawah badge jam.
+     - Menghaluskan lintasan gerak keliling (*orbital stroll*) agar tetap berada dalam ruang terbuka yang lapang di atas awan, menciptakan kesan visual yang harmonis, rapi, dan seimbang.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2199 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Penghapusan Panah Stepper / Spinner Browser pada Input Jam Check-in (`index.css` & `CheckinView.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.74`
+- **Ringkasan:** 
+  1. **Penghapusan Panah Spinner Bawaan Browser (`index.css` & `CheckinView.tsx`):**
+     - Menghilangkan simbol tombol panah atas/bawah (*number input spin button steppers* `▲`/`▼`) bawaan browser pada input durasi tidur dan jam layar hiburan.
+     - Menerapkan aturan CSS `-webkit-appearance: none` pada `::-webkit-inner-spin-button` dan `::-webkit-outer-spin-button` serta `-moz-appearance: textfield` / `appearance: textfield` di level global (`index.css`) dan utilitas Tailwind di [CheckinView.tsx](file:///c:/Users/HP%20VICTUS/Downloads/CampusFlow/frontend/src/components/pages/CheckinView.tsx).
+     - Menghasilkan tampilan input angka yang bersih, rapi, dan konsisten tanpa tombol panah yang mengganggu.
+- **Daftar File Diubah:**
+  - `frontend/src/index.css`
+  - `frontend/src/components/pages/CheckinView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2199 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Input Ketik Interaktif Jam Tidur & Layar serta Penyesuaian Skala 1–5 Kuisioner Stres PSS-4 (`CheckinView.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.73`
+- **Ringkasan:** 
+  1. **Input Interaktif Durasi Tidur & Layar Hiburan (`CheckinView.tsx`):**
+     - Mengubah indikator teks statis durasi tidur ("7 Jam") dan durasi layar non-akademik ("4 Jam") menjadi kotak input angka (`<input type="number">`) modern dengan aksen Fresh Pastel yang dapat diketik langsung oleh pengguna.
+     - Melakukan sinkronisasi dua arah (*two-way binding*) antara input ketik dengan slider bar, sehingga perubahan nilai dari ketikan angka langsung menggeser posisi slider dan sebaliknya.
+  2. **Penyesuaian Skala Kuisioner Stres PSS-4 (`CheckinView.tsx`):**
+     - Mengubah nilai tombol skala evaluasi stres dari `0, 1, 2, 3, 4` menjadi `1, 2, 3, 4, 5` agar lebih intuitif bagi mahasiswa.
+     - Memperbarui sub-label header kuisioner menjadi `Skala 1 (Tidak Pernah) – 5 (Sangat Sering)`.
+     - Mengadaptasi pemetaan payload API secara presisi (`(val - 1)`) agar tetap mematuhi skema validasi backend Likert standar PSS-4 (0–4) tanpa menimbulkan galat validasi.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/CheckinView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2199 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Pembersihan Label "Strava" & Subtitle "Academic Strava" pada Navigasi dan Header (`Navbar.tsx` & `TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.72`
+- **Ringkasan:** 
+  1. **Pembersihan Label Tab Navigasi (`Navbar.tsx`):**
+     - Mengubah label menu pertama `Dashboard Strava` menjadi `Dashboard` yang lebih bersih dan ringkas.
+  2. **Penghapusan Subtitle Brand Header Sidebar (`Navbar.tsx`):**
+     - Menghapus teks sub-judul `Academic Strava` di bawah nama brand `CampusFlow` pada sidebar desktop, menciptakan tampilan brand yang lebih minimalis dan fokus.
+  3. **Penyesuaian Kategori Banner Hero (`TriadDashboard.tsx`):**
+     - Memperbarui sub-label banner dari `Dashboard Strava Akademik` menjadi `Dashboard Akademik`.
+- **Daftar File Diubah:**
+  - `frontend/src/components/Navbar.tsx`
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2199 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Penambahan Jam Digital Real-Time & Tanggal Kalender pada Banner Hero (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.71`
+- **Ringkasan:** 
+  1. **Integrasi Widget Jam Digital Real-Time (*Live Ticking Digital Clock*):**
+     - Membangun timer interval 1 detik untuk menyajikan waktu lokal terkini secara presisi (`HH:mm:ss`).
+     - Menggunakan tipografi `font-mono tabular-nums tracking-tight` untuk mencegah pergeseran tata letak (*layout shift*) saat detik berganti.
+  2. **Integrasi Tanggal Kalender Indonesia Lengkap (*Localized Calendar Date Badge*):**
+     - Menampilkan nama hari, tanggal, nama bulan, dan tahun (misal: `Selasa, 17 Nov 2026`) yang disandingkan harmonis dengan ikon kalender Lucide.
+     - Dibalut dalam wadah pil kaca modern (*glassmorphic pill* `bg-white/85 backdrop-blur-md shadow-2xs`) di sisi kanan atas banner hero di samping tombol mode cuaca Siang/Malam, responsif dan adaptif terhadap layar desktop maupun mobile.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2199 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Peningkatan Animasi Halus: Orbit Jalan-Jalan Pelan Matahari/Bulan & Integrasi 2 Awan Berlapis (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.70`
+- **Ringkasan:** 
+  1. **Animasi Berkeliling / Jalan-Jalan Santai (*Celestial Orbital Stroll*):**
+     - Mengembangkan animasi orbit melayang organik berkecepatan santai (`celestialOrbitalStroll 15s ease-in-out infinite`) di mana Matahari (Siang) dan Rembulan (Malam) bergerak perlahan berkeliling di langit atas dalam lintasan elips yang lembut, santai, dan tidak kaku.
+     - Dipadukan dengan putaran sinar ambient perlahan (45s) dan denyut aura napas lembut (4s) yang menenangkan saraf mata mahasiswa.
+  2. **Integrasi 2 Formasi Awan Organik HD (*Dual Layered Clouds*):**
+     - Menghadirkan 2 awan terpisah yang saling melengkapi di bawah lintasan matahari/bulan:
+       - **Awan 1 (Awan Utama di Kiri Bawah):** Formasi awan tebal dengan animasi melayang lembut 10s (`driftCloud1`).
+       - **Awan 2 (Awan Pendamping di Kanan Bawah):** Formasi awan berdimensi dengan offset kedalaman dan animasi melayang 12s (`driftCloud2`).
+     - Kedua awan bergerak berlawanan fase secara halus di bawah matahari/bulan, menciptakan pemandangan langit berlapis (*depth of field*) yang hidup dan elegan.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2199 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Penguncian Komposisi Simetris: Awan Tepat di Bawah Matahari (Siang) dan Tepat di Bawah Bulan (Malam) (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.69`
+- **Ringkasan:** 
+  1. **Penyelarasan Vertikal Satu Sumbu Simetri (*Coaxial Vertical Alignment*):**
+     - Mengubah arsitektur kontainer ilustrasi menjadi kotak tetap kanan (`w-48 sm:w-56 h-36 sm:h-40`, vertikal terpusat di sisi kanan kartu) dengan kanvas SVG proporsional `220 x 160`.
+     - Mengunci sumbu horizontal pusat di satu garis yang sama (`X = 110`), sehingga awan tidak bergeser atau terpisah ke samping kiri/kanan.
+     - **Mode Siang:** Matahari berada di atas (`X = 110, Y = 52`) dan gumpalan awan HD berada tepat tegak lurus di bawahnya (`X = 110, Y = 114`).
+     - **Mode Malam:** Rembulan sabit berada di atas (`X = 110, Y = 50`) dan gumpalan awan malam HD berada tepat tegak lurus di bawahnya (`X = 110, Y = 114`).
+  2. **Animasi Mengapung Stabil & Efek HD:**
+     - Menerapkan animasi melayang lembut terpusat (`cloudUnderSun` dan `celestialFloatSlow`) yang menjaga awan tetap berada persis sebagai bantalan empuk di bawah matahari/bulan tanpa melayang ke tepi kartu.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2199 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Peningkatan Visual HD Ilustrasi Langit & Reposisi Awan di Bawah Matahari / Rembulan (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.68`
+- **Ringkasan:** 
+  1. **Reposisi Sempurna Awan di Bawah Matahari dan Rembulan (*Beneath-the-Sun/Moon Horizon Layering*):**
+     - Memposisikan Matahari dan Rembulan anggun di langit bagian atas (`cx = 280, cy = 58`) dengan jarak lega dari tombol toggle suasana.
+     - Menyusun formasi gumpalan awan berlapis (*layered cloud bank*) berada secara tegas di bawah matahari dan rembulan (`y = 112 - 180`), menciptakan komposisi horizon pemandangan langit yang megah dan natural di mana matahari/bulan bersinar menyinari hamparan awan di bawahnya.
+  2. **Peningkatan Kualitas Visual Vektor HD (*High-Definition Detailing*):**
+     - Menambahkan filter bayangan lembut vektor hardware-accelerated (`filter="url(#hdCloudShadow)"`) untuk kedalaman 3D awan yang padat, tanggap, dan bervolume (*plush fluffy clouds*).
+     - Menambahkan filter pendaran cahaya (*glow filter*) pada Matahari dan Rembulan (`#hdSunGlow` dan `#hdMoonGlow`) serta kilau pantulan spekular 3D (*specular glint*) dan cincin interior tipis pada bola matahari.
+     - Menambahkan kilau garis tepi (*top edge highlight*) pada puncak awan untuk estetika HD modern yang tajam dan tidak buram.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2199 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Implementasi Pola Interaktif Langit Sirkadian (Matahari & Awan Pagi/Siang vs Rembulan & Bintang Malam) pada Hero Card (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.67`
+- **Ringkasan:** 
+  1. **Integrasi Pola Langit Dinamis Waktu Riil (*Dynamic Circadian Sky Theme*):**
+     - Mengubah aksen ornamen visual sisi kanan banner *Burnout Risk Index* menjadi ilustrasi langit dinamis yang berganti otomatis sesuai jam lokal mahasiswa (`06:00 - 18:00 = Siang`, selebihnya `Malam`).
+     - **Mode Pagi / Siang (Semangat & Produktivitas):** Menampilkan Matahari pastel hangat (`#FFF29A` & `#FFD97D`) dengan pendaran aura (*glowing corona*) dan sinar berputar halus 36s, ditemani awan putih-sky berarak lembut di depan dan belakang matahari untuk efek kedalaman 3D (*parallax drifting clouds*).
+     - **Mode Malam (Restorasi & Pemulihan Tidur):** Menampilkan Rembulan sabit anggun (*luminous crescent moon*) berpendar lembut, dikelilingi 5 bintang mikro berkelip (*twinkling sparkle stars*), serta awan malam bernuansa pastel lavender-sky yang menenangkan sistem saraf.
+  2. **Interaktivitas Penuh & Animasi Organik (*Motion & Interaction*):**
+     - Dilengkapi gerakan melayang vertikal halus (*celestialFloatSlow*, 5s), pendaran napas aura (*celestialPulse*), dan pergeseran awan horizontal (*cloudDriftA/B*), serta mematuhi aksesibilitas `prefers-reduced-motion`.
+     - Menyediakan tombol *pill badge* interaktif di pojok kanan atas banner (`☀️ Pagi / Siang` / `🌙 Malam`) sekaligus area klik pada seluruh ilustrasi langit yang memungkinkan pengguna beralih suasana kapan saja dengan responsif.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2199 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
 ## [2026-11-17] — Implementasi Ornamen Batik Kawung Transparan Modern pada Hero Card Burnout Index (`TriadDashboard.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.66`
 - **Ringkasan:** 

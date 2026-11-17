@@ -7,6 +7,7 @@ import {
   Plus,
   X,
   Calendar,
+  Clock,
   UploadCloud,
   FileText,
   Trash2,
@@ -82,6 +83,57 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   const [isKrsModalOpen, setIsKrsModalOpen] = useState<boolean>(false);
   const [krsModalTab, setKrsModalTab] = useState<"upload" | "manual" | "manage">("upload");
   const [isExtractingPdf, setIsExtractingPdf] = useState<boolean>(false);
+
+  // Dynamic Celestial Theme: Day (Sun + Clouds) vs Night (Moon + Clouds)
+  const [timeOfDayOverride, setTimeOfDayOverride] = useState<"day" | "night" | null>(null);
+
+  // Auto-detect based on user's real local time (06:00 - 18:00 = Day, otherwise Night)
+  const isDayTime = useMemo(() => {
+    if (timeOfDayOverride !== null) return timeOfDayOverride === "day";
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 18;
+  }, [timeOfDayOverride]);
+
+  const handleToggleTimeOfDay = () => {
+    setTimeOfDayOverride((prev) => {
+      if (prev === null) {
+        const hour = new Date().getHours();
+        const currentIsDay = hour >= 6 && hour < 18;
+        return currentIsDay ? "night" : "day";
+      }
+      return prev === "day" ? "night" : "day";
+    });
+  };
+
+  // Live Clock & Date for Hero Banner
+  const [currentDateTime, setCurrentDateTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const timeFormatted = useMemo(() => {
+    const hours = String(currentDateTime.getHours()).padStart(2, "0");
+    const minutes = String(currentDateTime.getMinutes()).padStart(2, "0");
+    const seconds = String(currentDateTime.getSeconds()).padStart(2, "0");
+    return { hours, minutes, seconds };
+  }, [currentDateTime]);
+
+  const dateFormatted = useMemo(() => {
+    const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    const monthNames = [
+      "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+      "Jul", "Agu", "Sep", "Okt", "Nov", "Des"
+    ];
+    const dayName = dayNames[currentDateTime.getDay()];
+    const dateNum = currentDateTime.getDate();
+    const monthName = monthNames[currentDateTime.getMonth()];
+    const yearNum = currentDateTime.getFullYear();
+    return { dayName, dateNum, monthName, yearNum };
+  }, [currentDateTime]);
 
   // New Course Form State
   const [newDayOfWeek, setNewDayOfWeek] = useState<number>(1);
@@ -250,149 +302,378 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           1. HERO CARD: STRAVA AKADEMIK & BURNOUT RISK INDEX (0-100)
           ======================================================== */}
       <div className={`relative overflow-hidden rounded-3xl p-6 sm:p-8 border shadow-xs transition-all ${statusMeta.cardBg}`}>
-        {/* Abstract Translucent Graphic Accent Pattern (Right Side) */}
-        <div className="absolute right-0 top-0 bottom-0 w-full sm:w-2/3 lg:w-1/2 pointer-events-none select-none overflow-hidden">
+        {/* Dynamic Celestial Sky Illustration: Strolling Sun/Moon Above 2 Layered Clouds */}
+        <div
+          className="absolute right-2 sm:right-6 bottom-0 sm:bottom-1 w-56 sm:w-64 md:w-72 h-32 sm:h-36 select-none pointer-events-auto z-0 group cursor-pointer flex items-end justify-center"
+          onClick={handleToggleTimeOfDay}
+          title={isDayTime ? "Suasana Pagi/Siang ☀️ • Klik untuk beralih ke Malam" : "Suasana Malam 🌙 • Klik untuk beralih ke Siang"}
+        >
+          {/* Scoped Keyframes for Fluid Celestial Motion */}
+          <style>{`
+            @keyframes celestialOrbitalStroll {
+              0% {
+                transform: translate(0px, 0px);
+              }
+              25% {
+                transform: translate(18px, -4px);
+              }
+              50% {
+                transform: translate(34px, 1px);
+              }
+              75% {
+                transform: translate(16px, 5px);
+              }
+              100% {
+                transform: translate(0px, 0px);
+              }
+            }
+            @keyframes driftCloud1 {
+              0% {
+                transform: translate(0px, 0px) scale(1);
+              }
+              50% {
+                transform: translate(9px, -3px) scale(1.015);
+              }
+              100% {
+                transform: translate(0px, 0px) scale(1);
+              }
+            }
+            @keyframes driftCloud2 {
+              0% {
+                transform: translate(0px, 0px) scale(1);
+              }
+              50% {
+                transform: translate(-10px, 3px) scale(1.02);
+              }
+              100% {
+                transform: translate(0px, 0px) scale(1);
+              }
+            }
+            @keyframes sunSpinSlow {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+            @keyframes celestialPulse {
+              0%, 100% { opacity: 0.40; transform: scale(0.96); }
+              50% { opacity: 0.75; transform: scale(1.05); }
+            }
+            @keyframes starTwinkleAnim {
+              0%, 100% { opacity: 0.25; transform: scale(0.75); }
+              50% { opacity: 0.95; transform: scale(1.2); }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .celestial-anim { animation: none !important; }
+            }
+          `}</style>
+
           <svg
-            className="w-full h-full object-cover sm:object-contain object-right"
-            viewBox="0 0 400 200"
+            className="w-full h-full"
+            viewBox="0 0 280 170"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             preserveAspectRatio="xMidYMid meet"
           >
             <defs>
-              {/* Fresh Pastel Gradients for Modern Translucent Batik Kawung */}
-              <linearGradient id="kawungMintSky" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#CDE8B5" stopOpacity="0.45" />
-                <stop offset="100%" stopColor="#BDE6F0" stopOpacity="0.20" />
+              {/* HD Ambient Filters for Depth & Soft Shadows */}
+              <filter id="hdCloudShadow" x="-20%" y="-20%" width="140%" height="150%">
+                <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#1A1A1A" floodOpacity="0.08" />
+              </filter>
+              <filter id="hdSunGlow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#FFC837" floodOpacity="0.5" />
+              </filter>
+              <filter id="hdMoonGlow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#FFF29A" floodOpacity="0.5" />
+              </filter>
+
+              {/* Day Palette Gradients (HD Rich Warmth & Specular Depth) */}
+              <linearGradient id="hdSunCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#FFFDE7" />
+                <stop offset="35%" stopColor="#FFF29A" />
+                <stop offset="100%" stopColor="#FFC837" />
               </linearGradient>
-              <linearGradient id="kawungButterMint" x1="100%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#FFF29A" stopOpacity="0.40" />
-                <stop offset="100%" stopColor="#CDE8B5" stopOpacity="0.15" />
+              <radialGradient id="hdSunAuraGrad" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#FFF29A" stopOpacity="0.80" />
+                <stop offset="55%" stopColor="#FFE082" stopOpacity="0.30" />
+                <stop offset="100%" stopColor="#FFF9C4" stopOpacity="0.00" />
+              </radialGradient>
+              <linearGradient id="hdDayCloudFront" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FFFFFF" />
+                <stop offset="65%" stopColor="#F5FBFC" />
+                <stop offset="100%" stopColor="#D8EEF7" />
               </linearGradient>
-              <linearGradient id="kawungSkyPink" x1="0%" y1="100%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#BDE6F0" stopOpacity="0.35" />
-                <stop offset="100%" stopColor="#F7A8B0" stopOpacity="0.15" />
+              <linearGradient id="hdDayCloudBack" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#CDE8B5" stopOpacity="0.60" />
               </linearGradient>
-              <radialGradient id="kawungCenterGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#CDE8B5" stopOpacity="0.65" />
-                <stop offset="60%" stopColor="#FFF29A" stopOpacity="0.30" />
+
+              {/* Night Palette Gradients (HD Luminous Pearl & Lunar Glow) */}
+              <linearGradient id="hdMoonCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#FFFFEE" />
+                <stop offset="45%" stopColor="#FFF29A" />
+                <stop offset="100%" stopColor="#F9D76E" />
+              </linearGradient>
+              <radialGradient id="hdMoonAuraGrad" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#FFF29A" stopOpacity="0.70" />
+                <stop offset="50%" stopColor="#BDE6F0" stopOpacity="0.30" />
                 <stop offset="100%" stopColor="#BDE6F0" stopOpacity="0.00" />
               </radialGradient>
+              <linearGradient id="hdNightCloudFront" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FFFFFF" />
+                <stop offset="65%" stopColor="#E9F2FA" />
+                <stop offset="100%" stopColor="#C9DCEB" />
+              </linearGradient>
+              <linearGradient id="hdNightCloudBack" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#F1F5F9" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#B2CBDD" stopOpacity="0.65" />
+              </linearGradient>
             </defs>
 
-            {/* Modern Minimalist Batik Kawung (Filosofi 4 Pilar Keseimbangan Gaya Hidup Mahasiswa) */}
+            {isDayTime ? (
+              /* ========================================================
+                 DAYTIME MODE: MATAHARI JALAN-JALAN KELILING & 2 AWAN DI BAWAH
+                 ======================================================== */
+              <g className="transition-opacity duration-700">
+                {/* 1. MATAHARI BERJALAN KELILING SANTAI (Di Langit Atas) */}
+                <g style={{ animation: "celestialOrbitalStroll 15s ease-in-out infinite" }}>
+                  {/* Pusat Posisi Awal Matahari di (122, 52) */}
+                  {/* Aura Cahaya Hangat */}
+                  <circle
+                    cx="122"
+                    cy="52"
+                    r="46"
+                    fill="url(#hdSunAuraGrad)"
+                    style={{ animation: "celestialPulse 4s ease-in-out infinite", transformOrigin: "122px 52px" }}
+                  />
 
-            {/* 1. Latar Belakang Aura Lembut */}
-            <circle cx="280" cy="100" r="85" fill="url(#kawungCenterGlow)" />
+                  {/* 12 Sinar Matahari Berputar Anggun */}
+                  <g style={{ transformOrigin: "122px 52px", animation: "sunSpinSlow 45s linear infinite" }}>
+                    {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((angle) => (
+                      <rect
+                        key={angle}
+                        x={122 - 3}
+                        y={52 - 40}
+                        width={6}
+                        height={11}
+                        rx={3}
+                        fill="#FFD54F"
+                        opacity={0.8}
+                        transform={`rotate(${angle} 122 52)`}
+                      />
+                    ))}
+                  </g>
 
-            {/* 2. Mandala Kawung Sekunder (Kiri - Melarut Halus Mendekati Area Teks) */}
-            <g transform="translate(180, 100) scale(0.68)" opacity="0.28">
-              <g transform="rotate(45)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
-              </g>
-              <g transform="rotate(135)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungButterMint)" />
-              </g>
-              <g transform="rotate(225)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
-              </g>
-              <g transform="rotate(315)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungSkyPink)" />
-              </g>
-              <circle cx="0" cy="0" r="10" fill="url(#kawungCenterGlow)" />
-            </g>
+                  {/* Bola Inti Matahari HD dengan Soft Drop Glow */}
+                  <circle
+                    cx="122"
+                    cy="52"
+                    r="26"
+                    fill="url(#hdSunCoreGrad)"
+                    filter="url(#hdSunGlow)"
+                    className="transition-transform duration-500 group-hover:scale-105"
+                    style={{ transformOrigin: "122px 52px" }}
+                  />
 
-            {/* 3. Mandala Kawung Sekunder (Kanan - Menghadap Tepi Kartu) */}
-            <g transform="translate(380, 100) scale(0.85)" opacity="0.50">
-              <g transform="rotate(45)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
-              </g>
-              <g transform="rotate(135)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungButterMint)" />
-              </g>
-              <g transform="rotate(225)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
-              </g>
-              <g transform="rotate(315)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungSkyPink)" />
-              </g>
-              <circle cx="0" cy="0" r="11" fill="url(#kawungCenterGlow)" />
-            </g>
+                  {/* Cincin Kilau Interior */}
+                  <circle cx="122" cy="52" r="24" stroke="#FFFFFF" strokeWidth="1.2" strokeOpacity="0.5" fill="none" />
 
-            {/* 4. Mandala Kawung Sekunder (Atas & Bawah) */}
-            <g transform="translate(280, 10) scale(0.70)" opacity="0.35">
-              <g transform="rotate(45)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
-              </g>
-              <g transform="rotate(135)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungButterMint)" />
-              </g>
-              <g transform="rotate(225)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
-              </g>
-              <g transform="rotate(315)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungSkyPink)" />
-              </g>
-            </g>
-            <g transform="translate(280, 190) scale(0.70)" opacity="0.35">
-              <g transform="rotate(45)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
-              </g>
-              <g transform="rotate(135)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungButterMint)" />
-              </g>
-              <g transform="rotate(225)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
-              </g>
-              <g transform="rotate(315)">
-                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungSkyPink)" />
-              </g>
-            </g>
+                  {/* Specular Highlight Kilau 3D */}
+                  <ellipse cx="114" cy="44" rx="7" ry="4" fill="#FFFFFF" opacity={0.7} transform="rotate(-35 114 44)" />
+                  <circle cx="123" cy="41" r="2.2" fill="#FFFFFF" opacity={0.55} />
+                </g>
 
-            {/* 5. Aksen Isen Ceplok Geometris Halus di Sela Titik Temu Kawung */}
-            <rect x="-7" y="-7" width="14" height="14" rx="4" transform="translate(230, 55) rotate(45)" fill="url(#kawungButterMint)" opacity="0.55" />
-            <circle cx="230" cy="55" r="2.5" fill="#FAFAFA" opacity="0.75" />
+                {/* 2. AWAN 1 (Awan Utama di Kiri Bawah) */}
+                <g
+                  filter="url(#hdCloudShadow)"
+                  style={{ animation: "driftCloud1 10s ease-in-out infinite", transformOrigin: "108px 118px" }}
+                >
+                  {/* Lapisan Belakang Kedalaman */}
+                  <ellipse cx="108" cy="118" rx="46" ry="22" fill="url(#hdDayCloudBack)" />
+                  <circle cx="78" cy="120" r="18" fill="url(#hdDayCloudBack)" />
+                  <circle cx="138" cy="120" r="18" fill="url(#hdDayCloudBack)" />
 
-            <rect x="-7" y="-7" width="14" height="14" rx="4" transform="translate(330, 55) rotate(45)" fill="url(#kawungButterMint)" opacity="0.55" />
-            <circle cx="330" cy="55" r="2.5" fill="#FAFAFA" opacity="0.75" />
+                  {/* Lapisan Depan Lembut & Fluffy */}
+                  <ellipse cx="108" cy="116" rx="48" ry="22" fill="url(#hdDayCloudFront)" />
+                  <circle cx="74" cy="118" r="20" fill="url(#hdDayCloudFront)" />
+                  <circle cx="52" cy="124" r="15" fill="url(#hdDayCloudFront)" />
+                  <circle cx="140" cy="118" r="20" fill="url(#hdDayCloudFront)" />
+                  <circle cx="108" cy="98" r="24" fill="url(#hdDayCloudFront)" />
+                  <rect x="46" y="114" width="124" height="26" rx="13" fill="url(#hdDayCloudFront)" />
 
-            <rect x="-7" y="-7" width="14" height="14" rx="4" transform="translate(230, 145) rotate(45)" fill="url(#kawungButterMint)" opacity="0.55" />
-            <circle cx="230" cy="145" r="2.5" fill="#FAFAFA" opacity="0.75" />
+                  {/* Kilau Puncak Awan 1 */}
+                  <ellipse cx="108" cy="92" rx="15" ry="6" fill="#FFFFFF" opacity={0.6} />
+                  <ellipse cx="74" cy="110" rx="11" ry="5" fill="#FFFFFF" opacity={0.35} />
+                </g>
 
-            <rect x="-7" y="-7" width="14" height="14" rx="4" transform="translate(330, 145) rotate(45)" fill="url(#kawungButterMint)" opacity="0.55" />
-            <circle cx="330" cy="145" r="2.5" fill="#FAFAFA" opacity="0.75" />
+                {/* 3. AWAN 2 (Awan Pendamping di Kanan Bawah) */}
+                <g
+                  filter="url(#hdCloudShadow)"
+                  style={{ animation: "driftCloud2 12s ease-in-out infinite", transformOrigin: "176px 126px" }}
+                >
+                  {/* Lapisan Belakang Kedalaman */}
+                  <ellipse cx="176" cy="124" rx="42" ry="20" fill="url(#hdDayCloudBack)" />
+                  <circle cx="150" cy="126" r="16" fill="url(#hdDayCloudBack)" />
+                  <circle cx="202" cy="126" r="16" fill="url(#hdDayCloudBack)" />
 
-            {/* 6. Mandala Kawung Utama (Centerpiece: 4 Pilar Keseimbangan & Titik Pusat Harmoni) */}
-            <g transform="translate(280, 100)">
-              {/* Kelopak 1: Pilar Beban Akademik (Top-Right / 45°) */}
-              <g transform="rotate(45)">
-                <ellipse cx="0" cy="-38" rx="22" ry="36" fill="url(#kawungMintSky)" />
-                <ellipse cx="0" cy="-38" rx="10" ry="18" fill="url(#kawungButterMint)" opacity="0.75" />
+                  {/* Lapisan Depan Lembut & Fluffy */}
+                  <ellipse cx="176" cy="122" rx="44" ry="20" fill="url(#hdDayCloudFront)" />
+                  <circle cx="148" cy="124" r="18" fill="url(#hdDayCloudFront)" />
+                  <circle cx="204" cy="124" r="18" fill="url(#hdDayCloudFront)" />
+                  <circle cx="224" cy="130" r="13" fill="url(#hdDayCloudFront)" />
+                  <circle cx="176" cy="106" r="22" fill="url(#hdDayCloudFront)" />
+                  <rect x="138" y="120" width="100" height="24" rx="12" fill="url(#hdDayCloudFront)" />
+
+                  {/* Kilau Puncak Awan 2 */}
+                  <ellipse cx="176" cy="100" rx="13" ry="5" fill="#FFFFFF" opacity={0.55} />
+                  <ellipse cx="204" cy="116" rx="10" ry="4.5" fill="#FFFFFF" opacity={0.35} />
+                </g>
               </g>
+            ) : (
+              /* ========================================================
+                 NIGHTTIME MODE: REMBULAN JALAN-JALAN KELILING & 2 AWAN DI BAWAH
+                 ======================================================== */
+              <g className="transition-opacity duration-700">
+                {/* 1. BINTANG-BINTANG BERKELIP HD DI LANGIT ATAS */}
+                {[
+                  { x: 34, y: 32, scale: 1.0, delay: "0s" },
+                  { x: 68, y: 22, scale: 0.8, delay: "1.2s" },
+                  { x: 198, y: 26, scale: 1.1, delay: "0.6s" },
+                  { x: 236, y: 44, scale: 0.85, delay: "1.8s" },
+                  { x: 40, y: 64, scale: 0.7, delay: "2.4s" },
+                  { x: 242, y: 72, scale: 0.75, delay: "1.5s" },
+                  { x: 138, y: 18, scale: 0.9, delay: "0.9s" },
+                ].map((star, idx) => (
+                  <path
+                    key={idx}
+                    d="M 0,-7 Q 0,0 7,0 Q 0,0 0,7 Q 0,0 -7,0 Q 0,0 0,-7 Z"
+                    fill="#FFF7B2"
+                    transform={`translate(${star.x}, ${star.y}) scale(${star.scale})`}
+                    style={{
+                      animation: "starTwinkleAnim 3s ease-in-out infinite",
+                      animationDelay: star.delay,
+                      transformOrigin: `${star.x}px ${star.y}px`,
+                    }}
+                  />
+                ))}
 
-              {/* Kelopak 2: Pilar Gerak Fisik & Strava (Bottom-Right / 135°) */}
-              <g transform="rotate(135)">
-                <ellipse cx="0" cy="-38" rx="22" ry="36" fill="url(#kawungButterMint)" />
-                <ellipse cx="0" cy="-38" rx="10" ry="18" fill="url(#kawungMintSky)" opacity="0.75" />
+                {/* 2. REMBULAN SABIT BERJALAN KELILING SANTAI (Di Langit Atas) */}
+                <g style={{ animation: "celestialOrbitalStroll 15s ease-in-out infinite" }}>
+                  {/* Pusat Posisi Awal Rembulan di (122, 50) */}
+                  {/* Aura Cahaya Rembulan */}
+                  <circle
+                    cx="122"
+                    cy="50"
+                    r="44"
+                    fill="url(#hdMoonAuraGrad)"
+                    style={{ animation: "celestialPulse 5s ease-in-out infinite", transformOrigin: "122px 50px" }}
+                  />
+
+                  {/* Bulan Sabit Indah HD dengan Drop Glow */}
+                  <path
+                    d="M 122,26 C 140,26 154,38 154,50 C 154,62 140,74 122,74 C 112,74 106,70 100,64 C 114,64 126,56 126,50 C 126,42 116,34 102,34 C 109,29 115,26 122,26 Z"
+                    fill="url(#hdMoonCoreGrad)"
+                    filter="url(#hdMoonGlow)"
+                    className="transition-transform duration-500 group-hover:scale-105"
+                    style={{ transformOrigin: "122px 50px" }}
+                  />
+
+                  {/* Kawah Halus & Refleksi Lunar HD */}
+                  <circle cx="139" cy="46" r="3.8" fill="#FFE082" opacity={0.4} />
+                  <circle cx="134" cy="60" r="2.8" fill="#FFE082" opacity={0.35} />
+                  <path
+                    d="M 123,28 C 134,28 144,36 147,46 C 145,39 136,31 123,28 Z"
+                    fill="#FFFFFF"
+                    opacity={0.65}
+                  />
+                </g>
+
+                {/* 3. AWAN MALAM 1 (Awan Utama di Kiri Bawah) */}
+                <g
+                  filter="url(#hdCloudShadow)"
+                  style={{ animation: "driftCloud1 10s ease-in-out infinite", transformOrigin: "108px 118px" }}
+                >
+                  {/* Lapisan Belakang Kedalaman */}
+                  <ellipse cx="108" cy="118" rx="46" ry="22" fill="url(#hdNightCloudBack)" />
+                  <circle cx="78" cy="120" r="18" fill="url(#hdNightCloudBack)" />
+                  <circle cx="138" cy="120" r="18" fill="url(#hdNightCloudBack)" />
+
+                  {/* Lapisan Depan Lembut & Fluffy */}
+                  <ellipse cx="108" cy="116" rx="48" ry="22" fill="url(#hdNightCloudFront)" />
+                  <circle cx="74" cy="118" r="20" fill="url(#hdNightCloudFront)" />
+                  <circle cx="52" cy="124" r="15" fill="url(#hdNightCloudFront)" />
+                  <circle cx="140" cy="118" r="20" fill="url(#hdNightCloudFront)" />
+                  <circle cx="108" cy="98" r="24" fill="url(#hdNightCloudFront)" />
+                  <rect x="46" y="114" width="124" height="26" rx="13" fill="url(#hdNightCloudFront)" />
+
+                  {/* Kilau Permukaan Awan Malam 1 */}
+                  <ellipse cx="108" cy="92" rx="15" ry="6" fill="#FFFFFF" opacity={0.4} />
+                  <ellipse cx="74" cy="110" rx="11" ry="5" fill="#FFFFFF" opacity={0.25} />
+                </g>
+
+                {/* 4. AWAN MALAM 2 (Awan Pendamping di Kanan Bawah) */}
+                <g
+                  filter="url(#hdCloudShadow)"
+                  style={{ animation: "driftCloud2 12s ease-in-out infinite", transformOrigin: "176px 126px" }}
+                >
+                  {/* Lapisan Belakang Kedalaman */}
+                  <ellipse cx="176" cy="124" rx="42" ry="20" fill="url(#hdNightCloudBack)" />
+                  <circle cx="150" cy="126" r="16" fill="url(#hdNightCloudBack)" />
+                  <circle cx="202" cy="126" r="16" fill="url(#hdNightCloudBack)" />
+
+                  {/* Lapisan Depan Lembut & Fluffy */}
+                  <ellipse cx="176" cy="122" rx="44" ry="20" fill="url(#hdNightCloudFront)" />
+                  <circle cx="148" cy="124" r="18" fill="url(#hdNightCloudFront)" />
+                  <circle cx="204" cy="124" r="18" fill="url(#hdNightCloudFront)" />
+                  <circle cx="224" cy="130" r="13" fill="url(#hdNightCloudFront)" />
+                  <circle cx="176" cy="106" r="22" fill="url(#hdNightCloudFront)" />
+                  <rect x="138" y="120" width="100" height="24" rx="12" fill="url(#hdNightCloudFront)" />
+
+                  {/* Kilau Permukaan Awan Malam 2 */}
+                  <ellipse cx="176" cy="100" rx="13" ry="5" fill="#FFFFFF" opacity={0.35} />
+                  <ellipse cx="204" cy="116" rx="10" ry="4.5" fill="#FFFFFF" opacity={0.2} />
+                </g>
               </g>
-
-              {/* Kelopak 3: Pilar Tidur & Restorasi (Bottom-Left / 225°) */}
-              <g transform="rotate(225)">
-                <ellipse cx="0" cy="-38" rx="22" ry="36" fill="url(#kawungSkyPink)" />
-                <ellipse cx="0" cy="-38" rx="10" ry="18" fill="url(#kawungButterMint)" opacity="0.75" />
-              </g>
-
-              {/* Kelopak 4: Pilar Ketenangan Mental & Layar (Top-Left / 315°) */}
-              <g transform="rotate(315)">
-                <ellipse cx="0" cy="-38" rx="22" ry="36" fill="url(#kawungMintSky)" />
-                <ellipse cx="0" cy="-38" rx="10" ry="18" fill="url(#kawungSkyPink)" opacity="0.75" />
-              </g>
-
-              {/* Titik Tengah Harmoni: "Limo Pancer" / Titik Nol Keseimbangan Sehat */}
-              <circle cx="0" cy="0" r="14" fill="url(#kawungCenterGlow)" />
-              <circle cx="0" cy="0" r="6" fill="#FAFAFA" fillOpacity="0.85" />
-            </g>
+            )}
           </svg>
+        </div>
+
+        {/* Top-Right Unified Capsule: Live Clock & Date + Day/Night Mode Switcher */}
+        <div className="absolute top-3 sm:top-4 right-3 sm:right-6 z-20 flex items-center select-none">
+          <div className="inline-flex items-center gap-2 sm:gap-2.5 px-3 sm:px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white backdrop-blur-md border border-white/95 shadow-2xs text-[#1A1A1A] transition-all">
+            {/* Live Digital Clock */}
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-[#1A1A1A]/70" />
+              <span className="font-mono font-bold text-xs tabular-nums tracking-tight">
+                {timeFormatted.hours}:{timeFormatted.minutes}
+                <span className="text-[#8E8E93] font-normal text-[11px]">:{timeFormatted.seconds}</span>
+              </span>
+            </div>
+
+            <span className="w-px h-3.5 bg-zinc-200" />
+
+            {/* Localized Date */}
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-[#1A1A1A]/70" />
+              <span className="text-[11px] sm:text-xs font-semibold text-[#1A1A1A]/85 tracking-tight">
+                <span className="hidden md:inline">{dateFormatted.dayName}, </span>
+                {dateFormatted.dateNum} {dateFormatted.monthName}
+                <span className="hidden sm:inline"> {dateFormatted.yearNum}</span>
+              </span>
+            </div>
+
+            <span className="w-px h-3.5 bg-zinc-200" />
+
+            {/* Day / Night Mode Switcher Button */}
+            <button
+              type="button"
+              onClick={handleToggleTimeOfDay}
+              className="flex items-center gap-1.5 pl-1.5 pr-2 py-0.5 -mr-1 rounded-full bg-[#F6F6F6] hover:bg-[#EBEBEB] text-xs font-bold text-[#1A1A1A] transition-all active:scale-95 cursor-pointer"
+              title={isDayTime ? "Beralih ke suasana Malam 🌙" : "Beralih ke suasana Siang ☀️"}
+              aria-label="Ganti suasana Siang atau Malam"
+            >
+              <span className="text-xs leading-none">{isDayTime ? "☀️" : "🌙"}</span>
+              <span className="text-[11px] font-extrabold leading-none">{isDayTime ? "Siang" : "Malam"}</span>
+            </button>
+          </div>
         </div>
 
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-7">
@@ -434,7 +715,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#9A9A9A]">
-                Dashboard Strava Akademik
+                Dashboard Akademik
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1A1A1A] leading-tight">
