@@ -249,8 +249,98 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
       {/* ========================================================
           1. HERO CARD: STRAVA AKADEMIK & BURNOUT RISK INDEX (0-100)
           ======================================================== */}
-      <div className={`rounded-3xl p-6 sm:p-8 border shadow-xs transition-all ${statusMeta.cardBg}`}>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-7">
+      <div className={`relative overflow-hidden rounded-3xl p-6 sm:p-8 border shadow-xs transition-all ${statusMeta.cardBg}`}>
+        {/* Abstract Translucent Graphic Accent Pattern (Right Side) */}
+        <div className="absolute right-0 top-0 bottom-0 w-full sm:w-2/3 lg:w-1/2 pointer-events-none select-none overflow-hidden">
+          <svg
+            className="w-full h-full object-cover sm:object-contain object-right"
+            viewBox="0 0 400 200"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="xMidYMid meet"
+          >
+            <defs>
+              <linearGradient id="absFlowGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#CDE8B5" stopOpacity="0.45" />
+                <stop offset="100%" stopColor="#BDE6F0" stopOpacity="0.15" />
+              </linearGradient>
+              <linearGradient id="absFlowGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FFF29A" stopOpacity="0.40" />
+                <stop offset="100%" stopColor="#CDE8B5" stopOpacity="0.10" />
+              </linearGradient>
+              <linearGradient id="absFlowGrad3" x1="0%" y1="50%" x2="100%" y2="50%">
+                <stop offset="0%" stopColor="#BDE6F0" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#F7A8B0" stopOpacity="0.10" />
+              </linearGradient>
+            </defs>
+
+            {/* Translucent Organic Wave Shapes */}
+            <path
+              d="M180,20 C240,-15 320,10 380,40 C440,70 410,140 370,180 C330,220 220,210 170,160 C120,110 120,55 180,20 Z"
+              fill="url(#absFlowGrad1)"
+            />
+            <path
+              d="M230,60 C290,30 350,60 380,100 C410,140 370,190 320,200 C270,210 200,180 190,130 C180,80 170,90 230,60 Z"
+              fill="url(#absFlowGrad2)"
+            />
+            <path
+              d="M130,120 C180,80 260,110 300,140 C340,170 320,220 270,230 C220,240 160,210 130,170 C100,130 80,160 130,120 Z"
+              fill="url(#absFlowGrad3)"
+            />
+
+            {/* Elegant Flowing Vector Contour Lines */}
+            <path
+              d="M100,80 Q200,10 280,70 T420,80"
+              stroke="#1A1A1A"
+              strokeWidth="1.5"
+              strokeOpacity="0.08"
+              strokeDasharray="4 4"
+              fill="none"
+            />
+            <path
+              d="M120,110 Q210,50 300,100 T440,110"
+              stroke="#1A1A1A"
+              strokeWidth="1.5"
+              strokeOpacity="0.12"
+              fill="none"
+            />
+            <path
+              d="M140,140 Q230,90 320,130 T460,140"
+              stroke="#1A1A1A"
+              strokeWidth="1.5"
+              strokeOpacity="0.08"
+              fill="none"
+            />
+            <path
+              d="M160,170 Q250,130 340,160 T480,170"
+              stroke="#1A1A1A"
+              strokeWidth="1.5"
+              strokeOpacity="0.06"
+              strokeDasharray="6 6"
+              fill="none"
+            />
+
+            {/* Subtle Orbit Rings & Floating Accent Elements */}
+            <circle cx="280" cy="90" r="32" stroke="#1A1A1A" strokeWidth="1.2" strokeOpacity="0.07" strokeDasharray="3 3" fill="none" />
+            <circle cx="280" cy="90" r="50" stroke="#1A1A1A" strokeWidth="1" strokeOpacity="0.05" fill="none" />
+            <circle cx="280" cy="90" r="4" fill="#1A1A1A" fillOpacity="0.12" />
+
+            {/* Micro Sparkle Accents */}
+            <path d="M340,45 L342,50 L347,52 L342,54 L340,59 L338,54 L333,52 L338,50 Z" fill="#1A1A1A" fillOpacity="0.15" />
+            <path d="M220,155 L221,159 L225,160 L221,161 L220,165 L219,161 L215,160 L219,159 Z" fill="#1A1A1A" fillOpacity="0.12" />
+            <path d="M360,130 L361,133 L364,134 L361,135 L360,138 L359,135 L356,134 L359,133 Z" fill="#1A1A1A" fillOpacity="0.14" />
+
+            {/* Tiny Soft Dot Grid */}
+            <circle cx="310" cy="40" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
+            <circle cx="320" cy="40" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
+            <circle cx="330" cy="40" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
+            <circle cx="310" cy="50" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
+            <circle cx="320" cy="50" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
+            <circle cx="330" cy="50" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
+          </svg>
+        </div>
+
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-7">
           {/* Circular Ring Gauge */}
           <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0 flex items-center justify-center select-none">
             <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">

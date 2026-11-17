@@ -21,6 +21,25 @@
 
 ---
 
+## [2026-11-17] — Penambahan Pola Abstrak Transparan pada Banner Hero Burnout Index (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.63`
+- **Ringkasan:** 
+  1. **Integrasi Pola Grafis Abstrak Semi-Transparan (*Vitality Flow Graphic Pattern*):**
+     - Menambahkan ornamen grafis SVG abstrak elegan semi-transparan pada sisi kanan kartu banner *Burnout Risk Index* yang sebelumnya kosong.
+     - Menggunakan 3 lapisan gelombang organik gradasi pastel khas CampusFlow (Mint `#CDE8B5`, Butter `#FFF29A`, Sky Blue `#BDE6F0`, dan Soft Pink `#F7A8B0`) dengan opasitas lembut (10% s/d 45%) yang berpadu dinamis dengan status risiko.
+     - Dilengkapi garis kontur dinamis (*flow curves* & *dashed lines*), orbit cincin konsentris halus, micro-sparkles, dan dot grid minimalis yang merefleksikan konsep aliran vitalitas dan ritme hidup seimbang.
+     - Penempatan absolut aman (`absolute right-0 top-0 bottom-0 pointer-events-none select-none overflow-hidden`) dengan z-index konten di `relative z-10`, sehingga tidak mengganggu interaksi dan mempertahankan keterbacaan teks utama secara optimal (WCAG AA).
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
 ## [2026-11-17] — Pembersihan Skala Cadence & Tombol Simulasi Langkah (`PedometerCard.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.62`
 - **Ringkasan:** 
