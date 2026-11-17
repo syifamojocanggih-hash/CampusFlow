@@ -146,12 +146,23 @@ $$\text{Burnout Risk Index} = (\text{Academic Load Score} + \text{Screen Time Fa
 
 ## 5. Skema Database Produksi (Prisma ORM / MySQL)
 
-Tabel inti pada arsitektur CampusFlow v4.0:
-- **`User`:** Profil mahasiswa, NIM, email, target recovery score, streak, dan poin XP.
-- **`AcademicSchedule`:** Jadwal perkuliahan mingguan hasil parsing KRS (`day_of_week`, `subject_name`, `credit_hours`, `is_practicum`, `is_exam_week`).
-- **`DailyFussionLog`:** Catatan fusi parameter harian (`log_date`, `total_screen_time_mins`, `sleep_hours`, `academic_load_score`, `screen_fatigue_score`, `recovery_score`, `verified_break_count`, `burnout_index`, `status`).
-- **`ActiveBreakSession`:** Log sesi peregangan kamera 2 menit (`duration_mins`, `pose_verified`, `pose_type`, `start_time`).
-- **`AiCoachingInsight`:** Riwayat konsultasi, dominant mediator, dan rencana aksi pemulihan.
+Arsitektur database CampusFlow memisahkan data menjadi dua tabel log harian yang saling melengkapi (*Separation of Concerns*):
+
+1. **`DailyFussionLog` (Tabel Fusi PRD v4.0 — Burnout Risk Engine):**
+   - Menyimpan hasil fusi kuantitatif metrik tunggal harian: `totalScreenTimeMins`, `sleepHours`, `academicLoadScore`, `screenFatigueScore`, `recoveryScore`, `verifiedBreakCount`, `burnoutIndex` (0–100), dan `status` (`LOW`/`MODERATE`/`HIGH`).
+   - Diperbarui dinamis setiap kali ada penambahan durasi layar, konfirmasi jadwal perkuliahan, atau penyelesaian sesi *Active Break*.
+
+2. **`DailyWellbeingLog` (Tabel Telemetri & Psikometri — Check-in & AI Coach):**
+   - Menyimpan rekaman survei check-in psikometri harian: `pss4RawAnswersJson` (4 butir Likert), `pss4TotalScore` (0–16), `sleepQualityScore` (1–5), `nonAcademicScreenHours`, `totalSedentaryHours`, `totalMvpaMinutes`, `triadPillarsMet`, dan `stressRiskLevel`.
+   - Digunakan oleh modul AI Coach (`ollamaCoach.ts`) untuk mendiagnosis *dominant mediator* serta riwayat stres psikologis mahasiswa.
+
+Tabel pendukung lainnya:
+- **`User`:** Profil mahasiswa, NIM, email, target recovery, streak, dan poin XP.
+- **`AcademicSchedule`:** Jadwal perkuliahan mingguan hasil ekstraksi KRS (`dayOfWeek`, `subjectName`, `creditHours`, `classType`, `startTime`, `endTime`, `isPracticum`, `isExamWeek`).
+- **`ActiveBreakSession`:** Log sesi peregangan kamera 2 menit tervalidasi MediaPipe (`durationMins`, `poseVerified`, `poseType`, `startTime`).
+- **`ClinicalAssessment`:** Evaluasi psikometri berkala skala penuh PSS-10 (`assessmentDate`, `rawAnswersJson`, `totalScore`, `severityLevel`).
+- **`AiCoachingInsight`:** Riwayat konsultasi, diagnosis AI Coach, rencana aksi isotemporal, dan rekomendasi METs.
+- **`SedentarySession` & `PhysicalActivity`:** Log sesi duduk statis dan pencatatan aktivitas fisik sensor/manual.
 
 ---
 

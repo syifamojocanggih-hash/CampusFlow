@@ -101,7 +101,8 @@ $$\text{Burnout Risk Index} = (\text{Academic Load Score} + \text{Screen Time Fa
 
 ## Bagian 04 — Struktur Database & Endpoint Inti
 
-- **`AcademicSchedule`:** Menyimpan jadwal kuliah dan bobot SKS (`POST /api/v1/academic-schedule`).
-- **`DailyFussionLog`:** Catatan fusi parameter harian dan status Burnout Index (`POST /api/v1/burnout/calculate-today`).
-- **`ActiveBreakSession`:** Log sesi peregangan tervalidasi 2 menit (`POST /api/v1/active-break/verify`).
-- **`AiCoachingInsight`:** Riwayat rekomendasi AI Coach (`POST /api/v1/ai-coach/generate`).
+- **`AcademicSchedule`:** Menyimpan jadwal kuliah dan bobot SKS (`POST /api/academic-schedule/upload`, `POST /api/academic-schedule/confirm`).
+- **`DailyFussionLog`:** Catatan fusi parameter kuantitatif harian dan status Burnout Index 0–100 (`POST /api/v1/burnout/calculate`, `GET /api/v1/burnout/today`).
+- **`DailyWellbeingLog`:** Log check-in harian telemetri psikometri PSS-4 & kepatuhan 24-Hour Movement Triad (`POST /api/v1/wellbeing/checkin`, `GET /api/v1/wellbeing/today`).
+- **`ActiveBreakSession`:** Log sesi peregangan tervalidasi 2 menit MediaPipe (`POST /api/v1/active-break/verify`).
+- **`AiCoachingInsight`:** Riwayat konsultasi & rekomendasi AI Coach berbasis Ollama lokal (`POST /api/v1/ai-coach/generate`).
