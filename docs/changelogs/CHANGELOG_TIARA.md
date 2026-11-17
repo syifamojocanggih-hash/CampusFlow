@@ -21,6 +21,29 @@
 
 ---
 
+## [2026-11-17] — Penambahan Doodle Latar Belakang Seluruh Halaman Aplikasi Terautentikasi (`BackgroundDoodles.tsx` & `App.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.64`
+- **Ringkasan:** 
+  1. **Pembuatan Komponen Vektor Doodle Halus (`BackgroundDoodles.tsx`):**
+     - Membangun pola doodle SVG seamless (`campusflow-academic-doodles`, 420x420 tile) bertema akademik mahasiswa, aktivitas fisik (Academic Strava), dan kesehatan mental (Fresh Pastel).
+     - Berisi 17 elemen doodle hand-drawn: buku kuliah terbuka, tunas Mimi (wellbeing), cangkir kopi/teh hangat jeda istirahat, sepatu sneaker langkah kaki, pensil dan coretan gelombang, awan tidur pulas dengan Zzz, tetesan air hidrasi sehat, hati dengan garis pulse detak jantung, stopwatch pomodoro timer, topi toga wisuda, petir energi fokus, bola lampu ide eureka, bunga daisy pastel, sticky note checklist, mata ergonomis Vision Lab, serta ornamen mikro bintang sparkle, spiral, dan dot cluster halus.
+     - Menggunakan outline stroke gelap transparan (`#1A1A1A`, opasitas 5.5%) dan sentuhan warna isi pastel lembut (Mint `#CDE8B5`, Butter `#FFF29A`, Sky Blue `#BDE6F0`, Soft Pink `#F7A8B0`, dan Sparkle Gold `#FFD97D` dengan opasitas 18% - 35%).
+     - Didesain non-intrusif (`fixed inset-0 pointer-events-none select-none z-0 overflow-hidden`) yang tidak mengganggu klik, seleksi, maupun keterbacaan kartu di atasnya (WCAG AA).
+  2. **Penerapan Eksklusif pada Halaman Aplikasi Terautentikasi (`App.tsx`):**
+     - Diletakkan di dalam container shell utama aplikasi setelah login, sehingga aktif secara merata di seluruh tab: Dashboard, Workstation & Jeda, Aktivitas & Check-in, AI Coach, Riwayat, Pengaturan, dan Profil Mahasiswa.
+     - Secara tegas dikecualikan dari Landing Page, Login, maupun Register modal karena `LandingPage` dirender dalam conditional branch terpisah sebelum shell aplikasi.
+- **Daftar File Diubah:**
+  - `frontend/src/components/common/BackgroundDoodles.tsx` (baru)
+  - `frontend/src/App.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2200 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
 ## [2026-11-17] — Penambahan Pola Abstrak Transparan pada Banner Hero Burnout Index (`TriadDashboard.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.63`
 - **Ringkasan:** 
