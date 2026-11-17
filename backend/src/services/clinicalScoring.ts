@@ -15,12 +15,21 @@ function sumLikertWithReverse(answers: number[], reverseIndices: readonly number
   }, 0);
 }
 
-/** Menghitung skor total PSS-4 (0-16) dengan reverse score pada Q2 & Q3. */
+/**
+ * Menghitung skor total PSS-4 (0-16) dengan reverse score pada Q2 & Q3.
+ * Referensi psikometri: Schmalbach et al. (2025, Frontiers in Psychology, DOI: 10.3389/fpsyg.2024.1479701).
+ * Catatan: Paper Schmalbach et al. TIDAK menyebutkan ambang batas klinis baku cutoff >= 8.
+ */
 export function calculatePss4Score(answers: readonly [number, number, number, number]): number {
   return sumLikertWithReverse([...answers], PSS4_REVERSE_INDICES);
 }
 
-/** Mengklasifikasikan tingkat stres dari skor PSS-4 (cutoff >= 8 adalah ambang heuristik internal produk untuk memicu intervensi awal). */
+/**
+ * Mengklasifikasikan tingkat stres dari skor PSS-4.
+ * Catatan Metodologis: Skala PSS-4 secara resmi tidak memiliki ambang batas (cutoff) klinis baku universal.
+ * Ambang cutoff >= 8 di bawah ini merupakan ambang heuristik internal produk CampusFlow
+ * untuk mendeteksi sinyal distres akademik awal dan memicu rekomendasi intervensi AI Coach.
+ */
 export function classifyPss4Severity(totalScore: number): StressSeverity {
   if (totalScore >= 13) return "SEVERE";
   if (totalScore >= 8) return "HIGH";
@@ -28,7 +37,11 @@ export function classifyPss4Severity(totalScore: number): StressSeverity {
   return "LOW";
 }
 
-/** Menghitung skor total PSS-10 (0-40) dengan reverse score pada item 4, 5, 7, dan 8. */
+/**
+ * Menghitung skor total PSS-10 (0-40) dengan reverse score pada item 4, 5, 7, dan 8.
+ * Referensi psikometri: Denovan & Dagnall (2025, Current Psychology, DOI: 10.1007/s12144-025-08061-x)
+ * yang menjustifikasi struktur 2 faktor dan pola reverse-scoring item positif.
+ */
 export function calculatePss10Score(answers: readonly number[]): number {
   if (answers.length !== 10) {
     throw new Error("PSS-10 wajib memiliki tepat 10 butir jawaban.");
@@ -44,7 +57,12 @@ export function classifyPss10Severity(totalScore: number): StressSeverity {
   return "LOW";
 }
 
-/** Mengonversi durasi aktivitas dan intensitas IPAQ-SF ke satuan MET-menit. */
+/**
+ * Mengonversi durasi aktivitas dan intensitas ke satuan MET-menit.
+ * Referensi 3 nilai resmi IPAQ-SF (3.3 jalan, 4.0 sedang, 8.0 berat): Validasi versi Yunani (2025, CEJPH, DOI: 10.21101/cejph.a8446).
+ * Catatan: Nilai 5.0 MET (latihan beban / aerobik akut) BUKAN bagian resmi IPAQ-SF,
+ * melainkan bersumber dari Compendium of Physical Activities (Ainsworth et al.).
+ */
 export function calculateActivityMets(
   intensityType: ActivityIntensity,
   durationMinutes: number
