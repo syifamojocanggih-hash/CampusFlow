@@ -287,17 +287,17 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Academic Load (KRS) */}
         <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="text-xs font-semibold text-[#9A9A9A]">Beban Kuliah (KRS)</p>
-              <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
-                {academicLoadScore}
-                <span className="text-xs font-medium text-[#9A9A9A] ml-1">Poin</span>
-              </h3>
+          <div>
+            <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
+              <div className="w-9 h-9 rounded-2xl bg-[#F7A8B0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+                <BookOpen className="w-4 h-4 text-[#1A1A1A]" />
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Beban kuliah</p>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-[#FFF29A] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
-              <BookOpen className="w-5 h-5" />
-            </div>
+            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
+              {academicLoadScore}
+              <span className="text-xs font-medium text-[#9A9A9A] ml-1">Poin</span>
+            </h3>
           </div>
           <div className="mt-2.5">
             <span className="text-[11px] text-[#9A9A9A] font-medium">
@@ -308,17 +308,17 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
 
         {/* Card 2: Screen Time (Passive Page Visibility API) */}
         <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="text-xs font-semibold text-[#9A9A9A]">Waktu Layar Pasif</p>
-              <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
-                {screenTimeHours}
-                <span className="text-xs font-medium text-[#9A9A9A] ml-1">Jam</span>
-              </h3>
+          <div>
+            <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
+              <div className="w-9 h-9 rounded-2xl bg-[#FFF29A] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+                <Monitor className="w-4 h-4 text-[#1A1A1A]" />
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Waktu layar</p>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
-              <Monitor className="w-5 h-5" />
-            </div>
+            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
+              {screenTimeHours}
+              <span className="text-xs font-medium text-[#9A9A9A] ml-1">Jam</span>
+            </h3>
           </div>
           <div className="mt-2.5">
             <span className="text-[11px] text-[#9A9A9A] font-medium">
@@ -329,17 +329,17 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
 
         {/* Card 3: Sleep Duration & Recovery */}
         <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="text-xs font-semibold text-[#9A9A9A]">Durasi Tidur Malam</p>
-              <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
-                {sleepHours}
-                <span className="text-xs font-medium text-[#9A9A9A] ml-1">Jam</span>
-              </h3>
+          <div>
+            <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
+              <div className="w-9 h-9 rounded-2xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+                <Moon className="w-4 h-4 text-[#1A1A1A]" />
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Tidur semalam</p>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-[#F7A8B0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
-              <Moon className="w-5 h-5" />
-            </div>
+            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
+              {sleepHours}
+              <span className="text-xs font-medium text-[#9A9A9A] ml-1">Jam</span>
+            </h3>
           </div>
           <div className="mt-2.5">
             <span className="text-[11px] text-[#9A9A9A] font-medium">
@@ -349,21 +349,21 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         </div>
 
         {/* Card 4: Verified Active Break (On-Demand MediaPipe 2 Mins) */}
-        <div className="bg-[#CDE8B5] rounded-3xl p-4 sm:p-5 flex flex-col justify-between text-[#1A1A1A] shadow-softMint">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="text-xs font-semibold text-[#1A1A1A]/80">Active Break 2 Menit</p>
-              <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] mt-1 sensor-num">
-                {verifiedBreakCount}
-                <span className="text-xs font-medium text-[#1A1A1A]/80 ml-1">Sesi</span>
-              </h3>
+        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
+              <div className="w-9 h-9 rounded-2xl bg-[#CDE8B5] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+                <Play className="w-4 h-4 fill-[#1A1A1A] text-[#1A1A1A] ml-0.5" />
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Active break</p>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
-              <Play className="w-4 h-4 fill-[#1A1A1A] ml-0.5" />
-            </div>
+            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
+              {verifiedBreakCount}
+              <span className="text-xs font-medium text-[#9A9A9A] ml-1">Sesi</span>
+            </h3>
           </div>
           <div className="mt-2.5">
-            <span className="text-[11px] font-bold text-[#1A1A1A]/80">
+            <span className="text-[11px] font-bold text-emerald-700">
               +{activeBreakBonus} Poin Pemulihan
             </span>
           </div>

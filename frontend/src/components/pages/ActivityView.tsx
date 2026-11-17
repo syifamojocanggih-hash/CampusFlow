@@ -67,17 +67,8 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
       {/* Active Module Content */}
       <div className="transition-all duration-200">
         {subTab === "pedometer" ? (
-          <div className="space-y-6">
+          <div>
             <PedometerCard />
-
-            <div className="learnova-card p-4 sm:p-5 text-xs text-[#1A1A1A] space-y-2 bg-[#F6F6F6] border-[#E8E8E8]">
-              <div className="font-bold text-[#1A1A1A]">
-                <span>Panduan Penggunaan di Smartphone:</span>
-              </div>
-              <p className="leading-relaxed text-[#9A9A9A]">
-                Buka aplikasi di browser HP Anda, klik <strong>&quot;Aktifkan Sensor HP&quot;</strong>, izinkan akses sensor gerak, dan masukkan ponsel ke saku saat berjalan. Jumlah langkah dan poin energi gerak Anda akan bertambah otomatis.
-              </p>
-            </div>
           </div>
         ) : (
           <CheckinView embedded={true} />

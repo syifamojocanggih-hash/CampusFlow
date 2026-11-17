@@ -3,13 +3,10 @@ import {
   User,
   Mail,
   BookOpen,
-  Hash,
   Flame,
   Award,
-  Target,
   Save,
   RotateCcw,
-  Eye,
   Sparkles,
   CheckCircle2,
 } from "lucide-react";
@@ -40,27 +37,20 @@ const DEPARTMENTS = [
   "Desain Komunikasi Visual",
 ];
 
-const MET_PRESETS = [
-  { label: "Dasar (600)", value: 600, desc: "Aktivitas ringan harian" },
-  { label: "Moderat (1200)", value: 1200, desc: "Sesuai standar minimal WHO" },
-  { label: "Optimal (1500)", value: 1500, desc: "Rekomendasi mahasiswa aktif" },
-  { label: "Tinggi (2000)", value: 2000, desc: "Kombinasi jalan & olahraga rutin" },
-];
-
 export const ProfileView: React.FC<ProfileViewProps> = ({
   currentUser,
   onProfileUpdated,
-  onNavigateToFocus,
+  onNavigateToFocus: _onNavigateToFocus,
 }) => {
   // Form State
   const [name, setName] = useState(currentUser?.name || "Mahasiswa Demo CampusFlow");
-  const [nim, setNim] = useState(currentUser?.nim || "4.33.24.0.01");
+  const [nim, setNim] = useState(
+    currentUser?.nim ? currentUser.nim.replace(/[^0-9]/g, "") : "43324001"
+  );
   const [email, setEmail] = useState(currentUser?.email || "demo@campusflow.id");
   const [department, setDepartment] = useState(currentUser?.department || "Teknik Informatika");
   const [semester, setSemester] = useState("Semester 4");
   const [weeklyMetsTarget, setWeeklyMetsTarget] = useState(currentUser?.weeklyMetsTarget || 1500);
-  const [focusSessionMinutes, setFocusSessionMinutes] = useState(50);
-  const [targetSleepHours, setTargetSleepHours] = useState(7.5);
   const [selectedAvatarColor, setSelectedAvatarColor] = useState(
     localStorage.getItem("cf_avatar_color") || "#F7A8B0"
   );
@@ -73,7 +63,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   useEffect(() => {
     if (currentUser) {
       setName(currentUser.name);
-      setNim(currentUser.nim);
+      setNim(currentUser.nim ? currentUser.nim.replace(/[^0-9]/g, "") : "43324001");
       setEmail(currentUser.email);
       setDepartment(currentUser.department);
       setWeeklyMetsTarget(currentUser.weeklyMetsTarget);
@@ -113,8 +103,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     }
   };
 
-  const hasPostureBaseline = Boolean(currentUser?.postureBaselineJson);
-
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-12">
       {/* 1. Header Banner */}
@@ -128,7 +116,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               Atur Profil Pengguna
             </h1>
             <p className="text-xs text-[#9A9A9A] mt-0.5">
-              Kelola data akademik, target kebugaran METs, dan personalisasi postur AI.
+              Kelola data identitas dan informasi akademik mahasiswa.
             </p>
           </div>
         </div>
@@ -160,11 +148,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   type="button"
                   onClick={() => handleAvatarColorSelect(col.hex)}
                   title={col.name}
-                  className={`w-6 h-6 rounded-full border-2 transition-transform ${
-                    selectedAvatarColor === col.hex
+                  className={`w-6 h-6 rounded-full border-2 transition-transform ${selectedAvatarColor === col.hex
                       ? "border-[#1A1A1A] scale-110 shadow-xs"
                       : "border-transparent hover:scale-105"
-                  }`}
+                    }`}
                   style={{ backgroundColor: col.hex }}
                 />
               ))}
@@ -248,17 +235,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <label className="block text-xs font-bold text-[#1A1A1A] mb-1.5">
                 Nomor Induk Mahasiswa (NIM)
               </label>
-              <div className="relative">
-                <Hash className="w-4 h-4 text-[#9A9A9A] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={nim}
-                  onChange={(e) => setNim(e.target.value)}
-                  placeholder="4.xx.xx.x.xx"
-                  required
-                  className="w-full pl-10 pr-3 py-2.5 text-xs bg-[#F6F6F6] border border-[#E8E8E8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#BDE6F0] transition-all font-medium"
-                />
-              </div>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={nim}
+                onChange={(e) => setNim(e.target.value.replace(/[^0-9]/g, ""))}
+                placeholder="43324001"
+                required
+                className="w-full px-3.5 py-2.5 text-xs bg-[#F6F6F6] border border-[#E8E8E8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#BDE6F0] transition-all font-medium"
+              />
             </div>
 
             <div>
@@ -314,159 +299,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
         </div>
 
-        {/* 4. Target & Parameter Ergonomi Wellbeing */}
-        <div className="learnova-card p-6 border-[#E8E8E8] space-y-5">
-          <div className="flex items-center gap-2 pb-2 border-b border-[#E8E8E8]">
-            <Target className="w-4 h-4 text-[#1A1A1A]" />
-            <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-              Target Kebugaran &amp; Kebiasaan Belajar Sehat
-            </h3>
-          </div>
-
-          {/* Weekly METs Target */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-xs font-bold text-[#1A1A1A]">
-                  Target Poin Gerak Mingguan (Aktivitas Fisik)
-                </label>
-                <p className="text-[11px] text-[#9A9A9A]">
-                  Panduan: 600 Poin (ringan) hingga 1500+ Poin (aktif bugar, setara jalan kaki rutin 30 mnt/hari).
-                </p>
-              </div>
-              <span className="text-sm font-extrabold text-[#1A1A1A] bg-[#FFF29A] px-3 py-1 rounded-xl border border-[#FFE966]">
-                {weeklyMetsTarget} Poin
-              </span>
-            </div>
-
-            {/* Presets */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {MET_PRESETS.map((preset) => (
-                <button
-                  key={preset.value}
-                  type="button"
-                  onClick={() => setWeeklyMetsTarget(preset.value)}
-                  className={`p-2.5 rounded-xl border text-left transition-all ${
-                    weeklyMetsTarget === preset.value
-                      ? "bg-[#FFF29A] border-[#FFE966] text-[#1A1A1A] shadow-xs font-bold"
-                      : "bg-[#F6F6F6] border-[#E8E8E8] text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-white"
-                  }`}
-                >
-                  <div className="text-xs font-bold">{preset.label}</div>
-                  <div className="text-[10px] opacity-80 truncate">{preset.desc}</div>
-                </button>
-              ))}
-            </div>
-
-            <input
-              type="range"
-              min="600"
-              max="3000"
-              step="50"
-              value={weeklyMetsTarget}
-              onChange={(e) => setWeeklyMetsTarget(Number(e.target.value))}
-              className="w-full accent-[#1A1A1A] cursor-pointer"
-            />
-          </div>
-
-          {/* Focus & Sleep Parameters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <div className="p-3.5 rounded-2xl bg-[#F6F6F6] border border-[#E8E8E8] space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#1A1A1A]">Ambang Batas Sesi Duduk</span>
-                <span className="text-xs font-extrabold text-[#1A1A1A]">
-                  {focusSessionMinutes} Menit
-                </span>
-              </div>
-              <p className="text-[10px] text-[#9A9A9A]">
-                Waktu belajar maksimal di depan monitor sebelum prompt peregangan aktif.
-              </p>
-              <div className="flex gap-2 pt-1">
-                {[45, 50, 60].map((mins) => (
-                  <button
-                    key={mins}
-                    type="button"
-                    onClick={() => setFocusSessionMinutes(mins)}
-                    className={`flex-1 py-1 text-[11px] font-bold rounded-lg transition-colors ${
-                      focusSessionMinutes === mins
-                        ? "bg-[#1A1A1A] text-white"
-                        : "bg-white border border-[#E8E8E8] text-[#9A9A9A]"
-                    }`}
-                  >
-                    {mins} mnt
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-[#F6F6F6] border border-[#E8E8E8] space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#1A1A1A]">Target Tidur Harian</span>
-                <span className="text-xs font-extrabold text-[#1A1A1A]">
-                  {targetSleepHours} Jam
-                </span>
-              </div>
-              <p className="text-[10px] text-[#9A9A9A]">
-                Rekomendasi durasi istirahat malam mahasiswa untuk menjaga fokus kognitif.
-              </p>
-              <div className="flex gap-2 pt-1">
-                {[7.0, 7.5, 8.0].map((hrs) => (
-                  <button
-                    key={hrs}
-                    type="button"
-                    onClick={() => setTargetSleepHours(hrs)}
-                    className={`flex-1 py-1 text-[11px] font-bold rounded-lg transition-colors ${
-                      targetSleepHours === hrs
-                        ? "bg-[#1A1A1A] text-white"
-                        : "bg-white border border-[#E8E8E8] text-[#9A9A9A]"
-                    }`}
-                  >
-                    {hrs} jam
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 5. Posture Baseline Status Card */}
-        <div className="learnova-card p-6 border-[#E8E8E8] space-y-3">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#CDE8B5] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
-                <Eye className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                  Pengaturan Posisi Duduk AI (Kamera)
-                </h3>
-                <p className="text-xs text-[#9A9A9A] mt-0.5 leading-relaxed">
-                  Pengaturan awal mengenali posisi duduk tegak alami Anda di depan kamera untuk
-                  mendeteksi bungkuk dan jarak terlalu dekat ke layar secara akurat.
-                </p>
-              </div>
-            </div>
-
-            {onNavigateToFocus && (
-              <button
-                type="button"
-                onClick={onNavigateToFocus}
-                className="px-3.5 py-2 rounded-xl text-xs font-bold text-[#1A1A1A] bg-[#FFF29A] hover:bg-[#FFE966] transition-all border border-[#FFE966] shrink-0 shadow-xs"
-              >
-                {hasPostureBaseline ? "Atur Ulang" : "Mulai Atur Posisi"} &rarr;
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* 6. Form Submission Buttons */}
+        {/* 4. Form Submission Buttons */}
         <div className="flex items-center justify-end gap-3 pt-2">
           <button
             type="button"
             onClick={() => {
               if (currentUser) {
                 setName(currentUser.name);
-                setNim(currentUser.nim);
+                setNim(currentUser.nim ? currentUser.nim.replace(/[^0-9]/g, "") : "43324001");
                 setEmail(currentUser.email);
                 setDepartment(currentUser.department);
                 setWeeklyMetsTarget(currentUser.weeklyMetsTarget);

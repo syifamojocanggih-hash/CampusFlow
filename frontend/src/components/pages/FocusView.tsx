@@ -207,42 +207,96 @@ export const FocusView: React.FC = () => {
       </div>
 
       {/* ========================================================
-          3. BOTTOM METRIC CARD: RITME FOKUS HARI INI
+          3. BOTTOM METRIC CARDS: RITME FOKUS HARI INI (Fitness Report Style)
           ======================================================== */}
-      <div className="bg-white rounded-[1.75rem] p-6 sm:p-7 shadow-xs border border-[#F0F0F0] space-y-4">
+      <div className="space-y-4 pt-2">
         <h3 className="font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A]">
           Ritme fokus hari ini
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-1">
-          {/* Total sesi selesai */}
-          <div>
-            <div className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A] tracking-tight">
-              {formattedFocusHours}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          {/* Card 1: Total Durasi Fokus */}
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E8E8] shadow-xs text-center flex flex-col justify-between">
+            {/* Title & Subtitle */}
+            <div className="space-y-1">
+              <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                Total Sesi Selesai
+              </h4>
+              <p className="text-[11px] text-[#9A9A9A] font-medium">
+                {sessionDurationMins} mnt / sesi
+              </p>
             </div>
-            <p className="text-xs text-[#737373] mt-1 font-medium">
-              Total sesi selesai
-            </p>
+
+            {/* Big Metric Value */}
+            <div className="my-4">
+              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] sensor-num tracking-tight">
+                {formattedFocusHours}
+              </div>
+            </div>
+
+            {/* Bottom Report Info & Pink Pill Badge */}
+            <div className="pt-3 border-t border-[#F6F6F6] flex items-center justify-between text-xs">
+              <span className="text-[11px] text-[#9A9A9A] font-medium">
+                Akumulasi fokus
+              </span>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FFE9EE] text-[#BE123C]">
+                Hari ini
+              </span>
+            </div>
           </div>
 
-          {/* Pomodoro selesai */}
-          <div>
-            <div className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A] tracking-tight">
-              {completedBouts} sesi
+          {/* Card 2: Pomodoro Selesai */}
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E8E8] shadow-xs text-center flex flex-col justify-between">
+            <div className="space-y-1">
+              <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                Pomodoro Selesai
+              </h4>
+              <p className="text-[11px] text-[#9A9A9A] font-medium">
+                Target harian 6 sesi
+              </p>
             </div>
-            <p className="text-xs text-[#737373] mt-1 font-medium">
-              Pomodoro selesai
-            </p>
+
+            <div className="my-4">
+              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] sensor-num tracking-tight">
+                {completedBouts} sesi
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[#F6F6F6] flex items-center justify-between text-xs">
+              <span className="text-[11px] text-[#9A9A9A] font-medium">
+                Sesi tercapai
+              </span>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FFE9EE] text-[#BE123C]">
+                Aktif
+              </span>
+            </div>
           </div>
 
-          {/* Waktu layar pasif */}
-          <div>
-            <div className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A] tracking-tight">
-              {Math.floor(screenMinutes / 60)} jam
+          {/* Card 3: Waktu Layar Pasif */}
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8E8E8] shadow-xs text-center flex flex-col justify-between">
+            <div className="space-y-1">
+              <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                Waktu Layar Pasif
+              </h4>
+              <p className="text-[11px] text-[#9A9A9A] font-medium">
+                Batas aman &le; 8 jam
+              </p>
             </div>
-            <p className="text-xs text-[#737373] mt-1 font-medium">
-              Waktu layar pasif
-            </p>
+
+            <div className="my-4">
+              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] sensor-num tracking-tight">
+                {Math.floor(screenMinutes / 60)} jam
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[#F6F6F6] flex items-center justify-between text-xs">
+              <span className="text-[11px] text-[#9A9A9A] font-medium">
+                Tercatat aktif
+              </span>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FFE9EE] text-[#BE123C]">
+                Tercatat
+              </span>
+            </div>
           </div>
         </div>
       </div>

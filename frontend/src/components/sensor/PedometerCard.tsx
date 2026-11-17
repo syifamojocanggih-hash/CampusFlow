@@ -152,9 +152,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
             <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
               Penghitung Langkah Otomatis (Sensor HP)
             </h3>
-            <p className="text-xs text-[#9A9A9A]">
-              Deteksi Gerak Langkah HP &bull; Akurat Tanpa Smartwatch &bull; Nol Latensi
-            </p>
           </div>
         </div>
       </div>

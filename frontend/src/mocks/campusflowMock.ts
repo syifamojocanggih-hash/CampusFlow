@@ -13,7 +13,7 @@ export const MOCK_USER: UserResponse = {
   data: {
     id: "demo-user-001",
     name: "Mahasiswa Demo CampusFlow",
-    nim: "4.33.24.0.01",
+    nim: "43324001",
     email: "demo@campusflow.id",
     department: "Teknik Informatika",
     weeklyMetsTarget: 1500,

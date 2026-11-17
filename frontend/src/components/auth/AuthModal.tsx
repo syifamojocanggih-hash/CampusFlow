@@ -4,7 +4,6 @@ import {
   Mail,
   Lock,
   User,
-  Hash,
   BookOpen,
   ArrowRight,
   GraduationCap,
@@ -299,16 +298,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-[#1A1A1A] block">NIM Mahasiswa</label>
-                <div className="relative">
-                  <Hash className="w-4 h-4 text-[#9A9A9A] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={regNim}
-                    onChange={(e) => setRegNim(e.target.value)}
-                    placeholder="4.33.24.0.01"
-                    className="w-full pl-9 pr-3 py-2 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] text-xs text-[#1A1A1A] placeholder-[#9A9A9A] focus:outline-none focus:bg-white focus:border-[#BDE6F0] transition-colors"
-                  />
-                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={regNim}
+                  onChange={(e) => setRegNim(e.target.value.replace(/[^0-9]/g, ""))}
+                  placeholder="43324001"
+                  className="w-full px-3 py-2 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] text-xs text-[#1A1A1A] placeholder-[#9A9A9A] focus:outline-none focus:bg-white focus:border-[#BDE6F0] transition-colors"
+                />
               </div>
 
               <div className="space-y-1">

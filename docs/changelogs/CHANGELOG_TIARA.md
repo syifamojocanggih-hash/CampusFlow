@@ -21,6 +21,213 @@
 
 ---
 
+## [2026-11-17] — Pembersihan Ikon Melayang dan Menu Titik Tiga pada Tiga Kartu Ritme Fokus (`FocusView.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.54`
+- **Ringkasan:** 
+  1. **Penghapusan Ikon Melayang Atas (*Floating Icon Badges*):**
+     - Menghilangkan elemen lencana ikon persegi melayang (`-top-6`) berwarna violet (`#6C5CE7`) dengan ikon `Clock`, `Target`, dan `Monitor` pada ketiga kartu metrik "Ritme fokus hari ini".
+  2. **Penghapusan Menu Titik Tiga (*Three-Dots Menu*):**
+     - Menghapus ikon menu titik tiga vertikal (`MoreVertical`) pada sudut kanan atas setiap kartu untuk menghasilkan antarmuka yang bersih, tenang, dan minimalis.
+  3. **Penyesuaian Spacing & Padding:**
+     - Menyesuaikan padding kartu menjadi `p-5 sm:p-6` standar tanpa offset atas artifisial (`pt-9`), serta merapikan grid kontainer menjadi `gap-4 sm:gap-6` tanpa padding atas berlebih (`pt-6`).
+  4. **Pembersihan Import:**
+     - Menghapus import tak terpakai `Clock`, `Target`, `Monitor`, dan `MoreVertical` dari `lucide-react` pada `FocusView.tsx`.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` lulus.
+  - `npm run test:shared` lulus.
+  - `npm run guard` lolos validasi zona branch.
+
+---
+- **ID Tugas / Referensi:** `FE-1.53`
+- **Ringkasan:** 
+  1. **Tombol Reset pada Header AI Coach:**
+     - Menambahkan tombol pil putih *"Reset"* dengan ikon putar balik (`RotateCcw`) di sisi kanan header Wellbeing AI Coach mendampingi lencana *"Hari ini"*.
+  2. **Fungsionalitas Reset:**
+     - Mengembalikan sesi obrolan ke percakapan awal yang bersih (`INITIAL_MESSAGES`).
+     - Mengatur ulang status interaksi (`hasChatted = false`) sehingga kartu rekomendasi chat kembali dapat diakses pengguna.
+     - Mengosongkan input teks dan menghentikan status pengetikan aktif.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Transformasi Desain Kartu Laporan Ritme Fokus ke Gaya Fitness Report Tiga Kartu (`FocusView.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.52`
+- **Ringkasan:** 
+  1. **Restrukturisasi Tiga Kartu Terpisah (*Fitness Workout Report Style*):**
+     - Mengubah satu kontainer kartu horizontal ("Ritme fokus hari ini") menjadi 3 kartu metrik terpisah (*Total Sesi Selesai*, *Pomodoro Selesai*, *Waktu Layar Pasif*) sesuai inspirasi Foto 1.
+  2. **Ikon Melayang Atas (*Floating Crown Icon Badge*):**
+     - Menambahkan lencana ikon rounded square melayang di bagian tengah atas tiap kartu (`-top-6`) dengan warna violet elegan (`#6C5CE7`) dan ikon putih (`Clock`, `Target`, `Monitor`).
+  3. **Penyesuaian Laporan Latihan Harian Murni (Tanpa Progress Bar):**
+     - Mengikuti arahan pengguna bahwa kartu ini berfungsi sebagai laporan latihan/aktivitas harian (`2 j 05 m`, `5 sesi`, `10 jam`), bukan progress bar persentase.
+     - Setiap kartu dilengkapi judul, subjudul durasi, angka metrik besar di tengah, rincian konteks bawah, serta lencana pill pink status (*"Hari ini"*, *"Aktif"*, *"Tercatat"*).
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Pemindahan Posisi Simbol Kartu Parameter ke Sebelah Kiri Judul (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.51`
+- **Ringkasan:** 
+  1. **Pemindahan Simbol / Ikon ke Sisi Kiri Baris Judul:**
+     - Mengubah tata letak 4 kartu ringkasan parameter klinis (*Beban kuliah*, *Waktu layar*, *Tidur semalam*, *Active break*) pada Triad Dashboard agar ikon kotak rounded berada di sisi kiri mendampingi judul metrik sesuai referensi Foto 2.
+  2. **Harmonisasi Warna Kotak Ikon & Kartu:**
+     - Kartu 1 (*Beban kuliah*): Ikon `<BookOpen />` dengan latar pastel soft pink (`#F7A8B0`).
+     - Kartu 2 (*Waktu layar*): Ikon `<Monitor />` dengan latar pastel soft yellow (`#FFF29A`).
+     - Kartu 3 (*Tidur semalam*): Ikon `<Moon />` dengan latar pastel soft sky blue (`#BDE6F0`).
+     - Kartu 4 (*Active break*): Ikon `<Play />` dengan latar pastel soft mint green (`#CDE8B5`) pada kartu putih seragam.
+  3. **Penataan Hirarki Teks:**
+     - Angka nilai utama ditampilkan besar di bawah baris judul dan ikon, diikuti teks status/pemulihan di bagian bawah kartu.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Pembaruan Format Input NIM Tanpa Ikon Hash dan Murni Angka Numerik (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.50`
+- **Ringkasan:** 
+  1. **Pembaruan Input NIM di Halaman Profil (`ProfileView.tsx`):**
+     - Menghapus ikon `#` (`<Hash />`) dari input Nomor Induk Mahasiswa (NIM).
+     - Menghapus padding `pl-10` menjadi `px-3.5` agar konsisten dan lapang.
+     - Mengubah placeholder dari `4.xx.xx.x.xx` menjadi angka biasa `43324001`.
+     - Menambahkan filter numerik murni (`replace(/[^0-9]/g, "")`) serta atribut `inputMode="numeric"`.
+  2. **Pembaruan Konsistensi Modal Autentikasi (`AuthModal.tsx` & `campusflowMock.ts`):**
+     - Menghapus ikon `#` dari input NIM registrasi dan menyesuaikan placeholder menjadi `43324001`.
+     - Memperbarui data mock mahasiswa agar menggunakan format angka biasa tanpa titik.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/ProfileView.tsx`
+  - `frontend/src/components/auth/AuthModal.tsx`
+  - `frontend/src/mocks/campusflowMock.ts`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Pembersihan Footer Darurat, Ikon Motif Bunga, dan Alur Hilang Otomatis Rekomendasi Chat AI Coach (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.49`
+- **Ringkasan:** 
+  1. **Penghapusan Keterangan Bahaya Darurat (`CoachView.tsx` — Foto 1):**
+     - Menghapus teks baris bawah *"Jika ada bahaya langsung, cari pertolongan darurat terdekat."* di bawah kolom pengetikan pesan chat.
+  2. **Penghapusan Ikon Motif Bunga Meta AI (`CoachView.tsx` — Foto 2):**
+     - Menghapus komponen motif bunga 8 kelopak warna-warni (`MetaAiMotif`) dari seluruh tampilan AI Coach agar antarmuka sepenuhnya bersih dan menyatu dengan tema pastel CampusFlow.
+  3. **Penyesuaian Siklus Hidup Rekomendasi Chat (`CoachView.tsx` — Foto 3):**
+     - Mengubah logika tampil kartu rekomendasi chat (`CHAT_RECOMMENDATIONS`) agar hanya muncul di awal sebelum interaksi pengguna (`!hasChatted`).
+     - Begitu pengguna mengirimkan pesan manual melalui form input ataupun mengklik salah satu tombol rekomendasi cepat, seluruh daftar rekomendasi dan drawer langsung hilang permanen dari sesi percakapan.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Pembersihan 5 Elemen Antarmuka pada ActivityView, ProfileView, PedometerCard, dan MimiPetWidget (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.48`
+- **Ringkasan:** 
+  1. **Penghapusan Kartu Panduan Smartphone (`ActivityView.tsx` — Foto 1):**
+     - Menghapus kartu abu-abu panduan penggunaan pedometer di smartphone (*"Panduan Penggunaan di Smartphone: Buka aplikasi di browser HP Anda..."*) sehingga tampilan tab pedometer langsung terfokus pada data langkah.
+  2. **Penghapusan Kartu Target Kebugaran & Kamera Postur (`ProfileView.tsx` — Foto 2):**
+     - Menghapus kartu *"Target Kebugaran & Kebiasaan Belajar Sehat"* (slider target METs, ambang batas duduk, target tidur) dan kartu *"Pengaturan Posisi Duduk AI (Kamera)"*, menjaga halaman profil terfokus murni pada identitas dan data akademik mahasiswa.
+  3. **Penghapusan Subjudul Pedometer Card (`PedometerCard.tsx` — Foto 3):**
+     - Menghapus teks subjudul *"Deteksi Gerak Langkah HP • Akurat Tanpa Smartwatch • Nol Latensi"* di bawah judul *"Penghitung Langkah Otomatis (Sensor HP)"*.
+  4. **Penghapusan Badge Level Maskot (`MimiPetWidget.tsx` — Foto 4):**
+     - Menghapus pill badge hitam *"Level {st + 1} • {STAGE_NAMES[st]}"* pada header panggung arena maskot Mimi Pet.
+  5. **Penghapusan Tab Lembar Evolusi (`MimiPetWidget.tsx` — Foto 5):**
+     - Menghapus tombol navigasi tab dan tampilan kartu *"Lembar Evolusi (5 Level)"*, sehingga modal interaktif Mimi Pet langsung menampilkan panggung maskot dan misi harian secara terpadu tanpa tab switcher.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/ActivityView.tsx`
+  - `frontend/src/components/pages/ProfileView.tsx`
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `frontend/src/components/pet/MimiPetWidget.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Pembersihan 5 Elemen Antarmuka pada Triad Dashboard (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.47`
+- **Ringkasan:** 
+  1. **Penghapusan Kartu Keseimbangan Fusi Parameter (`TriadDashboard.tsx` — Foto 1):**
+     - Menghapus kartu rincian formula beban akademik & layar vs pemulihan tidur & jeda aktif (*"Keseimbangan Fusi Parameter"*) di sisi kanan hero card Burnout Risk Index.
+  2. **Penghapusan Kartu Aksi Cepat Active Break & Panic Relief (`TriadDashboard.tsx` — Foto 2):**
+     - Menghapus 2 kartu aksi ganda berwarna biru langit & kuning (*"Mulai Active Break 2 Menit"* dan *"Panic Relief 15 Menit"*) agar alur antarmuka Dashboard lebih ringkas.
+  3. **Penghapusan Ikon Jam pada Jadwal Kuliah (`TriadDashboard.tsx` — Foto 3):**
+     - Menghapus ikon jam (`<Clock />`) di samping judul *"Jadwal Kuliah Hari Ini"*.
+  4. **Penghapusan Teks Keterangan Bobot SKS (`TriadDashboard.tsx` — Foto 4):**
+     - Menghapus baris teks subjudul *"Beban kognitif otomatis dihitung dari bobot SKS dan jenis matakuliah"*.
+  5. **Penghapusan Label Hari dalam Kurung (`TriadDashboard.tsx` — Foto 5):**
+     - Menghapus teks penanda hari `(Rabu)` / `({DAY_NAMES[currentDayOfWeek - 1]})` sehingga judul tabel hanya menampilkan *"Jadwal Kuliah Hari Ini"*.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Pembersihan 5 Elemen Antarmuka pada ActivityView, ProfileView, PedometerCard, dan MimiPetWidget (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.48`
+- **Ringkasan:** 
+  1. **Penghapusan Kartu Panduan Smartphone (`ActivityView.tsx` — Foto 1):**
+     - Menghapus kartu abu-abu panduan penggunaan pedometer di smartphone (*"Panduan Penggunaan di Smartphone: Buka aplikasi di browser HP Anda..."*) sehingga tampilan tab pedometer langsung terfokus pada data langkah.
+  2. **Penghapusan Kartu Target Kebugaran & Kamera Postur (`ProfileView.tsx` — Foto 2):**
+     - Menghapus kartu *"Target Kebugaran & Kebiasaan Belajar Sehat"* (slider target METs, ambang batas duduk, target tidur) dan kartu *"Pengaturan Posisi Duduk AI (Kamera)"*, menjaga halaman profil terfokus murni pada identitas dan data akademik mahasiswa.
+  3. **Penghapusan Subjudul Pedometer Card (`PedometerCard.tsx` — Foto 3):**
+     - Menghapus teks subjudul *"Deteksi Gerak Langkah HP • Akurat Tanpa Smartwatch • Nol Latensi"* di bawah judul *"Penghitung Langkah Otomatis (Sensor HP)"*.
+  4. **Penghapusan Badge Level Maskot (`MimiPetWidget.tsx` — Foto 4):**
+     - Menghapus pill badge hitam *"Level {st + 1} • {STAGE_NAMES[st]}"* pada header panggung arena maskot Mimi Pet.
+  5. **Penghapusan Tab Lembar Evolusi (`MimiPetWidget.tsx` — Foto 5):**
+     - Menghapus tombol navigasi tab dan tampilan kartu *"Lembar Evolusi (5 Level)"*, sehingga modal interaktif Mimi Pet langsung menampilkan panggung maskot dan misi harian secara terpadu tanpa tab switcher.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/ActivityView.tsx`
+  - `frontend/src/components/pages/ProfileView.tsx`
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `frontend/src/components/pet/MimiPetWidget.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
 ## [2026-11-17] — Pembersihan 5 Elemen Antarmuka pada Triad Dashboard (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.47`
 - **Ringkasan:** 

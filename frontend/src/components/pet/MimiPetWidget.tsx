@@ -12,8 +12,6 @@ import {
   STAGE_MAP,
   STAGE_NAMES,
   STAGE_STARTS,
-  STAGE_LOOKS,
-  STAGE_BENEFITS,
   PET_CHATS,
   PetMood,
 } from "./mimiSvg";
@@ -79,7 +77,6 @@ export const MimiPetWidget: React.FC = () => {
 
   // 2. UI View State
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"stage" | "evolution">("stage");
   const [showTooltip, setShowTooltip] = useState(true);
 
   // 3. Draggable Position State
@@ -502,52 +499,23 @@ export const MimiPetWidget: React.FC = () => {
 
             {/* Scrollable Body Content */}
             <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-4">
-              {/* Navigation Tabs (Stage Pet vs Evolusi Sheet) */}
-              <div className="flex items-center gap-1.5 p-1 bg-[#F6F6F6] rounded-2xl border border-[#E8E8E8] text-xs font-bold">
-                <button
-                  onClick={() => setActiveTab("stage")}
-                  className={`flex-1 py-1.5 rounded-xl transition-all ${
-                    activeTab === "stage"
-                      ? "bg-white text-[#1A1A1A] shadow-xs"
-                      : "text-[#9A9A9A] hover:text-[#1A1A1A]"
-                  }`}
-                >
-                  Panggung {petName} &amp; Misi
-                </button>
-                <button
-                  onClick={() => setActiveTab("evolution")}
-                  className={`flex-1 py-1.5 rounded-xl transition-all ${
-                    activeTab === "evolution"
-                      ? "bg-white text-[#1A1A1A] shadow-xs"
-                      : "text-[#9A9A9A] hover:text-[#1A1A1A]"
-                  }`}
-                >
-                  Lembar Evolusi (5 Level)
-                </button>
-              </div>
+              {/* Stage Arena (Pastel Mint Green #CDE8B5) */}
+              <div className="relative rounded-3xl bg-[#CDE8B5] p-5 sm:p-6 border border-[#B6DF97] overflow-hidden text-center text-[#1A1A1A] shadow-xs">
+                {/* Top Stat Pills */}
+                <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+                  <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full font-bold shadow-xs">
+                    <Flame className="w-4 h-4 fill-[#F9B99A] text-[#1A1A1A]" />
+                    <span className="text-base font-extrabold">{streak}</span>
+                    <span className="text-[11px] text-[#9A9A9A]">hari streak</span>
+                  </div>
 
-              {activeTab === "stage" ? (
-                <>
-                  {/* Stage Arena (Pastel Mint Green #CDE8B5) */}
-                  <div className="relative rounded-3xl bg-[#CDE8B5] p-5 sm:p-6 border border-[#B6DF97] overflow-hidden text-center text-[#1A1A1A] shadow-xs">
-                    {/* Top Stat Pills */}
-                    <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
-                      <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full font-bold shadow-xs">
-                        <Flame className="w-4 h-4 fill-[#F9B99A] text-[#1A1A1A]" />
-                        <span className="text-base font-extrabold">{streak}</span>
-                        <span className="text-[11px] text-[#9A9A9A]">hari streak</span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <span className="bg-[#1A1A1A] text-white px-3 py-1.5 rounded-full font-extrabold text-[11px]">
-                          Level {st + 1} &bull; {STAGE_NAMES[st]}
-                        </span>
-                        <span className="bg-white/70 px-2.5 py-1.5 rounded-full font-bold text-[11px] flex items-center gap-1">
-                          <Snowflake className="w-3.5 h-3.5 text-blue-500" />
-                          <span>{freeze} Freeze</span>
-                        </span>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-white/70 px-2.5 py-1.5 rounded-full font-bold text-[11px] flex items-center gap-1">
+                      <Snowflake className="w-3.5 h-3.5 text-blue-500" />
+                      <span>{freeze} Freeze</span>
+                    </span>
+                  </div>
+                </div>
 
                     {/* Speech Bubble */}
                     <div className="relative bg-white rounded-2xl px-4 py-2.5 mt-4 mx-auto max-w-sm text-xs font-bold text-[#1A1A1A] shadow-xs min-h-[44px] flex items-center justify-center">
@@ -738,72 +706,6 @@ export const MimiPetWidget: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                </>
-              ) : (
-                /* Tab 2: Evolution Sheet */
-                <div className="space-y-3 pb-2">
-                  <div className="bg-[#FFFCEB] border border-[#FFE966] rounded-2xl p-3 text-xs text-[#1A1A1A]">
-                    <p className="font-bold">5 Tingkat Transformasi {petName}</p>
-                    <p className="text-[11px] text-[#9A9A9A] mt-0.5">
-                      {petName} bertransformasi seiring konsistensi hari Anda menjaga postur tegak dan kebugaran aktif.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {STAGE_NAMES.map((name, i) => {
-                      const isUnlocked = streak >= (STAGE_STARTS[i] || 0) || i === 0;
-                      const isCurrent = i === st;
-                      return (
-                        <div
-                          key={name}
-                          className={`p-3.5 rounded-3xl border transition-all flex flex-col justify-between ${
-                            isCurrent
-                              ? "bg-white border-2 border-[#1A1A1A] shadow-md"
-                              : isUnlocked
-                              ? "bg-white border-[#E8E8E8]"
-                              : "bg-[#FAFAFA] border-[#E8E8E8] opacity-60"
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="w-16 h-16 rounded-2xl bg-[#FFF29A] p-1 flex items-center justify-center shrink-0 border border-[#FFE966]">
-                              <div
-                                className="w-full h-full"
-                                dangerouslySetInnerHTML={{
-                                  __html: getMimiSvg(STAGE_MAP[i], "happy", false),
-                                }}
-                              />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-bold uppercase text-[#9A9A9A]">
-                                  Level {i + 1}
-                                </span>
-                                {isCurrent && (
-                                  <span className="text-[9px] font-extrabold bg-[#1A1A1A] text-white px-2 py-0.2 rounded-full">
-                                    Aktif
-                                  </span>
-                                )}
-                              </div>
-                              <h5 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
-                                {name}
-                              </h5>
-                              <p className="text-[10px] font-bold text-[#9A9A9A]">
-                                {i === 0 ? "Awal Mulai" : `Hari ke-${STAGE_STARTS[i]}`}
-                                {isUnlocked ? " &bull; Terbuka" : " &bull; Terkunci"}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-2.5 pt-2 border-t border-[#F6F6F6] text-[11px] text-[#1A1A1A]/80 font-medium space-y-1">
-                            <p className="text-[#9A9A9A] text-[10px]">{STAGE_LOOKS[i]}</p>
-                            <p className="font-bold text-xs text-[#1A1A1A]">🎁 {STAGE_BENEFITS[i]}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Bottom Modal Footer with Drag Tip */}

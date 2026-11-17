@@ -66,66 +66,40 @@ const getTimeOfDayGreeting = () => {
   return "malam";
 };
 
-const MetaAiMotif: React.FC<{ className?: string }> = ({ className = "w-16 h-16" }) => {
-  const petals = [0, 45, 90, 135, 180, 225, 270, 315];
-  const colors = [
-    "#9333EA",
-    "#7C3AED",
-    "#6366F1",
-    "#3B82F6",
-    "#0284C7",
-    "#06B6D4",
-    "#10B981",
-    "#8B5CF6",
-  ];
-  return (
-    <div className={`relative flex items-center justify-center ${className}`}>
-      <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
-        <g transform="translate(50, 50)">
-          {petals.map((deg, i) => (
-            <ellipse
-              key={i}
-              cx="0"
-              cy="-20"
-              rx="6"
-              ry="13"
-              fill={colors[i % colors.length]}
-              transform={`rotate(${deg})`}
-              opacity={0.92}
-            />
-          ))}
-          <circle cx="0" cy="0" r="9" fill="white" />
-          <circle cx="0" cy="0" r="4.5" fill="#6366F1" />
-        </g>
-      </svg>
-    </div>
-  );
-};
+const INITIAL_MESSAGES: ChatMessage[] = [
+  {
+    id: "msg-1",
+    sender: "coach",
+    text: "Hai Tiara. Pekan ujian bisa terasa penuh, ya. Waktu layarmu sudah 10 jam dan tidurmu baru 6 jam. Bagaimana perasaanmu sekarang?",
+  },
+  {
+    id: "msg-2",
+    sender: "user",
+    text: "Aku tidak sanggup lagi, tugas menumpuk.",
+  },
+  {
+    id: "msg-3",
+    sender: "coach",
+    text: "Terima kasih sudah cerita. Kedengarannya ini terasa sangat berat. Kamu tidak harus menghadapi semuanya sendiri. Apa kamu berada di tempat yang aman saat ini?",
+  },
+];
 
 export const CoachView: React.FC<CoachViewProps> = () => {
   const [userName, setUserName] = useState<string>("Tiara");
   const [inputText, setInputText] = useState<string>("");
   const [isTyping, setIsTyping] = useState<boolean>(false);
+  const [hasChatted, setHasChatted] = useState<boolean>(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Initial messages matching the exact conversation shown in the reference design
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "msg-1",
-      sender: "coach",
-      text: "Hai Tiara. Pekan ujian bisa terasa penuh, ya. Waktu layarmu sudah 10 jam dan tidurmu baru 6 jam. Bagaimana perasaanmu sekarang?",
-    },
-    {
-      id: "msg-2",
-      sender: "user",
-      text: "Aku tidak sanggup lagi, tugas menumpuk.",
-    },
-    {
-      id: "msg-3",
-      sender: "coach",
-      text: "Terima kasih sudah cerita. Kedengarannya ini terasa sangat berat. Kamu tidak harus menghadapi semuanya sendiri. Apa kamu berada di tempat yang aman saat ini?",
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+
+  const handleResetSession = () => {
+    setMessages(INITIAL_MESSAGES);
+    setHasChatted(false);
+    setInputText("");
+    setIsTyping(false);
+  };
 
   useEffect(() => {
     api
@@ -147,6 +121,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
   const handleSendQuickPrompt = (promptText: string) => {
     if (isTyping) return;
+    setHasChatted(true);
     setInputText("");
 
     const newMsg: ChatMessage = {
@@ -193,14 +168,11 @@ export const CoachView: React.FC<CoachViewProps> = () => {
     }, 650);
   };
 
-  const handleResetSession = () => {
-    setMessages([]);
-  };
-
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim() || isTyping) return;
 
+    setHasChatted(true);
     const userText = inputText.trim();
     setInputText("");
 
@@ -396,11 +368,11 @@ export const CoachView: React.FC<CoachViewProps> = () => {
               <button
                 type="button"
                 onClick={handleResetSession}
-                className="px-3 py-1.5 rounded-full bg-white/90 hover:bg-white text-xs font-bold text-[#1A1A1A] transition-colors flex items-center gap-1.5 shadow-2xs"
-                title="Mulai Sesi Percakapan Baru"
+                className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white text-xs font-bold text-[#1A1A1A] transition-colors flex items-center gap-1.5 shadow-2xs active:scale-95"
+                title="Reset sesi obrolan"
               >
-                <RotateCcw className="w-3.5 h-3.5 text-[#737373]" />
-                <span className="hidden sm:inline">Sesi Baru</span>
+                <RotateCcw className="w-3.5 h-3.5 text-[#525252]" />
+                <span>Reset</span>
               </button>
 
               <span className="px-3.5 py-1.5 rounded-full bg-white/90 text-xs font-semibold text-[#1A1A1A] shadow-2xs">
@@ -412,9 +384,8 @@ export const CoachView: React.FC<CoachViewProps> = () => {
           {/* Chat Messages Body */}
           <div className="p-6 space-y-5 flex-1 overflow-y-auto max-h-[580px]">
             {messages.length === 0 ? (
-              /* Meta AI Style Hero State */
+              /* Hero State */
               <div className="py-8 px-2 sm:px-6 flex flex-col items-center justify-center text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
-                <MetaAiMotif className="w-20 h-20" />
                 <div>
                   <h3 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A]">
                     Selamat {getTimeOfDayGreeting()}, {userName}
@@ -465,11 +436,10 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                       className={`flex ${isUser ? "justify-end" : "justify-start"} animate-in fade-in duration-200`}
                     >
                       <div
-                        className={`text-sm leading-relaxed ${
-                          isUser
-                            ? "bg-[#E5F5D9] text-[#1A1A1A] rounded-2xl sm:rounded-3xl p-4 max-w-lg shadow-2xs"
-                            : "bg-[#F2F2F2] text-[#1A1A1A] rounded-2xl sm:rounded-3xl p-5 max-w-xl shadow-2xs"
-                        }`}
+                        className={`text-sm leading-relaxed ${isUser
+                          ? "bg-[#E5F5D9] text-[#1A1A1A] rounded-2xl sm:rounded-3xl p-4 max-w-lg shadow-2xs"
+                          : "bg-[#F2F2F2] text-[#1A1A1A] rounded-2xl sm:rounded-3xl p-5 max-w-xl shadow-2xs"
+                          }`}
                       >
                         {msg.text.replace("Tiara", userName)}
                       </div>
@@ -492,33 +462,35 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             )}
           </div>
 
-          {/* Quick Prompt Recommendations when chat already has messages */}
-          {messages.length > 0 && (
-            <div className="px-6 py-2.5 bg-[#FAFAF8] border-t border-[#F0F0F0] space-y-1.5 max-h-[180px] overflow-y-auto">
-              {CHAT_RECOMMENDATIONS.map((rec) => (
-                <button
-                  key={rec.id}
-                  type="button"
-                  onClick={() => handleSendQuickPrompt(rec.prompt)}
-                  disabled={isTyping}
-                  className="w-full bg-white hover:bg-[#F2F8EE] border border-[#E5E5E5] hover:border-[#CDE8B5] rounded-xl p-2.5 sm:py-3 sm:px-3.5 flex items-center justify-between gap-3 text-left transition-all shadow-2xs group active:scale-[0.99] disabled:opacity-50"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-lg bg-[#F6F6F6] group-hover:bg-white text-[#1A1A1A] flex items-center justify-center shrink-0 border border-transparent group-hover:border-[#E0E0E0] shadow-2xs transition-colors">
-                      {rec.icon}
+          {/* Quick Prompt Recommendations: only shown before user chats or clicks a recommendation */}
+          {!hasChatted && (
+            <div className="px-6 py-3 bg-[#FAFAF8] border-t border-[#F0F0F0] space-y-2 animate-in fade-in duration-150">
+              <div className="space-y-1.5 max-h-[190px] overflow-y-auto pr-1">
+                {CHAT_RECOMMENDATIONS.map((rec) => (
+                  <button
+                    key={rec.id}
+                    type="button"
+                    onClick={() => handleSendQuickPrompt(rec.prompt)}
+                    disabled={isTyping}
+                    className="w-full bg-white hover:bg-[#F2F8EE] border border-[#E5E5E5] hover:border-[#CDE8B5] rounded-xl p-2.5 sm:py-3 sm:px-3.5 flex items-center justify-between gap-3 text-left transition-all shadow-2xs group active:scale-[0.99] disabled:opacity-50"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-7 h-7 rounded-lg bg-[#F6F6F6] group-hover:bg-white text-[#1A1A1A] flex items-center justify-center shrink-0 border border-transparent group-hover:border-[#E0E0E0] shadow-2xs transition-colors">
+                        {rec.icon}
+                      </div>
+                      <span className="text-xs sm:text-sm font-semibold text-[#1A1A1A] truncate group-hover:text-black">
+                        {rec.prompt}
+                      </span>
                     </div>
-                    <span className="text-xs sm:text-sm font-semibold text-[#1A1A1A] truncate group-hover:text-black">
-                      {rec.prompt}
-                    </span>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#9A9A9A] group-hover:text-[#1A1A1A] shrink-0 transition-colors" />
-                </button>
-              ))}
+                    <ArrowRight className="w-3.5 h-3.5 text-[#9A9A9A] group-hover:text-[#1A1A1A] shrink-0 transition-colors" />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
           {/* Chat Input Bar */}
-          <div className="px-6 pb-6 pt-2 space-y-2 border-t border-[#F0F0F0]">
+          <div className="px-6 pb-6 pt-2 border-t border-[#F0F0F0]">
             <form
               onSubmit={handleSendMessage}
               className="flex items-center gap-2 bg-white rounded-full border border-[#E0E0E0] pl-5 pr-2 py-2 focus-within:border-[#1A1A1A] transition-colors shadow-2xs"
@@ -539,9 +511,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
-            <p className="text-[11px] text-[#9A9A9A] pl-3">
-              Jika ada bahaya langsung, cari pertolongan darurat terdekat.
-            </p>
           </div>
         </div>
       </div>
