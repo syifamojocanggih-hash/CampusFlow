@@ -110,11 +110,11 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
 
 ---
 
-## 5. Endpoints PRD Versi 4.0 (Academic Schedule, Burnout Scoring, & Active Break)
+## 5. Endpoints Jadwal Akademik, KRS Parser AI, Fusi Burnout, & Active Break (PRD v4.0)
 
-### 5.1 Academic Schedule (`/api/v1/academic-schedule`)
-- `GET /api/v1/academic-schedule` — Mengambil jadwal kuliah mingguan pengguna.
-- `POST /api/v1/academic-schedule` — Menambah atau mengunggah matakuliah baru:
+### 5.1 Smart Academic Planner & AI KRS Parser (`/api/v1/schedule`) *(JWT Required)*
+- `GET /api/v1/schedule` — Mengambil daftar jadwal perkuliahan mingguan pengguna.
+- `POST /api/v1/schedule` — Menambah satu matakuliah baru:
   ```json
   {
     "dayOfWeek": 1,
@@ -124,10 +124,56 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
     "isExamWeek": false
   }
   ```
-- `DELETE /api/v1/academic-schedule/:id` — Menghapus jadwal kuliah.
+- `POST /api/v1/schedule/bulk` — Menyimpan daftar jadwal sekaligus (`{ schedules: [...] }`).
+- `POST /api/v1/schedule/parse-krs` — Mengekstrak jadwal perkuliahan dari file dokumen KRS (PDF, TXT, CSV) atau teks langsung, menghitung bobot beban akademik terhadap stres, dan menyimpannya ke database.
+  - **Engine**: Parser SIAKAD berkecepatan tinggi dengan **Google Gemini API Fallback** (`gemini-1.5-flash`) untuk menangani dokumen non-standar, layout kompleks, atau scanned PDF multimodal.
+  - **Headers**:
+    - `Authorization: Bearer <token>`
+    - `x-gemini-api-key` *(Opsional)*: Menyediakan API key Gemini kustom per-request (default membaca `GEMINI_API_KEY` dari server `.env`).
+  - **Content-Type**: `multipart/form-data` (field `file`) atau `application/json` (`{ fileBase64, text, replaceExisting, saveToDatabase, geminiApiKey, preferGemini }`).
+  - **Response `201 Created`**:
+    ```json
+    {
+      "data": {
+        "extractedCount": 5,
+        "saved": true,
+        "savedCount": 5,
+        "replacedPrevious": true,
+        "source": "PDF",
+        "summary": {
+          "totalCourses": 5,
+          "totalSks": 14,
+          "theorySks": 12,
+          "practicumSks": 2,
+          "peakLoadDay": {
+            "dayOfWeek": 2,
+            "dayName": "Selasa",
+            "academicLoadScore": 5.5,
+            "stressLevel": "HIGH"
+          },
+          "burnoutRiskWarning": "Peringatan Beban Kognitif Tinggi: Hari Selasa memiliki beban stres akademik 5.5 poin (HIGH)..."
+        },
+        "dailyBreakdown": [
+          {
+            "dayOfWeek": 1,
+            "dayName": "Senin",
+            "courses": [],
+            "academicLoadScore": 3.0,
+            "stressLevel": "MODERATE"
+          }
+        ],
+        "items": []
+      },
+      "meta": { "timestamp": "2026-11-17T21:00:00.000Z", "version": "v1.0" }
+    }
+    ```
+- `POST /api/v1/schedule/parse-krs/preview` — Sama seperti `parse-krs`, tetapi hanya mengembalikan preview ekstraksi dan analisis beban stres tanpa mengubah data di database.
+- `GET /api/v1/schedule/stress-analysis` — Mengambil ringkasan analisis dampak beban akademik aktif terhadap risiko burnout pengguna (breakdown harian, peak load day, dan rekomendasi klinis).
+- `DELETE /api/v1/schedule/:id` — Menghapus jadwal kuliah berdasarkan ID.
 
-### 5.2 Burnout Scoring Engine (`/api/v1/burnout`)
-- `POST /api/v1/burnout/calculate-today` — Menghitung fusi harian Burnout Risk Index (0–100):
+### 5.2 Burnout Scoring Engine (`/api/v1/burnout`) *(JWT Required)*
+- `GET /api/v1/burnout/today` — Mengambil fusi Burnout Risk Index (0–100) hari ini yang secara otomatis mengintegrasikan beban kuliah hari ini dari `AcademicSchedule` ($SKS \times bobot + ujian$), Screen Time Fatigue, skor pemulihan, dan PSS-10.
+- `POST /api/v1/burnout/calculate` — Menghitung dan menyimpan fusi harian (`DailyFussionLog`):
   ```json
   {
     "logDate": "2026-11-16",
@@ -150,7 +196,7 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
   ```
 - `GET /api/v1/burnout/history?days=14` — Mengambil riwayat tren Burnout Index selama 14 hari.
 
-### 5.3 On-Demand Active Break (`/api/v1/active-break`)
+### 5.3 On-Demand Active Break (`/api/v1/active-break`) *(JWT Required)*
 - `POST /api/v1/active-break/verify` — Mencatat sesi jeda aktif 2 menit yang tervalidasi kamera MediaPipe:
   ```json
   {
@@ -159,5 +205,5 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
     "poseType": "OVERHEAD_ARM_STRETCH"
   }
   ```
-  *(Menambah +10 poin pemulihan pada Recovery Score hari ini).*
+  *(Menambah +15 XP pengguna dan +10 poin pemulihan pada Recovery Score hari ini).*
 
