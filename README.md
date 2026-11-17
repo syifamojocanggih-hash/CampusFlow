@@ -237,24 +237,84 @@ CampusFlow/
 
 ## 8. Landasan Literatur Ilmiah (5 Tahun Terakhir)
 
-Arsitektur CampusFlow v4.0 didasarkan pada studi peer-reviewed terbaru (2021–2026):
+Arsitektur penentuan metrik kesejahteraan dan mitigasi kelelahan belajar pada CampusFlow Versi 4.0 dirancang secara transparan dengan membagi landasan ilmiah ke dalam **tiga lapis epistemologis yang terpisah secara tegas**: fondasi konsep teori, sumber kuantifikasi koefisien, dan instrumen validasi eksternal.
 
-1. **Effort-Recovery Model (Dasar Rumus Fusi Beban vs Pemulihan):**
-   * *Meijman & Mulder (1998)* / *Sonnentag et al. (2021)* — Pemulihan energi psikologis melalui tidur dan jeda mikro memulihkan sumber daya kognitif dari tuntutan kerja.
-2. **Beban Akademik & Burnout Mahasiswa:**
-   * *Olson et al. (2023)*, *Frontiers in Public Health* [DOI: 10.3389/fpubh.2023.1118244](https://doi.org/10.3389/fpubh.2023.1118244) — Beban SKS padat dan kurikulum adalah prediktor utama kelelahan emosional mahasiswa.
-   * *Andrade et al. (2023)*, *Scientific Reports* [DOI: 10.1038/s41598-023-31852-w](https://doi.org/10.1038/s41598-023-31852-w) — Hubungan linier antara *study overload* dengan sindrom burnout akademik.
-3. **Waktu Layar & Kelelahan Digital:**
-   * *Alshahrani et al. (2025)*, *Frontiers in Psychiatry* [DOI: 10.3389/fpsyt.2025.1485601](https://doi.org/10.3389/fpsyt.2025.1485601) — Layar $> 8\text{ jam/hari}$ mempercepat kelelahan mental dan mengganggu tidur.
-   * *Xu et al. (2025)*, *Frontiers in Psychiatry* [DOI: 10.3389/fpsyt.2025.1528659](https://doi.org/10.3389/fpsyt.2025.1528659) — Ketergantungan layar ponsel memicu *learning burnout* pada mahasiswa.
-4. **Jeda Mikro 2–5 Menit (*Active Breaks*):**
-   * *Albulescu et al. (2022)*, *PLOS ONE* [DOI: 10.1371/journal.pone.0272460](https://doi.org/10.1371/journal.pone.0272460) — Meta-analisis ($N = 2.335$) membuktikan jeda mikro fisik meningkatkan *vigor* dan menurunkan kelelahan secara instan.
-   * *Loh et al. (2023)*, *Work* [DOI: 10.3233/WOR-220528](https://doi.org/10.3233/WOR-220528) — Jeda peregangan singkat efektif mereduksi kelelahan otot saat bekerja di depan laptop.
-5. **Tidur Sebagai Restorasi Energi Utama:**
-   * *Mu et al. (2024)*, *Frontiers in Psychology* [DOI: 10.3389/fpsyg.2024.1376993](https://doi.org/10.3389/fpsyg.2024.1376993) — Kualitas tidur memediasi pemulihan psikologis dari stres harian.
-   * *Allen et al. (2021)*, *Int. J. Behavioral Medicine* [DOI: 10.1007/s12529-020-09942-3](https://doi.org/10.1007/s12529-020-09942-3) — Durasi tidur cukup (7–9 jam) memitigasi eskalasi burnout mahasiswa.
-6. **Quantified Self & "Academic Strava":**
-   * *Gauthier et al. (2022)*, *Computers in Human Behavior* [DOI: 10.1016/j.chb.2022.107314](https://doi.org/10.1016/j.chb.2022.107314) — Pemantauan diri ritme belajar dan aktivitas fisik meningkatkan regulasi diri mahasiswa.
+### 8.1. Lapis Teori (Fondasi Konsep)
+
+Lapis ini menjustifikasi **logika struktural model** bahwa kelelahan belajar merupakan fungsi antagonistik antara akumulasi beban kerja (*load*) yang menguras sumber daya fisik-kognitif dan episode pemulihan (*recovery*).
+
+* **Sonnentag, Venz, & Casper (2021)**, *Annual Review of Organizational Psychology and Organizational Behavior*, Vol. 9, hlm. 33–60, [DOI: 10.1146/annurev-orgpsych-012420-091355](https://doi.org/10.1146/annurev-orgpsych-012420-091355)  
+  *Justifikasi Penggunaan:* Menjustifikasi kerangka kerja konseptual *Effort-Recovery* bahwa tuntutan mental yang berkepanjangan memicu akumulasi *strain* apabila tidak diimbangi oleh proses pemulihan (tidur dan jeda berkala).
+
+> [!NOTE]
+> **Batasan Konseptual Lapis Teori:** Publikasi Sonnentag, Venz, & Casper (2021) ini **HANYA** menjustifikasi struktur konseptual hubungan pengurangan antara Beban dan Pemulihan ($\text{Beban} - \text{Pemulihan}$). Paper ini secara eksplisit **TIDAK** memuat rumus matematis atau persamaan numerik tertentu.
+
+---
+
+### 8.2. Lapis Kuantifikasi (Sumber Angka & Koefisien)
+
+Lapis ini menjustifikasi parameter empiris, ambang batas jam, serta bobot numerik spesifik yang diterapkan ke dalam tiap komponen formula Burnout Risk Index.
+
+#### A. Academic Load Score (Bobot SKS & Beban Belajar)
+* **Olson et al. (2023)**, *Frontiers in Public Health*, [DOI: 10.3389/fpubh.2023.1118244](https://doi.org/10.3389/fpubh.2023.1118244)  
+  *Justifikasi Penggunaan:* Membuktikan bahwa volume SKS yang padat dan tuntutan kurikulum terstruktur merupakan prediktor independen utama terhadap kenaikan kelelahan emosional mahasiswa.
+* **Andrade et al. (2023)**, *Scientific Reports*, [DOI: 10.1038/s41598-023-31852-w](https://doi.org/10.1038/s41598-023-31852-w)  
+  *Justifikasi Penggunaan:* Menjustifikasi korelasi linier antara persepsi beban studi berlebih (*study overload*) dengan manifestasi kelelahan fisik dan kognitif mahasiswa.
+
+#### B. Screen Time Fatigue (Kelelahan Waktu Layar Digital)
+* **Alshahrani et al. (2025)**, *Frontiers in Psychiatry*, [DOI: 10.3389/fpsyt.2025.1485601](https://doi.org/10.3389/fpsyt.2025.1485601)  
+  *Justifikasi Penggunaan:* Mengidentifikasi hubungan signifikan antara paparan layar berkepanjangan dengan kelelahan mental serta penurunan efisiensi waktu tidur mahasiswa.
+* **Xu et al. (2025)**, *Frontiers in Psychiatry*, [DOI: 10.3389/fpsyt.2025.1528659](https://doi.org/10.3389/fpsyt.2025.1528659)  
+  *Justifikasi Penggunaan:* Menjustifikasi bahwa konsumsi layar tanpa batas adaptif memicu percepatan kejenuhan belajar (*learning burnout*).
+
+> [!CAUTION]
+> **Catatan Kaki Ambang Layar:** Klaim angka spesifik mengenai *"ambang batas 8 jam"* belum terverifikasi secara definitif dari teks penuh (PDF lengkap) kedua studi di atas dan memerlukan verifikasi manual independen terhadap metodologi masing-masing paper. Di dalam CampusFlow, angka 8 jam difungsikan sebagai batas operasional heuristik produk.
+
+#### C. Faktor Pemulihan Tidur (Sleep Recovery)
+* **Allen et al. (2021)**, *International Journal of Behavioral Medicine*, [DOI: 10.1007/s12529-020-09942-3](https://doi.org/10.1007/s12529-020-09942-3)  
+  *Justifikasi Penggunaan:* Menjustifikasi bahwa durasi tidur adekuat (target 7–9 jam/malam) memiliki peran restoratif fisiologis primer dalam membatasi eskalasi burnout mahasiswa (dijadikan patokan batas atas 40 poin pemulihan tidur).
+* **Mu et al. (2024)**, *Frontiers in Psychology*, [DOI: 10.3389/fpsyg.2024.1376993](https://doi.org/10.3389/fpsyg.2024.1376993)  
+  *Justifikasi Penggunaan:* Mengonfirmasi bahwa kualitas tidur berfungsi sebagai mediator protektif paling dominan dalam merestorasi ketahanan afektif dari stres perkuliahan harian.
+
+#### D. On-Demand Active Break (Jeda Mikro Terverifikasi)
+* **Albulescu et al. (2022)**, *PLOS ONE*, [DOI: 10.1371/journal.pone.0272460](https://doi.org/10.1371/journal.pone.0272460)  
+  *Justifikasi Penggunaan:* Meta-analisis terhadap 22 sampel studi independen ($N = 2.335$) membuktikan bahwa jeda mikro fisik memberikan efek acak yang signifikan namun berskala **KECIL** terhadap peningkatan vitalitas (*vigor*, $d = 0.36$) dan penurunan rasa lelah (*fatigue*, $d = 0.35$).
+
+> [!IMPORTANT]
+> **Klarifikasi Bobot Active Break:** Pemberian bobot $+10\text{ poin}$ pemulihan per sesi *Active Break* terverifikasi pada CampusFlow adalah instrumen **insentif perilaku produk (gamifikasi digital wellbeing)** untuk mendorong pembentukan kebiasaan sehat, **BUKAN** klaim efek terapeutik/klinis berskala besar.
+
+---
+
+### 8.3. Lapis Validasi Eksternal (Instrumen Pembanding)
+
+Lapis ini mencakup instrumen psikometri terstandar yang digunakan untuk mengkalibrasi, memverifikasi, dan melakukan *cross-check* validitas skor akhir kesejahteraan mahasiswa, **BUKAN** merupakan komponen numerik langsung dari rumus Burnout Risk Index itu sendiri.
+
+* **Perceived Stress Scale 4-Item (PSS-4):**  
+  * **Schmalbach, Ernst, Brähler, & Petrowski (2025)**, *Frontiers in Psychology*, [DOI: 10.3389/fpsyg.2024.1479701](https://doi.org/10.3389/fpsyg.2024.1479701)  
+  *Justifikasi Penggunaan:* Digunakan sebagai instrumen psikometri harian ringkas (4 butir) yang tervalidasi untuk mendeteksi fluktuasi distres mahasiswa secara berkala.
+
+> [!NOTE]
+> **Catatan Ambang Batas PSS-4:** Skala PSS-4 secara resmi tidak memiliki ambang batas (*cutoff*) klinis baku universal dalam literatur psikometri internasional. Ambang batas skor $\ge 8$ pada CampusFlow dinyatakan secara eksplisit sebagai **ambang heuristik internal produk** untuk memicu rekomendasi proaktif AI Coach, bukan penetapan status klinis baku.
+
+* **Perceived Stress Scale 10-Item (PSS-10):**  
+  * **Denovan & Dagnall (2025)**, *Current Psychology*, [DOI: 10.1007/s12144-025-08061-x](https://doi.org/10.1007/s12144-025-08061-x)  
+  *Justifikasi Penggunaan:* Digunakan sebagai instrumen evaluasi komprehensif mingguan (*gold standard*) untuk mengukur tingkat keparahan stres mahasiswa dalam rentang waktu yang lebih stabil.
+
+* **International Physical Activity Questionnaire Short Form (IPAQ-SF):**  
+  * **Validasi Versi Yunani (2025)**, *Central European Journal of Public Health*, [DOI: 10.21101/cejph.a8446](https://doi.org/10.21101/cejph.a8446)  
+  *Justifikasi Penggunaan:* Digunakan **HANYA** untuk merujuk 3 nilai intensitas energi metabolik resmi standar IPAQ-SF: jalan santai ($3.3\text{ MET}$), aktivitas intensitas sedang ($4.0\text{ MET}$), dan aktivitas intensitas berat ($8.0\text{ MET}$).
+
+> [!WARNING]
+> **Pemisahan Sumber Nilai MET 5.0:** Nilai $5.0\text{ MET}$ yang diterapkan pada fitur latihan beban (*muscle strengthening*) dan pereda stres akut (*acute aerobic relief*) **BUKAN** bagian resmi dari instrumen baku IPAQ-SF. Nilai ini kemungkinan besar bersumber dari *Compendium of Physical Activities* (Ainsworth et al.) sebagai estimasi aktivitas kalistenik/resisten, dan sengaja dipisahkan agar tidak ditampilkan seolah satu rumpun sitasi dengan 3 nilai resmi IPAQ.
+
+---
+
+### 8.4. Alur Integrasi Epistemologis
+
+Secara keseluruhan, pemisahan ke dalam tiga lapis ini mencerminkan integritas ilmiah arsitektur CampusFlow:
+1. **Lapis Teori** menjustifikasi rasional konseptual mengapa model fusi dirumuskan sebagai pengurangan beban terhadap pemulihan ($\text{Beban} - \text{Pemulihan}$).
+2. **Lapis Kuantifikasi** menjustifikasi dari mana tiap koefisien numerik, ambang jam, dan bobot variabel harian berasal.
+3. **Lapis Validasi Eksternal** menjustifikasi bagaimana metrik akhir hasil fusi ini dapat dipercaya, divalidasi silang, dan dipertanggungjawabkan secara psikometri menggunakan instrumen baku internasional.
 
 ---
 

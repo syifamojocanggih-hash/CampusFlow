@@ -41,7 +41,8 @@ Pilihan: `0 = Tidak Pernah`, `1 = Hampir Tidak Pernah`, `2 = Kadang-kadang`, `3 
 **Rumus:**
 $$\text{PSS4\_Score} = q_1 + (4 - q_2) + (4 - q_3) + q_4 \quad \in [0, 16]$$
 
-**Interpretasi Cutoff (Moriarty et al., 2021):**
+**Interpretasi Cutoff PSS-4 (Ambang Heuristik Produk):**
+> *Catatan Metodologis:* Skala PSS-4 secara resmi tidak memiliki cutoff klinis baku universal dalam literatur psikometri. Ambang batas $\ge 8$ di bawah ini merupakan ambang heuristik internal produk CampusFlow untuk mendeteksi sinyal distres akademik awal dan memicu intervensi AI Coach secara terukur:
 - `0 – 5` → `LOW` (Optimal)
 - `6 – 7` → `MODERATE` (Waspada)
 - `8 – 12` → `HIGH` (Stres Tinggi — memicu rekomendasi AI Coach)

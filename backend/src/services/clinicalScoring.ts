@@ -20,7 +20,7 @@ export function calculatePss4Score(answers: readonly [number, number, number, nu
   return sumLikertWithReverse([...answers], PSS4_REVERSE_INDICES);
 }
 
-/** Mengklasifikasikan tingkat stres dari skor PSS-4 (cutoff >= 8 adalah HIGH sesuai Moriarty et al., 2021). */
+/** Mengklasifikasikan tingkat stres dari skor PSS-4 (cutoff >= 8 adalah ambang heuristik internal produk untuk memicu intervensi awal). */
 export function classifyPss4Severity(totalScore: number): StressSeverity {
   if (totalScore >= 13) return "SEVERE";
   if (totalScore >= 8) return "HIGH";
