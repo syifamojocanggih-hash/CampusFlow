@@ -7,8 +7,6 @@ import {
   Square,
   RotateCcw,
   Smartphone,
-  Zap,
-  Plus,
   CheckCircle2,
   AlertTriangle,
 } from "lucide-react";
@@ -101,25 +99,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
     }
   };
 
-  const handleSimulateStep = (count = 1) => {
-    const engine = engineRef.current;
-    if (engine) {
-      let lastDetail: StepEventDetail | undefined;
-      for (let i = 0; i < count; i++) {
-        lastDetail = engine.simulateStep();
-      }
-      if (lastDetail) {
-        setTotalSteps(lastDetail.totalSteps);
-        setCadenceSpm(lastDetail.cadenceSpm);
-        setIntensityType(lastDetail.intensityType);
-        setMetMinutes(lastDetail.metMinutes);
-        setLastNetAcc(lastDetail.lastNetAcc);
-        if (onStepsChange) {
-          onStepsChange(lastDetail.totalSteps, lastDetail.metMinutes);
-        }
-      }
-    }
-  };
+
 
   const handleSaveToActivity = async () => {
     if (totalSteps === 0) return;
@@ -204,50 +184,12 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         </div>
       </div>
 
-      {/* Cadence Range Scale Guide */}
-      <div className="mb-6 bg-[#F6F6F6] p-3.5 rounded-2xl border border-[#E8E8E8] text-xs">
-        <div className="flex justify-between items-center text-[11px] font-semibold text-[#1A1A1A] mb-1.5">
-          <span>Tingkat Kecepatan Langkah:</span>
-          <span className="font-bold">{cadenceSpm} Langkah/Menit Saat Ini</span>
-        </div>
-        <div className="grid grid-cols-4 gap-1.5 text-center text-[10px] font-medium">
-          <div
-            className={`p-1.5 rounded-xl border transition-all ${
-              intensityType === "IDLE" ? "bg-[#FFF29A] text-[#1A1A1A] border-[#FFE966] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
-            }`}
-          >
-            &lt;50 SPM<br /><span className="text-[9px]">Diam / Santai</span>
-          </div>
-          <div
-            className={`p-1.5 rounded-xl border transition-all ${
-              intensityType === "WALKING" ? "bg-[#CDE8B5] text-[#1A1A1A] border-[#B6DF97] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
-            }`}
-          >
-            50-99 SPM<br /><span className="text-[9px]">Jalan Santai</span>
-          </div>
-          <div
-            className={`p-1.5 rounded-xl border transition-all ${
-              intensityType === "MODERATE" ? "bg-[#BDE6F0] text-[#1A1A1A] border-[#8ECAD7] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
-            }`}
-          >
-            100-129 SPM<br /><span className="text-[9px]">Jalan Cepat</span>
-          </div>
-          <div
-            className={`p-1.5 rounded-xl border transition-all ${
-              intensityType === "VIGOROUS" ? "bg-[#F9B99A] text-[#1A1A1A] border-[#F6966C] font-extrabold" : "bg-white border-[#E8E8E8] text-[#9A9A9A]"
-            }`}
-          >
-            &ge;130 SPM<br /><span className="text-[9px]">Lari / Olahraga</span>
-          </div>
-        </div>
-      </div>
-
       {/* Permission Warning if Denied */}
       {permissionState === "denied" && (
         <div className="mb-4 p-3 bg-[#F7A8B0]/20 text-[#1A1A1A] text-xs rounded-2xl flex items-center gap-2 border border-[#F7A8B0]">
           <AlertTriangle className="w-4 h-4 shrink-0 text-[#1A1A1A]" />
           <span>
-            Izin sensor gerak ditolak oleh peramban. Di iOS Safari, silakan izinkan akses sensor gerak di pengaturan situs atau gunakan tombol simulasi di bawah.
+            Izin sensor gerak ditolak oleh peramban. Di iOS Safari, silakan izinkan akses sensor gerak di pengaturan situs.
           </span>
         </div>
       )}
@@ -256,7 +198,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         <div className="mb-4 p-3 bg-[#FFF29A]/50 text-[#1A1A1A] text-xs rounded-2xl flex items-center gap-2 border border-[#FFF29A]">
           <Smartphone className="w-4 h-4 shrink-0" />
           <span>
-            Perangkat desktop tidak memiliki sensor accelerometer fisik. Gunakan tombol simulasi langkah di bawah untuk pengujian lab.
+            Perangkat desktop tidak memiliki sensor accelerometer fisik. Buka aplikasi di smartphone untuk deteksi langkah otomatis.
           </span>
         </div>
       )}
@@ -291,43 +233,24 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
           </button>
         </div>
 
-        {/* Desktop Simulation Fallbacks */}
-        <div className="flex items-center gap-2">
+        {totalSteps > 0 && (
           <button
-            onClick={() => handleSimulateStep(1)}
-            className="px-3 py-2 rounded-xl text-xs font-semibold bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] flex items-center gap-1 transition-colors border border-[#E8E8E8]"
-            title="Simulasi 1 langkah (Desktop Testing)"
+            onClick={handleSaveToActivity}
+            className={`px-3.5 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-colors ${
+              savedSuccess
+                ? "bg-[#CDE8B5] text-[#1A1A1A] border border-[#B6DF97]"
+                : "bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
+            }`}
           >
-            <Plus className="w-3.5 h-3.5" /> 1 Langkah
+            {savedSuccess ? (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5" /> Tersimpan!
+              </>
+            ) : (
+              <>Simpan ke Log</>
+            )}
           </button>
-
-          <button
-            onClick={() => handleSimulateStep(10)}
-            className="px-3 py-2 rounded-xl text-xs font-semibold bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] flex items-center gap-1 transition-colors border border-[#E8E8E8]"
-            title="Simulasi 10 langkah (Desktop Testing)"
-          >
-            <Zap className="w-3.5 h-3.5 text-[#1A1A1A]" /> +10 Langkah
-          </button>
-
-          {totalSteps > 0 && (
-            <button
-              onClick={handleSaveToActivity}
-              className={`px-3.5 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-colors ${
-                savedSuccess
-                  ? "bg-[#CDE8B5] text-[#1A1A1A] border border-[#B6DF97]"
-                  : "bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
-              }`}
-            >
-              {savedSuccess ? (
-                <>
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Tersimpan!
-                </>
-              ) : (
-                <>Simpan ke Log</>
-              )}
-            </button>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

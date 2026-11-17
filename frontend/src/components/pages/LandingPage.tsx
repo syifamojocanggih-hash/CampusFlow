@@ -418,27 +418,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                 <Bot className="w-3.5 h-3.5" /> Wellbeing AI Coach
               </button>
             </div>
-
-            {/* Action CTA: Register & Login Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-3">
-              <button
-                onClick={() => handleOpenAuth("register")}
-                className="px-5 py-2.5 rounded-full bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] font-extrabold text-xs transition-colors shadow-xs border border-[#B6DF97] active:scale-95 flex items-center gap-2 group"
-                title="Mulai Mendaftar Akun Mahasiswa"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Daftar Akun Mahasiswa (Register)</span>
-                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-              </button>
-              <button
-                onClick={() => handleOpenAuth("login")}
-                className="px-5 py-2.5 rounded-full bg-white hover:bg-[#FAFAFA] text-[#1A1A1A] font-bold text-xs transition-colors shadow-xs border border-[#E8E8E8] active:scale-95 flex items-center gap-2"
-                title="Masuk Menggunakan Akun yang Sudah Ada"
-              >
-                <LogIn className="w-4 h-4 text-[#9A9A9A]" />
-                <span>Masuk ke Akun (Login)</span>
-              </button>
-            </div>
           </div>
 
           {/* RIGHT COLUMN: Brain Study Laptop Illustration */}
@@ -786,43 +765,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
         </section>
 
         </div>
-
-        {/* ========================================================
-            5. FOOTER SECTION
-            ======================================================== */}
-        <footer className="w-full border-t border-[#F0F0F0] text-xs bg-[#FAFAFA] shrink-0 mt-8">
-          <div className="max-w-6xl mx-auto px-6 sm:px-12 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5 text-[#9A9A9A]">
-              <div className="w-8 h-8 rounded-xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shadow-xs">
-                <GraduationCap className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="font-heading font-extrabold text-sm text-[#1A1A1A] block">
-                  CampusFlow
-                </span>
-                <span className="text-[11px] text-[#9A9A9A]">
-                  &copy; 2026 Academic Strava &amp; Predictive Wellbeing
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => handleOpenAuth("login")}
-                className="text-[#1A1A1A] font-bold hover:underline flex items-center gap-1.5 text-xs transition-colors active:scale-95"
-              >
-                <LogIn className="w-3.5 h-3.5 text-[#9A9A9A]" />
-                <span>Masuk (Login)</span>
-              </button>
-              <button
-                onClick={() => handleOpenAuth("register")}
-                className="px-4 py-2 rounded-full bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] font-extrabold text-xs transition-colors shadow-xs border border-[#B6DF97] active:scale-95 flex items-center gap-1.5"
-              >
-                <UserPlus className="w-3.5 h-3.5" />
-                <span>Daftar Akun Baru</span>
-              </button>
-            </div>
-          </div>
-        </footer>
       </main>
 
       {/* Sign In & Sign Up Modal */}

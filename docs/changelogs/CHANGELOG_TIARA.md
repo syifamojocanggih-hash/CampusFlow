@@ -21,6 +21,81 @@
 
 ---
 
+## [2026-11-17] — Pembersihan Skala Cadence & Tombol Simulasi Langkah (`PedometerCard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.62`
+- **Ringkasan:** 
+  1. **Penghilangan Panduan Rentang Cadence (*Cadence Range Scale Guide*):**
+     - Menghapus kotak panduan tingkat kecepatan langkah (`Tingkat Kecepatan Langkah: 0 Langkah/Menit Saat Ini` beserta 4 box rentang SPM: `<50 SPM`, `50-99 SPM`, `100-129 SPM`, dan `≥130 SPM`) untuk tampilan pedometer yang lebih ringkas dan bersih.
+  2. **Penghilangan Tombol Simulasi Langkah Manual:**
+     - Menghapus tombol desktop simulasi `+ 1 Langkah` dan `⚡ +10 Langkah` dari bilah aksi kartu pedometer, menjaga antarmuka tetap bersih dan berfokus pada deteksi sensor gerak otomatis asli perangkat (*DeviceMotionEvent*).
+     - Membersihkan fungsi `handleSimulateStep` dan unused imports (`Plus`, `Zap`) agar kompilasi TypeScript tetap optimal.
+- **Daftar File Diubah:**
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Redesain Floating Streak Pet Tanpa Stroke Kotak & Pembesaran Avatar Pet (`MimiPetWidget.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.61`
+- **Ringkasan:** 
+  1. **Penghilangan Garis Stroke (*No-Stroke Container*):**
+     - Menghapus kotak pembungkus kapsul yang memiliki stroke tebal (`border-2 border-[#1A1A1A]`, `bg-white/95`) dan garis drag handle di bagian atas.
+     - Menghapus stroke garis hitam pada badge runtunan hari streak (`border-2 border-[#1A1A1A]`).
+  2. **Pembesaran Avatar Pet Mimi Sebagai Ikon Utama:**
+     - Memperbesar ukuran animasi avatar Mimi dari `w-14 h-14` menjadi `w-20 h-20 sm:w-22 sm:h-22` dengan efek bayangan halus (*drop-shadow-md*), sehingga pet Mimi langsung menjadi ikon visual streak yang ekspresif dan hidup.
+  3. **Penataan Runtunan Streak di Bawah Avatar Pet:**
+     - Menampilkan indikator streak tepat di bawah pet Mimi dengan pill lembut pastel kuning tanpa garis stroke (`bg-[#FFF29A] text-[#1A1A1A] px-2.5 py-0.5 rounded-full text-[11px] font-extrabold shadow-xs`).
+     - Menampilkan teks runtunan hari yang jelas: `🔥 {streak} Hari`.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pet/MimiPetWidget.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Penghilangan Baris Footer Landing Page (`LandingPage.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.60`
+- **Ringkasan:** 
+  1. **Penghilangan Footer Bawah Landing Page:**
+     - Menghapus elemen baris `<footer ...>` di bagian paling bawah Landing Page (termasuk logo CampusFlow, teks hak cipta `© 2026 Academic Strava & Predictive Wellbeing`, serta tombol `Masuk (Login)` dan `Daftar Akun Baru`).
+     - Halaman landing kini berakhir secara rapi langsung setelah seksi penutup fitur & FAQ tanpa footer ganda yang repetitif.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Penghilangan Tombol CTA Register & Login pada Hero Section Landing Page (`LandingPage.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.59`
+- **Ringkasan:** 
+  1. **Penghilangan Tombol CTA Hero Section:**
+     - Menghapus kontainer tombol aksi CTA hero section (`Daftar Akun Mahasiswa (Register)` dan `Masuk ke Akun (Login)`) pada kolom kiri landing page untuk tampilan hero yang lebih minimalis dan berfokus pada ringkasan fitur utama.
+     - Akses masuk dan registrasi akun mahasiswa tetap tersedia secara intuitif melalui tombol navbar kanan atas (*Masuk* & *Daftar Akun*), menu navigasi drawer mobile, dan seksi ajakan akhir di bagian bawah halaman (*Bottom CTA*).
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
 ## [2026-11-17] — Pembersihan & Penghapusan Sub-elemen/Label yang Tidak Diperlukan (`FocusView.tsx`, `TriadDashboard.tsx`, `MimiPetWidget.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.58`
 - **Ringkasan:** 

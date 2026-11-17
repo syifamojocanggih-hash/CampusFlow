@@ -394,23 +394,22 @@ export const MimiPetWidget: React.FC = () => {
             </div>
           )}
 
-          {/* Draggable Pet Container Card */}
-          <div className="relative group p-1.5 rounded-3xl bg-white/95 backdrop-blur-sm border-2 border-[#1A1A1A] shadow-card hover:shadow-cardHover transition-all flex flex-col items-center justify-center w-20 h-24">
-            {/* Grip Drag Handle Pill */}
-            <div className="w-6 h-1 rounded-full bg-[#E8E8E8] group-hover:bg-[#1A1A1A] mb-1 transition-colors" />
-
-            {/* Mimi Animated SVG */}
+          {/* Draggable Pet Container - Borderless, Large Pet Icon + Streak Below */}
+          <div className="relative group flex flex-col items-center justify-center p-1 transition-transform duration-200 hover:scale-105">
+            {/* Mimi Animated SVG - Large Pet Icon */}
             <div
-              className={`w-14 h-14 ${isDragging ? "" : "animate-mimi-bob"}`}
+              className={`w-20 h-20 sm:w-22 sm:h-22 drop-shadow-md select-none pointer-events-none ${
+                isDragging ? "" : "animate-mimi-bob"
+              }`}
               dangerouslySetInnerHTML={{
                 __html: getMimiSvg(STAGE_MAP[st], currentMood, completedCount > 0 && st === 0),
               }}
             />
 
-            {/* Streak Counter Flame Badge */}
-            <div className="absolute -bottom-2 bg-[#FFF29A] text-[#1A1A1A] border-2 border-[#1A1A1A] px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-0.5 shadow-xs">
-              <Flame className="w-3 h-3 fill-[#F9B99A] text-[#1A1A1A]" />
-              <span>{streak}d</span>
+            {/* Streak Counter Beneath Pet (Clean & Stroke-free) */}
+            <div className="mt-1 bg-[#FFF29A] text-[#1A1A1A] px-2.5 py-0.5 rounded-full text-[11px] font-extrabold flex items-center gap-1 shadow-xs select-none">
+              <Flame className="w-3.5 h-3.5 fill-[#F9B99A] text-[#1A1A1A]" />
+              <span>{streak} Hari</span>
             </div>
           </div>
         </div>
