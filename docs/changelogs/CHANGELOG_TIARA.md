@@ -21,6 +21,47 @@
 
 ---
 
+## [2026-11-17] — Implementasi Ornamen Batik Kawung Transparan Modern pada Hero Card Burnout Index (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.66`
+- **Ringkasan:** 
+  1. **Integrasi Motif Batik Kawung Keseimbangan Modern (*Modern Translucent Batik Kawung*):**
+     - Mengembangkan ornamen geometris SVG berbasis filosofi Nusantara **Batik Kawung** yang disederhanakan secara elegan (*minimalist & clutter-free*) tanpa garis kontur/stroke tajam.
+     - Menyusun mandala Kawung 4 kelopak elips transparan (*Sedulur Papat Limo Pancer*) yang merefleksikan 4 pilar keseimbangan gaya hidup mahasiswa: (1) Beban Akademik / SKS, (2) Gerak Fisik & Strava, (3) Tidur & Pemulihan Restoratif, serta (4) Ketenangan Mental & Waktu Layar.
+     - Menempatkan titik harmoni pusat (*Limo Pancer* / Titik Nol Burnout) yang melambangkan kondisi *flow state* mahasiswa dalam zona aman.
+     - Melengkapi motif dengan mandala sekunder interlocking lembut yang melarut (*fading out*) ke arah kiri sehingga tidak mengganggu keterbacaan teks utama (WCAG AA).
+     - Menggunakan gradasi Fresh Pastel Health resmi CampusFlow (Mint `#CDE8B5`, Butter `#FFF29A`, Sky Blue `#BDE6F0`, dan Soft Pink `#F7A8B0`) dengan opasitas tembus pandang lembut (15% s/d 45%).
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite (2199 modul ter-compile).
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Penyederhanaan Pola Abstrak Banner Burnout Index: Penghapusan Garis Kontur & Vektor (`TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.65`
+- **Ringkasan:** 
+  1. **Pembersihan Garis dan Ornamen Vektor dari Pola Grafis Hero Card:**
+     - Menghapus seluruh elemen garis kontur kurva (*flowing contour lines*), garis putus-putus (*dashed lines*), lingkaran orbit konsentris (*orbit rings*), micro-sparkles, dan dot grid halus dari ornamen SVG banner Hero *Burnout Risk Index*.
+     - Mempertahankan 3 lapisan bentuk gelombang organik transparan (*soft translucent organic wave shapes*) dengan paduan gradasi pastel khas CampusFlow (Mint, Butter, Sky Blue, dan Soft Pink) yang tampil lebih bersih, tenang (*clean & distraction-free*), dan menyatu mulus dengan latar kartu tanpa mengganggu fokus informasi utama.
+  2. **Pembersihan Komponen Doodle Latar Belakang Global:**
+     - Menghapus komponen `BackgroundDoodles.tsx` dan integrasinya di `App.tsx` sesuai preferensi pengguna agar tampilan ruang kerja aplikasi tetap minimalis, tenang, dan bersih.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `frontend/src/App.tsx`
+  - `frontend/src/components/common/BackgroundDoodles.tsx` (dihapus)
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
 ## [2026-11-17] — Penambahan Doodle Latar Belakang Seluruh Halaman Aplikasi Terautentikasi (`BackgroundDoodles.tsx` & `App.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.64`
 - **Ringkasan:** 

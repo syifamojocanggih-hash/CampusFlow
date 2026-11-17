@@ -260,83 +260,138 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
             preserveAspectRatio="xMidYMid meet"
           >
             <defs>
-              <linearGradient id="absFlowGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+              {/* Fresh Pastel Gradients for Modern Translucent Batik Kawung */}
+              <linearGradient id="kawungMintSky" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#CDE8B5" stopOpacity="0.45" />
-                <stop offset="100%" stopColor="#BDE6F0" stopOpacity="0.15" />
+                <stop offset="100%" stopColor="#BDE6F0" stopOpacity="0.20" />
               </linearGradient>
-              <linearGradient id="absFlowGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+              <linearGradient id="kawungButterMint" x1="100%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#FFF29A" stopOpacity="0.40" />
-                <stop offset="100%" stopColor="#CDE8B5" stopOpacity="0.10" />
+                <stop offset="100%" stopColor="#CDE8B5" stopOpacity="0.15" />
               </linearGradient>
-              <linearGradient id="absFlowGrad3" x1="0%" y1="50%" x2="100%" y2="50%">
+              <linearGradient id="kawungSkyPink" x1="0%" y1="100%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#BDE6F0" stopOpacity="0.35" />
-                <stop offset="100%" stopColor="#F7A8B0" stopOpacity="0.10" />
+                <stop offset="100%" stopColor="#F7A8B0" stopOpacity="0.15" />
               </linearGradient>
+              <radialGradient id="kawungCenterGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#CDE8B5" stopOpacity="0.65" />
+                <stop offset="60%" stopColor="#FFF29A" stopOpacity="0.30" />
+                <stop offset="100%" stopColor="#BDE6F0" stopOpacity="0.00" />
+              </radialGradient>
             </defs>
 
-            {/* Translucent Organic Wave Shapes */}
-            <path
-              d="M180,20 C240,-15 320,10 380,40 C440,70 410,140 370,180 C330,220 220,210 170,160 C120,110 120,55 180,20 Z"
-              fill="url(#absFlowGrad1)"
-            />
-            <path
-              d="M230,60 C290,30 350,60 380,100 C410,140 370,190 320,200 C270,210 200,180 190,130 C180,80 170,90 230,60 Z"
-              fill="url(#absFlowGrad2)"
-            />
-            <path
-              d="M130,120 C180,80 260,110 300,140 C340,170 320,220 270,230 C220,240 160,210 130,170 C100,130 80,160 130,120 Z"
-              fill="url(#absFlowGrad3)"
-            />
+            {/* Modern Minimalist Batik Kawung (Filosofi 4 Pilar Keseimbangan Gaya Hidup Mahasiswa) */}
 
-            {/* Elegant Flowing Vector Contour Lines */}
-            <path
-              d="M100,80 Q200,10 280,70 T420,80"
-              stroke="#1A1A1A"
-              strokeWidth="1.5"
-              strokeOpacity="0.08"
-              strokeDasharray="4 4"
-              fill="none"
-            />
-            <path
-              d="M120,110 Q210,50 300,100 T440,110"
-              stroke="#1A1A1A"
-              strokeWidth="1.5"
-              strokeOpacity="0.12"
-              fill="none"
-            />
-            <path
-              d="M140,140 Q230,90 320,130 T460,140"
-              stroke="#1A1A1A"
-              strokeWidth="1.5"
-              strokeOpacity="0.08"
-              fill="none"
-            />
-            <path
-              d="M160,170 Q250,130 340,160 T480,170"
-              stroke="#1A1A1A"
-              strokeWidth="1.5"
-              strokeOpacity="0.06"
-              strokeDasharray="6 6"
-              fill="none"
-            />
+            {/* 1. Latar Belakang Aura Lembut */}
+            <circle cx="280" cy="100" r="85" fill="url(#kawungCenterGlow)" />
 
-            {/* Subtle Orbit Rings & Floating Accent Elements */}
-            <circle cx="280" cy="90" r="32" stroke="#1A1A1A" strokeWidth="1.2" strokeOpacity="0.07" strokeDasharray="3 3" fill="none" />
-            <circle cx="280" cy="90" r="50" stroke="#1A1A1A" strokeWidth="1" strokeOpacity="0.05" fill="none" />
-            <circle cx="280" cy="90" r="4" fill="#1A1A1A" fillOpacity="0.12" />
+            {/* 2. Mandala Kawung Sekunder (Kiri - Melarut Halus Mendekati Area Teks) */}
+            <g transform="translate(180, 100) scale(0.68)" opacity="0.28">
+              <g transform="rotate(45)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
+              </g>
+              <g transform="rotate(135)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungButterMint)" />
+              </g>
+              <g transform="rotate(225)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
+              </g>
+              <g transform="rotate(315)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungSkyPink)" />
+              </g>
+              <circle cx="0" cy="0" r="10" fill="url(#kawungCenterGlow)" />
+            </g>
 
-            {/* Micro Sparkle Accents */}
-            <path d="M340,45 L342,50 L347,52 L342,54 L340,59 L338,54 L333,52 L338,50 Z" fill="#1A1A1A" fillOpacity="0.15" />
-            <path d="M220,155 L221,159 L225,160 L221,161 L220,165 L219,161 L215,160 L219,159 Z" fill="#1A1A1A" fillOpacity="0.12" />
-            <path d="M360,130 L361,133 L364,134 L361,135 L360,138 L359,135 L356,134 L359,133 Z" fill="#1A1A1A" fillOpacity="0.14" />
+            {/* 3. Mandala Kawung Sekunder (Kanan - Menghadap Tepi Kartu) */}
+            <g transform="translate(380, 100) scale(0.85)" opacity="0.50">
+              <g transform="rotate(45)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
+              </g>
+              <g transform="rotate(135)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungButterMint)" />
+              </g>
+              <g transform="rotate(225)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
+              </g>
+              <g transform="rotate(315)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungSkyPink)" />
+              </g>
+              <circle cx="0" cy="0" r="11" fill="url(#kawungCenterGlow)" />
+            </g>
 
-            {/* Tiny Soft Dot Grid */}
-            <circle cx="310" cy="40" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
-            <circle cx="320" cy="40" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
-            <circle cx="330" cy="40" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
-            <circle cx="310" cy="50" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
-            <circle cx="320" cy="50" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
-            <circle cx="330" cy="50" r="1.5" fill="#1A1A1A" fillOpacity="0.1" />
+            {/* 4. Mandala Kawung Sekunder (Atas & Bawah) */}
+            <g transform="translate(280, 10) scale(0.70)" opacity="0.35">
+              <g transform="rotate(45)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
+              </g>
+              <g transform="rotate(135)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungButterMint)" />
+              </g>
+              <g transform="rotate(225)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
+              </g>
+              <g transform="rotate(315)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungSkyPink)" />
+              </g>
+            </g>
+            <g transform="translate(280, 190) scale(0.70)" opacity="0.35">
+              <g transform="rotate(45)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
+              </g>
+              <g transform="rotate(135)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungButterMint)" />
+              </g>
+              <g transform="rotate(225)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungMintSky)" />
+              </g>
+              <g transform="rotate(315)">
+                <ellipse cx="0" cy="-36" rx="18" ry="32" fill="url(#kawungSkyPink)" />
+              </g>
+            </g>
+
+            {/* 5. Aksen Isen Ceplok Geometris Halus di Sela Titik Temu Kawung */}
+            <rect x="-7" y="-7" width="14" height="14" rx="4" transform="translate(230, 55) rotate(45)" fill="url(#kawungButterMint)" opacity="0.55" />
+            <circle cx="230" cy="55" r="2.5" fill="#FAFAFA" opacity="0.75" />
+
+            <rect x="-7" y="-7" width="14" height="14" rx="4" transform="translate(330, 55) rotate(45)" fill="url(#kawungButterMint)" opacity="0.55" />
+            <circle cx="330" cy="55" r="2.5" fill="#FAFAFA" opacity="0.75" />
+
+            <rect x="-7" y="-7" width="14" height="14" rx="4" transform="translate(230, 145) rotate(45)" fill="url(#kawungButterMint)" opacity="0.55" />
+            <circle cx="230" cy="145" r="2.5" fill="#FAFAFA" opacity="0.75" />
+
+            <rect x="-7" y="-7" width="14" height="14" rx="4" transform="translate(330, 145) rotate(45)" fill="url(#kawungButterMint)" opacity="0.55" />
+            <circle cx="330" cy="145" r="2.5" fill="#FAFAFA" opacity="0.75" />
+
+            {/* 6. Mandala Kawung Utama (Centerpiece: 4 Pilar Keseimbangan & Titik Pusat Harmoni) */}
+            <g transform="translate(280, 100)">
+              {/* Kelopak 1: Pilar Beban Akademik (Top-Right / 45°) */}
+              <g transform="rotate(45)">
+                <ellipse cx="0" cy="-38" rx="22" ry="36" fill="url(#kawungMintSky)" />
+                <ellipse cx="0" cy="-38" rx="10" ry="18" fill="url(#kawungButterMint)" opacity="0.75" />
+              </g>
+
+              {/* Kelopak 2: Pilar Gerak Fisik & Strava (Bottom-Right / 135°) */}
+              <g transform="rotate(135)">
+                <ellipse cx="0" cy="-38" rx="22" ry="36" fill="url(#kawungButterMint)" />
+                <ellipse cx="0" cy="-38" rx="10" ry="18" fill="url(#kawungMintSky)" opacity="0.75" />
+              </g>
+
+              {/* Kelopak 3: Pilar Tidur & Restorasi (Bottom-Left / 225°) */}
+              <g transform="rotate(225)">
+                <ellipse cx="0" cy="-38" rx="22" ry="36" fill="url(#kawungSkyPink)" />
+                <ellipse cx="0" cy="-38" rx="10" ry="18" fill="url(#kawungButterMint)" opacity="0.75" />
+              </g>
+
+              {/* Kelopak 4: Pilar Ketenangan Mental & Layar (Top-Left / 315°) */}
+              <g transform="rotate(315)">
+                <ellipse cx="0" cy="-38" rx="22" ry="36" fill="url(#kawungMintSky)" />
+                <ellipse cx="0" cy="-38" rx="10" ry="18" fill="url(#kawungSkyPink)" opacity="0.75" />
+              </g>
+
+              {/* Titik Tengah Harmoni: "Limo Pancer" / Titik Nol Keseimbangan Sehat */}
+              <circle cx="0" cy="0" r="14" fill="url(#kawungCenterGlow)" />
+              <circle cx="0" cy="0" r="6" fill="#FAFAFA" fillOpacity="0.85" />
+            </g>
           </svg>
         </div>
 
