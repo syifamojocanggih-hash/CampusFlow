@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Moon,
-  Zap,
-  Clock,
   BookOpen,
   Play,
   Monitor,
   Plus,
   X,
   Calendar,
-  Activity,
   UploadCloud,
   FileText,
 } from "lucide-react";
@@ -71,8 +68,8 @@ const MOCK_14_DAY_TREND = [
 ];
 
 export const TriadDashboard: React.FC<TriadDashboardProps> = ({
-  onStartPanicRelief,
-  onNavigateToFocus,
+  onStartPanicRelief: _onStartPanicRelief,
+  onNavigateToFocus: _onNavigateToFocus,
 }) => {
   // 1. Data States
   const [schedules, setSchedules] = useState<AcademicScheduleDTO[]>(INITIAL_SCHEDULES);
@@ -144,20 +141,11 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
 
   const {
     academicLoadScore,
-    screenFatigueScore,
-    recoveryScore,
     burnoutIndex,
     status: burnoutStatus,
   } = burnoutResult;
 
   // Calculations for display
-  const totalLoadScore = Number((academicLoadScore + screenFatigueScore).toFixed(1));
-  const rawSleepScore = Number(
-    Math.min(
-      BURNOUT_CONSTANTS.SLEEP_RECOVERY_MAX_SCORE,
-      (sleepHours / 8.0) * BURNOUT_CONSTANTS.SLEEP_RECOVERY_MAX_SCORE
-    ).toFixed(1)
-  );
   const activeBreakBonus = verifiedBreakCount * BURNOUT_CONSTANTS.ACTIVE_BREAK_SCORE_PER_SESSION;
 
   // Status Styling
@@ -241,110 +229,54 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           1. HERO CARD: STRAVA AKADEMIK & BURNOUT RISK INDEX (0-100)
           ======================================================== */}
       <div className={`rounded-3xl p-6 sm:p-8 border shadow-xs transition-all ${statusMeta.cardBg}`}>
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          {/* Left: Score Gauge & Description */}
-          <div className="flex items-center gap-5 sm:gap-7">
-            {/* Circular Ring Gauge */}
-            <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0 flex items-center justify-center select-none">
-              <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="42"
-                  stroke="#E8E8E8"
-                  strokeWidth="8"
-                  fill="none"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="42"
-                  stroke={statusMeta.ringColor}
-                  strokeWidth="8"
-                  strokeDasharray={263.89}
-                  strokeDashoffset={263.89 - (Math.min(100, burnoutIndex) / 100) * 263.89}
-                  strokeLinecap="round"
-                  fill="none"
-                  className="transition-all duration-1000 ease-out"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-3xl sm:text-4xl font-heading font-extrabold text-[#1A1A1A] sensor-num leading-none">
-                  {Math.round(burnoutIndex)}
-                </span>
-                <span className="text-[10px] text-[#9A9A9A] font-bold uppercase tracking-wider mt-0.5">
-                  Index / 100
-                </span>
-              </div>
-            </div>
-
-            {/* Title & Status */}
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#9A9A9A]">
-                  Dashboard Strava Akademik
-                </span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1A1A1A] leading-tight">
-                Burnout Risk Index
-              </h2>
-              <p className="text-xs text-[#1A1A1A]/80 font-medium max-w-md leading-relaxed">
-                {statusMeta.desc}
-              </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-7">
+          {/* Circular Ring Gauge */}
+          <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0 flex items-center justify-center select-none">
+            <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                stroke="#E8E8E8"
+                strokeWidth="8"
+                fill="none"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                stroke={statusMeta.ringColor}
+                strokeWidth="8"
+                strokeDasharray={263.89}
+                strokeDashoffset={263.89 - (Math.min(100, burnoutIndex) / 100) * 263.89}
+                strokeLinecap="round"
+                fill="none"
+                className="transition-all duration-1000 ease-out"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <span className="text-3xl sm:text-4xl font-heading font-extrabold text-[#1A1A1A] sensor-num leading-none">
+                {Math.round(burnoutIndex)}
+              </span>
+              <span className="text-[10px] text-[#9A9A9A] font-bold uppercase tracking-wider mt-0.5">
+                Index / 100
+              </span>
             </div>
           </div>
 
-          {/* Right: Balance Formula Breakdown (Effort vs Recovery) */}
-          <div className="w-full lg:w-auto flex-1 lg:max-w-md bg-white/90 backdrop-blur-xs rounded-2xl p-4 sm:p-5 border border-[#E8E8E8] shadow-xs space-y-3">
-            <div className="flex items-center justify-between text-xs font-bold text-[#1A1A1A] pb-2 border-b border-[#F0F0F0]">
-              <span className="flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-[#1A1A1A]" />
-                Keseimbangan Fusi Parameter
-              </span>
-              <span className="font-mono text-[11px] text-[#9A9A9A]">
-                (Beban) - (Pemulihan)
+          {/* Title & Status */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#9A9A9A]">
+                Dashboard Strava Akademik
               </span>
             </div>
-
-            {/* Formula Balance Bar */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-[11px] font-semibold text-[#1A1A1A]">
-                <span>Total Beban: <strong className="text-rose-600 font-mono">{totalLoadScore} Poin</strong></span>
-                <span>Pemulihan: <strong className="text-emerald-600 font-mono">{recoveryScore} Poin</strong></span>
-              </div>
-              <div className="w-full bg-[#F6F6F6] h-2.5 rounded-full overflow-hidden flex border border-[#E8E8E8]">
-                <div
-                  className="bg-[#F7A8B0] h-full transition-all duration-700"
-                  style={{ width: `${Math.min(100, (totalLoadScore / (totalLoadScore + recoveryScore || 1)) * 100)}%` }}
-                  title="Porsi Beban Akademik & Layar"
-                />
-                <div
-                  className="bg-[#CDE8B5] h-full transition-all duration-700"
-                  style={{ width: `${Math.min(100, (recoveryScore / (totalLoadScore + recoveryScore || 1)) * 100)}%` }}
-                  title="Porsi Pemulihan (Tidur & Jeda Aktif)"
-                />
-              </div>
-            </div>
-
-            {/* Micro Breakdown Items */}
-            <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
-              <div className="bg-[#FAFAFA] p-2 rounded-xl border border-[#EEEEEE]">
-                <span className="text-[#9A9A9A] block text-[10px]">Beban Akademik (KRS)</span>
-                <span className="font-bold text-[#1A1A1A] font-mono">{academicLoadScore} Poin</span>
-              </div>
-              <div className="bg-[#FAFAFA] p-2 rounded-xl border border-[#EEEEEE]">
-                <span className="text-[#9A9A9A] block text-[10px]">Fatigue Layar (&gt;8h)</span>
-                <span className="font-bold text-[#1A1A1A] font-mono">+{screenFatigueScore} Poin</span>
-              </div>
-              <div className="bg-[#FAFAFA] p-2 rounded-xl border border-[#EEEEEE]">
-                <span className="text-[#9A9A9A] block text-[10px]">Restorasi Tidur</span>
-                <span className="font-bold text-[#1A1A1A] font-mono">{rawSleepScore} / 40 Poin</span>
-              </div>
-              <div className="bg-[#FAFAFA] p-2 rounded-xl border border-[#EEEEEE]">
-                <span className="text-[#9A9A9A] block text-[10px]">Active Break (x10)</span>
-                <span className="font-bold text-emerald-600 font-mono">+{activeBreakBonus} Poin</span>
-              </div>
-            </div>
+            <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1A1A1A] leading-tight">
+              Burnout Risk Index
+            </h2>
+            <p className="text-xs text-[#1A1A1A]/80 font-medium max-w-xl leading-relaxed">
+              {statusMeta.desc}
+            </p>
           </div>
         </div>
       </div>
@@ -439,50 +371,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
       </div>
 
       {/* ========================================================
-          3. QUICK ACTIONS ACCENT BAR (Panic Relief & Active Break)
-          ======================================================== */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Action 1: On-Demand Active Break */}
-        <div className="bg-[#BDE6F0] rounded-3xl p-5 flex items-center justify-between gap-4 text-[#1A1A1A] shadow-softSky">
-          <div className="space-y-1">
-            <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-              Mulai Active Break 2 Menit
-            </h4>
-            <p className="text-xs text-[#1A1A1A]/80 font-medium">
-              Kamera hanya menyala 2 menit untuk validasi peregangan (+10 Poin).
-            </p>
-          </div>
-          <button
-            onClick={onNavigateToFocus}
-            className="w-12 h-12 rounded-full bg-white text-[#1A1A1A] flex items-center justify-center shadow-md hover:bg-[#F6F6F6] transition-colors shrink-0"
-            title="Buka Validator Active Break"
-          >
-            <Play className="w-5 h-5 fill-[#1A1A1A] ml-0.5" />
-          </button>
-        </div>
-
-        {/* Action 2: Panic Relief Mode */}
-        <div className="bg-[#FFF29A] rounded-3xl p-5 flex items-center justify-between gap-4 text-[#1A1A1A] border border-[#FFE966] shadow-softPill">
-          <div className="space-y-1">
-            <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-              Panic Relief 15 Menit
-            </h4>
-            <p className="text-xs text-[#1A1A1A]/80 font-medium">
-              Latihan napas terpandu &amp; jalan santai redakan cemas dan kembalikan fokus.
-            </p>
-          </div>
-          <button
-            onClick={onStartPanicRelief}
-            className="w-12 h-12 rounded-full bg-white text-[#1A1A1A] flex items-center justify-center shadow-md hover:bg-[#F6F6F6] transition-colors shrink-0"
-            title="Mulai Panic Relief Mode"
-          >
-            <Zap className="w-5 h-5 fill-[#1A1A1A]" />
-          </button>
-        </div>
-      </div>
-
-      {/* ========================================================
-          4. MAIN TWO-COLUMN SECTION (KRS Today & 14-Day History Trend)
+          3. MAIN TWO-COLUMN SECTION (KRS Today & 14-Day History Trend)
           ======================================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Smart Academic Planner - Today's KRS (7 cols) */}
@@ -490,13 +379,9 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           <div className="learnova-card p-5 sm:p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-heading font-extrabold text-base text-[#1A1A1A] flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#1A1A1A]" />
-                  Jadwal Kuliah Hari Ini ({DAY_NAMES[currentDayOfWeek - 1]})
+                <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                  Jadwal Kuliah Hari Ini
                 </h3>
-                <p className="text-xs text-[#9A9A9A] mt-0.5">
-                  Beban kognitif otomatis dihitung dari bobot SKS dan jenis matakuliah
-                </p>
               </div>
               <button
                 onClick={() => setIsKrsModalOpen(true)}

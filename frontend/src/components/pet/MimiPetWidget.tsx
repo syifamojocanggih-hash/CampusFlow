@@ -391,8 +391,7 @@ export const MimiPetWidget: React.FC = () => {
           {showTooltip && (
             <div className="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white border border-[#E8E8E8] text-[#1A1A1A] font-extrabold text-[11px] px-3 py-1.5 rounded-2xl shadow-md pointer-events-none animate-in fade-in zoom-in-95 duration-200">
               <span className="flex items-center gap-1">
-                <span>Halo! Ketuk {petName}</span>
-                <span className="text-[#9A9A9A] text-[9px] font-normal">• Geser</span>
+                <span>Hai! apa kabar hari ini?</span>
               </span>
               <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-2.5 h-2.5 bg-white border-b border-r border-[#E8E8E8] rotate-45" />
             </div>

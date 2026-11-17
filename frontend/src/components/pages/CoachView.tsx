@@ -9,8 +9,6 @@ import {
   Clock,
   Sparkles,
   RotateCcw,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -108,7 +106,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
   const [userName, setUserName] = useState<string>("Tiara");
   const [inputText, setInputText] = useState<string>("");
   const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [showRecommendations, setShowRecommendations] = useState<boolean>(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Initial messages matching the exact conversation shown in the reference design
@@ -198,7 +195,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
   const handleResetSession = () => {
     setMessages([]);
-    setShowRecommendations(true);
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -399,20 +395,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setShowRecommendations((prev) => !prev)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs ${
-                  showRecommendations
-                    ? "bg-[#1A1A1A] text-white"
-                    : "bg-white/90 hover:bg-white text-[#1A1A1A]"
-                }`}
-                title="Buka / Tutup Rekomendasi Chat"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#EAB308]" />
-                <span className="hidden sm:inline">Rekomendasi</span>
-              </button>
-
-              <button
-                type="button"
                 onClick={handleResetSession}
                 className="px-3 py-1.5 rounded-full bg-white/90 hover:bg-white text-xs font-bold text-[#1A1A1A] transition-colors flex items-center gap-1.5 shadow-2xs"
                 title="Mulai Sesi Percakapan Baru"
@@ -512,61 +494,27 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
           {/* Quick Prompt Recommendations when chat already has messages */}
           {messages.length > 0 && (
-            showRecommendations ? (
-              <div className="px-6 py-3.5 bg-[#FAFAF8] border-t border-[#F0F0F0] space-y-2.5 animate-in fade-in duration-150">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MetaAiMotif className="w-5 h-5" />
-                    <span className="font-heading font-extrabold text-xs text-[#1A1A1A]">
-                      Rekomendasi Obrolan untuk {userName}
+            <div className="px-6 py-2.5 bg-[#FAFAF8] border-t border-[#F0F0F0] space-y-1.5 max-h-[180px] overflow-y-auto">
+              {CHAT_RECOMMENDATIONS.map((rec) => (
+                <button
+                  key={rec.id}
+                  type="button"
+                  onClick={() => handleSendQuickPrompt(rec.prompt)}
+                  disabled={isTyping}
+                  className="w-full bg-white hover:bg-[#F2F8EE] border border-[#E5E5E5] hover:border-[#CDE8B5] rounded-xl p-2.5 sm:py-3 sm:px-3.5 flex items-center justify-between gap-3 text-left transition-all shadow-2xs group active:scale-[0.99] disabled:opacity-50"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-[#F6F6F6] group-hover:bg-white text-[#1A1A1A] flex items-center justify-center shrink-0 border border-transparent group-hover:border-[#E0E0E0] shadow-2xs transition-colors">
+                      {rec.icon}
+                    </div>
+                    <span className="text-xs sm:text-sm font-semibold text-[#1A1A1A] truncate group-hover:text-black">
+                      {rec.prompt}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowRecommendations(false)}
-                    className="text-[11px] font-bold text-[#737373] hover:text-[#1A1A1A] transition-colors flex items-center gap-1"
-                  >
-                    <span>Sembunyikan</span>
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="space-y-1.5 max-h-[190px] overflow-y-auto pr-1">
-                  {CHAT_RECOMMENDATIONS.map((rec) => (
-                    <button
-                      key={rec.id}
-                      type="button"
-                      onClick={() => handleSendQuickPrompt(rec.prompt)}
-                      disabled={isTyping}
-                      className="w-full bg-white hover:bg-[#F2F8EE] border border-[#E5E5E5] hover:border-[#CDE8B5] rounded-xl p-2.5 sm:py-3 sm:px-3.5 flex items-center justify-between gap-3 text-left transition-all shadow-2xs group active:scale-[0.99] disabled:opacity-50"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-7 h-7 rounded-lg bg-[#F6F6F6] group-hover:bg-white text-[#1A1A1A] flex items-center justify-center shrink-0 border border-transparent group-hover:border-[#E0E0E0] shadow-2xs transition-colors">
-                          {rec.icon}
-                        </div>
-                        <span className="text-xs sm:text-sm font-semibold text-[#1A1A1A] truncate group-hover:text-black">
-                          {rec.prompt}
-                        </span>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-[#9A9A9A] group-hover:text-[#1A1A1A] shrink-0 transition-colors" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="px-6 py-2 flex items-center justify-between border-t border-[#F6F6F6] bg-[#FAFAF8]/50">
-                <button
-                  type="button"
-                  onClick={() => setShowRecommendations(true)}
-                  className="text-xs font-bold text-[#1A1A1A] hover:bg-white px-3 py-1.5 rounded-full border border-[#E8E8E8] flex items-center gap-1.5 transition-colors shadow-2xs active:scale-95"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#EAB308]" />
-                  <span>Rekomendasi Obrolan ({CHAT_RECOMMENDATIONS.length} Topik)</span>
-                  <ChevronUp className="w-3.5 h-3.5 text-[#9A9A9A]" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[#9A9A9A] group-hover:text-[#1A1A1A] shrink-0 transition-colors" />
                 </button>
-                <span className="text-[11px] text-[#9A9A9A] hidden sm:inline">Pilih topik cepat di atas</span>
-              </div>
-            )
+              ))}
+            </div>
           )}
 
           {/* Chat Input Bar */}

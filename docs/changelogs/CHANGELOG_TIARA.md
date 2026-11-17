@@ -21,6 +21,51 @@
 
 ---
 
+## [2026-11-17] — Pembersihan 5 Elemen Antarmuka pada Triad Dashboard (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.47`
+- **Ringkasan:** 
+  1. **Penghapusan Kartu Keseimbangan Fusi Parameter (`TriadDashboard.tsx` — Foto 1):**
+     - Menghapus kartu rincian formula beban akademik & layar vs pemulihan tidur & jeda aktif (*"Keseimbangan Fusi Parameter"*) di sisi kanan hero card Burnout Risk Index.
+  2. **Penghapusan Kartu Aksi Cepat Active Break & Panic Relief (`TriadDashboard.tsx` — Foto 2):**
+     - Menghapus 2 kartu aksi ganda berwarna biru langit & kuning (*"Mulai Active Break 2 Menit"* dan *"Panic Relief 15 Menit"*) agar alur antarmuka Dashboard lebih ringkas.
+  3. **Penghapusan Ikon Jam pada Jadwal Kuliah (`TriadDashboard.tsx` — Foto 3):**
+     - Menghapus ikon jam (`<Clock />`) di samping judul *"Jadwal Kuliah Hari Ini"*.
+  4. **Penghapusan Teks Keterangan Bobot SKS (`TriadDashboard.tsx` — Foto 4):**
+     - Menghapus baris teks subjudul *"Beban kognitif otomatis dihitung dari bobot SKS dan jenis matakuliah"*.
+  5. **Penghapusan Label Hari dalam Kurung (`TriadDashboard.tsx` — Foto 5):**
+     - Menghapus teks penanda hari `(Rabu)` / `({DAY_NAMES[currentDayOfWeek - 1]})` sehingga judul tabel hanya menampilkan *"Jadwal Kuliah Hari Ini"*.
+- **Daftar File Diubah:**
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-17] — Pembersihan Elemen Rekomendasi AI Coach & Penyesuaian Teks Sapaan Mimi Pet (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.46`
+- **Ringkasan:** 
+  1. **Penghapusan Bilah Judul Drawer Rekomendasi (`CoachView.tsx` — Foto 1):**
+     - Menghapus bilah strip judul horizontal *"Rekomendasi Obrolan untuk Mahasiswa"* beserta tombol *"Sembunyikan v"* pada bagian atas kartu rekomendasi chat agar daftar kartu langsung tersaji secara rapi dan tidak memakan ruang vertikal.
+  2. **Penghapusan Tombol Header Rekomendasi (`CoachView.tsx` — Foto 2):**
+     - Menghapus tombol hitam pill *"✨ Rekomendasi"* dari bilah header atas panel AI Coach untuk menjaga tampilan header tetap bersih dan minimalis.
+  3. **Pembaruan Teks Sapaan Tooltip Mimi Pet (`MimiPetWidget.tsx` — Foto 3):**
+     - Mengubah teks gelembung sapaan mengambang (*floating speech bubble*) Mimi Pet dari *"Halo! Ketuk Mimi • Geser"* menjadi *"Hai! apa kabar hari ini?"* sesuai permintaan pengguna.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `frontend/src/components/pet/MimiPetWidget.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** 
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript.
+  - `npm run test:frontend` (13/13 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
 ## [2026-11-17] — Implementasi Fitur Rekomendasi Chat Bergaya Meta AI pada AI Coach (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.45`
 - **Ringkasan:** 
