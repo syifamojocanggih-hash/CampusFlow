@@ -58,6 +58,7 @@ export function createApp() {
   app.use("/api/v1/auth", authLimiter, authRouter);
   app.use("/api/v1/users", usersRouter);
   app.use("/api/v1/vision", visionRouter);
+  app.use("/api/v1/posture", visionRouter);
   app.use("/api/v1/sedentary", sedentaryRouter);
   app.use("/api/v1/activities", activitiesRouter);
   app.use("/api/v1/wellbeing", wellbeingRouter);

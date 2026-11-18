@@ -167,13 +167,16 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
       "meta": { "timestamp": "2026-11-17T21:00:00.000Z", "version": "v1.0" }
     }
     ```
+- `POST /api/v1/schedule/upload` *(alias `/api/academic-schedule/upload`)* — Mengunggah file PDF KRS (`multipart/form-data`, field `file`, maks 5 MB, rate limit 20x/hari/user) untuk **preview** ekstraksi jadwal via Gemini API tanpa mengubah database.
+- `POST /api/v1/schedule/confirm` *(alias `/api/academic-schedule/confirm`)* — Mengonfirmasi dan menyimpan jadwal hasil preview/koreksi ke `AcademicSchedule` sekaligus menghitung ulang Burnout Index hari ini secara otomatis.
 - `POST /api/v1/schedule/parse-krs/preview` — Sama seperti `parse-krs`, tetapi hanya mengembalikan preview ekstraksi dan analisis beban stres tanpa mengubah data di database.
 - `GET /api/v1/schedule/stress-analysis` — Mengambil ringkasan analisis dampak beban akademik aktif terhadap risiko burnout pengguna (breakdown harian, peak load day, dan rekomendasi klinis).
-- `DELETE /api/v1/schedule/:id` — Menghapus jadwal kuliah berdasarkan ID.
+- `PATCH /api/v1/schedule/:id` — Memperbarui satu item jadwal kuliah (`dayOfWeek`, `subjectName`, `creditHours`, `classType`, `startTime`, `endTime`, `isExamWeek`) + menghitung ulang Burnout Index hari ini.
+- `DELETE /api/v1/schedule/:id` — Menghapus jadwal kuliah berdasarkan ID + menghitung ulang Burnout Index hari ini.
 
 ### 5.2 Burnout Scoring Engine (`/api/v1/burnout`) *(JWT Required)*
 - `GET /api/v1/burnout/today` — Mengambil fusi Burnout Risk Index (0–100) hari ini yang secara otomatis mengintegrasikan beban kuliah hari ini dari `AcademicSchedule` ($SKS \times bobot + ujian$), Screen Time Fatigue, skor pemulihan, dan PSS-10.
-- `POST /api/v1/burnout/calculate` — Menghitung dan menyimpan fusi harian (`DailyFussionLog`):
+- `POST /api/v1/burnout/calculate` *(alias `/api/v1/burnout/calculate-today`)* — Menghitung dan menyimpan fusi harian (`DailyFussionLog`):
   ```json
   {
     "logDate": "2026-11-16",
@@ -194,10 +197,10 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
     "meta": { "timestamp": "2026-11-16T13:00:00.000Z", "version": "v1.0" }
   }
   ```
-- `GET /api/v1/burnout/history?days=14` — Mengambil riwayat tren Burnout Index selama 14 hari.
+- `GET /api/v1/burnout/history?days=14` — Mengambil riwayat tren Burnout Index selama N hari terakhir (1–90 hari) beserta statistik rata-rata dan hari puncak risiko.
 
 ### 5.3 On-Demand Active Break (`/api/v1/active-break`) *(JWT Required)*
-- `POST /api/v1/active-break/verify` — Mencatat sesi jeda aktif 2 menit yang tervalidasi kamera MediaPipe:
+- `POST /api/v1/active-break/verify` — Mencatat sesi jeda aktif 2 menit yang tervalidasi kamera MediaPipe, memberi +15 XP, dan **otomatis memperbarui** Recovery Score (+10 poin) serta Burnout Index di `DailyFussionLog` hari ini:
   ```json
   {
     "durationMins": 2.0,
@@ -205,5 +208,13 @@ Endpoint utama `TriadDashboard.tsx` & halaman Riwayat:
     "poseType": "OVERHEAD_ARM_STRETCH"
   }
   ```
-  *(Menambah +15 XP pengguna dan +10 poin pemulihan pada Recovery Score hari ini).*
+- `GET /api/v1/active-break/today` — Mengambil sesi Active Break hari ini beserta jumlah terverifikasi dan total poin pemulihan.
+- `GET /api/v1/active-break/history?days=14` — Mengambil riwayat sesi Active Break selama N hari terakhir.
+
+### 5.4 Tambahan Endpoints Wellbeing & Profil *(JWT Required)*
+- `GET /api/v1/wellbeing/today` — Mengecek status check-in wellbeing PSS-4 hari ini.
+- `GET /api/v1/wellbeing/history?days=14` — Mengambil riwayat log wellbeing harian.
+- `POST /api/v1/wellbeing/checkin` *(alias `/api/v1/wellbeing/daily`)* — Mengirim check-in harian PSS-4 & tidur.
+- `PATCH /api/v1/users/me` *(alias `/api/v1/users/me/settings`)* — Memperbarui profil (`name`, `department`, `weeklyMetsTarget`, `targetRecoveryScore`).
+- `POST /api/v1/posture/baseline` *(alias `PATCH /api/v1/vision/baseline`)* — Menyimpan baseline kalibrasi postur webcam.
 

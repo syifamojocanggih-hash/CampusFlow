@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { Router } from "express";
+import { Router, type Response } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.ts";
 import { AppError, sendSuccess } from "../lib/response.ts";
@@ -8,8 +8,23 @@ import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
 export const usersRouter = Router();
 export const visionRouter = Router();
 
+const userSelectFields = {
+  id: true,
+  name: true,
+  nim: true,
+  email: true,
+  department: true,
+  weeklyMetsTarget: true,
+  targetRecoveryScore: true,
+  currentStreakDays: true,
+  xpPoints: true,
+  postureBaselineJson: true,
+} as const;
+
 const settingsSchema = z.object({
+  name: z.string().min(2).max(100).optional(),
   weeklyMetsTarget: z.number().int().min(300).max(10000).optional(),
+  targetRecoveryScore: z.number().int().min(10).max(100).optional(),
   department: z.string().min(2).max(100).optional(),
 });
 
@@ -24,42 +39,25 @@ const baselineSchema = z.object({
 usersRouter.get("/me", requireAuth, async (req: AuthenticatedRequest, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user!.sub },
-    select: {
-      id: true,
-      name: true,
-      nim: true,
-      email: true,
-      department: true,
-      weeklyMetsTarget: true,
-      currentStreakDays: true,
-      xpPoints: true,
-      postureBaselineJson: true,
-    },
+    select: userSelectFields,
   });
 
   if (!user) throw new AppError(404, "NOT_FOUND", "Pengguna tidak ditemukan.");
   sendSuccess(res, user);
 });
 
-usersRouter.patch("/me/settings", requireAuth, async (req: AuthenticatedRequest, res) => {
+async function handleUpdateProfile(req: AuthenticatedRequest, res: Response) {
   const body = settingsSchema.parse(req.body);
   const updated = await prisma.user.update({
     where: { id: req.user!.sub },
     data: body,
-    select: {
-      id: true,
-      name: true,
-      nim: true,
-      email: true,
-      department: true,
-      weeklyMetsTarget: true,
-      currentStreakDays: true,
-      xpPoints: true,
-      postureBaselineJson: true,
-    },
+    select: userSelectFields,
   });
   sendSuccess(res, updated);
-});
+}
+
+usersRouter.patch("/me", requireAuth, handleUpdateProfile);
+usersRouter.patch("/me/settings", requireAuth, handleUpdateProfile);
 
 usersRouter.delete("/me/data", requireAuth, async (req: AuthenticatedRequest, res) => {
   const userId = req.user!.sub;
@@ -69,6 +67,9 @@ usersRouter.delete("/me/data", requireAuth, async (req: AuthenticatedRequest, re
     prisma.dailyWellbeingLog.deleteMany({ where: { userId } }),
     prisma.clinicalAssessment.deleteMany({ where: { userId } }),
     prisma.aiCoachingInsight.deleteMany({ where: { userId } }),
+    prisma.academicSchedule.deleteMany({ where: { userId } }),
+    prisma.dailyFussionLog.deleteMany({ where: { userId } }),
+    prisma.activeBreakSession.deleteMany({ where: { userId } }),
     prisma.user.update({
       where: { id: userId },
       data: {
@@ -83,7 +84,7 @@ usersRouter.delete("/me/data", requireAuth, async (req: AuthenticatedRequest, re
   sendSuccess(res, { cleared: true });
 });
 
-visionRouter.patch("/baseline", requireAuth, async (req: AuthenticatedRequest, res) => {
+async function handleSaveBaseline(req: AuthenticatedRequest, res: Response) {
   const baseline = baselineSchema.parse(req.body);
   const updated = await prisma.user.update({
     where: { id: req.user!.sub },
@@ -91,5 +92,7 @@ visionRouter.patch("/baseline", requireAuth, async (req: AuthenticatedRequest, r
     select: { id: true, postureBaselineJson: true },
   });
   sendSuccess(res, updated);
-});
+}
 
+visionRouter.patch("/baseline", requireAuth, handleSaveBaseline);
+visionRouter.post("/baseline", requireAuth, handleSaveBaseline);

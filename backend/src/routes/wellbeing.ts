@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Response } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.ts";
 import { sendSuccess } from "../lib/response.ts";
@@ -34,7 +34,7 @@ const pss10Schema = z.object({
   notes: z.string().max(1000).optional(),
 });
 
-wellbeingRouter.post("/daily", requireAuth, async (req: AuthenticatedRequest, res) => {
+async function handleSubmitDailyWellbeing(req: AuthenticatedRequest, res: Response) {
   const body = dailyWellbeingSchema.parse(req.body);
   const userId = req.user!.sub;
 
@@ -103,6 +103,60 @@ wellbeingRouter.post("/daily", requireAuth, async (req: AuthenticatedRequest, re
     { ...saved, sedentaryRiskStatus: triad.sedentaryRiskStatus, currentStreakDays },
     201
   );
+}
+
+wellbeingRouter.post("/daily", requireAuth, handleSubmitDailyWellbeing);
+wellbeingRouter.post("/checkin", requireAuth, handleSubmitDailyWellbeing);
+
+/**
+ * GET /api/v1/wellbeing/today
+ * Mengambil status check-in wellbeing harian (PSS-4 & tidur) milik user hari ini.
+ */
+wellbeingRouter.get("/today", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const userId = req.user!.sub;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const logDate = new Date(`${todayStr}T00:00:00.000Z`);
+
+  const log = await prisma.dailyWellbeingLog.findUnique({
+    where: { userId_logDate: { userId, logDate } },
+  });
+
+  sendSuccess(res, {
+    logDate: todayStr,
+    checkedInToday: Boolean(log),
+    log,
+  });
+});
+
+/**
+ * GET /api/v1/wellbeing/history?days=14
+ * Mengambil riwayat check-in wellbeing harian (PSS-4, tidur, triad) N hari terakhir.
+ */
+wellbeingRouter.get("/history", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const userId = req.user!.sub;
+  const rawDays = Number(req.query.days ?? 14);
+  const days = Number.isFinite(rawDays) ? Math.min(90, Math.max(1, Math.floor(rawDays))) : 14;
+
+  const startDate = new Date();
+  startDate.setUTCHours(0, 0, 0, 0);
+  startDate.setUTCDate(startDate.getUTCDate() - (days - 1));
+
+  const logs = await prisma.dailyWellbeingLog.findMany({
+    where: {
+      userId,
+      logDate: { gte: startDate },
+    },
+    orderBy: { logDate: "asc" },
+  });
+
+  sendSuccess(res, {
+    days,
+    count: logs.length,
+    items: logs.map((item) => ({
+      ...item,
+      logDate: item.logDate.toISOString().slice(0, 10),
+    })),
+  });
 });
 
 assessmentsRouter.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {

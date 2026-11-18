@@ -5,10 +5,7 @@ import { AppError, sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
 import { scheduleUploadLimiter } from "../middleware/rateLimit.ts";
 import { uploadKrs, uploadSchedulePdf } from "../middleware/upload.ts";
-import {
-  calculateAcademicLoadScore,
-  calculateBurnoutRiskIndex,
-} from "../services/burnoutScoring.ts";
+import { recalculateTodayBurnoutLog } from "../services/burnoutSync.ts";
 import {
   computeKrsStressBreakdown,
   INDONESIAN_DAY_NAMES,
@@ -125,75 +122,8 @@ scheduleRouter.post(
         });
       });
 
-      // Hitung ulang Academic Load dan fusi Burnout Index hari ini
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const dayOfWeek = today.getDay() === 0 ? 7 : today.getDay();
-
-      const todaySchedules = await prisma.academicSchedule.findMany({
-        where: { userId, dayOfWeek },
-      });
-
-      const activeBreaksCount = await prisma.activeBreakSession.count({
-        where: {
-          userId,
-          startTime: { gte: today },
-          poseVerified: true,
-        },
-      });
-
-      const existingLog = await prisma.dailyFussionLog.findUnique({
-        where: {
-          userId_logDate: {
-            userId,
-            logDate: today,
-          },
-        },
-      });
-
-      const totalScreenHours = existingLog ? existingLog.totalScreenTimeMins / 60.0 : 0.0;
-      const sleepHours = existingLog ? existingLog.sleepHours : 7.0;
-
-      const calc = calculateBurnoutRiskIndex(
-        todaySchedules.map((s) => ({
-          creditHours: s.creditHours,
-          isPracticum: s.isPracticum,
-          classType: s.classType,
-          isExamWeek: s.isExamWeek,
-        })),
-        totalScreenHours,
-        sleepHours,
-        activeBreaksCount
-      );
-
-      // Simpan hasil fusi terbaru ke DailyFussionLog
-      const updatedLog = await prisma.dailyFussionLog.upsert({
-        where: {
-          userId_logDate: {
-            userId,
-            logDate: today,
-          },
-        },
-        update: {
-          academicLoadScore: calc.academicLoadScore,
-          screenFatigueScore: calc.screenFatigueScore,
-          recoveryScore: calc.recoveryScore,
-          burnoutIndex: calc.burnoutIndex,
-          status: calc.status,
-        },
-        create: {
-          userId,
-          logDate: today,
-          totalScreenTimeMins: Math.round(totalScreenHours * 60),
-          sleepHours,
-          academicLoadScore: calc.academicLoadScore,
-          screenFatigueScore: calc.screenFatigueScore,
-          recoveryScore: calc.recoveryScore,
-          verifiedBreakCount: activeBreaksCount,
-          burnoutIndex: calc.burnoutIndex,
-          status: calc.status,
-        },
-      });
+      // Hitung ulang Academic Load dan fusi Burnout Index hari ini secara konsisten (UTC date-only)
+      const updatedBurnout = await recalculateTodayBurnoutLog(userId);
 
       sendSuccess(
         res,
@@ -201,16 +131,7 @@ scheduleRouter.post(
           saved: true,
           savedCount: parsed.schedules.length,
           items: parsed.schedules,
-          updatedBurnout: {
-            logDate: today.toISOString().split("T")[0],
-            dayOfWeek,
-            academicLoadScore: calc.academicLoadScore,
-            screenFatigueScore: calc.screenFatigueScore,
-            recoveryScore: calc.recoveryScore,
-            burnoutIndex: calc.burnoutIndex,
-            status: calc.status,
-            fussionLogId: updatedLog.id,
-          },
+          updatedBurnout,
         },
         201
       );
@@ -462,9 +383,82 @@ scheduleRouter.post(
   }
 );
 
+const updateScheduleItemSchema = z
+  .object({
+    dayOfWeek: z.coerce.number().int().min(1).max(7).optional(),
+    subjectName: z.string().min(1).max(120).optional(),
+    creditHours: z.coerce.number().positive().max(6).optional(),
+    isPracticum: z.boolean().optional(),
+    classType: z.enum(["teori", "praktikum"]).optional(),
+    startTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format startTime harus HH:mm.")
+      .nullable()
+      .optional(),
+    endTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format endTime harus HH:mm.")
+      .nullable()
+      .optional(),
+    isExamWeek: z.boolean().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "Minimal satu field harus diisi untuk memperbarui jadwal.",
+  });
+
+/**
+ * PATCH /api/v1/schedule/:id
+ * Memperbarui satu item jadwal kuliah dan otomatis menyinkronkan Burnout Index hari ini.
+ */
+scheduleRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.sub;
+    const id = String(req.params.id);
+    const parsed = updateScheduleItemSchema.parse(req.body);
+
+    const existing = await prisma.academicSchedule.findFirst({
+      where: { id, userId },
+    });
+
+    if (!existing) {
+      throw new AppError(404, "NOT_FOUND", "Jadwal mata kuliah tidak ditemukan.");
+    }
+
+    // Sinkronkan classType <-> isPracticum secara konsisten
+    let nextIsPracticum = existing.isPracticum;
+    let nextClassType = existing.classType;
+    if (parsed.classType !== undefined) {
+      nextClassType = parsed.classType;
+      nextIsPracticum = parsed.classType === "praktikum";
+    } else if (parsed.isPracticum !== undefined) {
+      nextIsPracticum = parsed.isPracticum;
+      nextClassType = parsed.isPracticum ? "praktikum" : "teori";
+    }
+
+    const updated = await prisma.academicSchedule.update({
+      where: { id },
+      data: {
+        ...(parsed.dayOfWeek !== undefined ? { dayOfWeek: parsed.dayOfWeek } : {}),
+        ...(parsed.subjectName !== undefined ? { subjectName: parsed.subjectName } : {}),
+        ...(parsed.creditHours !== undefined ? { creditHours: parsed.creditHours } : {}),
+        isPracticum: nextIsPracticum,
+        classType: nextClassType,
+        ...(parsed.startTime !== undefined ? { startTime: parsed.startTime } : {}),
+        ...(parsed.endTime !== undefined ? { endTime: parsed.endTime } : {}),
+        ...(parsed.isExamWeek !== undefined ? { isExamWeek: parsed.isExamWeek } : {}),
+      },
+    });
+
+    const updatedBurnout = await recalculateTodayBurnoutLog(userId);
+    sendSuccess(res, { ...updated, updatedBurnout });
+  } catch (error) {
+    next(error);
+  }
+});
+
 /**
  * DELETE /api/v1/schedule/:id
- * Menghapus satu item jadwal.
+ * Menghapus satu item jadwal dan menyinkronkan Burnout Index hari ini.
  */
 scheduleRouter.delete("/:id", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
@@ -473,7 +467,8 @@ scheduleRouter.delete("/:id", async (req: AuthenticatedRequest, res: Response, n
     await prisma.academicSchedule.deleteMany({
       where: { id, userId },
     });
-    sendSuccess(res, { deleted: true });
+    const updatedBurnout = await recalculateTodayBurnoutLog(userId);
+    sendSuccess(res, { deleted: true, updatedBurnout });
   } catch (error) {
     next(error);
   }
