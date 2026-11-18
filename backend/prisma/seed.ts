@@ -9,6 +9,7 @@ import {
   classifyPss4Severity,
   evaluate24HourTriad,
 } from "../src/services/clinicalScoring.ts";
+import { calculateBurnoutRiskIndex } from "../src/services/burnoutScoring.ts";
 
 const prisma = new PrismaClient();
 
@@ -50,7 +51,24 @@ async function main() {
     prisma.dailyWellbeingLog.deleteMany({ where: { userId: demoUser.id } }),
     prisma.clinicalAssessment.deleteMany({ where: { userId: demoUser.id } }),
     prisma.aiCoachingInsight.deleteMany({ where: { userId: demoUser.id } }),
+    prisma.academicSchedule.deleteMany({ where: { userId: demoUser.id } }),
+    prisma.dailyFussionLog.deleteMany({ where: { userId: demoUser.id } }),
+    prisma.activeBreakSession.deleteMany({ where: { userId: demoUser.id } }),
   ]);
+
+  // Seed Jadwal Perkuliahan (PRD v4.0 AcademicSchedule)
+  const demoSchedules = [
+    { dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: false, classType: "teori", startTime: "08:00", endTime: "10:30", isExamWeek: false },
+    { dayOfWeek: 1, subjectName: "Praktikum Algoritma & Struktur Data", creditHours: 1, isPracticum: true, classType: "praktikum", startTime: "13:00", endTime: "15:00", isExamWeek: false },
+    { dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false, classType: "teori", startTime: "09:00", endTime: "11:30", isExamWeek: false },
+    { dayOfWeek: 3, subjectName: "Basis Data Terdistribusi", creditHours: 3, isPracticum: true, classType: "praktikum", startTime: "08:00", endTime: "10:30", isExamWeek: false },
+    { dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 2, isPracticum: true, classType: "praktikum", startTime: "13:00", endTime: "15:00", isExamWeek: false },
+    { dayOfWeek: 5, subjectName: "Etika Profesi & Komunikasi", creditHours: 2, isPracticum: false, classType: "teori", startTime: "08:00", endTime: "09:40", isExamWeek: false },
+  ];
+
+  await prisma.academicSchedule.createMany({
+    data: demoSchedules.map((s) => ({ userId: demoUser.id, ...s })),
+  });
 
   // Pola 14 hari: Minggu 1 (tinggi stres & duduk) -> Minggu 2 (membaik)
   for (let i = 13; i >= 0; i--) {
@@ -130,6 +148,45 @@ async function main() {
         mvpaPerSedentaryRatio: triad.mvpaPerSedentaryRatio,
         triadPillarsMet: triad.triadPillarsMet,
         stressRiskLevel: stressLevel,
+      },
+    });
+
+    // Seed PRD v4.0 ActiveBreakSession & DailyFussionLog
+    const verifiedBreaks = isWeekTwo ? 2 : 0;
+    for (let b = 0; b < verifiedBreaks; b++) {
+      await prisma.activeBreakSession.create({
+        data: {
+          userId: demoUser.id,
+          startTime: new Date(dayDate.getTime() + (10 + b * 4) * 60 * 60 * 1000),
+          durationMins: 2.0,
+          poseVerified: true,
+          poseType: b % 2 === 0 ? "OVERHEAD_STRETCH" : "SHOULDER_ROLL",
+        },
+      });
+    }
+
+    const dow = dayDate.getUTCDay() === 0 ? 7 : dayDate.getUTCDay();
+    const daySchedules = demoSchedules.filter((s) => s.dayOfWeek === dow);
+    const totalScreenMins = Math.round((screenHours + (isWeekTwo ? 2.5 : 4.5)) * 60);
+    const burnoutCalc = calculateBurnoutRiskIndex(
+      daySchedules,
+      totalScreenMins / 60.0,
+      sleepHours,
+      verifiedBreaks
+    );
+
+    await prisma.dailyFussionLog.create({
+      data: {
+        userId: demoUser.id,
+        logDate: dayDate,
+        totalScreenTimeMins: totalScreenMins,
+        sleepHours,
+        academicLoadScore: burnoutCalc.academicLoadScore,
+        screenFatigueScore: burnoutCalc.screenFatigueScore,
+        recoveryScore: burnoutCalc.recoveryScore,
+        verifiedBreakCount: verifiedBreaks,
+        burnoutIndex: burnoutCalc.burnoutIndex,
+        status: burnoutCalc.status,
       },
     });
   }

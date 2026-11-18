@@ -212,10 +212,18 @@ class ApiClient {
     return this.request<AiCoachInsightResponse>("/ai-coach/latest");
   }
 
-  async getAiCoachStatus(): Promise<{ data: { available: boolean; model: string }; meta: unknown }> {
+  async getAiCoachStatus(): Promise<{
+    data: { reachable: boolean; configuredModel: string; modelInstalled: boolean; availableModels: string[] };
+    meta: unknown;
+  }> {
     if (USE_MOCK) {
       return {
-        data: { available: true, model: "campusflow-coach (mock)" },
+        data: {
+          reachable: true,
+          configuredModel: "campusflow-coach (mock)",
+          modelInstalled: true,
+          availableModels: ["campusflow-coach"],
+        },
         meta: { timestamp: new Date().toISOString(), version: "v1.0" },
       };
     }
@@ -330,9 +338,15 @@ class ApiClient {
     });
   }
 
-  async getPhysicalActivities(days = 14): Promise<{ data: unknown[]; meta: unknown }> {
+  async getPhysicalActivities(days = 14): Promise<{
+    data: { items: unknown[]; summary: { totalMets: number; weeklyMetsTarget: number; mseDaysCount: number; weeklyMseTarget: number } };
+    meta: unknown;
+  }> {
     if (USE_MOCK) {
-      return { data: [], meta: { timestamp: new Date().toISOString(), version: "v1.0" } };
+      return {
+        data: { items: [], summary: { totalMets: 0, weeklyMetsTarget: 1500, mseDaysCount: 0, weeklyMseTarget: 2 } },
+        meta: { timestamp: new Date().toISOString(), version: "v1.0" },
+      };
     }
     return this.request(`/activities?days=${days}`);
   }

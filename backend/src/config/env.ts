@@ -13,7 +13,11 @@ const envSchema = z.object({
   VAPID_PUBLIC_KEY: z.string().optional().default(""),
   VAPID_PRIVATE_KEY: z.string().optional().default(""),
   VAPID_SUBJECT: z.string().default("mailto:admin@campusflow.id"),
-  CORS_ORIGIN: z.string().default("http://localhost:5173,https://localhost:5173"),
+  CORS_ORIGIN: z
+    .string()
+    .default(
+      "http://localhost:5173,https://localhost:5173,http://localhost:5174,https://localhost:5174,http://127.0.0.1:5174"
+    ),
 });
 
 export const env = envSchema.parse(process.env);
