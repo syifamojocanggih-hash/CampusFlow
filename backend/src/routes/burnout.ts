@@ -61,11 +61,14 @@ burnoutRouter.get("/today", async (req: AuthenticatedRequest, res: Response, nex
       schedules.map((s) => ({
         creditHours: s.creditHours,
         isPracticum: s.isPracticum,
+        classType: s.classType,
         isExamWeek: s.isExamWeek,
+        examDate: s.examDate,
       })),
       0, // screen time hours awal
       7.0, // default sleep
-      activeBreaksCount
+      activeBreaksCount,
+      today
     );
 
     return sendSuccess(res, {
@@ -124,10 +127,12 @@ async function handleCalculateBurnout(
         isPracticum: s.isPracticum,
         classType: s.classType,
         isExamWeek: s.isExamWeek,
+        examDate: s.examDate,
       })),
       totalScreenHours,
       parsed.sleepHours,
-      verifiedBreakCount
+      verifiedBreakCount,
+      targetDate
     );
 
     const log = await prisma.dailyFussionLog.upsert({

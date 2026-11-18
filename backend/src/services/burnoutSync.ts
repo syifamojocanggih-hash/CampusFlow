@@ -79,10 +79,12 @@ export async function recalculateTodayBurnoutLog(
       isPracticum: s.isPracticum,
       classType: s.classType,
       isExamWeek: s.isExamWeek,
+      examDate: s.examDate,
     })),
     totalScreenHours,
     sleepHours,
-    verifiedBreakCount
+    verifiedBreakCount,
+    targetDate
   );
 
   const updatedLog = await prisma.dailyFussionLog.upsert({

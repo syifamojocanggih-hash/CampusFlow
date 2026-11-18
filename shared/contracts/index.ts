@@ -224,6 +224,10 @@ export interface AcademicScheduleDTO {
   creditHours: number;
   isPracticum?: boolean;
   isExamWeek?: boolean;
+  examDate?: string | null; // Format YYYY-MM-DD (nullable untuk backward compatibility)
+  classType?: string;
+  startTime?: string | null;
+  endTime?: string | null;
   createdAt?: string;
 }
 

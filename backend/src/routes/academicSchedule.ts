@@ -5,7 +5,7 @@ import { AppError, sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
 import { scheduleUploadLimiter } from "../middleware/rateLimit.ts";
 import { uploadKrs, uploadSchedulePdf } from "../middleware/upload.ts";
-import { recalculateTodayBurnoutLog } from "../services/burnoutSync.ts";
+import { recalculateTodayBurnoutLog, toUtcDateOnly } from "../services/burnoutSync.ts";
 import {
   computeKrsStressBreakdown,
   INDONESIAN_DAY_NAMES,
@@ -23,12 +23,19 @@ export const scheduleRouter = Router();
 
 scheduleRouter.use(requireAuth);
 
+const examDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Format examDate harus YYYY-MM-DD.")
+  .nullable()
+  .optional();
+
 const scheduleItemSchema = z.object({
   dayOfWeek: z.coerce.number().int().min(1).max(7),
   subjectName: z.string().min(1).max(120),
   creditHours: z.coerce.number().positive(),
   isPracticum: z.boolean().optional().default(false),
   isExamWeek: z.boolean().optional().default(false),
+  examDate: examDateSchema,
 });
 
 const bulkScheduleSchema = z.object({
@@ -210,7 +217,8 @@ scheduleRouter.post("/", async (req: AuthenticatedRequest, res: Response, next: 
         subjectName: parsed.subjectName,
         creditHours: parsed.creditHours,
         isPracticum: parsed.isPracticum,
-        isExamWeek: parsed.isExamWeek,
+        isExamWeek: parsed.isExamWeek || Boolean(parsed.examDate),
+        examDate: parsed.examDate ? toUtcDateOnly(parsed.examDate) : null,
       },
     });
     sendSuccess(res, created, 201);
@@ -234,7 +242,8 @@ scheduleRouter.post("/bulk", async (req: AuthenticatedRequest, res: Response, ne
         subjectName: s.subjectName,
         creditHours: s.creditHours,
         isPracticum: s.isPracticum,
-        isExamWeek: s.isExamWeek,
+        isExamWeek: s.isExamWeek || Boolean(s.examDate),
+        examDate: s.examDate ? toUtcDateOnly(s.examDate) : null,
       })),
     });
     sendSuccess(res, { count: createdCount.count }, 201);
@@ -401,6 +410,7 @@ const updateScheduleItemSchema = z
       .nullable()
       .optional(),
     isExamWeek: z.boolean().optional(),
+    examDate: examDateSchema,
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "Minimal satu field harus diisi untuk memperbarui jadwal.",
@@ -446,6 +456,12 @@ scheduleRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response, ne
         ...(parsed.startTime !== undefined ? { startTime: parsed.startTime } : {}),
         ...(parsed.endTime !== undefined ? { endTime: parsed.endTime } : {}),
         ...(parsed.isExamWeek !== undefined ? { isExamWeek: parsed.isExamWeek } : {}),
+        ...(parsed.examDate !== undefined
+          ? {
+              examDate: parsed.examDate ? toUtcDateOnly(parsed.examDate) : null,
+              ...(parsed.examDate && parsed.isExamWeek === undefined ? { isExamWeek: true } : {}),
+            }
+          : {}),
       },
     });
 
