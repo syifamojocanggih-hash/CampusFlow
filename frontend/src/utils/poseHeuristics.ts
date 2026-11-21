@@ -112,10 +112,8 @@ export function extractFrameBaseline(landmarks: NormalizedLandmark[]): {
 
   const leftVis = leftSh.visibility ?? 1;
   const rightVis = rightSh.visibility ?? 1;
-  if (
-    leftVis < VISION_THRESHOLDS.MIN_CALIBRATION_VISIBILITY ||
-    rightVis < VISION_THRESHOLDS.MIN_CALIBRATION_VISIBILITY
-  ) {
+  const avgShoulderVis = (leftVis + rightVis) / 2;
+  if (avgShoulderVis < VISION_THRESHOLDS.MIN_CALIBRATION_VISIBILITY) {
     return null;
   }
 
