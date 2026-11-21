@@ -719,9 +719,9 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     showWarningToast ||
     Boolean(
       postureState?.isPresent &&
-      (postureState.isSlouching ||
-        postureState.isTooClose ||
-        postureState.isLeaningAsymmetric)
+        (postureState.isSlouching ||
+          postureState.isTooClose ||
+          postureState.isLeaningAsymmetric)
     );
 
   return (
@@ -752,10 +752,11 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           {/* Audio Feedback Toggle */}
           <button
             onClick={toggleMute}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${isMuted
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+              isMuted
                 ? "bg-[#F6F6F6] text-[#9A9A9A] border-[#E8E8E8] hover:bg-[#E8E8E8]"
                 : "bg-[#FFF29A] text-[#1A1A1A] border-[#FFE966] shadow-xs"
-              }`}
+            }`}
             title={isMuted ? "Aktifkan Audio Synthesizer" : "Bisukan Audio Feedback"}
           >
             {isMuted ? <VolumeX className="w-3.5 h-3.5 text-[#9A9A9A]" /> : <Volume2 className="w-3.5 h-3.5 text-[#1A1A1A]" />}
@@ -772,13 +773,15 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 setSittingSeconds(0);
                 setPoorPostureDurationSecs(0);
               }}
-              className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 ${demoMode ? "bg-[#1A1A1A]" : "bg-[#E8E8E8]"
-                }`}
+              className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 ${
+                demoMode ? "bg-[#1A1A1A]" : "bg-[#E8E8E8]"
+              }`}
               title={demoMode ? "Mode Coba Cepat (15 Detik)" : "Mode Sehat Normal (50 Menit)"}
             >
               <div
-                className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${demoMode ? "translate-x-5" : "translate-x-0"
-                  }`}
+                className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                  demoMode ? "translate-x-5" : "translate-x-0"
+                }`}
               />
             </button>
             <span className="text-[11px] font-mono font-bold text-[#1A1A1A]">
@@ -799,12 +802,13 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
       {/* Main Video & Skeleton Canvas Container */}
       <div
-        className={`relative aspect-video bg-slate-900 rounded-2xl overflow-hidden border-4 transition-all duration-300 flex items-center justify-center ${isBreakLocked
+        className={`relative aspect-video bg-slate-900 rounded-2xl overflow-hidden border-4 transition-all duration-300 flex items-center justify-center ${
+          isBreakLocked
             ? "z-50 relative border-emerald-500 ring-8 ring-emerald-500/40 shadow-2xl"
             : isWarningActive
-              ? "border-amber-500 ring-4 ring-amber-500/30 shadow-lg shadow-amber-500/20"
-              : "border-slate-800"
-          }`}
+            ? "border-amber-500 ring-4 ring-amber-500/30 shadow-lg shadow-amber-500/20"
+            : "border-slate-800"
+        }`}
       >
         {/* Anti-Cheat Break Live Overlay inside Video */}
         {isBreakLocked && (
@@ -913,8 +917,9 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-1.5">
                 <span
-                  className={`w-2 h-2 rounded-full ${postureState?.isPresent ? "bg-emerald-400 animate-ping" : "bg-rose-400"
-                    }`}
+                  className={`w-2 h-2 rounded-full ${
+                    postureState?.isPresent ? "bg-emerald-400 animate-ping" : "bg-rose-400"
+                  }`}
                 />
                 <span className="font-sans font-semibold text-xs">
                   {postureState?.isPresent ? "Terdeteksi Aktif" : "Tidak Terdeteksi"}
@@ -950,12 +955,13 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                     const dist = estimateMonitorDistanceCm(postureState.metrics.depthRatio);
                     return (
                       <span
-                        className={`font-bold ${dist.status === "TERLALU_DEKAT"
+                        className={`font-bold ${
+                          dist.status === "TERLALU_DEKAT"
                             ? "text-rose-400"
                             : dist.status === "JAUH"
-                              ? "text-amber-300"
-                              : "text-emerald-300"
-                          }`}
+                            ? "text-amber-300"
+                            : "text-emerald-300"
+                        }`}
                       >
                         ~{dist.distanceCm} cm ({dist.status === "TERLALU_DEKAT" ? "Dekat" : dist.status === "JAUH" ? "Jauh" : "Ideal"})
                       </span>
@@ -989,8 +995,9 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             </div>
             <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden mt-1 ml-auto">
               <div
-                className={`h-full transition-all ${sittingSeconds / sittingLimitSeconds > 0.8 ? "bg-amber-400" : "bg-emerald-400"
-                  }`}
+                className={`h-full transition-all ${
+                  sittingSeconds / sittingLimitSeconds > 0.8 ? "bg-amber-400" : "bg-emerald-400"
+                }`}
                 style={{ width: `${Math.min(100, (sittingSeconds / sittingLimitSeconds) * 100)}%` }}
               />
             </div>
@@ -1030,14 +1037,14 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             health.grade === "SANGAT_BAIK"
               ? "text-[#1A1A1A] bg-[#CDE8B5] border-[#B6DF97]"
               : health.grade === "BAIK"
-                ? "text-[#1A1A1A] bg-[#FFF29A] border-[#FFE966]"
-                : "text-[#1A1A1A] bg-[#F7A8B0] border-[#DF7E89]";
+              ? "text-[#1A1A1A] bg-[#FFF29A] border-[#FFE966]"
+              : "text-[#1A1A1A] bg-[#F7A8B0] border-[#DF7E89]";
           const gradeText =
             health.grade === "SANGAT_BAIK"
               ? "Sangat Baik"
               : health.grade === "BAIK"
-                ? "Baik"
-                : "Perlu Latihan";
+              ? "Baik"
+              : "Perlu Latihan";
 
           return (
             <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between shadow-xs">
@@ -1138,8 +1145,9 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               setSessionActive(!sessionActive);
               if (!sessionActive) sessionStartTimeRef.current = new Date();
             }}
-            className={`px-3.5 py-1.5 rounded-xl font-extrabold flex items-center gap-1 ${sessionActive ? "bg-[#1A1A1A] text-white" : "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
-              }`}
+            className={`px-3.5 py-1.5 rounded-xl font-extrabold flex items-center gap-1 ${
+              sessionActive ? "bg-[#1A1A1A] text-white" : "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
+            }`}
           >
             {sessionActive ? (
               <>
@@ -1190,12 +1198,13 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               {Array.from({ length: targetReps }).map((_, idx) => (
                 <div
                   key={idx}
-                  className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${idx < breakRepsCompleted
+                  className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${
+                    idx < breakRepsCompleted
                       ? "bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/40 scale-105"
                       : idx === breakRepsCompleted && isHoldingStretch
-                        ? "bg-emerald-500/20 border-emerald-400 text-emerald-300 animate-pulse ring-4 ring-emerald-500/30"
-                        : "bg-slate-700/80 border-slate-600 text-slate-400"
-                    }`}
+                      ? "bg-emerald-500/20 border-emerald-400 text-emerald-300 animate-pulse ring-4 ring-emerald-500/30"
+                      : "bg-slate-700/80 border-slate-600 text-slate-400"
+                  }`}
                 >
                   {idx < breakRepsCompleted ? <Check className="w-6 h-6 stroke-[3]" /> : idx + 1}
                 </div>
