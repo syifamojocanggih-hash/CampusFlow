@@ -21,6 +21,58 @@
 
 ---
 
+## [2026-11-22] — Deteksi & Sinkronisasi Jam Tidur Otomatis (Passive Overnight Inactivity & OS PowerMonitor) (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-AUTO-SLEEP-4.0`, `FE-AUTO-SLEEP-4.0`
+- **Ringkasan:** Mengimplementasikan sistem deteksi jam tidur otomatis (`autoSleepService.ts`, `autoSleepCalculator.ts`, `autoSleepTracker.ts`, dan `/api/v1/wellbeing/auto-sleep`) berbasis jendela inaktivitas layar malam hari (*Last Evening Activity* s/d *First Morning Wakeup*) dan integrasi native `powerMonitor` Electron (`suspend`, `resume`, `lock-screen`, `unlock-screen`), lengkap dengan pengurangan *sleep onset latency*, inferensi skor kualitas tidur (1–5), kalkulasi otomatis *Recovery Score* (maks 40 poin) & *Burnout Risk Index*, serta panel inspeksi & simulasi 1-klik di `TriadDashboard.tsx` dan `CheckinView.tsx`.
+- **Daftar File Diubah:**
+  - `shared/contracts/index.ts`
+  - `backend/src/services/autoSleepService.ts`
+  - `backend/src/services/autoSleepService.test.ts`
+  - `backend/src/services/burnoutSync.ts`
+  - `backend/src/routes/wellbeing.ts`
+  - `backend/src/routes/burnout.ts`
+  - `backend/package.json`
+  - `frontend/src/utils/autoSleepCalculator.ts`
+  - `frontend/src/utils/autoSleepCalculator.test.ts`
+  - `frontend/src/utils/autoSleepTracker.ts`
+  - `frontend/src/lib/api.ts`
+  - `frontend/src/App.tsx`
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `frontend/src/components/pages/CheckinView.tsx`
+  - `frontend/src/components/pages/HistoryView.tsx`
+  - `electron/main.cjs`
+  - `electron/preload.cjs`
+- **Catatan Cross-Scope:**
+  - `[CROSS-SCOPE] shared/contracts/index.ts` — menambahkan kontrak `AutoSleepRecordDTO`, `SleepDetectionSource`, dan `SleepClinicalStatus`.
+  - `[CROSS-SCOPE] frontend/src/utils/autoSleepCalculator.ts` & `autoSleepTracker.ts` — engine pelacak pasif jendela tidur malam dan hook reaktif `useAutoSleep()`.
+  - `[CROSS-SCOPE] frontend/src/components/TriadDashboard.tsx` & `CheckinView.tsx` & `HistoryView.tsx` — integrasi tampilan jam tidur otomatis, badge telemetri, dan simulator bangun pagi.
+  - `[CROSS-SCOPE] electron/main.cjs` & `electron/preload.cjs` — hook `powerMonitor` OS untuk mendeteksi waktu laptop sleep/wake secara presisi.
+- **Verifikasi:** `npm --prefix backend test` (130/130 lulus), `npm --prefix frontend test` (23/23 lulus), `npm --prefix backend run build`, dan `npm --prefix frontend run build` berhasil tanpa error.
+
+## [2026-11-22] — Integrasi OS-Level Screen Time Lock & VisionGuard Active Break Enforcer (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-OS-LOCK-4.0`, `FE-VISION-OS-LOCK`
+- **Ringkasan:** Menambahkan arsitektur penguncian layar dan tab level sistem operasi (`osLockService.ts` & `/api/v1/os-lock/*`) yang menarik kembali fokus jendela dan tab browser (Brave/Chrome/Safari/Edge/Electron) secara paksa ke CampusFlow saat batas screen time / sesi fokus / waktu duduk tercapai, mengunci navigasi dan pergantian aplikasi sampai prosedur peregangan kamera (3 repetisi *Overhead Arm Stretch*) diverifikasi oleh MediaPipe PoseLandmarker, serta menyediakan wrapper Electron Kiosk (`electron/main.cjs` & `electron/preload.cjs`).
+- **Daftar File Diubah:**
+  - `backend/src/services/osLockService.ts`
+  - `backend/src/routes/osLock.ts`
+  - `backend/src/routes/activeBreak.ts`
+  - `backend/src/app.ts`
+  - `backend/src/routes/endpointsCompletion.test.ts`
+  - `frontend/src/utils/osScreenLock.ts`
+  - `frontend/src/components/vision/VisionGuard.tsx`
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `frontend/src/App.tsx`
+  - `electron/main.cjs`
+  - `electron/preload.cjs`
+- **Catatan Cross-Scope:**
+  - `[CROSS-SCOPE] frontend/src/utils/osScreenLock.ts` — controller frontend sinkronisasi status kunci layar level OS, Fullscreen API, Keyboard Lock API, dan anti-blur/tab-switch guard.
+  - `[CROSS-SCOPE] frontend/src/components/vision/VisionGuard.tsx` — integrasi tampilan kunci penuh level OS dan verifikasi peregangan 3 repetisi untuk membuka kunci OS.
+  - `[CROSS-SCOPE] frontend/src/components/pages/FocusView.tsx` — sinkronisasi timer fokus dengan watchdog OS Lock.
+  - `[CROSS-SCOPE] frontend/src/App.tsx` — bar kontrol global Proteksi Screen Time Level OS dan overlay VisionGuard terkunci di seluruh halaman.
+  - `[CROSS-SCOPE] electron/main.cjs` — wrapper desktop kiosk Electron level OS.
+  - `[CROSS-SCOPE] electron/preload.cjs` — IPC bridge Electron untuk lock/unlock layar.
+- **Verifikasi:** `npm --prefix frontend run build`, `npm --prefix frontend test`, dan `npm --prefix backend test` lulus 100%.
+
 ## [2026-11-16] — Dokumentasi Pivot Strategis PRD v4.0 & Panduan Dampak Lintas Branch (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-DOC-4.0`
 - **Ringkasan:** Menyusun dokumen panduan komprehensif mengenai pivot PRD v4.0 ("Academic Strava & Predictive Burnout Management") dibandingkan PRD v3.0, mencakup analisis privasi Zero Continuous Camera, formulasi algoritma Burnout Risk Index, rancangan skema database fusi (AcademicSchedule, DailyFussionLog, ActiveBreakSession), serta panduan dampak teknis untuk branch main, backend, dan frontend.

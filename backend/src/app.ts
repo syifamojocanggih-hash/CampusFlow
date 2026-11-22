@@ -17,6 +17,7 @@ import { assessmentsRouter, wellbeingRouter } from "./routes/wellbeing.ts";
 import { scheduleRouter } from "./routes/academicSchedule.ts";
 import { burnoutRouter } from "./routes/burnout.ts";
 import { activeBreakRouter } from "./routes/activeBreak.ts";
+import { osLockRouter } from "./routes/osLock.ts";
 
 export function createApp() {
   const app = express();
@@ -71,6 +72,7 @@ export function createApp() {
   app.use("/api/v1/academic-schedule", scheduleRouter);
   app.use("/api/v1/burnout", burnoutRouter);
   app.use("/api/v1/active-break", activeBreakRouter);
+  app.use("/api/v1/os-lock", osLockRouter);
 
   app.use((req, _res, next) => {
     next(new AppError(404, "NOT_FOUND", `Endpoint '${req.method} ${req.originalUrl}' tidak ditemukan.`));

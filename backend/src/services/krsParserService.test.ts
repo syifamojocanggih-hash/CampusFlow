@@ -59,6 +59,8 @@ before(async () => {
   globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     if (url.includes("generativelanguage.googleapis.com")) {
+      const bodyStr = typeof init?.body === "string" ? init.body : "";
+      const isEmptyDoc = bodyStr.includes("teks acak tanpa informasi mata kuliah");
       return new Response(
         JSON.stringify({
           candidates: [
@@ -66,22 +68,26 @@ before(async () => {
               content: {
                 parts: [
                   {
-                    text: JSON.stringify([
-                      {
-                        subjectName: "Kecerdasan Buatan dan Robotika",
-                        creditHours: 3,
-                        dayOfWeek: 3,
-                        isPracticum: false,
-                        isExamWeek: false,
-                      },
-                      {
-                        subjectName: "Praktikum Robotika",
-                        creditHours: 1,
-                        dayOfWeek: 3,
-                        isPracticum: true,
-                        isExamWeek: false,
-                      },
-                    ]),
+                    text: JSON.stringify(
+                      isEmptyDoc
+                        ? []
+                        : [
+                            {
+                              subjectName: "Kecerdasan Buatan dan Robotika",
+                              creditHours: 3,
+                              dayOfWeek: 3,
+                              isPracticum: false,
+                              isExamWeek: false,
+                            },
+                            {
+                              subjectName: "Praktikum Robotika",
+                              creditHours: 1,
+                              dayOfWeek: 3,
+                              isPracticum: true,
+                              isExamWeek: false,
+                            },
+                          ]
+                    ),
                   },
                 ],
               },

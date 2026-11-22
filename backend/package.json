@@ -11,7 +11,7 @@
     "start": "node dist/backend/src/index.js",
     "start:prod": "npx prisma migrate deploy && node dist/backend/src/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test src/services/clinicalScoring.test.ts src/services/burnoutScoring.test.ts src/services/krsParserService.test.ts src/services/scheduleParser.test.ts src/routes/endpointsCompletion.test.ts src/services/ollamaCoach.test.ts src/middleware/rateLimit.test.ts src/app.test.ts scripts/eval-checks.test.ts scripts/chat-coach.test.ts",
+    "test": "node --test src/services/clinicalScoring.test.ts src/services/burnoutScoring.test.ts src/services/autoSleepService.test.ts src/services/krsParserService.test.ts src/services/scheduleParser.test.ts src/routes/endpointsCompletion.test.ts src/services/ollamaCoach.test.ts src/middleware/rateLimit.test.ts src/app.test.ts scripts/eval-checks.test.ts scripts/chat-coach.test.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",

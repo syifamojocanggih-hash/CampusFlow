@@ -262,4 +262,36 @@ export interface BurnoutCalculationResult {
   status: BurnoutRiskStatus;
 }
 
+export type SleepDetectionSource =
+  | "OS_POWER_MONITOR"
+  | "OVERNIGHT_INACTIVITY"
+  | "WEARABLE_SYNC"
+  | "AI_NLP_CHAT"
+  | "MANUAL_OVERRIDE"
+  | "SMART_BASELINE";
+
+export type SleepClinicalStatus =
+  | "OPTIMAL"
+  | "DEFICIT_WARNING"
+  | "CRITICAL_DEFICIT"
+  | "OVERSLEEP";
+
+export interface AutoSleepRecordDTO {
+  logDate: string; // YYYY-MM-DD
+  sleepHours: number; // Durasi tidur bersih (jam, 1 desimal)
+  sleepQualityScore: number; // 1 - 5
+  bedTime: string; // HH:mm
+  wakeTime: string; // HH:mm
+  lastActiveTimestamp: number; // Epoch ms
+  firstWakeTimestamp: number; // Epoch ms
+  rawInactiveHours: number; // Selisih waktu inaktivitas mentah (jam)
+  sleepLatencyMins: number; // Estimasi waktu pengantar tidur (menit)
+  source: SleepDetectionSource;
+  confidence: "HIGH" | "MEDIUM" | "MANUAL";
+  isConfirmed: boolean;
+  recoveryPoints: number; // 0 - 40 poin
+  clinicalStatus: SleepClinicalStatus;
+}
+
+
 

@@ -41,13 +41,26 @@ import {
 } from "@/utils/poseHeuristics";
 import { CLINICAL_CONSTANTS, type PostureBaseline, type SedentarySessionPayload } from "@/types";
 import { api } from "@/lib/api";
+import { osScreenLock, useOsScreenLock } from "@/utils/osScreenLock";
+import { Lock } from "lucide-react";
 
 interface VisionGuardProps {
   onSessionComplete?: (payload: SedentarySessionPayload) => void;
   className?: string;
   autoStartCamera?: boolean;
   onActiveBreakCompleted?: () => void;
+  forceBreakLock?: boolean;
+  lockReason?: string;
+  isStrictOsLock?: boolean;
 }
+
+const DEFAULT_BREAK_BASELINE: PostureBaseline = {
+  shoulderWidth: 0.28,
+  shoulderY: 0.65,
+  neckVerticalDist: 0.16,
+  torsoNeckAngle: 175,
+  timestamp: Date.now(),
+};
 
 // Landmark connectivity for skeleton drawing
 const SKELETON_CONNECTIONS: [number, number][] = [
@@ -70,7 +83,11 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   className = "",
   autoStartCamera = false,
   onActiveBreakCompleted,
+  forceBreakLock = false,
+  lockReason,
+  isStrictOsLock = false,
 }) => {
+  const osLockState = useOsScreenLock();
   // DOM References
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -137,16 +154,41 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   const sessionStartTimeRef = useRef<Date | null>(null);
 
   // Anti-Cheat Active Break Modal
-  const [isBreakLocked, setIsBreakLocked] = useState<boolean>(false);
+  const [isBreakLocked, setIsBreakLocked] = useState<boolean>(
+    () => Boolean(forceBreakLock || osScreenLock.getState().isLocked)
+  );
   const [breakRepsCompleted, setBreakRepsCompleted] = useState<number>(0);
   const [currentRepHoldSeconds, setCurrentRepHoldSeconds] = useState<number>(0);
   const [standAwayDurationSecs, setStandAwayDurationSecs] = useState<number>(0);
   const [isHoldingStretch, setIsHoldingStretch] = useState<boolean>(false);
   const [breakSuccessToast, setBreakSuccessToast] = useState<boolean>(false);
+  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
 
   useEffect(() => {
     isBreakLockedRef.current = isBreakLocked;
   }, [isBreakLocked]);
+
+  // Synchronize with external forceBreakLock or global OS Screen Time Lock
+  useEffect(() => {
+    if ((forceBreakLock || osLockState.isLocked) && !isBreakLocked) {
+      setIsBreakLocked(true);
+      isBreakLockedRef.current = true;
+      setBreakRepsCompleted(0);
+      setCurrentRepHoldSeconds(0);
+      setStandAwayDurationSecs(0);
+    }
+  }, [forceBreakLock, osLockState.isLocked, isBreakLocked]);
+
+  // Ensure camera and MediaPipe inference loop run immediately whenever break lock is active
+  useEffect(() => {
+    if (isBreakLocked && !isInitializing) {
+      if (!streamRef.current || !videoRef.current?.srcObject) {
+        void startCamera();
+      } else {
+        startInferenceLoop();
+      }
+    }
+  }, [isBreakLocked, isInitializing]);
 
   // Thresholds based on mode
   const sittingLimitSeconds = demoMode ? 15 : CLINICAL_CONSTANTS.ISOTEMPORAL_WORK_BOUT_MINS * 60;
@@ -226,8 +268,10 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
         if (isMounted) {
           landmarkerRef.current = landmarker;
           setIsInitializing(false);
-          if (autoStartCamera) {
+          if (autoStartCamera || isBreakLockedRef.current || baselineRef.current) {
             await startCamera();
+          } else if (streamRef.current && videoRef.current) {
+            startInferenceLoop();
           }
         }
       } catch (err: unknown) {
@@ -267,6 +311,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
       });
 
       streamRef.current = stream;
+      setIsCameraActive(true);
       if (videoRef.current) {
         const video = videoRef.current;
         video.srcObject = stream;
@@ -304,6 +349,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
+    setIsCameraActive(false);
   };
 
   // Synchronized Canvas Rendering
@@ -442,9 +488,9 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                   sound.playCalibrationSuccess();
                 }
               }
-              // 2. Monitoring or Break Mode branch
-              else if (baselineRef.current) {
-                const currentBaseline = baselineRef.current;
+              // 2. Monitoring or Break Mode branch (uses DEFAULT_BREAK_BASELINE fallback if locked before calibration)
+              else if (baselineRef.current || isBreakLockedRef.current) {
+                const currentBaseline = baselineRef.current ?? DEFAULT_BREAK_BASELINE;
                 const evalResult = evaluatePostureFrame(rawLandmarks, currentBaseline);
                 const smoothedMetrics = smootherRef.current.smooth(evalResult.metrics);
                 const finalEval: PostureEvaluationResult = {
@@ -454,7 +500,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
                 setPostureState(finalEval);
                 postureStateRef.current = finalEval;
-                if (finalEval.isPresent) {
+                if (finalEval.isPresent && baselineRef.current) {
                   neckRatioSamplesRef.current.push(smoothedMetrics.neckRatio);
                 }
 
@@ -463,9 +509,10 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 if (isBreakLockedRef.current && finalEval.isOverheadStretchValid) {
                   skeletonColor = "#22C55E"; // Active Break Green
                 } else if (
-                  finalEval.isSlouching ||
-                  finalEval.isTooClose ||
-                  finalEval.isLeaningAsymmetric
+                  baselineRef.current &&
+                  (finalEval.isSlouching ||
+                    finalEval.isTooClose ||
+                    finalEval.isLeaningAsymmetric)
                 ) {
                   skeletonColor = "#F59E0B"; // Warning Amber
                 }
@@ -484,14 +531,14 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             setBystanderCount(0);
             // No person visible
             if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (baselineRef.current) {
+            if (baselineRef.current || isBreakLockedRef.current) {
               const absentEval: PostureEvaluationResult = {
                 isPresent: false,
                 isSlouching: false,
                 isTooClose: false,
                 isLeaningAsymmetric: false,
                 isOverheadStretchValid: false,
-                isStandingUp: true,
+                isStandingUp: false,
                 metrics: { neckRatio: 1, depthRatio: 1, shoulderTiltDeg: 0 },
               };
               setPostureState(absentEval);
@@ -509,9 +556,26 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     animationFrameIdRef.current = requestAnimationFrame(processFrame);
   };
 
-  // Calibration Trigger
+  const triggerBreakLockNow = useCallback(
+    (customReason?: string) => {
+      setSittingSeconds(sittingLimitSeconds);
+      setIsBreakLocked(true);
+      isBreakLockedRef.current = true;
+      setBreakRepsCompleted(0);
+      setCurrentRepHoldSeconds(0);
+      setStandAwayDurationSecs(0);
+      void osScreenLock.triggerLock(
+        customReason ||
+          lockReason ||
+          `Waktu Duduk & Screen Time Tercapai (${
+            demoMode ? "15 Detik" : "50 Menit"
+          }) — Wajib Peregangan Aktif`
+      );
+    },
+    [sittingLimitSeconds, lockReason, demoMode]
+  );
+
   const handleStartCalibration = async () => {
-    // Pastikan stream kamera menyala dan terhubung sebelum memulai kalibrasi 60 frame
     if (!streamRef.current || !videoRef.current?.srcObject) {
       await startCamera();
     }
@@ -530,47 +594,56 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     setBaseline(null);
     setBystanderCount(0);
     setSessionActive(false);
+    void osScreenLock.disarmTimer();
     setSittingSeconds(0);
     setGoodPostureSeconds(0);
     await handleStartCalibration();
   };
 
+  // Sync active session countdown with Backend OS Lock Watchdog (immune to background tab throttling)
+  useEffect(() => {
+    if (isBreakLocked || isCalibrating) return;
+    if (sessionActive) {
+      const remaining = Math.max(1, sittingLimitSeconds - sittingSeconds);
+      void osScreenLock.armTimer(
+        remaining,
+        `Waktu Duduk & Screen Time Tercapai (${
+          demoMode ? "15 Detik" : "50 Menit"
+        }) — Wajib Peregangan Aktif`
+      );
+    } else {
+      void osScreenLock.disarmTimer();
+    }
+  }, [sessionActive, demoMode, sittingLimitSeconds, isBreakLocked, isCalibrating]);
+
   // Active Session Timers (Sitting accumulation, Slouch warning, Break trigger)
   useEffect(() => {
-    if (!sessionActive || isCalibrating || !baseline || isBreakLocked) return;
+    if (!sessionActive || isCalibrating || isBreakLocked) return;
 
     const timer = setInterval(() => {
       const ps = postureStateRef.current;
-      if (!ps) return;
+      const isTabInBackground = typeof document !== "undefined" && document.hidden;
 
-      // Slouch & Warning evaluation
       const hasPoorPosture =
-        ps.isPresent &&
-        (ps.isSlouching ||
-          ps.isTooClose ||
-          ps.isLeaningAsymmetric);
+        Boolean(ps?.isPresent) &&
+        Boolean(ps?.isSlouching || ps?.isTooClose || ps?.isLeaningAsymmetric);
 
-      // Sitting timer increments when user is present
-      if (ps.isPresent && !ps.isStandingUp) {
+      // Increment sitting/screen time when user is sitting in front of camera OR working in another tab/app
+      if (isTabInBackground || !ps || (ps.isPresent && !ps.isStandingUp)) {
         setSittingSeconds((prev) => {
           const next = prev + 1;
-          // Check sitting limit reached
           if (next >= sittingLimitSeconds) {
-            setIsBreakLocked(true);
-            isBreakLockedRef.current = true;
-            setBreakRepsCompleted(0);
-            setCurrentRepHoldSeconds(0);
-            setStandAwayDurationSecs(0);
+            triggerBreakLockNow();
           }
           return next;
         });
 
-        if (!hasPoorPosture) {
+        if (!hasPoorPosture && ps?.isPresent) {
           setGoodPostureSeconds((prev) => prev + 1);
         }
       }
 
-      if (hasPoorPosture) {
+      if (hasPoorPosture && ps) {
         setPoorPostureDurationSecs((prev) => {
           const next = prev + 1;
           if (next >= slouchWarningTriggerSeconds) {
@@ -579,7 +652,9 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               sound.playSlouchWarning();
             }
             if (ps.isTooClose) {
-              setWarningMessage("Jarak mata terlalu dekat! Mundur sedikit agar mata tidak cepat lelah (<50 cm).");
+              setWarningMessage(
+                "Jarak mata terlalu dekat! Mundur sedikit agar mata tidak cepat lelah (<50 cm)."
+              );
               setTooCloseCount((c) => c + 1);
             } else if (ps.isSlouching) {
               setWarningMessage("Posisi duduk membungkuk! Yuk tegakkan punggung dan bahu Anda.");
@@ -605,6 +680,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     isBreakLocked,
     sittingLimitSeconds,
     slouchWarningTriggerSeconds,
+    triggerBreakLockNow,
   ]);
 
   // Anti-Cheat Active Break Lock Verification Loop (runs every 100ms for smooth, responsive counting)
@@ -615,23 +691,21 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
       const ps = postureStateRef.current;
       if (!ps) return;
 
-      // 1. Option A: Overhead Arm Stretch hold
+      // Option A: Overhead Arm Stretch hold (primary verification procedure)
       if (ps.isOverheadStretchValid) {
         setIsHoldingStretch(true);
         setCurrentRepHoldSeconds((hold) => {
           const nextHold = Number((hold + 0.1).toFixed(1));
           if (nextHold >= targetHoldSeconds) {
-            // Completed 1 rep!
             sound.playRepComplete();
             setBreakRepsCompleted((reps) => {
               const nextReps = reps + 1;
               if (nextReps >= targetReps) {
-                // All reps completed! Unlock!
                 completeActiveBreak("POSE_CAMERA_AI");
               }
               return nextReps;
             });
-            return 0; // reset hold for next rep
+            return 0;
           }
           return nextHold;
         });
@@ -639,8 +713,8 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
         setIsHoldingStretch(false);
       }
 
-      // 2. Option B: Standing up / leaving desk
-      if (ps.isStandingUp || !ps.isPresent) {
+      // Option B: Standing up while visibly detected by camera (never unlocks if person is absent)
+      if (ps.isPresent && ps.isStandingUp) {
         setStandAwayDurationSecs((secs) => {
           const nextSecs = Number((secs + 0.1).toFixed(1));
           if (nextSecs >= targetStandAwaySeconds) {
@@ -663,6 +737,11 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   const completeActiveBreak = (verificationType: "POSE_CAMERA_AI" | "MANUAL_LOG") => {
     sound.playBreakUnlocked();
     setIsBreakLocked(false);
+    isBreakLockedRef.current = false;
+    void osScreenLock.unlock(verificationType);
+    if (demoMode) {
+      setSessionActive(false);
+    }
     setBreakSuccessToast(true);
     setSittingSeconds(0);
     setGoodPostureSeconds(0);
@@ -725,31 +804,70 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     );
 
   return (
-    <div className={`space-y-4 ${isBreakLocked ? "relative z-50" : ""} ${className}`}>
-      {/* Fullscreen Backdrop locking background when Break is active */}
+    <div
+      className={
+        isBreakLocked
+          ? "fixed inset-0 z-[9999] bg-slate-950/95 backdrop-blur-md overflow-y-auto p-4 sm:p-6 flex flex-col justify-center"
+          : `space-y-4 ${className}`
+      }
+    >
+      {/* OS-Level Lock Top Status Banner when Break is Locked */}
       {isBreakLocked && (
-        <div className="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md pointer-events-auto" />
+        <div className="max-w-6xl w-full mx-auto mb-4 bg-rose-950/90 border-2 border-rose-500/80 rounded-2xl px-4 py-3 text-white flex flex-wrap items-center justify-between gap-3 shadow-2xl">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 animate-pulse">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-rose-300">
+                  Kunci Layar Level OS Aktif
+                </span>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-rose-500/30 border border-rose-400/40 text-rose-200">
+                  {osLockState.activeBrowser
+                    ? `Enforcer: ${osLockState.activeBrowser}`
+                    : "OS Focus Guard Aktif"}
+                </span>
+              </div>
+              <p className="text-xs text-slate-200 mt-0.5">
+                {lockReason || osLockState.reason} &bull; Navigasi tab dan aplikasi lain dikunci sampai prosedur peregangan selesai.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleMute}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-900 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition-colors"
+            >
+              {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+              <span>{isMuted ? "Suara Off" : "Suara On"}</span>
+            </button>
+          </div>
+        </div>
       )}
 
-      {/* Vision Guard Header & Controls */}
-      <div className={`learnova-card p-5 sm:p-6 border-[#E8E8E8] flex flex-wrap items-center justify-between gap-4 ${isBreakLocked ? "relative z-50" : ""}`}>
+      {/* Vision Guard Header & Controls (Hidden during full-screen OS Lock) */}
+      <div
+        className={`learnova-card p-5 sm:p-6 border-[#E8E8E8] flex flex-wrap items-center justify-between gap-4 ${
+          isBreakLocked ? "hidden" : ""
+        }`}
+      >
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
             <Shield className="w-6 h-6" />
           </div>
           <div>
             <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-              Vision Guard &amp; Istirahat Aktif
+              Vision Guard &amp; Istirahat Aktif (OS Enforcer)
             </h3>
             <p className="text-xs text-[#9A9A9A]">
-              Pemindai Postur Pintar &bull; 100% Privat di Perangkat &bull; Fokus Hanya Pada Anda (Anti-Distraksi)
+              Pemindai Postur Pintar &bull; 100% Privat di Perangkat &bull; Mengunci Layar Otomatis Saat Batas Screen Time Tercapai
             </p>
           </div>
         </div>
 
-        {/* DEMO MODE TOGGLE SWITCH, AUDIO & RECALIBRATE */}
         <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-          {/* Audio Feedback Toggle */}
           <button
             onClick={toggleMute}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
@@ -763,7 +881,6 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             <span className="hidden sm:inline">{isMuted ? "Muted" : "Audio"}</span>
           </button>
 
-          {/* Demo Mode Switch */}
           <div className="flex items-center gap-2 bg-[#F6F6F6] px-3 py-1.5 rounded-xl border border-[#E8E8E8]">
             <Sliders className="w-4 h-4 text-[#1A1A1A]" />
             <span className="text-xs font-semibold text-[#1A1A1A]">MODE COBA</span>
@@ -800,236 +917,370 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
         </div>
       </div>
 
-      {/* Main Video & Skeleton Canvas Container */}
+      {/* Main Content Grid: keeps <video> at a constant DOM path so MediaStream never resets */}
       <div
-        className={`relative aspect-video bg-slate-900 rounded-2xl overflow-hidden border-4 transition-all duration-300 flex items-center justify-center ${
+        className={
           isBreakLocked
-            ? "z-50 relative border-emerald-500 ring-8 ring-emerald-500/40 shadow-2xl"
-            : isWarningActive
-            ? "border-amber-500 ring-4 ring-amber-500/30 shadow-lg shadow-amber-500/20"
-            : "border-slate-800"
-        }`}
+            ? "max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5 items-center"
+            : "space-y-4"
+        }
       >
-        {/* Anti-Cheat Break Live Overlay inside Video */}
-        {isBreakLocked && (
-          <div className="absolute inset-x-0 top-3 z-30 flex flex-col items-center text-center px-4 pointer-events-none">
-            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-950/90 border border-emerald-400 text-xs shadow-xl">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-              <span className="font-bold text-white">Sesi Istirahat Aktif Terkunci:</span>
-              <span className={isHoldingStretch ? "text-emerald-400 font-bold" : "text-amber-300 font-semibold"}>
-                {isHoldingStretch ? "✓ Pose Valid (Tahan)!" : "Angkat kedua tangan ke atas kepala"}
-              </span>
-            </div>
-          </div>
-        )}
-        {/* Loading Spinner */}
-        {isInitializing && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white space-y-3 z-20 bg-slate-900/80 backdrop-blur-xs">
-            <RefreshCw className="w-8 h-8 animate-spin text-blue-400" />
-            <p className="text-xs font-medium">Memuat MediaPipe Wasm &amp; Model Lokal...</p>
-          </div>
-        )}
-
-        {/* Camera Permission Error Overlay */}
-        {cameraPermissionError && !isInitializing && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-white bg-slate-900/90 z-20 space-y-3">
-            <CameraOff className="w-12 h-12 text-rose-400 mx-auto" />
-            <h4 className="font-bold text-sm">Akses Kamera Terkendala</h4>
-            <p className="text-xs text-slate-300 max-w-md">{cameraPermissionError}</p>
-            <button
-              onClick={startCamera}
-              className="mt-2 bg-primary hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors"
-            >
-              Coba Sambungkan Lagi
-            </button>
-          </div>
-        )}
-
-        {/* Mirrored Video & Canvas Overlay */}
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="w-full h-full object-cover -scale-x-100"
-        />
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full object-cover -scale-x-100 pointer-events-none"
-        />
-
-        {/* Calibration Overlay */}
-        {isCalibrating && (
-          <div className="absolute inset-0 bg-slate-900/75 backdrop-blur-xs z-10 flex flex-col items-center justify-center text-white p-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-blue-600/30 border border-blue-400 flex items-center justify-center mb-4">
-              <UserCheck className="w-8 h-8 text-blue-400 animate-pulse" />
-            </div>
-            <h4 className="font-heading font-bold text-base">Atur Posisi Duduk Tegak</h4>
-            <p className="text-xs text-slate-300 max-w-sm mt-1 mb-4">
-              Duduk tegak, rileks, dan tatap lurus ke depan (hanya butuh kepala &amp; bahu).
-            </p>
-            <div className="w-64 bg-slate-700 h-2.5 rounded-full overflow-hidden mb-2">
-              <div
-                className="bg-blue-500 h-full transition-all duration-100"
-                style={{ width: `${calibrationProgress * 100}%` }}
-              />
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-blue-300 font-semibold">
-                  {calibrationCount} / 60 Sampel ({Math.round(calibrationProgress * 100)}%)
+        {/* Main Video & Skeleton Canvas Container */}
+        <div
+          className={`relative aspect-video bg-slate-900 rounded-2xl overflow-hidden border-4 transition-all duration-300 flex items-center justify-center ${
+            isBreakLocked
+              ? "lg:col-span-7 border-emerald-500 ring-8 ring-emerald-500/30 shadow-2xl"
+              : isWarningActive
+              ? "border-amber-500 ring-4 ring-amber-500/30 shadow-lg shadow-amber-500/20"
+              : "border-slate-800"
+          }`}
+        >
+          {/* Anti-Cheat Break Live Overlay inside Video */}
+          {isBreakLocked && (
+            <div className="absolute inset-x-0 top-3 z-30 flex flex-col items-center text-center px-4 pointer-events-none">
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-950/90 border border-emerald-400 text-xs shadow-xl">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                <span className="font-bold text-white">Verifikasi Kamera AI:</span>
+                <span className={isHoldingStretch ? "text-emerald-400 font-bold" : "text-amber-300 font-semibold"}>
+                  {isHoldingStretch ? "✓ Pose Peregangan Valid (Tahan)!" : "Angkat kedua tangan lurus di atas kepala"}
                 </span>
-                {currentFps > 0 && (
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
-                    {currentFps} FPS
-                  </span>
-                )}
               </div>
-              <span className="text-[11px] text-slate-300">
-                {calibrationCount > 0
-                  ? "Bahu terdeteksi! Tahan posisi tegak sejenak..."
-                  : "Pastikan kepala dan bahu Anda terlihat di kamera..."}
-              </span>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Need Initial Calibration Banner */}
-        {!baseline && !isCalibrating && !isInitializing && (
-          <div className="absolute inset-0 bg-slate-900/80 z-10 flex flex-col items-center justify-center text-white p-6 text-center space-y-3">
-            <Camera className="w-12 h-12 text-blue-400 mx-auto" />
-            <h4 className="font-heading font-bold text-base">Posisi Duduk Belum Diatur</h4>
-            <p className="text-xs text-slate-300 max-w-md">
-              Kamera memerlukan waktu 5 detik untuk mengenali posisi duduk tegak alami Anda sebelum mulai mendeteksi postur.
-            </p>
-            <button
-              onClick={handleStartCalibration}
-              className="bg-primary hover:bg-blue-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition-all"
-            >
-              <Check className="w-4 h-4" /> Mulai Atur Posisi (5 Detik)
-            </button>
-          </div>
-        )}
+          {/* Loading Spinner */}
+          {isInitializing && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-white space-y-3 z-20 bg-slate-900/80 backdrop-blur-xs">
+              <RefreshCw className="w-8 h-8 animate-spin text-blue-400" />
+              <p className="text-xs font-medium">Memuat MediaPipe Wasm &amp; Model Lokal...</p>
+            </div>
+          )}
 
-        {/* Corner HUD Metrics Badge */}
-        {baseline && !isCalibrating && (
-          <div className="absolute top-3 left-3 z-10 bg-black/65 backdrop-blur-md text-white rounded-xl px-3.5 py-2.5 text-[11px] font-mono space-y-1.5 border border-white/10 shadow-lg">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5">
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    postureState?.isPresent ? "bg-emerald-400 animate-ping" : "bg-rose-400"
-                  }`}
+          {/* Camera Permission Error Overlay */}
+          {cameraPermissionError && !isInitializing && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-white bg-slate-900/90 z-20 space-y-3">
+              <CameraOff className="w-12 h-12 text-rose-400 mx-auto" />
+              <h4 className="font-bold text-sm">Akses Kamera Terkendala</h4>
+              <p className="text-xs text-slate-300 max-w-md">{cameraPermissionError}</p>
+              <button
+                onClick={startCamera}
+                className="mt-2 bg-primary hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors"
+              >
+                Coba Sambungkan Lagi
+              </button>
+            </div>
+          )}
+
+          {/* Mirrored Video & Canvas Overlay */}
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover -scale-x-100"
+          />
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full object-cover -scale-x-100 pointer-events-none"
+          />
+
+          {/* Calibration Overlay */}
+          {isCalibrating && (
+            <div className="absolute inset-0 bg-slate-900/75 backdrop-blur-xs z-10 flex flex-col items-center justify-center text-white p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-blue-600/30 border border-blue-400 flex items-center justify-center mb-4">
+                <UserCheck className="w-8 h-8 text-blue-400 animate-pulse" />
+              </div>
+              <h4 className="font-heading font-bold text-base">Atur Posisi Duduk Tegak</h4>
+              <p className="text-xs text-slate-300 max-w-sm mt-1 mb-4">
+                Duduk tegak, rileks, dan tatap lurus ke depan (hanya butuh kepala &amp; bahu).
+              </p>
+              <div className="w-64 bg-slate-700 h-2.5 rounded-full overflow-hidden mb-2">
+                <div
+                  className="bg-blue-500 h-full transition-all duration-100"
+                  style={{ width: `${calibrationProgress * 100}%` }}
                 />
-                <span className="font-sans font-semibold text-xs">
-                  {postureState?.isPresent ? "Terdeteksi Aktif" : "Tidak Terdeteksi"}
-                </span>
-                {currentFps > 0 && (
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 bg-white/10 rounded text-slate-300">
-                    {currentFps} FPS
-                  </span>
-                )}
               </div>
-              {postureState?.isPresent && (
-                <div className="flex items-center gap-1.5">
-                  {bystanderCount > 0 && (
-                    <span
-                      className="text-[9px] font-sans px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-bold flex items-center gap-1"
-                      title="Sistem mengunci Anda sebagai pengguna utama dan mengabaikan orang lain yang lewat di latar"
-                    >
-                      <Users className="w-2.5 h-2.5" />
-                      +{bystanderCount} Orang Lain Diabaikan
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-blue-300 font-semibold">
+                    {calibrationCount} / 60 Sampel ({Math.round(calibrationProgress * 100)}%)
+                  </span>
+                  {currentFps > 0 && (
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                      {currentFps} FPS
                     </span>
                   )}
-                  <span className="text-[10px] font-sans px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 font-bold">
-                    Skor: {calculatePostureHealthScore(goodPostureSeconds, sittingSeconds).score}%
-                  </span>
                 </div>
+                <span className="text-[11px] text-slate-300">
+                  {calibrationCount > 0
+                    ? "Bahu terdeteksi! Tahan posisi tegak sejenak..."
+                    : "Pastikan kepala dan bahu Anda terlihat di kamera..."}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Need Initial Calibration Banner (only when not in break lock) */}
+          {!baseline && !isCalibrating && !isInitializing && !isBreakLocked && (
+            <div className="absolute inset-0 bg-slate-900/80 z-10 flex flex-col items-center justify-center text-white p-6 text-center space-y-3">
+              <Camera className="w-12 h-12 text-blue-400 mx-auto" />
+              <h4 className="font-heading font-bold text-base">Posisi Duduk Belum Diatur</h4>
+              <p className="text-xs text-slate-300 max-w-md">
+                Kamera memerlukan waktu 5 detik untuk mengenali posisi duduk tegak alami Anda sebelum mulai mendeteksi postur.
+              </p>
+              <button
+                onClick={handleStartCalibration}
+                className="bg-primary hover:bg-blue-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition-all"
+              >
+                <Check className="w-4 h-4" /> Mulai Atur Posisi (5 Detik)
+              </button>
+            </div>
+          )}
+
+          {/* Camera Off Prompt when Baseline exists */}
+          {baseline && !isCameraActive && !isCalibrating && !isInitializing && !isBreakLocked && !cameraPermissionError && (
+            <div className="absolute inset-0 bg-slate-900/80 z-10 flex flex-col items-center justify-center text-white p-6 text-center space-y-3">
+              <Camera className="w-12 h-12 text-emerald-400 mx-auto" />
+              <h4 className="font-heading font-bold text-base">Kamera Siap Memantau</h4>
+              <p className="text-xs text-slate-300 max-w-md">
+                Baseline postur Anda sudah tersimpan. Nyalakan kamera untuk mulai memantau postur dan screen time.
+              </p>
+              <button
+                onClick={async () => {
+                  await startCamera();
+                  setSessionActive(true);
+                  sessionStartTimeRef.current = new Date();
+                }}
+                className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-extrabold px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition-all"
+              >
+                <Play className="w-4 h-4 fill-slate-950" /> Aktifkan Kamera &amp; Mulai Sesi
+              </button>
+            </div>
+          )}
+
+          {/* Corner HUD Metrics Badge */}
+          {(baseline || isBreakLocked) && !isCalibrating && (
+            <div className="absolute bottom-3 left-3 z-10 bg-black/65 backdrop-blur-md text-white rounded-xl px-3.5 py-2.5 text-[11px] font-mono space-y-1.5 border border-white/10 shadow-lg">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      postureState?.isPresent ? "bg-emerald-400 animate-ping" : "bg-rose-400"
+                    }`}
+                  />
+                  <span className="font-sans font-semibold text-xs">
+                    {postureState?.isPresent ? "Terdeteksi Aktif" : "Menunggu Wajah & Bahu di Kamera..."}
+                  </span>
+                  {currentFps > 0 && (
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-white/10 rounded text-slate-300">
+                      {currentFps} FPS
+                    </span>
+                  )}
+                </div>
+                {postureState?.isPresent && !isBreakLocked && (
+                  <div className="flex items-center gap-1.5">
+                    {bystanderCount > 0 && (
+                      <span
+                        className="text-[9px] font-sans px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-bold flex items-center gap-1"
+                        title="Sistem mengunci Anda sebagai pengguna utama dan mengabaikan orang lain yang lewat di latar"
+                      >
+                        <Users className="w-2.5 h-2.5" />
+                        +{bystanderCount} Orang Lain Diabaikan
+                      </span>
+                    )}
+                    <span className="text-[10px] font-sans px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 font-bold">
+                      Skor: {calculatePostureHealthScore(goodPostureSeconds, sittingSeconds).score}%
+                    </span>
+                  </div>
+                )}
+              </div>
+              {postureState?.isPresent && !isBreakLocked && (
+                <>
+                  <div className="text-slate-300 flex items-center justify-between gap-3">
+                    <span>Jarak Monitor:</span>
+                    {(() => {
+                      const dist = estimateMonitorDistanceCm(postureState.metrics.depthRatio);
+                      return (
+                        <span
+                          className={`font-bold ${
+                            dist.status === "TERLALU_DEKAT"
+                              ? "text-rose-400"
+                              : dist.status === "JAUH"
+                              ? "text-amber-300"
+                              : "text-emerald-300"
+                          }`}
+                        >
+                          ~{dist.distanceCm} cm ({dist.status === "TERLALU_DEKAT" ? "Dekat" : dist.status === "JAUH" ? "Jauh" : "Ideal"})
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  <div className="text-slate-300 flex items-center justify-between gap-3">
+                    <span>Posisi Leher:</span>
+                    <span className={`font-bold ${postureState.isSlouching ? "text-amber-400" : "text-emerald-400"}`}>
+                      {postureState.isSlouching ? "Membungkuk" : "Tegak Alami"}
+                    </span>
+                  </div>
+                  <div className="text-slate-300 flex items-center justify-between gap-3">
+                    <span>Posisi Bahu:</span>
+                    <span className={`font-bold ${postureState.isLeaningAsymmetric ? "text-amber-400" : "text-emerald-400"}`}>
+                      {postureState.isLeaningAsymmetric ? "Miring" : "Seimbang"}
+                    </span>
+                  </div>
+                </>
               )}
             </div>
-            {postureState?.isPresent && (
-              <>
-                <div className="text-slate-300 flex items-center justify-between gap-3">
-                  <span>Jarak Monitor:</span>
-                  {(() => {
-                    const dist = estimateMonitorDistanceCm(postureState.metrics.depthRatio);
-                    return (
-                      <span
-                        className={`font-bold ${
-                          dist.status === "TERLALU_DEKAT"
-                            ? "text-rose-400"
-                            : dist.status === "JAUH"
-                            ? "text-amber-300"
-                            : "text-emerald-300"
-                        }`}
-                      >
-                        ~{dist.distanceCm} cm ({dist.status === "TERLALU_DEKAT" ? "Dekat" : dist.status === "JAUH" ? "Jauh" : "Ideal"})
-                      </span>
-                    );
-                  })()}
-                </div>
-                <div className="text-slate-300 flex items-center justify-between gap-3">
-                  <span>Posisi Leher:</span>
-                  <span className={`font-bold ${postureState.isSlouching ? "text-amber-400" : "text-emerald-400"}`}>
-                    {postureState.isSlouching ? "Membungkuk" : "Tegak Alami"}
+          )}
+
+          {/* Top-Right Session Timer HUD */}
+          {baseline && !isCalibrating && !isBreakLocked && (
+            <div className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-md text-white rounded-xl px-3.5 py-2 text-right border border-white/10">
+              <div className="text-[10px] text-slate-400 uppercase font-semibold">
+                {sessionActive ? "Countdown Lock OS Aktif" : "Waktu Duduk"}
+              </div>
+              <div className="text-lg font-mono font-bold text-white flex items-center justify-end gap-1.5">
+                <Activity className="w-4 h-4 text-emerald-400" />
+                {formatTime(sittingSeconds)} / {formatTime(sittingLimitSeconds)}
+              </div>
+              <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden mt-1 ml-auto">
+                <div
+                  className={`h-full transition-all ${
+                    sittingSeconds / sittingLimitSeconds > 0.8 ? "bg-amber-400" : "bg-emerald-400"
+                  }`}
+                  style={{ width: `${Math.min(100, (sittingSeconds / sittingLimitSeconds) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Warning Toast (Corner Alert) */}
+          {showWarningToast && !isBreakLocked && (
+            <div className="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-md z-20 bg-amber-500 text-slate-900 rounded-xl p-3.5 shadow-2xl flex items-center gap-3 animate-bounce">
+              <AlertTriangle className="w-5 h-5 shrink-0 text-slate-900" />
+              <div className="text-xs font-semibold leading-snug">
+                {warningMessage}{" "}
+                <span className="font-mono text-[11px] opacity-80">
+                  ({poorPostureDurationSecs}s)
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Break Success Toast */}
+          {breakSuccessToast && (
+            <div className="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-md z-20 bg-emerald-600 text-white rounded-xl p-3.5 shadow-2xl flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 shrink-0 text-white" />
+              <div className="text-xs font-semibold leading-snug">
+                Sesi Istirahat Aktif Terverifikasi AI! Kunci layar OS dibuka (+10 Recovery Score &amp; +75 XP).
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ========================================================= */}
+        {/* ANTI-CHEAT ACTIVE BREAK PANEL (SIDE-BY-SIDE WHEN LOCKED) */}
+        {/* ========================================================= */}
+        {isBreakLocked && (
+          <div className="lg:col-span-5 bg-slate-900 border-2 border-emerald-500 rounded-3xl p-6 shadow-2xl text-white text-center space-y-5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-semibold">
+              <Flame className="w-4 h-4 text-rose-400" />
+              Wajib Peregangan Sebelum Melanjutkan ({demoMode ? "Mode 15 Detik" : "Mode 50 Menit"})
+            </div>
+
+            <div className="space-y-1.5">
+              <h2 className="text-xl sm:text-2xl font-extrabold font-heading text-white">
+                Istirahat Aktif: Buka Kunci Layar!
+              </h2>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Angkat <b className="text-emerald-400">kedua tangan lurus di atas kepala</b> di depan kamera hingga garis kerangka tubuh berubah <b className="text-emerald-400">HIJAU</b> selama 3 repetisi.
+              </p>
+            </div>
+
+            {/* Rep Counter & Progress */}
+            <div className="bg-slate-800/90 rounded-2xl p-5 border border-slate-700 space-y-4">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-emerald-400" /> Prosedur: Overhead Arm Stretch
+                </span>
+                <span className="text-emerald-400 font-bold font-mono">
+                  {breakRepsCompleted} / {targetReps} Selesai
+                </span>
+              </div>
+
+              {/* Rep Circles */}
+              <div className="flex justify-center gap-4">
+                {Array.from({ length: targetReps }).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${
+                      idx < breakRepsCompleted
+                        ? "bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/40 scale-105"
+                        : idx === breakRepsCompleted && isHoldingStretch
+                        ? "bg-emerald-500/20 border-emerald-400 text-emerald-300 animate-pulse ring-4 ring-emerald-500/30"
+                        : "bg-slate-700/80 border-slate-600 text-slate-400"
+                    }`}
+                  >
+                    {idx < breakRepsCompleted ? <Check className="w-6 h-6 stroke-[3]" /> : idx + 1}
+                  </div>
+                ))}
+              </div>
+
+              {/* Hold Progress Bar for Current Rep */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs font-mono">
+                  <span className={isHoldingStretch ? "text-emerald-400 font-bold flex items-center gap-1" : "text-slate-400"}>
+                    {isHoldingStretch
+                      ? "✓ Bagus! Tahan posisi tangan di atas..."
+                      : postureState?.isPresent
+                      ? "Angkat kedua tangan lurus ke atas kepala"
+                      : "Posisikan wajah & bahu Anda di depan kamera"}
+                  </span>
+                  <span className="text-amber-400 font-bold">
+                    {currentRepHoldSeconds.toFixed(1)}s / {targetHoldSeconds}s
                   </span>
                 </div>
-                <div className="text-slate-300 flex items-center justify-between gap-3">
-                  <span>Posisi Bahu:</span>
-                  <span className={`font-bold ${postureState.isLeaningAsymmetric ? "text-amber-400" : "text-emerald-400"}`}>
-                    {postureState.isLeaningAsymmetric ? "Miring" : "Seimbang"}
-                  </span>
+                <div className="w-full bg-slate-700/80 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-600">
+                  <div
+                    className="bg-emerald-400 h-full rounded-full transition-all duration-100 shadow-xs"
+                    style={{
+                      width: `${Math.min(100, (currentRepHoldSeconds / targetHoldSeconds) * 100)}%`,
+                    }}
+                  />
                 </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Top-Right Session Timer HUD */}
-        {baseline && !isCalibrating && (
-          <div className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-md text-white rounded-xl px-3.5 py-2 text-right border border-white/10">
-            <div className="text-[10px] text-slate-400 uppercase font-semibold">Waktu Duduk</div>
-            <div className="text-lg font-mono font-bold text-white flex items-center justify-end gap-1.5">
-              <Activity className="w-4 h-4 text-emerald-400" />
-              {formatTime(sittingSeconds)} / {formatTime(sittingLimitSeconds)}
+              </div>
             </div>
-            <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden mt-1 ml-auto">
-              <div
-                className={`h-full transition-all ${
-                  sittingSeconds / sittingLimitSeconds > 0.8 ? "bg-amber-400" : "bg-emerald-400"
-                }`}
-                style={{ width: `${Math.min(100, (sittingSeconds / sittingLimitSeconds) * 100)}%` }}
-              />
-            </div>
-          </div>
-        )}
 
-        {/* Warning Toast (Corner Alert) */}
-        {showWarningToast && (
-          <div className="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-md z-20 bg-amber-500 text-slate-900 rounded-xl p-3.5 shadow-2xl flex items-center gap-3 animate-bounce">
-            <AlertTriangle className="w-5 h-5 shrink-0 text-slate-900" />
-            <div className="text-xs font-semibold leading-snug">
-              {warningMessage}{" "}
-              <span className="font-mono text-[11px] opacity-80">
-                ({poorPostureDurationSecs}s)
+            <div className="text-xs text-slate-400 flex items-center justify-between bg-slate-800/40 px-4 py-2.5 rounded-xl border border-slate-700/50">
+              <span>Opsi 2: Berdiri tegak di depan kamera</span>
+              <span className="font-mono text-slate-300 font-bold">
+                {standAwayDurationSecs.toFixed(0)}s / {targetStandAwaySeconds}s
               </span>
             </div>
-          </div>
-        )}
 
-        {/* Break Success Toast */}
-        {breakSuccessToast && (
-          <div className="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-md z-20 bg-emerald-600 text-white rounded-xl p-3.5 shadow-2xl flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 shrink-0 text-white" />
-            <div className="text-xs font-semibold leading-snug">
-              Sesi Istirahat Aktif Terverifikasi AI! Anda mendapatkan +75 XP. Waktu duduk di-reset.
+            <div className="bg-slate-950/70 rounded-xl p-3 border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+              <strong className="text-emerald-400">
+                {isStrictOsLock ? "Proteksi Mutlak Level OS Aktif:" : "Proteksi OS Aktif:"}
+              </strong>{" "}
+              Jika Anda berpindah ke tab lain atau aplikasi lain, sistem operasi akan otomatis mengembalikan layar ke halaman ini sampai prosedur peregangan selesai.
             </div>
+
+            {/* Emergency Fallback ONLY if camera hardware fails */}
+            {cameraPermissionError && (
+              <div className="pt-1 flex justify-center">
+                <button
+                  onClick={() => completeActiveBreak("MANUAL_LOG")}
+                  className="text-xs text-rose-400 hover:text-rose-300 transition-colors underline"
+                >
+                  Darurat: Buka Kunci Karena Kamera Tidak Terdeteksi
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Stats Summary Bar & Live Ergonomic Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
+      {/* Stats Summary Bar & Live Ergonomic Metrics (Hidden during full-screen OS Lock) */}
+      <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs ${isBreakLocked ? "hidden" : ""}`}>
         {/* Card 1: Ergonomic Health Score */}
         {(() => {
           const health = calculatePostureHealthScore(goodPostureSeconds, sittingSeconds);
@@ -1114,44 +1365,82 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
         {/* Card 5: Work Bout & Session Status */}
         <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between col-span-2 sm:col-span-1 shadow-xs">
-          <div className="text-[#9A9A9A] font-semibold">Batas Waktu Duduk</div>
+          <div className="text-[#9A9A9A] font-semibold">Batas Screen Time</div>
           <div className="my-1.5">
             <div className="text-base font-bold text-[#1A1A1A]">
               {demoMode ? "15 Detik (Coba)" : "50 Menit (Ideal)"}
             </div>
             <div className="text-[10px] text-[#1A1A1A] font-bold flex items-center gap-1 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#1A1A1A]" />
-              {sessionActive ? `Aktif (${formatTime(sittingSeconds)})` : "Menunggu"}
+              <span className={`w-1.5 h-1.5 rounded-full ${sessionActive ? "bg-emerald-500 animate-ping" : "bg-[#1A1A1A]"}`} />
+              {sessionActive ? `Countdown OS Lock (${formatTime(sittingSeconds)})` : "Menunggu"}
             </div>
           </div>
         </div>
       </div>
 
       {/* Manual Simulation Controls for Reviewers / Desktop Lab */}
-      <div className="bg-[#F6F6F6] rounded-2xl p-3 border border-[#E8E8E8] text-xs flex flex-wrap items-center justify-between gap-2">
-        <span className="text-[#1A1A1A] font-semibold">
-          Lab Tools (Penguji Demo):
-        </span>
-        <div className="flex items-center gap-2">
+      <div
+        className={`bg-[#F6F6F6] rounded-2xl p-3.5 border border-[#E8E8E8] text-xs flex flex-wrap items-center justify-between gap-2.5 ${
+          isBreakLocked ? "hidden" : ""
+        }`}
+      >
+        <div>
+          <span className="text-[#1A1A1A] font-extrabold block">
+            Kontrol Uji Coba Kunci Layar Level OS:
+          </span>
+          <span className="text-[11px] text-[#737373]">
+            Klik &ldquo;Mulai Timer Lock OS&rdquo;, lalu pindah ke tab lain atau aplikasi lain. Saat waktu habis, layar otomatis ditarik kembali ke tab ini.
+          </span>
+        </div>
+        <div className="flex items-center flex-wrap gap-2">
           <button
-            onClick={() => setSittingSeconds(sittingLimitSeconds)}
-            className="px-3 py-1.5 bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] rounded-xl font-extrabold transition-colors border border-[#B6DF97]"
-            title="Kunci layar sekarang untuk tes Active Break"
+            onClick={async () => {
+              if (!streamRef.current || !videoRef.current?.srcObject) {
+                await startCamera();
+              }
+              setSittingSeconds(0);
+              sessionStartTimeRef.current = new Date();
+              setSessionActive(true);
+              void osScreenLock.armTimer(
+                sittingLimitSeconds,
+                `Batas Screen Time (${demoMode ? "15 Detik" : "50 Menit"}) Tercapai — Wajib Peregangan Aktif`
+              );
+            }}
+            className="px-3.5 py-2 bg-[#BDE6F0] hover:bg-[#A5DCE8] text-[#1A1A1A] rounded-xl font-extrabold transition-colors border border-[#A5DCE8] flex items-center gap-1.5"
+            title="Mulai hitung mundur dan coba pindah ke tab/aplikasi lain"
           >
+            <Play className="w-3.5 h-3.5 fill-[#1A1A1A]" />
+            Mulai Timer Lock OS ({demoMode ? "15s" : "50m"})
+          </button>
+
+          <button
+            onClick={() => triggerBreakLockNow("Kunci Layar Istirahat Aktif (Level OS)")}
+            className="px-3.5 py-2 bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] rounded-xl font-extrabold transition-colors border border-[#B6DF97] flex items-center gap-1.5"
+            title="Kunci layar level OS sekarang untuk tes Active Break"
+          >
+            <Lock className="w-3.5 h-3.5" />
             Trigger Lock Break Sekarang
           </button>
+
           <button
             onClick={() => {
-              setSessionActive(!sessionActive);
-              if (!sessionActive) sessionStartTimeRef.current = new Date();
+              const next = !sessionActive;
+              setSessionActive(next);
+              if (next) {
+                sessionStartTimeRef.current = new Date();
+              } else {
+                void osScreenLock.disarmTimer();
+              }
             }}
-            className={`px-3.5 py-1.5 rounded-xl font-extrabold flex items-center gap-1 ${
-              sessionActive ? "bg-[#1A1A1A] text-white" : "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
+            className={`px-3.5 py-2 rounded-xl font-extrabold flex items-center gap-1 ${
+              sessionActive
+                ? "bg-[#1A1A1A] text-white"
+                : "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
             }`}
           >
             {sessionActive ? (
               <>
-                <Square className="w-3.5 h-3.5 fill-white" /> Jeda Sesi
+                <Square className="w-3.5 h-3.5 fill-white" /> Jeda Timer
               </>
             ) : (
               <>
@@ -1161,96 +1450,6 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           </button>
         </div>
       </div>
-
-      {/* ========================================================= */}
-      {/* ANTI-CHEAT ACTIVE BREAK PANEL (NO SNOOZE / SKIP BUTTON) */}
-      {/* ========================================================= */}
-      {isBreakLocked && (
-        <div className="relative z-50 max-w-xl mx-auto bg-slate-900 border-2 border-emerald-500 rounded-3xl p-6 sm:p-7 shadow-2xl text-white text-center space-y-5 animate-fadeIn">
-          {/* Header Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-semibold">
-            <Flame className="w-4 h-4 text-rose-400" />
-            Waktu Duduk Maksimum Tercapai ({demoMode ? "15 Detik" : "50 Menit"})
-          </div>
-
-          <div className="space-y-1">
-            <h2 className="text-xl sm:text-2xl font-extrabold font-heading text-white">
-              Istirahat Aktif: Waktunya Peregangan!
-            </h2>
-            <p className="text-xs text-slate-300 leading-relaxed max-w-md mx-auto">
-              Layar dijeda sejenak untuk melindungi kesehatan tubuh Anda. Garis tubuh di atas akan berubah <b className="text-emerald-400">HIJAU</b> saat kedua tangan diangkat lurus.
-            </p>
-          </div>
-
-          {/* Rep Counter & Progress */}
-          <div className="bg-slate-800/90 rounded-2xl p-5 border border-slate-700 space-y-4">
-            <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-emerald-400" /> Gerakan 1: Angkat Tangan ke Atas
-              </span>
-              <span className="text-emerald-400 font-bold font-mono">
-                {breakRepsCompleted} / {targetReps} Gerakan Selesai
-              </span>
-            </div>
-
-            {/* Rep Circles */}
-            <div className="flex justify-center gap-4">
-              {Array.from({ length: targetReps }).map((_, idx) => (
-                <div
-                  key={idx}
-                  className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${
-                    idx < breakRepsCompleted
-                      ? "bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/40 scale-105"
-                      : idx === breakRepsCompleted && isHoldingStretch
-                      ? "bg-emerald-500/20 border-emerald-400 text-emerald-300 animate-pulse ring-4 ring-emerald-500/30"
-                      : "bg-slate-700/80 border-slate-600 text-slate-400"
-                  }`}
-                >
-                  {idx < breakRepsCompleted ? <Check className="w-6 h-6 stroke-[3]" /> : idx + 1}
-                </div>
-              ))}
-            </div>
-
-            {/* Hold Progress Bar for Current Rep */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs font-mono">
-                <span className={isHoldingStretch ? "text-emerald-400 font-bold flex items-center gap-1" : "text-slate-400"}>
-                  {isHoldingStretch ? "✓ Bagus! Tahan posisi tangan di atas..." : "Angkat kedua tangan lurus ke atas kepala"}
-                </span>
-                <span className="text-amber-400 font-bold">
-                  {currentRepHoldSeconds.toFixed(1)}s / {targetHoldSeconds}s
-                </span>
-              </div>
-              <div className="w-full bg-slate-700/80 h-3 rounded-full overflow-hidden p-0.5 border border-slate-600">
-                <div
-                  className="bg-emerald-400 h-full rounded-full transition-all duration-100 shadow-xs"
-                  style={{
-                    width: `${Math.min(100, (currentRepHoldSeconds / targetHoldSeconds) * 100)}%`,
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Stand Away Alternative */}
-          <div className="text-xs text-slate-400 flex items-center justify-between bg-slate-800/40 px-4 py-2.5 rounded-xl border border-slate-700/50">
-            <span>Atau Opsi 2: Berdiri &amp; jalan sejenak menjauh dari meja</span>
-            <span className="font-mono text-slate-300 font-bold">
-              {standAwayDurationSecs.toFixed(0)}s / {targetStandAwaySeconds}s
-            </span>
-          </div>
-
-          {/* Emergency Fallback Bypass for Testers */}
-          <div className="pt-1 flex justify-center">
-            <button
-              onClick={() => completeActiveBreak("MANUAL_LOG")}
-              className="text-xs text-slate-500 hover:text-slate-300 transition-colors underline"
-            >
-              Lewati Manual (Khusus jika perangkat tidak memiliki webcam)
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

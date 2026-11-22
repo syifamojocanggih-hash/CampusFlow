@@ -1,9 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { History, Calendar, Flame, Award, Shield } from "lucide-react";
 import { MOCK_TRIAD_DASHBOARD } from "@/mocks/campusflowMock";
+import { api } from "@/lib/api";
+import { useAutoSleep } from "@/utils/autoSleepTracker";
+import type { TriadHistoryPointDTO } from "@/types";
 
 export const HistoryView: React.FC = () => {
-  const { history, weeklySummary } = MOCK_TRIAD_DASHBOARD.data;
+  const autoSleep = useAutoSleep();
+  const [history, setHistory] = useState<TriadHistoryPointDTO[]>(
+    MOCK_TRIAD_DASHBOARD.data.history
+  );
+  const [weeklySummary, setWeeklySummary] = useState(
+    MOCK_TRIAD_DASHBOARD.data.weeklySummary
+  );
+
+  useEffect(() => {
+    api
+      .getTriadDashboard(14)
+      .then((res) => {
+        if (res.data?.history && res.data.history.length > 0) {
+          setHistory(res.data.history);
+        }
+        if (res.data?.weeklySummary) {
+          setWeeklySummary(res.data.weeklySummary);
+        }
+      })
+      .catch(() => {});
+  }, [autoSleep.sleepHours]);
+
+  // Pastikan baris paling atas/terbaru menampilkan durasi tidur otomatis hari ini
+  const enrichedHistory = history.map((row, idx) =>
+    idx === 0 ? { ...row, sleepHours: autoSleep.sleepHours } : row
+  );
 
   // Calorie app style pastel badges
   const achievements = [
@@ -90,7 +118,7 @@ export const HistoryView: React.FC = () => {
         </h3>
 
         <div className="divide-y divide-[#E8E8E8] border border-[#E8E8E8] rounded-2xl overflow-hidden bg-white">
-          {history.map((row) => (
+          {enrichedHistory.map((row) => (
             <div
               key={row.logDate}
               className="p-3.5 flex items-center justify-between text-xs hover:bg-[#F6F6F6] transition-colors"

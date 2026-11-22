@@ -21,6 +21,8 @@ import type {
   AcademicScheduleDTO,
   AcademicScheduleListResponse,
   BurnoutSummaryResponse,
+  AutoSleepRecordDTO,
+  SleepDetectionSource,
 } from "@/types";
 import {
   uploadKrsPdfPreview as uploadKrsPdfHelper,
@@ -294,6 +296,67 @@ class ApiClient {
       };
     }
     return this.request("/wellbeing/today");
+  }
+
+  async syncAutoSleep(payload: {
+    logDate?: string;
+    lastActiveTimestamp?: number;
+    firstWakeTimestamp?: number;
+    bedTime?: string;
+    wakeTime?: string;
+    sleepHours?: number;
+    sleepLatencyMins?: number;
+    source?: SleepDetectionSource;
+    isConfirmed?: boolean;
+  }): Promise<{
+    data: {
+      autoSleep: AutoSleepRecordDTO;
+      burnoutSummary?: unknown;
+      currentStreakDays?: number;
+    };
+    meta: unknown;
+  }> {
+    if (USE_MOCK) {
+      return {
+        data: {
+          autoSleep: {
+            logDate: payload.logDate || new Date().toISOString().slice(0, 10),
+            sleepHours: payload.sleepHours ?? 7.3,
+            sleepQualityScore: 5,
+            bedTime: payload.bedTime || "23:15",
+            wakeTime: payload.wakeTime || "06:45",
+            lastActiveTimestamp: payload.lastActiveTimestamp || Date.now() - 7.5 * 3600_000,
+            firstWakeTimestamp: payload.firstWakeTimestamp || Date.now(),
+            rawInactiveHours: 7.5,
+            sleepLatencyMins: payload.sleepLatencyMins ?? 15,
+            source: payload.source || "OVERNIGHT_INACTIVITY",
+            confidence: "MEDIUM",
+            isConfirmed: Boolean(payload.isConfirmed),
+            recoveryPoints: 37,
+            clinicalStatus: "OPTIMAL",
+          },
+        },
+        meta: { timestamp: new Date().toISOString(), version: "4.0" },
+      };
+    }
+    return this.request("/wellbeing/auto-sleep", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getAutoSleep(): Promise<{
+    data: { autoSleep: AutoSleepRecordDTO; checkedInToday: boolean };
+    meta: unknown;
+  }> {
+    if (USE_MOCK) {
+      const res = await this.syncAutoSleep({});
+      return {
+        data: { autoSleep: res.data.autoSleep, checkedInToday: true },
+        meta: res.meta,
+      };
+    }
+    return this.request("/wellbeing/auto-sleep");
   }
 
   async getWellbeingHistory(days = 14): Promise<{ data: { days: number; count: number; items: unknown[] }; meta: unknown }> {

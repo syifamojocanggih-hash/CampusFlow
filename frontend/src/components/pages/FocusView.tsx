@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { VisionGuard } from "@/components/vision/VisionGuard";
 import { screenTimeTracker } from "@/utils/screenTimeTracker";
+import { osScreenLock, useOsScreenLock } from "@/utils/osScreenLock";
 
 interface FocusTask {
   id: string;
@@ -56,11 +57,18 @@ const COMPLETED_SESSIONS = [
 ];
 
 export const FocusView: React.FC = () => {
+  const osLock = useOsScreenLock();
   // Focus Timer States (Default: 25 mins Pomodoro, starting at 18:42 for session 6)
   const [sessionDurationMins, setSessionDurationMins] = useState<number>(25);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(18 * 60 + 42); // 18:42
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(true);
   const [completedBouts, setCompletedBouts] = useState<number>(5);
+
+  useEffect(() => {
+    if (osLock.isLocked) {
+      setIsActiveBreakOpen(false);
+    }
+  }, [osLock.isLocked]);
 
   // Passive Screen Time State
   const [screenMinutes, setScreenMinutes] = useState<number>(() =>
@@ -107,7 +115,9 @@ export const FocusView: React.FC = () => {
         if (prev <= 1) {
           setIsTimerRunning(false);
           setCompletedBouts((c) => c + 1);
-          setIsActiveBreakOpen(true); // Auto-suggest Active Break when focus time ends
+          void osScreenLock.triggerLock(
+            "Waktu Sesi Fokus & Screen Time Habis — Wajib Peregangan Aktif"
+          );
           return 0;
         }
         return prev - 1;
@@ -260,12 +270,15 @@ export const FocusView: React.FC = () => {
   const handleSelectPreset = (mins: number) => {
     setIsTimerRunning(false);
     setSessionDurationMins(mins);
-    setSecondsRemaining(mins * 60);
+    const totalSecs = Math.max(1, Math.round(mins * 60));
+    setSecondsRemaining(totalSecs);
+    void osScreenLock.disarmTimer();
   };
 
   const handleResetTimer = () => {
     setIsTimerRunning(false);
-    setSecondsRemaining(sessionDurationMins * 60);
+    setSecondsRemaining(Math.max(1, Math.round(sessionDurationMins * 60)));
+    void osScreenLock.disarmTimer();
   };
 
   const formatTimer = (totalSeconds: number) => {
@@ -376,6 +389,26 @@ export const FocusView: React.FC = () => {
             <div className="bg-[#F6F6F6] p-1 rounded-2xl flex items-center gap-1 border border-[#E8E8E8]">
               <button
                 type="button"
+                onClick={() => {
+                  setSessionDurationMins(0.25);
+                  setSecondsRemaining(15);
+                  setIsTimerRunning(true);
+                  void osScreenLock.armTimer(
+                    15,
+                    "Waktu Sesi Fokus (15 Detik Mode Uji) Habis — Wajib Peregangan Aktif"
+                  );
+                }}
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                  sessionDurationMins === 0.25
+                    ? "bg-[#FFF29A] text-[#1A1A1A] font-extrabold shadow-2xs border border-[#FFE966]"
+                    : "text-[#737373] hover:text-[#1A1A1A]"
+                }`}
+                title="Klik lalu pindah ke tab/aplikasi lain. Dalam 15 detik layar otomatis ditarik kembali ke sini."
+              >
+                15 detik (Uji OS Lock)
+              </button>
+              <button
+                type="button"
                 onClick={() => handleSelectPreset(25)}
                 className={`px-3.5 py-1 rounded-xl text-xs font-bold transition-all ${
                   sessionDurationMins === 25
@@ -401,12 +434,16 @@ export const FocusView: React.FC = () => {
             {/* Privacy Camera Status Badge / Trigger Active Break */}
             <button
               type="button"
-              onClick={() => setIsActiveBreakOpen(true)}
+              onClick={() =>
+                void osScreenLock.triggerLock(
+                  "Sesi Jeda Aktif Dimulai — Selesaikan 3 Repetisi Peregangan"
+                )
+              }
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#BDE6F0] hover:bg-[#A8DFEC] text-xs font-bold text-[#1A1A1A] transition-colors border border-[#A5DCE8]"
-              title="Kamera laptop default mati. Klik untuk uji peregangan 2 menit dengan validasi MediaPipe on-device."
+              title="Kunci layar level OS sekarang dan mulai peregangan 2 menit dengan validasi MediaPipe on-device."
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Kamera Off (Mulai Jeda)</span>
+              <span>Mulai Jeda &amp; Kunci Layar</span>
             </button>
           </div>
         </div>
@@ -739,7 +776,11 @@ export const FocusView: React.FC = () => {
             <span>Perlu evaluasi kamera?</span>
             <button
               type="button"
-              onClick={() => setIsActiveBreakOpen(true)}
+              onClick={() =>
+                void osScreenLock.triggerLock(
+                  "Uji Active Break 2 Menit — Selesaikan 3 Repetisi Peregangan"
+                )
+              }
               className="text-[#1A1A1A] font-bold underline hover:text-black cursor-pointer"
             >
               Uji Active Break 2 Menit

@@ -11,6 +11,9 @@ import {
   UploadCloud,
   FileText,
   Trash2,
+  Sparkles,
+  SlidersHorizontal,
+  CheckCircle2,
 } from "lucide-react";
 import {
   AreaChart,
@@ -22,6 +25,12 @@ import {
 } from "recharts";
 import { api } from "@/lib/api";
 import { screenTimeTracker } from "@/utils/screenTimeTracker";
+import {
+  autoSleepTracker,
+  useAutoSleep,
+  getSleepSourceLabel,
+  getSleepClinicalMeta,
+} from "@/utils/autoSleepTracker";
 import {
   calculateBurnoutRiskIndex,
   type ScheduleItemInput,
@@ -74,15 +83,33 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
 }) => {
   // 1. Data States
   const [schedules, setSchedules] = useState<AcademicScheduleDTO[]>(INITIAL_SCHEDULES);
-  const [sleepHours] = useState<number>(7.2);
+  const autoSleep = useAutoSleep();
+  const sleepHours = autoSleep.sleepHours;
+  const sleepClinicalMeta = useMemo(
+    () => getSleepClinicalMeta(autoSleep.clinicalStatus),
+    [autoSleep.clinicalStatus]
+  );
+
   const [screenTimeHours, setScreenTimeHours] = useState<number>(() => {
     const tracked = screenTimeTracker.getTodayScreenTimeHours();
     return tracked > 0 ? tracked : 5.4;
   });
-  const [verifiedBreakCount] = useState<number>(1);
+  const [verifiedBreakCount, setVerifiedBreakCount] = useState<number>(1);
   const [isKrsModalOpen, setIsKrsModalOpen] = useState<boolean>(false);
   const [krsModalTab, setKrsModalTab] = useState<"upload" | "manual" | "manage">("upload");
   const [isExtractingPdf, setIsExtractingPdf] = useState<boolean>(false);
+
+  // Auto-Sleep Inspector & Simulator Modal States
+  const [isSleepModalOpen, setIsSleepModalOpen] = useState<boolean>(false);
+  const [customBedTime, setCustomBedTime] = useState<string>(autoSleep.bedTime || "23:15");
+  const [customWakeTime, setCustomWakeTime] = useState<string>(autoSleep.wakeTime || "06:45");
+  const [customLatencyMins, setCustomLatencyMins] = useState<number>(autoSleep.sleepLatencyMins ?? 15);
+
+  useEffect(() => {
+    setCustomBedTime(autoSleep.bedTime);
+    setCustomWakeTime(autoSleep.wakeTime);
+    setCustomLatencyMins(autoSleep.sleepLatencyMins);
+  }, [autoSleep.bedTime, autoSleep.wakeTime, autoSleep.sleepLatencyMins]);
 
   // Dynamic Celestial Theme: Day (Sun + Clouds) vs Night (Moon + Clouds)
   const [timeOfDayOverride, setTimeOfDayOverride] = useState<"day" | "night" | null>(null);
@@ -142,7 +169,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   const [newIsPracticum, setNewIsPracticum] = useState<boolean>(false);
   const [newIsExamWeek, setNewIsExamWeek] = useState<boolean>(false);
 
-  // Load schedule from API or fallback
+  // Load schedule & active break count from API or fallback
   useEffect(() => {
     api
       .getAcademicSchedules()
@@ -152,6 +179,15 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         }
       })
       .catch((err) => console.warn("[TriadDashboard] Gagal memuat jadwal KRS:", err));
+
+    api
+      .getTodayActiveBreaks()
+      .then((res) => {
+        if (typeof res.data?.verifiedCount === "number") {
+          setVerifiedBreakCount(res.data.verifiedCount);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Sync screen time periodically
@@ -760,18 +796,49 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           </h3>
         </div>
 
-        {/* Card 3: Sleep Duration & Recovery */}
-        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-center h-full">
-          <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
-              <Moon className="w-4 h-4 text-[#1A1A1A]" />
+        {/* Card 3: Sleep Duration & Recovery (Automatic Passive Sleep Detector) */}
+        <div
+          onClick={() => setIsSleepModalOpen(true)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setIsSleepModalOpen(true);
+            }
+          }}
+          className="learnova-card p-4 sm:p-5 flex flex-col justify-between h-full cursor-pointer hover:border-[#8ECAD7] transition-all group"
+          title="Klik untuk melihat detail deteksi tidur otomatis atau simulasi jam tidur"
+        >
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-2xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+                <Moon className="w-4 h-4 text-[#1A1A1A]" />
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm font-bold text-[#1A1A1A] leading-tight">
+                  Tidur Semalam
+                </p>
+                <span className="text-[10px] font-bold text-[#525252] flex items-center gap-1">
+                  <Sparkles className="w-2.5 h-2.5 text-[#1A1A1A]" />
+                  {getSleepSourceLabel(autoSleep.source)}
+                </span>
+              </div>
             </div>
-            <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Tidur Semalam</p>
+            <SlidersHorizontal className="w-3.5 h-3.5 text-[#9A9A9A] group-hover:text-[#1A1A1A] transition-colors shrink-0" />
           </div>
-          <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
-            {sleepHours}
-            <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Jam</span>
-          </h3>
+
+          <div className="flex items-baseline justify-between gap-2 flex-wrap">
+            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
+              {sleepHours}
+              <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Jam</span>
+            </h3>
+            <span
+              className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${sleepClinicalMeta.badgeStyle}`}
+            >
+              {autoSleep.bedTime}&ndash;{autoSleep.wakeTime} &bull; +{autoSleep.recoveryPoints} Poin
+            </span>
+          </div>
         </div>
 
         {/* Card 4: Verified Active Break (On-Demand MediaPipe 2 Mins) */}
@@ -1194,6 +1261,230 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          6. AUTO-SLEEP INSPECTOR & PASSIVE WAKEUP SIMULATOR MODAL
+          ======================================================== */}
+      {isSleepModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#E8E8E8] space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-[#F0F0F0]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shadow-2xs">
+                  <Moon className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                      Deteksi Jam Tidur Otomatis
+                    </h3>
+                    <span
+                      className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${sleepClinicalMeta.badgeStyle}`}
+                    >
+                      {sleepClinicalMeta.label}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#9A9A9A]">
+                    Inaktivitas Layar Malam &amp; Sensor OS PowerMonitor
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSleepModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Live Detection Breakdown */}
+            <div className="rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] p-4 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-[#525252] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#1A1A1A]" />
+                  Sumber Deteksi:
+                </span>
+                <span className="font-extrabold text-[#1A1A1A] bg-white px-2.5 py-0.5 rounded-full border border-[#E8E8E8]">
+                  {getSleepSourceLabel(autoSleep.source)}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2.5 rounded-xl bg-white border border-[#E8E8E8]">
+                  <span className="text-[10px] text-[#9A9A9A] block">Terakhir Aktif Malam</span>
+                  <strong className="font-mono font-extrabold text-sm text-[#1A1A1A]">
+                    {autoSleep.bedTime}
+                  </strong>
+                </div>
+                <div className="p-2.5 rounded-xl bg-white border border-[#E8E8E8]">
+                  <span className="text-[10px] text-[#9A9A9A] block">Pertama Aktif Pagi</span>
+                  <strong className="font-mono font-extrabold text-sm text-[#1A1A1A]">
+                    {autoSleep.wakeTime}
+                  </strong>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#BDE6F0]/35 border border-[#8ECAD7]">
+                  <span className="text-[10px] text-[#1A1A1A]/75 block">Tidur Bersih</span>
+                  <strong className="font-heading font-extrabold text-sm text-[#1A1A1A]">
+                    {autoSleep.sleepHours} Jam
+                  </strong>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-[#737373] pt-1 border-t border-[#ECECEC]">
+                <span>
+                  Jeda Inaktivitas: <strong>{autoSleep.rawInactiveHours}j</strong> (Latency{" "}
+                  <strong>-{autoSleep.sleepLatencyMins}m</strong>)
+                </span>
+                <span>
+                  Kontribusi Recovery: <strong className="text-[#166534]">+{autoSleep.recoveryPoints}/40 Poin</strong>
+                </span>
+              </div>
+            </div>
+
+            {/* 1-Click Preset Wakeup Simulations */}
+            <div className="space-y-2">
+              <p className="text-xs font-extrabold text-[#1A1A1A]">
+                Uji Simulasi Deteksi Otomatis (1-Klik):
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    void autoSleepTracker.simulateSleepWindow(
+                      "02:15",
+                      "06:30",
+                      "OVERNIGHT_INACTIVITY",
+                      15
+                    );
+                  }}
+                  className="p-2.5 rounded-xl bg-[#FFF1F2] hover:bg-[#FFE4E6] border border-[#F7A8B0] text-left transition-all cursor-pointer"
+                >
+                  <div className="text-[11px] font-extrabold text-[#9F1239]">
+                    Begadang Tugas
+                  </div>
+                  <div className="text-[10px] font-mono text-[#1A1A1A] mt-0.5">
+                    02:15 &rarr; 06:30 (4.0j)
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    void autoSleepTracker.simulateSleepWindow(
+                      "00:30",
+                      "06:30",
+                      "OVERNIGHT_INACTIVITY",
+                      15
+                    );
+                  }}
+                  className="p-2.5 rounded-xl bg-[#FFFDF0] hover:bg-[#FFF29A]/50 border border-[#FFE966] text-left transition-all cursor-pointer"
+                >
+                  <div className="text-[11px] font-extrabold text-[#854D0E]">
+                    Defisit Ringan
+                  </div>
+                  <div className="text-[10px] font-mono text-[#1A1A1A] mt-0.5">
+                    00:30 &rarr; 06:30 (5.8j)
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    void autoSleepTracker.simulateSleepWindow(
+                      "23:00",
+                      "06:45",
+                      "OS_POWER_MONITOR",
+                      15
+                    );
+                  }}
+                  className="p-2.5 rounded-xl bg-[#F3F9EE] hover:bg-[#CDE8B5]/60 border border-[#CDE8B5] text-left transition-all cursor-pointer"
+                >
+                  <div className="text-[11px] font-extrabold text-[#166534]">
+                    Tidur Optimal
+                  </div>
+                  <div className="text-[10px] font-mono text-[#1A1A1A] mt-0.5">
+                    23:00 &rarr; 06:45 (7.5j)
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Custom Window Simulation / Correction */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void autoSleepTracker.simulateSleepWindow(
+                  customBedTime,
+                  customWakeTime,
+                  "OVERNIGHT_INACTIVITY",
+                  customLatencyMins
+                );
+                setIsSleepModalOpen(false);
+              }}
+              className="space-y-3 pt-2 border-t border-[#F0F0F0]"
+            >
+              <p className="text-xs font-extrabold text-[#1A1A1A]">
+                Kustomisasi Jendela Inaktivitas Malam:
+              </p>
+              <div className="grid grid-cols-3 gap-2.5">
+                <div>
+                  <label className="block text-[10px] font-bold text-[#737373] mb-1">
+                    Layar Mati (Malam)
+                  </label>
+                  <input
+                    type="time"
+                    value={customBedTime}
+                    onChange={(e) => setCustomBedTime(e.target.value)}
+                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-[#FAFAFA] border border-[#E8E8E8] rounded-xl text-[#1A1A1A]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-[#737373] mb-1">
+                    Layar Aktif (Pagi)
+                  </label>
+                  <input
+                    type="time"
+                    value={customWakeTime}
+                    onChange={(e) => setCustomWakeTime(e.target.value)}
+                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-[#FAFAFA] border border-[#E8E8E8] rounded-xl text-[#1A1A1A]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-[#737373] mb-1">
+                    Latency (Menit)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={120}
+                    value={customLatencyMins}
+                    onChange={(e) => setCustomLatencyMins(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-[#FAFAFA] border border-[#E8E8E8] rounded-xl text-[#1A1A1A]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSleepModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-[#737373] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                >
+                  Tutup
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-extrabold bg-[#1A1A1A] hover:bg-black text-white flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Terapkan &amp; Sinkronkan</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

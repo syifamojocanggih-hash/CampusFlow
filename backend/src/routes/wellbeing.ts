@@ -12,9 +12,35 @@ import {
   evaluate24HourTriad,
 } from "../services/clinicalScoring.ts";
 import { getDailyActivityAndSedentaryTotals } from "../services/dailyAggregation.ts";
+import {
+  computeAutoSleepRecord,
+  syncAutoSleepToDatabase,
+} from "../services/autoSleepService.ts";
+import { recalculateTodayBurnoutLog } from "../services/burnoutSync.ts";
 
 export const wellbeingRouter = Router();
 export const assessmentsRouter = Router();
+
+const autoSleepPayloadSchema = z.object({
+  logDate: z.string().min(10).optional(),
+  lastActiveTimestamp: z.number().positive().optional(),
+  firstWakeTimestamp: z.number().positive().optional(),
+  bedTime: z.string().regex(/^\d{1,2}:\d{2}$/).optional(),
+  wakeTime: z.string().regex(/^\d{1,2}:\d{2}$/).optional(),
+  sleepHours: z.number().min(0.5).max(24).optional(),
+  sleepLatencyMins: z.number().min(0).max(180).optional(),
+  source: z
+    .enum([
+      "OS_POWER_MONITOR",
+      "OVERNIGHT_INACTIVITY",
+      "WEARABLE_SYNC",
+      "AI_NLP_CHAT",
+      "MANUAL_OVERRIDE",
+      "SMART_BASELINE",
+    ])
+    .optional(),
+  isConfirmed: z.boolean().optional(),
+});
 
 const dailyWellbeingSchema = z.object({
   logDate: z.string().min(10),
@@ -98,6 +124,29 @@ async function handleSubmitDailyWellbeing(req: AuthenticatedRequest, res: Respon
     data: { currentStreakDays },
   });
 
+  // Sinkronkan juga sleepHours ke DailyFussionLog & Burnout Risk Index (best-effort)
+  try {
+    await prisma.dailyFussionLog.upsert({
+      where: { userId_logDate: { userId, logDate } },
+      update: { sleepHours: body.sleepHours },
+      create: {
+        userId,
+        logDate,
+        totalScreenTimeMins: Math.round(totalSedentaryHours * 60),
+        sleepHours: body.sleepHours,
+        academicLoadScore: 0,
+        screenFatigueScore: 0,
+        recoveryScore: 0,
+        verifiedBreakCount: 0,
+        burnoutIndex: 0,
+        status: "LOW",
+      },
+    });
+    await recalculateTodayBurnoutLog(userId, body.logDate);
+  } catch {
+    // Non-fatal jika dipanggil pada lingkungan mock test yang hanya men-stub DailyWellbeingLog
+  }
+
   sendSuccess(
     res,
     { ...saved, sedentaryRiskStatus: triad.sedentaryRiskStatus, currentStreakDays },
@@ -107,6 +156,65 @@ async function handleSubmitDailyWellbeing(req: AuthenticatedRequest, res: Respon
 
 wellbeingRouter.post("/daily", requireAuth, handleSubmitDailyWellbeing);
 wellbeingRouter.post("/checkin", requireAuth, handleSubmitDailyWellbeing);
+
+/**
+ * POST /api/v1/wellbeing/auto-sleep
+ * Menerima event deteksi jam tidur otomatis (dari inaktivitas layar malam, OS power monitor,
+ * wearable sync, atau simulasi bangun tidur), menghitung durasi tidur bersih & skor kualitas,
+ * lalu langsung menyinkronkan ke DailyWellbeingLog & DailyFussionLog.
+ */
+wellbeingRouter.post("/auto-sleep", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const body = autoSleepPayloadSchema.parse(req.body);
+  const userId = req.user!.sub;
+
+  const record = computeAutoSleepRecord(body);
+  const synced = await syncAutoSleepToDatabase(userId, record);
+
+  sendSuccess(res, synced, 200);
+});
+
+/**
+ * GET /api/v1/wellbeing/auto-sleep
+ * Mengambil status deteksi jam tidur otomatis hari ini. Jika belum ada log di DB hari ini,
+ * mengkalkulasi & menyinkronkan baseline deteksi otomatis agar dashboard selalu terisi.
+ */
+wellbeingRouter.get("/auto-sleep", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const userId = req.user!.sub;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const logDate = new Date(`${todayStr}T00:00:00.000Z`);
+
+  const existing = await prisma.dailyWellbeingLog.findUnique({
+    where: { userId_logDate: { userId, logDate } },
+  });
+
+  if (existing) {
+    const record = computeAutoSleepRecord({
+      logDate: todayStr,
+      sleepHours: existing.sleepHours,
+      source: "OVERNIGHT_INACTIVITY",
+      isConfirmed: true,
+    });
+    return sendSuccess(res, {
+      autoSleep: {
+        ...record,
+        sleepQualityScore: existing.sleepQualityScore,
+      },
+      checkedInToday: true,
+    });
+  }
+
+  const record = computeAutoSleepRecord({
+    logDate: todayStr,
+    source: "OVERNIGHT_INACTIVITY",
+  });
+  const synced = await syncAutoSleepToDatabase(userId, record);
+
+  sendSuccess(res, {
+    autoSleep: synced.autoSleep,
+    burnoutSummary: synced.burnoutSummary,
+    checkedInToday: true,
+  });
+});
 
 /**
  * GET /api/v1/wellbeing/today

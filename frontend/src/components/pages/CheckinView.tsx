@@ -1,16 +1,35 @@
-import React, { useState } from "react";
-import { ClipboardCheck, Moon, Check, Smartphone, Activity } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { ClipboardCheck, Moon, Check, Smartphone, Activity, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
+import {
+  autoSleepTracker,
+  useAutoSleep,
+  getSleepSourceLabel,
+  getSleepClinicalMeta,
+} from "@/utils/autoSleepTracker";
 
 interface CheckinViewProps {
   embedded?: boolean;
 }
 
 export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) => {
-  const [sleepHours, setSleepHours] = useState<number | string>(7);
+  const autoSleep = useAutoSleep();
+  const [sleepHours, setSleepHours] = useState<number | string>(autoSleep.sleepHours);
   const [screenHours, setScreenHours] = useState<number | string>(4);
   const [answers, setAnswers] = useState<[number, number, number, number]>([3, 3, 3, 3]);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    setSleepHours(autoSleep.sleepHours);
+  }, [autoSleep.sleepHours]);
+
+  const handleSleepHoursChange = (val: number | string) => {
+    setSleepHours(val);
+    const parsed = typeof val === "number" ? val : parseFloat(String(val));
+    if (!isNaN(parsed) && parsed >= 0.5 && parsed <= 16) {
+      void autoSleepTracker.overrideSleepHours(parsed);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,10 +40,14 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
       Math.max(0, Math.min(4, (val || 1) - 1))
     ) as [number, number, number, number];
 
+    if (finalSleep >= 0.5) {
+      await autoSleepTracker.overrideSleepHours(finalSleep);
+    }
+
     await api.submitDailyWellbeing({
       logDate: new Date().toISOString().slice(0, 10),
       sleepHours: finalSleep,
-      sleepQualityScore: 4,
+      sleepQualityScore: autoSleep.sleepQualityScore || 4,
       nonAcademicScreenHours: finalScreen,
       pss4Answers: pss4AnswersPayload,
     });
@@ -77,14 +100,21 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Card 1: Sleep Hours */}
+          {/* Card 1: Sleep Hours (Auto-Populated by Passive Overnight Tracker) */}
           <div className="learnova-card p-5 sm:p-6 space-y-4 border-[#E8E8E8]">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2 text-xs font-bold text-[#1A1A1A]">
                 <div className="w-8 h-8 rounded-xl bg-[#CDE8B5] text-[#1A1A1A] flex items-center justify-center">
                   <Moon className="w-4 h-4" />
                 </div>
-                <span>Durasi Tidur Semalam (Target 7.0–9.0 Jam)</span>
+                <div>
+                  <span className="block">Durasi Tidur Semalam (Target 7.0–9.0 Jam)</span>
+                  <span className="text-[10px] font-bold text-[#166534] flex items-center gap-1 mt-0.5">
+                    <Sparkles className="w-3 h-3" />
+                    Terisi Otomatis ({getSleepSourceLabel(autoSleep.source)}: {autoSleep.bedTime} &rarr;{" "}
+                    {autoSleep.wakeTime})
+                  </span>
+                </div>
               </div>
               <div className="flex items-center gap-1.5 bg-[#F6F6F6] focus-within:bg-white border border-[#E8E8E8] focus-within:border-[#1A1A1A] rounded-xl px-2.5 py-1 transition-all shadow-xs">
                 <input
@@ -95,7 +125,7 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
                   value={sleepHours}
                   onChange={(e) => {
                     const val = e.target.value;
-                    setSleepHours(val === "" ? ("" as unknown as number) : parseFloat(val));
+                    handleSleepHoursChange(val === "" ? ("" as unknown as number) : parseFloat(val));
                   }}
                   className="w-14 text-center font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   aria-label="Ketik durasi tidur dalam jam"
@@ -105,13 +135,38 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
                 </span>
               </div>
             </div>
+
+            {/* Auto-Detection Telemetry Summary Strip */}
+            <div className="p-3 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] flex flex-wrap items-center justify-between gap-2 text-[11px]">
+              <div className="flex items-center gap-2 text-[#525252]">
+                <span>
+                  Layar Mati: <strong className="text-[#1A1A1A] font-mono">{autoSleep.bedTime}</strong>
+                </span>
+                <span>&bull;</span>
+                <span>
+                  Bangun: <strong className="text-[#1A1A1A] font-mono">{autoSleep.wakeTime}</strong>
+                </span>
+                <span>&bull;</span>
+                <span>
+                  Recovery: <strong className="text-[#166534]">+{autoSleep.recoveryPoints}/40 Poin</strong>
+                </span>
+              </div>
+              <span
+                className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${
+                  getSleepClinicalMeta(autoSleep.clinicalStatus).badgeStyle
+                }`}
+              >
+                {getSleepClinicalMeta(autoSleep.clinicalStatus).label}
+              </span>
+            </div>
+
             <input
               type="range"
               min="0"
               max="16"
               step="0.5"
               value={typeof sleepHours === "number" && !isNaN(sleepHours) ? Math.min(16, Math.max(0, sleepHours)) : 0}
-              onChange={(e) => setSleepHours(parseFloat(e.target.value))}
+              onChange={(e) => handleSleepHoursChange(parseFloat(e.target.value))}
               className="w-full accent-[#1A1A1A] h-2 bg-[#F6F6F6] rounded-lg cursor-pointer"
             />
             <div className="flex justify-between text-[11px] text-[#9A9A9A]">

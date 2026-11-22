@@ -48,7 +48,7 @@ export async function recalculateTodayBurnoutLog(
 
   const dayOfWeek = targetDate.getUTCDay() === 0 ? 7 : targetDate.getUTCDay();
 
-  const [todaySchedules, verifiedBreakCount, existingLog] = await Promise.all([
+  const [todaySchedules, verifiedBreakCount, existingLog, wellbeingLog] = await Promise.all([
     prisma.academicSchedule.findMany({
       where: { userId, dayOfWeek },
     }),
@@ -67,11 +67,19 @@ export async function recalculateTodayBurnoutLog(
         },
       },
     }),
+    prisma.dailyWellbeingLog.findUnique({
+      where: {
+        userId_logDate: {
+          userId,
+          logDate: targetDate,
+        },
+      },
+    }),
   ]);
 
   const totalScreenTimeMins = existingLog?.totalScreenTimeMins ?? 0;
   const totalScreenHours = totalScreenTimeMins / 60.0;
-  const sleepHours = existingLog?.sleepHours ?? 7.0;
+  const sleepHours = existingLog?.sleepHours ?? wellbeingLog?.sleepHours ?? 7.0;
 
   const calc = calculateBurnoutRiskIndex(
     todaySchedules.map((s) => ({

@@ -378,7 +378,7 @@ export async function parseKrsWithGemini(
   input: { text?: string; buffer?: Buffer; mimeType?: string },
   apiKeyOverride?: string
 ): Promise<ParsedCourseItem[] | null> {
-  const apiKey = apiKeyOverride?.trim() || env.GEMINI_API_KEY?.trim();
+  const apiKey = apiKeyOverride !== undefined ? apiKeyOverride.trim() : env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
     return null;
   }

@@ -340,4 +340,52 @@ describe("Kelengkapan Endpoint Backend & Integrasi PRD v4.0", () => {
     assert.equal(breakCount, 0);
     assert.equal(scheduleCount, 0);
   });
+
+  test("OS Screen Lock Enforcer endpoints (/os-lock/arm, /disarm, /lock, /status, /unlock)", async () => {
+    const armRes = await fetch(`${baseUrl}/os-lock/arm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        durationSeconds: 30,
+        reason: "Uji Screen Time Lock",
+        targetUrl: "http://localhost:5174",
+      }),
+    });
+    assert.equal(armRes.status, 200);
+    const armBody: any = await armRes.json();
+    assert.equal(armBody.data.isArmed, true);
+    assert.equal(armBody.data.armedDurationSeconds, 30);
+
+    const disarmRes = await fetch(`${baseUrl}/os-lock/disarm`, { method: "POST" });
+    assert.equal(disarmRes.status, 200);
+    const disarmBody: any = await disarmRes.json();
+    assert.equal(disarmBody.data.isArmed, false);
+
+    const lockRes = await fetch(`${baseUrl}/os-lock/lock`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reason: "Screen Time Tercapai — Wajib Peregangan",
+        targetUrl: "http://localhost:5174",
+      }),
+    });
+    assert.equal(lockRes.status, 200);
+    const lockBody: any = await lockRes.json();
+    assert.equal(lockBody.data.isLocked, true);
+
+    const statusRes = await fetch(`${baseUrl}/os-lock/status`);
+    assert.equal(statusRes.status, 200);
+    const statusBody: any = await statusRes.json();
+    assert.equal(statusBody.data.isLocked, true);
+
+    const unlockRes = await fetch(`${baseUrl}/os-lock/unlock`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ verificationSource: "POSE_CAMERA_AI" }),
+    });
+    assert.equal(unlockRes.status, 200);
+    const unlockBody: any = await unlockRes.json();
+    assert.equal(unlockBody.data.isLocked, false);
+    assert.equal(unlockBody.data.lastUnlockSource, "POSE_CAMERA_AI");
+  });
 });

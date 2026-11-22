@@ -42,21 +42,32 @@ burnoutRouter.get("/today", async (req: AuthenticatedRequest, res: Response, nex
       return sendSuccess(res, existingLog);
     }
 
-    // Jika belum ada log tersimpan, hitung estimasi berdasarkan jadwal kuliah hari ini
+    // Jika belum ada log tersimpan, hitung estimasi berdasarkan jadwal kuliah hari ini & log tidur terbaru
     const dayOfWeek = today.getUTCDay() === 0 ? 7 : today.getUTCDay(); // 1 = Senin, ... 7 = Minggu
-    const schedules = await prisma.academicSchedule.findMany({
-      where: { userId, dayOfWeek },
-    });
+    const [schedules, activeBreaksCount, todayWellbeing] = await Promise.all([
+      prisma.academicSchedule.findMany({
+        where: { userId, dayOfWeek },
+      }),
+      prisma.activeBreakSession.count({
+        where: {
+          userId,
+          startTime: { gte: localDayStart, lt: localDayEnd },
+          poseVerified: true,
+        },
+      }),
+      prisma.dailyWellbeingLog.findUnique({
+        where: {
+          userId_logDate: {
+            userId,
+            logDate: today,
+          },
+        },
+      }),
+    ]);
 
-    const activeBreaksCount = await prisma.activeBreakSession.count({
-      where: {
-        userId,
-        startTime: { gte: localDayStart, lt: localDayEnd },
-        poseVerified: true,
-      },
-    });
+    const detectedSleepHours = todayWellbeing?.sleepHours ?? 7.0;
 
-    // Default estimasi awal hari: tidur 7 jam, screen time 0
+    // Estimasi awal hari menggunakan jam tidur otomatis / terbaru
     const calc = calculateBurnoutRiskIndex(
       schedules.map((s) => ({
         creditHours: s.creditHours,
@@ -66,7 +77,7 @@ burnoutRouter.get("/today", async (req: AuthenticatedRequest, res: Response, nex
         examDate: s.examDate,
       })),
       0, // screen time hours awal
-      7.0, // default sleep
+      detectedSleepHours,
       activeBreaksCount,
       today
     );
@@ -74,14 +85,14 @@ burnoutRouter.get("/today", async (req: AuthenticatedRequest, res: Response, nex
     return sendSuccess(res, {
       logDate: today.toISOString().split("T")[0],
       totalScreenTimeMins: 0,
-      sleepHours: 7.0,
+      sleepHours: detectedSleepHours,
       academicLoadScore: calc.academicLoadScore,
       screenFatigueScore: calc.screenFatigueScore,
       recoveryScore: calc.recoveryScore,
       verifiedBreakCount: activeBreaksCount,
       burnoutIndex: calc.burnoutIndex,
       status: calc.status,
-      isEstimated: true,
+      isEstimated: !todayWellbeing,
     });
   } catch (error) {
     next(error);

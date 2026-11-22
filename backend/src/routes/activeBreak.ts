@@ -5,6 +5,7 @@ import { prisma } from "../lib/prisma.ts";
 import { sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
 import { recalculateTodayBurnoutLog } from "../services/burnoutSync.ts";
+import { osLockService } from "../services/osLockService.ts";
 
 export const activeBreakRouter = Router();
 
@@ -42,6 +43,7 @@ activeBreakRouter.post(
 
       // Beri bonus XP (15 XP) untuk pengguna yang berhasil menyelesaikan Active Break terverifikasi
       if (parsed.poseVerified) {
+        osLockService.unlockScreen("ACTIVE_BREAK_API");
         await prisma.user.update({
           where: { id: userId },
           data: {

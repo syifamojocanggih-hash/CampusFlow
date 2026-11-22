@@ -16,19 +16,36 @@ import { VisionLabView } from "@/components/pages/VisionLabView";
 import { ProfileView } from "@/components/pages/ProfileView";
 import { LandingPage } from "@/components/pages/LandingPage";
 import { MimiPetWidget } from "@/components/pet/MimiPetWidget";
+import { VisionGuard } from "@/components/vision/VisionGuard";
 import { screenTimeTracker } from "@/utils/screenTimeTracker";
+import { autoSleepTracker } from "@/utils/autoSleepTracker";
+import { osScreenLock, useOsScreenLock } from "@/utils/osScreenLock";
 import { api } from "@/lib/api";
+import { Lock, Play, ShieldAlert, Square, Timer } from "lucide-react";
 import type { TabKey, UserProfileDTO } from "@/types";
 
 export function App() {
-  const [isLandingPage, setIsLandingPage] = useState(true);
+  const osLock = useOsScreenLock();
+  const [isLandingPage, setIsLandingPage] = useState(
+    () => !osScreenLock.getState().isLocked && !window.location.search.includes("os_lock=1")
+  );
   const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
   const [isPanicReliefActive, setIsPanicReliefActive] = useState(false);
   const [user, setUser] = useState<UserProfileDTO | null>(null);
 
   useEffect(() => {
+    if (osLock.isLocked && isLandingPage) {
+      setIsLandingPage(false);
+    }
+  }, [osLock.isLocked, isLandingPage]);
+
+  useEffect(() => {
     screenTimeTracker.start();
-    return () => screenTimeTracker.stop();
+    autoSleepTracker.start();
+    return () => {
+      screenTimeTracker.stop();
+      autoSleepTracker.stop();
+    };
   }, []);
 
   useEffect(() => {
@@ -89,6 +106,112 @@ export function App() {
             activeTab={activeTab}
             onSelectTab={setActiveTab}
           />
+
+          {/* OS-Level Screen Time Enforcer Status & Quick Control Bar */}
+          <div
+            className={`mb-5 rounded-2xl p-3.5 border transition-all flex flex-wrap items-center justify-between gap-3 text-xs ${
+              osLock.isArmed
+                ? "bg-[#FFF29A]/90 border-[#FFE966] text-[#1A1A1A] shadow-xs"
+                : "bg-white border-[#E8E8E8] text-[#1A1A1A] shadow-2xs"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                  osLock.isArmed
+                    ? "bg-[#1A1A1A] text-[#FFF29A]"
+                    : "bg-[#BDE6F0] text-[#1A1A1A]"
+                }`}
+              >
+                {osLock.isArmed ? <Timer className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-heading font-extrabold text-xs sm:text-sm text-[#1A1A1A]">
+                    Proteksi Screen Time Level OS
+                  </span>
+                  {osLock.isArmed && osLock.remainingSeconds !== null && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#1A1A1A] text-[#FFF29A] font-mono font-extrabold text-xs">
+                      {Math.floor(osLock.remainingSeconds / 60)
+                        .toString()
+                        .padStart(2, "0")}
+                      :
+                      {(osLock.remainingSeconds % 60).toString().padStart(2, "0")} Tersisa
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-[#525252] mt-0.5">
+                  {osLock.isArmed
+                    ? "Timer aktif di background OS! Silakan buka tab lain atau aplikasi lain. Saat waktu habis, layar otomatis ditarik kembali ke tab ini dan dikunci untuk peregangan."
+                    : "Saat waktu screen time habis, layar laptop otomatis ditarik ke tab ini dan dikunci sampai prosedur peregangan kamera selesai."}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center flex-wrap gap-2">
+              {osLock.isArmed ? (
+                <button
+                  type="button"
+                  onClick={() => void osScreenLock.disarmTimer()}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#1A1A1A] hover:bg-black text-white font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Square className="w-3 h-3 fill-white" />
+                  <span>Batalkan Timer</span>
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void osScreenLock.armTimer(
+                        15,
+                        "Batas Screen Time (15 Detik Mode Uji) Tercapai — Wajib Peregangan Aktif"
+                      )
+                    }
+                    className="px-3 py-1.5 rounded-xl bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] border border-[#FFE966] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Aktifkan timer 15 detik, lalu coba pindah ke tab lain atau aplikasi lain"
+                  >
+                    <Play className="w-3 h-3 fill-[#1A1A1A]" />
+                    <span>Timer Lock 15s (Uji Pindah Tab/App)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void osScreenLock.armTimer(
+                        25 * 60,
+                        "Batas Screen Time Belajar (25 Menit) Tercapai — Wajib Peregangan Aktif"
+                      )
+                    }
+                    className="px-3 py-1.5 rounded-xl bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] border border-[#E8E8E8] font-bold transition-colors cursor-pointer"
+                  >
+                    Timer 25m
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void osScreenLock.triggerLock(
+                        "Kunci Layar Istirahat Aktif (Level OS) — Wajib Peregangan"
+                      )
+                    }
+                    className="px-3 py-1.5 rounded-xl bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] border border-[#B6DF97] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Lock className="w-3 h-3" />
+                    <span>Kunci Layar Sekarang</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Global Full-Screen OS Lock Enforcer (mounted whenever locked outside VisionLabView) */}
+          {osLock.isLocked && activeTab !== "vision-lab" && (
+            <VisionGuard
+              autoStartCamera={true}
+              forceBreakLock={true}
+              isStrictOsLock={true}
+              lockReason={osLock.reason}
+            />
+          )}
 
           {/* View Container */}
           {isPanicReliefActive ? (
