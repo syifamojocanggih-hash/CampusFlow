@@ -21,6 +21,30 @@
 
 ---
 
+## [2026-11-24] — Penghapusan Duplikasi Profil Sidebar & Pemerataan Lebar Layout Halaman (`Navbar.tsx` & 8 Views) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.77`
+- **Ringkasan:**
+  1. **Penghapusan Kartu Profil Duplikat di `DesktopSidebar` (`Navbar.tsx`):**
+     - Menghapus blok profil pengguna (*avatar M + nama + Mahasiswa Aktif + Edit →*) pada bagian bawah sidebar kiri karena akses profil sudah tersedia melalui tombol ikon profil di pojok kanan atas header (`DesktopTopHeader`), menyisakan tombol **Log out** agar navigasi bersih dan tidak ganda.
+  2. **Pemerataan Lebar Layout Konten (`w-full`) di Bawah Bar Proteksi Screen Time Level OS:**
+     - Mengubah pembungkus konten seluruh halaman (`ActivityView`, `CheckinView`, `FocusView`, `HistoryView`, `ProfileView`, `SettingsView`, `VisionLabView`, `CoachView`) dari batas lebar sempit terpusat (`max-w-2xl/3xl/4xl/5xl/6xl mx-auto`) menjadi `w-full` agar sejajar kiri-kanan secara simetris mengikuti lebar bar **Proteksi Screen Time Level OS**.
+- **Daftar File Diubah:**
+  - `frontend/src/components/Navbar.tsx`
+  - `frontend/src/components/pages/ActivityView.tsx`
+  - `frontend/src/components/pages/CheckinView.tsx`
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `frontend/src/components/pages/HistoryView.tsx`
+  - `frontend/src/components/pages/ProfileView.tsx`
+  - `frontend/src/components/pages/SettingsView.tsx`
+  - `frontend/src/components/pages/VisionLabView.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` (`tsc && vite build`) lolos tanpa error (2203 modul).
+  - `npm run guard` lolos validasi zona branch & changelog.
+
+---
+
 ## [2026-11-17] — Pengayaan Fitur Workstation & Jeda (`FocusView.tsx`) dan Aktivitas & Check-in (`ActivityView.tsx`, `PedometerCard.tsx`, `CheckinView.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.76`
 - **Ringkasan:** 
