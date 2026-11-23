@@ -39,8 +39,11 @@ coverage/
 
 backend/ollama/*.gguf
 
-# Local debug logs
+# Local debug logs & runtime cache
 backend/logs/
+.os-screentime.json
+*.os-screentime.json
+backend/.os-screentime.json
 
 # Scratch & experiments
 scratch/
