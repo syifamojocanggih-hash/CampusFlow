@@ -101,7 +101,12 @@ function getLocalTodayDateKey(d: Date = new Date()): string {
 }
 
 const OS_IDLE_THRESHOLD_SECONDS = 180; // 3 menit tanpa input mouse/keyboard di seluruh OS = Idle
-const OS_SCREENTIME_STATE_FILE = path.resolve(process.cwd(), ".os-screentime.json");
+const OS_SCREENTIME_STATE_FILE = path.resolve(
+  process.cwd(),
+  "node_modules",
+  ".cache",
+  "os-screentime.json"
+);
 
 class OsLockService {
   private isLocked = false;
@@ -158,6 +163,10 @@ class OsLockService {
     if (!force && now - this.lastScreenTimePersistMs < 10_000) return;
     this.lastScreenTimePersistMs = now;
     try {
+      const dir = path.dirname(OS_SCREENTIME_STATE_FILE);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
       fs.writeFileSync(
         OS_SCREENTIME_STATE_FILE,
         JSON.stringify({
