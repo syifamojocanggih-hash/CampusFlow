@@ -849,19 +849,19 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
       {/* Vision Guard Header & Controls (Hidden during full-screen OS Lock) */}
       <div
-        className={`learnova-card p-5 sm:p-6 border-[#E8E8E8] flex flex-wrap items-center justify-between gap-4 ${
+        className={`learnova-card p-5 sm:p-6 border-[#E6D7C8] flex flex-wrap items-center justify-between gap-4 ${
           isBreakLocked ? "hidden" : ""
         }`}
       >
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-11 h-11 rounded-2xl bg-[#98C5E2] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
             <Shield className="w-6 h-6" />
           </div>
           <div>
             <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
               Vision Guard &amp; Istirahat Aktif (OS Enforcer)
             </h3>
-            <p className="text-xs text-[#9A9A9A]">
+            <p className="text-xs text-[#6E5D4F]">
               Pemindai Postur Pintar &bull; 100% Privat di Perangkat &bull; Mengunci Layar Otomatis Saat Batas Screen Time Tercapai
             </p>
           </div>
@@ -872,16 +872,16 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             onClick={toggleMute}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
               isMuted
-                ? "bg-[#F6F6F6] text-[#9A9A9A] border-[#E8E8E8] hover:bg-[#E8E8E8]"
-                : "bg-[#FFF29A] text-[#1A1A1A] border-[#FFE966] shadow-xs"
+                ? "bg-[#FAF5EF] text-[#6E5D4F] border-[#E6D7C8] hover:bg-[#E6D7C8]"
+                : "bg-[#FDECD8] text-[#1A1A1A] border-[#E5C19A] shadow-xs"
             }`}
             title={isMuted ? "Aktifkan Audio Synthesizer" : "Bisukan Audio Feedback"}
           >
-            {isMuted ? <VolumeX className="w-3.5 h-3.5 text-[#9A9A9A]" /> : <Volume2 className="w-3.5 h-3.5 text-[#1A1A1A]" />}
+            {isMuted ? <VolumeX className="w-3.5 h-3.5 text-[#6E5D4F]" /> : <Volume2 className="w-3.5 h-3.5 text-[#1A1A1A]" />}
             <span className="hidden sm:inline">{isMuted ? "Muted" : "Audio"}</span>
           </button>
 
-          <div className="flex items-center gap-2 bg-[#F6F6F6] px-3 py-1.5 rounded-xl border border-[#E8E8E8]">
+          <div className="flex items-center gap-2 bg-[#FAF5EF] px-3 py-1.5 rounded-xl border border-[#E6D7C8]">
             <Sliders className="w-4 h-4 text-[#1A1A1A]" />
             <span className="text-xs font-semibold text-[#1A1A1A]">MODE COBA</span>
             <button
@@ -891,7 +891,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 setPoorPostureDurationSecs(0);
               }}
               className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 ${
-                demoMode ? "bg-[#1A1A1A]" : "bg-[#E8E8E8]"
+                demoMode ? "bg-[#1A1A1A]" : "bg-[#E6D7C8]"
               }`}
               title={demoMode ? "Mode Coba Cepat (15 Detik)" : "Mode Sehat Normal (50 Menit)"}
             >
@@ -909,7 +909,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           {baseline && (
             <button
               onClick={handleRecalibrate}
-              className="text-xs text-[#1A1A1A] hover:bg-[#E8E8E8] px-3 py-1.5 rounded-lg border border-[#E8E8E8] bg-[#F6F6F6] flex items-center gap-1.5 transition-colors"
+              className="text-xs text-[#1A1A1A] hover:bg-[#E6D7C8] px-3 py-1.5 rounded-lg border border-[#E6D7C8] bg-[#FAF5EF] flex items-center gap-1.5 transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Atur Posisi Ulang
             </button>
@@ -1286,10 +1286,10 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           const health = calculatePostureHealthScore(goodPostureSeconds, sittingSeconds);
           const gradeColor =
             health.grade === "SANGAT_BAIK"
-              ? "text-[#1A1A1A] bg-[#CDE8B5] border-[#B6DF97]"
+              ? "text-[#1A1A1A] bg-[#98C5E2] border-[#7BB1D3]"
               : health.grade === "BAIK"
-              ? "text-[#1A1A1A] bg-[#FFF29A] border-[#FFE966]"
-              : "text-[#1A1A1A] bg-[#F7A8B0] border-[#DF7E89]";
+              ? "text-[#1A1A1A] bg-[#FDECD8] border-[#E5C19A]"
+              : "text-[#1A1A1A] bg-[#BF7E46] border-[#A66935]";
           const gradeText =
             health.grade === "SANGAT_BAIK"
               ? "Sangat Baik"
@@ -1298,9 +1298,9 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               : "Perlu Latihan";
 
           return (
-            <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between shadow-xs">
+            <div className="bg-white p-3.5 rounded-2xl border border-[#E6D7C8] flex flex-col justify-between shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-[#9A9A9A] font-semibold">Skor Postur</span>
+                <span className="text-[#6E5D4F] font-semibold">Skor Postur</span>
                 <Award className="w-4 h-4 text-[#1A1A1A]" />
               </div>
               <div className="my-1.5 flex items-baseline justify-between">
@@ -1311,9 +1311,9 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                   {gradeText}
                 </span>
               </div>
-              <div className="w-full bg-[#F6F6F6] h-2 rounded-full overflow-hidden p-0.5 border border-[#E8E8E8]">
+              <div className="w-full bg-[#FAF5EF] h-2 rounded-full overflow-hidden p-0.5 border border-[#E6D7C8]">
                 <div
-                  className="bg-[#CDE8B5] h-full rounded-full transition-all duration-300"
+                  className="bg-[#98C5E2] h-full rounded-full transition-all duration-300"
                   style={{ width: `${health.score}%` }}
                 />
               </div>
@@ -1328,16 +1328,16 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           const isFar = dist.status === "JAUH";
 
           return (
-            <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between shadow-xs">
+            <div className="bg-white p-3.5 rounded-2xl border border-[#E6D7C8] flex flex-col justify-between shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-[#9A9A9A] font-semibold">Jarak Monitor</span>
-                <Ruler className="w-4 h-4 text-[#9A9A9A]" />
+                <span className="text-[#6E5D4F] font-semibold">Jarak Monitor</span>
+                <Ruler className="w-4 h-4 text-[#6E5D4F]" />
               </div>
               <div className="my-1.5">
-                <div className={`text-xl font-extrabold font-mono ${isWarn ? "text-[#F7A8B0]" : isFar ? "text-[#F9B99A]" : "text-[#1A1A1A]"}`}>
+                <div className={`text-xl font-extrabold font-mono ${isWarn ? "text-[#BF7E46]" : isFar ? "text-[#BF7E46]" : "text-[#1A1A1A]"}`}>
                   ~{dist.distanceCm} cm
                 </div>
-                <div className="text-[10px] text-[#9A9A9A] mt-0.5 font-medium">
+                <div className="text-[10px] text-[#6E5D4F] mt-0.5 font-medium">
                   {isWarn ? "Terlalu Dekat (<50cm)" : isFar ? "Jauh (>75cm)" : "Ideal (50-70cm)"}
                 </div>
               </div>
@@ -1346,26 +1346,26 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
         })()}
 
         {/* Card 3: Slouch Incident */}
-        <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between shadow-xs">
-          <div className="text-[#9A9A9A] font-semibold">Peringatan Bungkuk</div>
+        <div className="bg-white p-3.5 rounded-2xl border border-[#E6D7C8] flex flex-col justify-between shadow-xs">
+          <div className="text-[#6E5D4F] font-semibold">Peringatan Bungkuk</div>
           <div className="my-1.5">
             <div className="text-xl font-extrabold text-[#1A1A1A] font-mono">{slouchCount} kali</div>
-            <div className="text-[10px] text-[#9A9A9A] mt-0.5 font-medium">Bahu turun / leher maju</div>
+            <div className="text-[10px] text-[#6E5D4F] mt-0.5 font-medium">Bahu turun / leher maju</div>
           </div>
         </div>
 
         {/* Card 4: Proximity Incident */}
-        <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between shadow-xs">
-          <div className="text-[#9A9A9A] font-semibold">Mata Terlalu Dekat</div>
+        <div className="bg-white p-3.5 rounded-2xl border border-[#E6D7C8] flex flex-col justify-between shadow-xs">
+          <div className="text-[#6E5D4F] font-semibold">Mata Terlalu Dekat</div>
           <div className="my-1.5">
             <div className="text-xl font-extrabold text-[#1A1A1A] font-mono">{tooCloseCount} kali</div>
-            <div className="text-[10px] text-[#9A9A9A] mt-0.5 font-medium">Risiko mata cepat lelah</div>
+            <div className="text-[10px] text-[#6E5D4F] mt-0.5 font-medium">Risiko mata cepat lelah</div>
           </div>
         </div>
 
         {/* Card 5: Work Bout & Session Status */}
-        <div className="bg-white p-3.5 rounded-2xl border border-[#E8E8E8] flex flex-col justify-between col-span-2 sm:col-span-1 shadow-xs">
-          <div className="text-[#9A9A9A] font-semibold">Batas Screen Time</div>
+        <div className="bg-white p-3.5 rounded-2xl border border-[#E6D7C8] flex flex-col justify-between col-span-2 sm:col-span-1 shadow-xs">
+          <div className="text-[#6E5D4F] font-semibold">Batas Screen Time</div>
           <div className="my-1.5">
             <div className="text-base font-bold text-[#1A1A1A]">
               {demoMode ? "15 Detik (Coba)" : "50 Menit (Ideal)"}
@@ -1380,7 +1380,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
       {/* Manual Simulation Controls for Reviewers / Desktop Lab */}
       <div
-        className={`bg-[#F6F6F6] rounded-2xl p-3.5 border border-[#E8E8E8] text-xs flex flex-wrap items-center justify-between gap-2.5 ${
+        className={`bg-[#FAF5EF] rounded-2xl p-3.5 border border-[#E6D7C8] text-xs flex flex-wrap items-center justify-between gap-2.5 ${
           isBreakLocked ? "hidden" : ""
         }`}
       >
@@ -1388,7 +1388,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           <span className="text-[#1A1A1A] font-extrabold block">
             Kontrol Uji Coba Kunci Layar Level OS:
           </span>
-          <span className="text-[11px] text-[#737373]">
+          <span className="text-[11px] text-[#6E5D4F]">
             Klik &ldquo;Mulai Timer Lock OS&rdquo;, lalu pindah ke tab lain atau aplikasi lain. Saat waktu habis, layar otomatis ditarik kembali ke tab ini.
           </span>
         </div>
@@ -1406,7 +1406,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 `Batas Screen Time (${demoMode ? "15 Detik" : "50 Menit"}) Tercapai — Wajib Peregangan Aktif`
               );
             }}
-            className="px-3.5 py-2 bg-[#BDE6F0] hover:bg-[#A5DCE8] text-[#1A1A1A] rounded-xl font-extrabold transition-colors border border-[#A5DCE8] flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-[#98C5E2] hover:bg-[#7BB1D3] text-[#1A1A1A] rounded-xl font-extrabold transition-colors border border-[#7BB1D3] flex items-center gap-1.5"
             title="Mulai hitung mundur dan coba pindah ke tab/aplikasi lain"
           >
             <Play className="w-3.5 h-3.5 fill-[#1A1A1A]" />
@@ -1415,7 +1415,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
           <button
             onClick={() => triggerBreakLockNow("Kunci Layar Istirahat Aktif (Level OS)")}
-            className="px-3.5 py-2 bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] rounded-xl font-extrabold transition-colors border border-[#B6DF97] flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-[#98C5E2] hover:bg-[#7BB1D3] text-[#1A1A1A] rounded-xl font-extrabold transition-colors border border-[#7BB1D3] flex items-center gap-1.5"
             title="Kunci layar level OS sekarang untuk tes Active Break"
           >
             <Lock className="w-3.5 h-3.5" />
@@ -1435,7 +1435,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             className={`px-3.5 py-2 rounded-xl font-extrabold flex items-center gap-1 ${
               sessionActive
                 ? "bg-[#1A1A1A] text-white"
-                : "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
+                : "bg-[#FDECD8] text-[#1A1A1A] border border-[#E5C19A] shadow-softPill"
             }`}
           >
             {sessionActive ? (

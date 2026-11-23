@@ -195,32 +195,32 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* 1. Main Pedometer Sensor Card */}
-      <div className="learnova-card p-6 border-[#E8E8E8] space-y-6">
+      <div className="learnova-card p-6 border-[#E6D7C8] space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F0F0F0] pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F5ECE2] pb-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-11 h-11 rounded-2xl bg-[#98C5E2] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
               <Footprints className="w-6 h-6" />
             </div>
             <div>
               <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
                 Penghitung Langkah Otomatis (Sensor HP)
               </h3>
-              <p className="text-xs text-[#9A9A9A]">
+              <p className="text-xs text-[#6E5D4F]">
                 Mendeteksi ayunan kaki mahasiswa secara real-time via accelerometer perangkat.
               </p>
             </div>
           </div>
 
           {/* Quick Stats Pill */}
-          <div className="flex items-center gap-3 text-xs bg-[#F6F6F6] px-3.5 py-1.5 rounded-2xl border border-[#E8E8E8] self-start sm:self-auto">
+          <div className="flex items-center gap-3 text-xs bg-[#FAF5EF] px-3.5 py-1.5 rounded-2xl border border-[#E6D7C8] self-start sm:self-auto">
             <div>
-              <span className="text-[#9A9A9A] font-semibold">Jarak: </span>
+              <span className="text-[#6E5D4F] font-semibold">Jarak: </span>
               <strong className="text-[#1A1A1A] font-extrabold">{distanceKm} km</strong>
             </div>
-            <span className="text-[#D1D1D1]">|</span>
+            <span className="text-[#E6D7C8]">|</span>
             <div>
-              <span className="text-[#9A9A9A] font-semibold">Kalori: </span>
+              <span className="text-[#6E5D4F] font-semibold">Kalori: </span>
               <strong className="text-[#1A1A1A] font-extrabold">{caloriesBurned} kkal</strong>
             </div>
           </div>
@@ -229,7 +229,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         {/* Main 3 Metric Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Step Count Big Display (Sky Blue Card) */}
-          <div className="bg-[#BDE6F0] rounded-2xl p-5 flex flex-col items-center justify-center text-center relative overflow-hidden text-[#1A1A1A] shadow-xs">
+          <div className="bg-[#98C5E2] rounded-2xl p-5 flex flex-col items-center justify-center text-center relative overflow-hidden text-[#1A1A1A] shadow-xs">
             <div className="text-xs text-[#1A1A1A]/80 font-bold mb-1 flex items-center gap-1.5">
               <Footprints className="w-4 h-4 text-[#1A1A1A]" /> Total Langkah
             </div>
@@ -248,7 +248,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
           </div>
 
           {/* Cadence Display (Mint Green Card) */}
-          <div className="bg-[#CDE8B5] rounded-2xl p-5 flex flex-col items-center justify-center text-center text-[#1A1A1A] shadow-xs">
+          <div className="bg-[#98C5E2] rounded-2xl p-5 flex flex-col items-center justify-center text-center text-[#1A1A1A] shadow-xs">
             <div className="text-xs text-[#1A1A1A]/80 font-bold mb-1 flex items-center gap-1.5">
               <Activity className="w-4 h-4 text-[#1A1A1A]" /> Kecepatan Langkah
             </div>
@@ -261,7 +261,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
           </div>
 
           {/* MET-Minutes (Butter Yellow Card) */}
-          <div className="bg-[#FFF29A] rounded-2xl p-5 flex flex-col items-center justify-center text-center text-[#1A1A1A] shadow-xs">
+          <div className="bg-[#FDECD8] rounded-2xl p-5 flex flex-col items-center justify-center text-center text-[#1A1A1A] shadow-xs">
             <div className="text-xs text-[#1A1A1A]/80 font-bold mb-1 flex items-center gap-1.5">
               <Flame className="w-4 h-4 text-[#1A1A1A] fill-[#1A1A1A]" /> Poin Energi Gerak
             </div>
@@ -276,7 +276,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
 
         {/* Feedback Alert if quick activity logged */}
         {quickActivityFeedback && (
-          <div className="p-3 bg-[#CDE8B5] text-[#166534] text-xs font-bold rounded-2xl flex items-center gap-2 animate-in zoom-in-95 border border-[#B6DF97]">
+          <div className="p-3 bg-[#98C5E2] text-[#1E4E6E] text-xs font-bold rounded-2xl flex items-center gap-2 animate-in zoom-in-95 border border-[#7BB1D3]">
             <Sparkles className="w-4 h-4 shrink-0" />
             <span>{quickActivityFeedback}</span>
           </div>
@@ -284,7 +284,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
 
         {/* Permission Warning if Denied */}
         {permissionState === "denied" && (
-          <div className="p-3 bg-[#F7A8B0]/20 text-[#1A1A1A] text-xs rounded-2xl flex items-center gap-2 border border-[#F7A8B0]">
+          <div className="p-3 bg-[#BF7E46]/20 text-[#1A1A1A] text-xs rounded-2xl flex items-center gap-2 border border-[#BF7E46]">
             <AlertTriangle className="w-4 h-4 shrink-0 text-[#1A1A1A]" />
             <span>
               Izin sensor gerak ditolak oleh peramban. Di iOS Safari, silakan izinkan akses sensor gerak di pengaturan situs.
@@ -293,7 +293,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         )}
 
         {!sensorSupported && (
-          <div className="p-3 bg-[#FFF29A]/50 text-[#1A1A1A] text-xs rounded-2xl flex items-center gap-2 border border-[#FFE966]">
+          <div className="p-3 bg-[#FDECD8]/50 text-[#1A1A1A] text-xs rounded-2xl flex items-center gap-2 border border-[#E5C19A]">
             <Smartphone className="w-4 h-4 shrink-0" />
             <span>
               Perangkat desktop tidak memiliki sensor accelerometer fisik. Anda dapat menggunakan tombol <strong>Catat Aktivitas Cepat</strong> di bawah untuk memasukkan aktivitas kampus secara manual.
@@ -302,15 +302,15 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         )}
 
         {/* Sensor Control Buttons */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#F0F0F0]">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#F5ECE2]">
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={handleToggleTracking}
               className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold flex items-center gap-2 transition-colors shadow-xs ${
                 isTracking
-                  ? "bg-[#F7A8B0] text-[#1A1A1A] hover:bg-[#F27885]"
-                  : "bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
+                  ? "bg-[#BF7E46] text-[#1A1A1A] hover:bg-[#A66935]"
+                  : "bg-[#FDECD8] hover:bg-[#E5C19A] text-[#1A1A1A] border border-[#E5C19A] shadow-softPill"
               }`}
             >
               {isTracking ? (
@@ -327,7 +327,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
             <button
               type="button"
               onClick={handleReset}
-              className="px-3.5 py-2.5 rounded-2xl text-xs font-semibold border border-[#E8E8E8] hover:bg-[#F6F6F6] text-[#1A1A1A] flex items-center gap-1.5 transition-colors"
+              className="px-3.5 py-2.5 rounded-2xl text-xs font-semibold border border-[#E6D7C8] hover:bg-[#FAF5EF] text-[#1A1A1A] flex items-center gap-1.5 transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" /> Reset
             </button>
@@ -339,7 +339,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
               onClick={handleSaveToActivity}
               className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold flex items-center gap-1.5 transition-colors ${
                 savedSuccess
-                  ? "bg-[#CDE8B5] text-[#1A1A1A] border border-[#B6DF97]"
+                  ? "bg-[#98C5E2] text-[#1A1A1A] border border-[#7BB1D3]"
                   : "bg-[#1A1A1A] hover:bg-black text-white shadow-softPill"
               }`}
             >
@@ -356,22 +356,22 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       </div>
 
       {/* 2. SUPPORTING FEATURE 1: MILESTONE RUTE KAMPUS */}
-      <div className="learnova-card p-6 border-[#E8E8E8] space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F0F0F0] pb-3">
+      <div className="learnova-card p-6 border-[#E6D7C8] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F5ECE2] pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#CDE8B5] text-[#1A1A1A] flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-xl bg-[#98C5E2] text-[#1A1A1A] flex items-center justify-center font-bold">
               <Compass className="w-4 h-4" />
             </div>
             <div>
               <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
                 Milestone Rute Kampus
               </h4>
-              <p className="text-[11px] text-[#9A9A9A]">
+              <p className="text-[11px] text-[#6E5D4F]">
                 Progres ekuivalen langkah Anda jika berjalan mengelilingi rute kampus hari ini.
               </p>
             </div>
           </div>
-          <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] self-start sm:self-auto">
+          <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#FDECD8] text-[#1A1A1A] border border-[#E5C19A] self-start sm:self-auto">
             {dailyTargetProgress}% Target Harian (6.000 Langkah)
           </span>
         </div>
@@ -386,16 +386,16 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
                 key={milestone.steps}
                 className={`p-3.5 rounded-2xl border transition-all ${
                   isReached
-                    ? "bg-[#CDE8B5]/25 border-[#CDE8B5]"
-                    : "bg-[#FAFAFA] border-[#E8E8E8]"
+                    ? "bg-[#98C5E2]/25 border-[#98C5E2]"
+                    : "bg-[#F5ECE2] border-[#E6D7C8]"
                 }`}
               >
                 <div className="flex items-center justify-between gap-1 mb-2">
-                  <span className="text-[10px] font-bold text-[#9A9A9A]">
+                  <span className="text-[10px] font-bold text-[#6E5D4F]">
                     {milestone.landmark}
                   </span>
                   {isReached && (
-                    <span className="w-5 h-5 rounded-full bg-[#CDE8B5] text-[#166534] flex items-center justify-center text-[10px] font-extrabold">
+                    <span className="w-5 h-5 rounded-full bg-[#98C5E2] text-[#1E4E6E] flex items-center justify-center text-[10px] font-extrabold">
                       ✓
                     </span>
                   )}
@@ -404,15 +404,15 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
                 <div className="font-heading font-extrabold text-sm text-[#1A1A1A]">
                   {milestone.steps.toLocaleString()} Langkah
                 </div>
-                <p className="text-[11px] text-[#737373] mt-0.5 truncate">
+                <p className="text-[11px] text-[#6E5D4F] mt-0.5 truncate">
                   {milestone.label}
                 </p>
 
                 {/* Progress Mini-Bar */}
-                <div className="mt-3 w-full bg-[#E8E8E8] h-1.5 rounded-full overflow-hidden">
+                <div className="mt-3 w-full bg-[#E6D7C8] h-1.5 rounded-full overflow-hidden">
                   <div
                     className={`h-full transition-all duration-500 ${
-                      isReached ? "bg-[#166534]" : "bg-[#1A1A1A]"
+                      isReached ? "bg-[#1E4E6E]" : "bg-[#1A1A1A]"
                     }`}
                     style={{ width: `${stepProgress}%` }}
                   />
@@ -424,16 +424,16 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       </div>
 
       {/* 3. SUPPORTING FEATURE 2: PENCATAT OLAHRAGA CEPAT KAMPUS */}
-      <div className="learnova-card p-6 border-[#E8E8E8] space-y-4">
-        <div className="flex items-center gap-2.5 border-b border-[#F0F0F0] pb-3">
-          <div className="w-8 h-8 rounded-xl bg-[#FFF29A] text-[#1A1A1A] flex items-center justify-center font-bold">
+      <div className="learnova-card p-6 border-[#E6D7C8] space-y-4">
+        <div className="flex items-center gap-2.5 border-b border-[#F5ECE2] pb-3">
+          <div className="w-8 h-8 rounded-xl bg-[#FDECD8] text-[#1A1A1A] flex items-center justify-center font-bold">
             <TrendingUp className="w-4 h-4" />
           </div>
           <div>
             <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
               Pencatat Cepat Aktivitas Fisik Kampus
             </h4>
-            <p className="text-[11px] text-[#9A9A9A]">
+            <p className="text-[11px] text-[#6E5D4F]">
               Tidak membawa HP di saku saat bergerak? Tambahkan aktivitas non-jalan dengan satu klik.
             </p>
           </div>
@@ -444,18 +444,18 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
           <button
             type="button"
             onClick={() => handleLogQuickActivity(450, 40, "Naik Tangga Kampus")}
-            className="p-4 rounded-2xl bg-[#FAFAFA] hover:bg-white border border-[#E8E8E8] hover:border-[#1A1A1A] transition-all text-left space-y-1.5 shadow-2xs group cursor-pointer"
+            className="p-4 rounded-2xl bg-[#F5ECE2] hover:bg-white border border-[#E6D7C8] hover:border-[#1A1A1A] transition-all text-left space-y-1.5 shadow-2xs group cursor-pointer"
           >
             <div className="flex items-center justify-between">
               <span className="text-xl">🪜</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FFF29A] text-[#1A1A1A]">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FDECD8] text-[#1A1A1A]">
                 +40 MET-m
               </span>
             </div>
             <div className="font-heading font-extrabold text-xs text-[#1A1A1A] group-hover:text-black">
               Naik Tangga Gedung Kuliah
             </div>
-            <p className="text-[11px] text-[#9A9A9A]">
+            <p className="text-[11px] text-[#6E5D4F]">
               5 menit • Setara ~450 langkah
             </p>
           </button>
@@ -464,18 +464,18 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
           <button
             type="button"
             onClick={() => handleLogQuickActivity(1200, 90, "Bersepeda ke Kampus")}
-            className="p-4 rounded-2xl bg-[#FAFAFA] hover:bg-white border border-[#E8E8E8] hover:border-[#1A1A1A] transition-all text-left space-y-1.5 shadow-2xs group cursor-pointer"
+            className="p-4 rounded-2xl bg-[#F5ECE2] hover:bg-white border border-[#E6D7C8] hover:border-[#1A1A1A] transition-all text-left space-y-1.5 shadow-2xs group cursor-pointer"
           >
             <div className="flex items-center justify-between">
               <span className="text-xl">🚲</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#CDE8B5] text-[#1A1A1A]">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#98C5E2] text-[#1A1A1A]">
                 +90 MET-m
               </span>
             </div>
             <div className="font-heading font-extrabold text-xs text-[#1A1A1A] group-hover:text-black">
               Bersepeda ke Kampus
             </div>
-            <p className="text-[11px] text-[#9A9A9A]">
+            <p className="text-[11px] text-[#6E5D4F]">
               15 menit • Setara ~1.200 langkah
             </p>
           </button>
@@ -484,18 +484,18 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
           <button
             type="button"
             onClick={() => handleLogQuickActivity(2500, 180, "Olahraga Sore")}
-            className="p-4 rounded-2xl bg-[#FAFAFA] hover:bg-white border border-[#E8E8E8] hover:border-[#1A1A1A] transition-all text-left space-y-1.5 shadow-2xs group cursor-pointer"
+            className="p-4 rounded-2xl bg-[#F5ECE2] hover:bg-white border border-[#E6D7C8] hover:border-[#1A1A1A] transition-all text-left space-y-1.5 shadow-2xs group cursor-pointer"
           >
             <div className="flex items-center justify-between">
               <span className="text-xl">🏸</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#BDE6F0] text-[#1A1A1A]">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#98C5E2] text-[#1A1A1A]">
                 +180 MET-m
               </span>
             </div>
             <div className="font-heading font-extrabold text-xs text-[#1A1A1A] group-hover:text-black">
               Futsal / Badminton / Jogging
             </div>
-            <p className="text-[11px] text-[#9A9A9A]">
+            <p className="text-[11px] text-[#6E5D4F]">
               30 menit • Setara ~2.500 langkah
             </p>
           </button>

@@ -20,11 +20,11 @@ interface ProfileViewProps {
 }
 
 const AVATAR_BG_COLORS = [
-  { name: "Soft Pink", hex: "#F7A8B0" },
-  { name: "Sky Blue", hex: "#BDE6F0" },
-  { name: "Mint Green", hex: "#CDE8B5" },
-  { name: "Butter Yellow", hex: "#FFF29A" },
-  { name: "Lavender", hex: "#C9B3E6" },
+  { name: "Soft Pink", hex: "#BF7E46" },
+  { name: "Sky Blue", hex: "#98C5E2" },
+  { name: "Mint Green", hex: "#98C5E2" },
+  { name: "Butter Yellow", hex: "#FDECD8" },
+  { name: "Lavender", hex: "#BF7E46" },
 ];
 
 const DEPARTMENTS = [
@@ -50,7 +50,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [semester, setSemester] = useState("Semester 3");
   const [weeklyMetsTarget, setWeeklyMetsTarget] = useState(currentUser?.weeklyMetsTarget ?? 1500);
   const [selectedAvatarColor, setSelectedAvatarColor] = useState(
-    localStorage.getItem("cf_avatar_color") || "#F7A8B0"
+    localStorage.getItem("cf_avatar_color") || "#BF7E46"
   );
 
   // Status feedback
@@ -104,23 +104,23 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-12">
       {/* 1. Header Banner */}
-      <div className="learnova-card p-6 border-[#E8E8E8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="learnova-card p-6 border-[#E6D7C8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-3xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-14 h-14 rounded-3xl bg-[#98C5E2] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
             <User className="w-7 h-7" />
           </div>
           <div>
             <h1 className="font-heading font-extrabold text-2xl text-[#1A1A1A]">
               Atur Profil Pengguna
             </h1>
-            <p className="text-xs text-[#9A9A9A] mt-0.5">
+            <p className="text-xs text-[#6E5D4F] mt-0.5">
               Kelola data identitas dan informasi akademik mahasiswa.
             </p>
           </div>
         </div>
 
         {showSavedFeedback && (
-          <div className="flex items-center gap-2 bg-[#CDE8B5] text-[#1A1A1A] px-3.5 py-1.5 rounded-full text-xs font-bold border border-[#b2d992] animate-in fade-in slide-in-from-top-1">
+          <div className="flex items-center gap-2 bg-[#98C5E2] text-[#1A1A1A] px-3.5 py-1.5 rounded-full text-xs font-bold border border-[#7BB1D3] animate-in fade-in slide-in-from-top-1">
             <CheckCircle2 className="w-4 h-4 text-emerald-800" />
             <span>Profil berhasil disimpan!</span>
           </div>
@@ -128,7 +128,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       </div>
 
       {/* 2. Gamified Profile & Avatar Card */}
-      <div className="learnova-card p-6 border-[#E8E8E8] space-y-6">
+      <div className="learnova-card p-6 border-[#E6D7C8] space-y-6">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
           {/* Avatar Circle with Initial */}
           <div className="flex flex-col items-center gap-2.5">
@@ -138,7 +138,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             >
               {name ? name.charAt(0).toUpperCase() : "M"}
             </div>
-            <span className="text-[11px] font-bold text-[#9A9A9A]">Pilihan Warna Avatar</span>
+            <span className="text-[11px] font-bold text-[#6E5D4F]">Pilihan Warna Avatar</span>
             <div className="flex items-center gap-2">
               {AVATAR_BG_COLORS.map((col) => (
                 <button
@@ -162,41 +162,41 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                 <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">{name}</h2>
               </div>
-              <p className="text-xs text-[#9A9A9A] font-medium mt-0.5">
+              <p className="text-xs text-[#6E5D4F] font-medium mt-0.5">
                 {department} • NIM {nim}
               </p>
             </div>
 
             {/* Gamification Badges */}
             <div className="grid grid-cols-3 gap-2.5 pt-1">
-              <div className="bg-[#F6F6F6] border border-[#E8E8E8] rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
-                <div className="flex items-center gap-1 text-[#F9B99A]">
-                  <Flame className="w-4 h-4 fill-[#F9B99A]" />
+              <div className="bg-[#FAF5EF] border border-[#E6D7C8] rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
+                <div className="flex items-center gap-1 text-[#BF7E46]">
+                  <Flame className="w-4 h-4 fill-[#BF7E46]" />
                   <span className="font-extrabold text-sm text-[#1A1A1A]">
                     {currentUser?.currentStreakDays ?? 1}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#9A9A9A] font-medium mt-0.5">Hari Streak</span>
+                <span className="text-[10px] text-[#6E5D4F] font-medium mt-0.5">Hari Streak</span>
               </div>
 
-              <div className="bg-[#F6F6F6] border border-[#E8E8E8] rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
+              <div className="bg-[#FAF5EF] border border-[#E6D7C8] rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
                 <div className="flex items-center gap-1 text-amber-500">
                   <Award className="w-4 h-4" />
                   <span className="font-extrabold text-sm text-[#1A1A1A]">
                     {currentUser?.xpPoints ?? 0}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#9A9A9A] font-medium mt-0.5">XP Terkumpul</span>
+                <span className="text-[10px] text-[#6E5D4F] font-medium mt-0.5">XP Terkumpul</span>
               </div>
 
-              <div className="bg-[#F6F6F6] border border-[#E8E8E8] rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
+              <div className="bg-[#FAF5EF] border border-[#E6D7C8] rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
                 <div className="flex items-center gap-1 text-emerald-600">
                   <Sparkles className="w-4 h-4" />
                   <span className="font-extrabold text-sm text-[#1A1A1A]">
                     Level {Math.max(1, Math.floor((currentUser?.xpPoints ?? 0) / 100) + 1)}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#9A9A9A] font-medium mt-0.5">Habit Champion</span>
+                <span className="text-[10px] text-[#6E5D4F] font-medium mt-0.5">Habit Champion</span>
               </div>
             </div>
           </div>
@@ -205,8 +205,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {/* 3. Form Input Data Pribadi & Akademik */}
       <form onSubmit={handleSave} className="space-y-6">
-        <div className="learnova-card p-6 border-[#E8E8E8] space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-[#E8E8E8]">
+        <div className="learnova-card p-6 border-[#E6D7C8] space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-[#E6D7C8]">
             <BookOpen className="w-4 h-4 text-[#1A1A1A]" />
             <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
               Informasi Mahasiswa &amp; Kontak
@@ -219,14 +219,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 Nama Lengkap
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-[#9A9A9A] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <User className="w-4 h-4 text-[#6E5D4F] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Masukkan nama lengkap"
                   required
-                  className="w-full pl-10 pr-3 py-2.5 text-xs bg-[#F6F6F6] border border-[#E8E8E8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#BDE6F0] transition-all font-medium"
+                  className="w-full pl-10 pr-3 py-2.5 text-xs bg-[#FAF5EF] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#98C5E2] transition-all font-medium"
                 />
               </div>
             </div>
@@ -241,7 +241,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 onChange={(e) => setNim(e.target.value)}
                 placeholder="43324001"
                 required
-                className="w-full px-3.5 py-2.5 text-xs bg-[#F6F6F6] border border-[#E8E8E8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#BDE6F0] transition-all font-medium"
+                className="w-full px-3.5 py-2.5 text-xs bg-[#FAF5EF] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#98C5E2] transition-all font-medium"
               />
             </div>
 
@@ -250,14 +250,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 Email Kampus
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-[#9A9A9A] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-[#6E5D4F] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nama@campusflow.id"
                   required
-                  className="w-full pl-10 pr-3 py-2.5 text-xs bg-[#F6F6F6] border border-[#E8E8E8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#BDE6F0] transition-all font-medium"
+                  className="w-full pl-10 pr-3 py-2.5 text-xs bg-[#FAF5EF] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#98C5E2] transition-all font-medium"
                 />
               </div>
             </div>
@@ -269,7 +269,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <select
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className="w-full px-3 py-2.5 text-xs bg-[#F6F6F6] border border-[#E8E8E8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#BDE6F0] transition-all font-medium"
+                className="w-full px-3 py-2.5 text-xs bg-[#FAF5EF] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#98C5E2] transition-all font-medium"
               >
                 {DEPARTMENTS.map((dept) => (
                   <option key={dept} value={dept}>
@@ -286,7 +286,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <select
                 value={semester}
                 onChange={(e) => setSemester(e.target.value)}
-                className="w-full px-3 py-2.5 text-xs bg-[#F6F6F6] border border-[#E8E8E8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#BDE6F0] transition-all font-medium"
+                className="w-full px-3 py-2.5 text-xs bg-[#FAF5EF] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#98C5E2] transition-all font-medium"
               >
                 {Array.from({ length: 8 }, (_, i) => `Semester ${i + 1}`).map((sem) => (
                   <option key={sem} value={sem}>
@@ -311,7 +311,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 setWeeklyMetsTarget(currentUser.weeklyMetsTarget);
               }
             }}
-            className="px-4 py-2.5 rounded-full text-xs font-bold text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#F6F6F6] transition-colors flex items-center gap-1.5"
+            className="px-4 py-2.5 rounded-full text-xs font-bold text-[#6E5D4F] hover:text-[#1A1A1A] hover:bg-[#FAF5EF] transition-colors flex items-center gap-1.5"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset</span>
@@ -320,7 +320,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <button
             type="submit"
             disabled={isSaving}
-            className="px-6 py-2.5 rounded-full text-xs font-bold text-[#1A1A1A] bg-[#FFF29A] hover:bg-[#FFE966] active:scale-95 transition-all shadow-xs border border-[#FFE966] flex items-center gap-2"
+            className="px-6 py-2.5 rounded-full text-xs font-bold text-[#1A1A1A] bg-[#FDECD8] hover:bg-[#E5C19A] active:scale-95 transition-all shadow-xs border border-[#E5C19A] flex items-center gap-2"
           >
             {isSaving ? (
               <span>Menyimpan...</span>

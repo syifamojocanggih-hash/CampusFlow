@@ -37,11 +37,11 @@ export const DesktopSidebar: React.FC<NavbarProps> = ({
   onBackToLanding,
 }) => {
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-[#E8E8E8] min-h-screen p-5 fixed top-0 left-0 bottom-0 z-30 justify-between select-none shadow-[2px_0_10px_rgba(26,26,26,0.03)]">
+    <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-[#E6D7C8] min-h-screen p-5 fixed top-0 left-0 bottom-0 z-30 justify-between select-none shadow-[2px_0_10px_rgba(26,26,26,0.03)]">
       <div className="space-y-6">
         {/* Brand Header */}
         <div className="flex items-center gap-3 px-2">
-          <div className="w-10 h-10 rounded-2xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shadow-xs">
+          <div className="w-10 h-10 rounded-2xl bg-[#98C5E2] flex items-center justify-center text-[#1A1A1A] shadow-xs">
             <GraduationCap className="w-6 h-6" />
           </div>
           <div>
@@ -61,11 +61,11 @@ export const DesktopSidebar: React.FC<NavbarProps> = ({
                 onClick={() => onSelectTab(item.key)}
                 className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-semibold transition-all duration-200 text-left ${
                   isActive
-                    ? "bg-[#FFF29A] text-[#1A1A1A] font-extrabold shadow-sm"
-                    : "text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#F6F6F6]"
+                    ? "bg-[#FDECD8] text-[#1A1A1A] font-extrabold shadow-sm"
+                    : "text-[#6E5D4F] hover:text-[#1A1A1A] hover:bg-[#FAF5EF]"
                 }`}
               >
-                <span className={`${isActive ? "text-[#1A1A1A]" : "text-[#9A9A9A]"}`}>
+                <span className={`${isActive ? "text-[#1A1A1A]" : "text-[#6E5D4F]"}`}>
                   {item.icon}
                 </span>
                 <span>{item.label}</span>
@@ -76,22 +76,22 @@ export const DesktopSidebar: React.FC<NavbarProps> = ({
       </div>
 
       {/* User Profile Snippet & Logout Button in Sidebar */}
-      <div className="pt-4 border-t border-[#E8E8E8] space-y-2">
+      <div className="pt-4 border-t border-[#E6D7C8] space-y-2">
         <button
           onClick={() => onSelectTab("profile")}
           className={`w-full flex items-center gap-3 p-2 rounded-2xl transition-all text-left ${
             activeTab === "profile"
-              ? "bg-[#FFF29A] ring-2 ring-[#FFE966] shadow-xs"
-              : "hover:bg-[#F6F6F6]"
+              ? "bg-[#FDECD8] ring-2 ring-[#E5C19A] shadow-xs"
+              : "hover:bg-[#FAF5EF]"
           }`}
           title="Atur Profil Pengguna"
         >
-          <div className="w-10 h-10 rounded-full bg-[#F7A8B0] text-[#1A1A1A] font-bold flex items-center justify-center text-sm shadow-xs ring-2 ring-white shrink-0">
+          <div className="w-10 h-10 rounded-full bg-[#BF7E46] text-[#1A1A1A] font-bold flex items-center justify-center text-sm shadow-xs ring-2 ring-white shrink-0">
             {userName ? userName.charAt(0).toUpperCase() : "M"}
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold text-[#1A1A1A] truncate">{userName}</p>
-            <p className="text-[11px] text-[#9A9A9A] font-medium truncate flex items-center justify-between">
+            <p className="text-[11px] text-[#6E5D4F] font-medium truncate flex items-center justify-between">
               <span>Mahasiswa Aktif</span>
               <span className="text-[10px] text-blue-600 font-bold">Edit &rarr;</span>
             </p>
@@ -101,10 +101,10 @@ export const DesktopSidebar: React.FC<NavbarProps> = ({
         {onBackToLanding && (
           <button
             onClick={onBackToLanding}
-            className="w-full py-2.5 px-3 rounded-xl text-xs font-bold text-[#9A9A9A] hover:text-rose-600 hover:bg-rose-50/70 transition-all flex items-center gap-2 group"
+            className="w-full py-2.5 px-3 rounded-xl text-xs font-bold text-[#6E5D4F] hover:text-rose-600 hover:bg-rose-50/70 transition-all flex items-center gap-2 group"
             title="Log out"
           >
-            <LogOut className="w-4 h-4 text-[#9A9A9A] group-hover:text-rose-500 transition-colors" />
+            <LogOut className="w-4 h-4 text-[#6E5D4F] group-hover:text-rose-500 transition-colors" />
             <span>Log out</span>
           </button>
         )}
@@ -132,7 +132,7 @@ export const DesktopTopHeader: React.FC<{
               👋
             </span>
           </h1>
-          <p className="text-xs text-[#9A9A9A] font-medium mt-0.5">
+          <p className="text-xs text-[#6E5D4F] font-medium mt-0.5">
             Your boards look so good! Let&apos;s keep the active momentum.
           </p>
         </div>
@@ -143,11 +143,11 @@ export const DesktopTopHeader: React.FC<{
       <div className="flex items-center gap-3">
         {/* Search Bar */}
         <div className="relative">
-          <Search className="w-4 h-4 text-[#9A9A9A] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-[#6E5D4F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             placeholder="Search metric, activity, or class..."
-            className="pl-10 pr-4 py-2.5 text-xs bg-[#F6F6F6] border border-[#E8E8E8] rounded-full w-64 focus:outline-none focus:bg-white focus:border-[#BDE6F0] text-[#1A1A1A] placeholder-[#9A9A9A] shadow-xs transition-all"
+            className="pl-10 pr-4 py-2.5 text-xs bg-[#FAF5EF] border border-[#E6D7C8] rounded-full w-64 focus:outline-none focus:bg-white focus:border-[#98C5E2] text-[#1A1A1A] placeholder-[#6E5D4F] shadow-xs transition-all"
           />
         </div>
 
@@ -157,8 +157,8 @@ export const DesktopTopHeader: React.FC<{
             onClick={() => setIsNotifOpen((prev) => !prev)}
             className={`relative w-10 h-10 rounded-full border flex items-center justify-center transition-colors shadow-xs ${
               isNotifOpen
-                ? "bg-[#FFF29A] border-[#FFE966] text-[#1A1A1A]"
-                : "bg-[#F6F6F6] border-[#E8E8E8] text-[#1A1A1A] hover:bg-white"
+                ? "bg-[#FDECD8] border-[#E5C19A] text-[#1A1A1A]"
+                : "bg-[#FAF5EF] border-[#E6D7C8] text-[#1A1A1A] hover:bg-white"
             }`}
             title="Notifikasi & Pengingat"
             aria-label="Buka notifikasi"
@@ -166,7 +166,7 @@ export const DesktopTopHeader: React.FC<{
           >
             <Bell className="w-4 h-4" />
             {unreadNotifCount > 0 && (
-              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#F7A8B0] text-[#9F1239] font-extrabold text-[10px] flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white shadow-xs animate-in zoom-in-75">
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#BF7E46] text-[#231408] font-extrabold text-[10px] flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white shadow-xs animate-in zoom-in-75">
                 {unreadNotifCount}
               </span>
             )}
@@ -187,8 +187,8 @@ export const DesktopTopHeader: React.FC<{
             onClick={() => onSelectTab("settings")}
             className={`w-10 h-10 rounded-full border flex items-center justify-center transition-colors shadow-xs ${
               activeTab === "settings"
-                ? "bg-[#FFF29A] border-[#FFE966] text-[#1A1A1A]"
-                : "bg-[#F6F6F6] border-[#E8E8E8] text-[#1A1A1A] hover:bg-white"
+                ? "bg-[#FDECD8] border-[#E5C19A] text-[#1A1A1A]"
+                : "bg-[#FAF5EF] border-[#E6D7C8] text-[#1A1A1A] hover:bg-white"
             }`}
             title="Pengaturan"
             aria-label="Pengaturan"
@@ -203,8 +203,8 @@ export const DesktopTopHeader: React.FC<{
             onClick={() => onSelectTab("profile")}
             className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all shadow-xs font-bold text-xs ring-2 ring-white active:scale-95 ${
               activeTab === "profile"
-                ? "bg-[#FFF29A] border-[#FFE966] text-[#1A1A1A] scale-105"
-                : "bg-[#F7A8B0] border-transparent text-[#1A1A1A] hover:opacity-90"
+                ? "bg-[#FDECD8] border-[#E5C19A] text-[#1A1A1A] scale-105"
+                : "bg-[#BF7E46] border-transparent text-[#1A1A1A] hover:opacity-90"
             }`}
             title="Atur Profile Pengguna"
             aria-label="Atur Profile Pengguna"
@@ -237,7 +237,7 @@ export const MobileHeader: React.FC<{
               👋
             </span>
           </h1>
-          <p className="text-[11px] text-[#9A9A9A] font-medium">
+          <p className="text-[11px] text-[#6E5D4F] font-medium">
             Duduk Sehat &bull; Gerak Terukur
           </p>
         </div>
@@ -252,8 +252,8 @@ export const MobileHeader: React.FC<{
             onClick={() => setIsNotifOpen((prev) => !prev)}
             className={`relative w-9 h-9 rounded-full border flex items-center justify-center transition-colors shadow-xs ${
               isNotifOpen
-                ? "bg-[#FFF29A] border-[#FFE966] text-[#1A1A1A]"
-                : "bg-white border-[#E8E8E8] text-[#1A1A1A]"
+                ? "bg-[#FDECD8] border-[#E5C19A] text-[#1A1A1A]"
+                : "bg-white border-[#E6D7C8] text-[#1A1A1A]"
             }`}
             title="Notifikasi"
             aria-label="Buka notifikasi"
@@ -261,7 +261,7 @@ export const MobileHeader: React.FC<{
           >
             <Bell className="w-4 h-4" />
             {unreadNotifCount > 0 && (
-              <span className="w-2.5 h-2.5 rounded-full bg-[#F7A8B0] absolute top-1 right-1 ring-2 ring-white" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#BF7E46] absolute top-1 right-1 ring-2 ring-white" />
             )}
           </button>
 
@@ -278,20 +278,20 @@ export const MobileHeader: React.FC<{
         <div className="relative">
           <button
             onClick={() => setUserMenuOpen((prev) => !prev)}
-            className="w-9 h-9 rounded-full bg-[#F7A8B0] text-[#1A1A1A] font-bold flex items-center justify-center text-xs shadow-xs ring-2 ring-white focus:outline-none cursor-pointer"
+            className="w-9 h-9 rounded-full bg-[#BF7E46] text-[#1A1A1A] font-bold flex items-center justify-center text-xs shadow-xs ring-2 ring-white focus:outline-none cursor-pointer"
             aria-label="Buka menu user"
             aria-expanded={userMenuOpen}
           >
             {userName ? userName.charAt(0).toUpperCase() : "H"}
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FFF29A] absolute -top-0.5 -right-0.5 ring-2 ring-white" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FDECD8] absolute -top-0.5 -right-0.5 ring-2 ring-white" />
           </button>
 
           {/* User Dropdown Menu on Mobile */}
           {userMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-[#E8E8E8] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-3.5 py-2 border-b border-[#F6F6F6]">
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-[#E6D7C8] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-3.5 py-2 border-b border-[#FAF5EF]">
                 <p className="text-xs font-bold text-[#1A1A1A] truncate">{userName}</p>
-                <p className="text-[10px] text-[#9A9A9A] font-medium">Mahasiswa Aktif</p>
+                <p className="text-[10px] text-[#6E5D4F] font-medium">Mahasiswa Aktif</p>
               </div>
 
               <div className="p-1 space-y-0.5">
@@ -303,8 +303,8 @@ export const MobileHeader: React.FC<{
                     }}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-left transition-colors ${
                       activeTab === "profile"
-                        ? "bg-[#FFF29A] text-[#1A1A1A] font-bold"
-                        : "text-[#1A1A1A] hover:bg-[#F6F6F6]"
+                        ? "bg-[#FDECD8] text-[#1A1A1A] font-bold"
+                        : "text-[#1A1A1A] hover:bg-[#FAF5EF]"
                     }`}
                   >
                     <User className="w-4 h-4 text-[#1A1A1A]" />
@@ -320,8 +320,8 @@ export const MobileHeader: React.FC<{
                     }}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-left transition-colors ${
                       activeTab === "settings"
-                        ? "bg-[#FFF29A] text-[#1A1A1A] font-bold"
-                        : "text-[#1A1A1A] hover:bg-[#F6F6F6]"
+                        ? "bg-[#FDECD8] text-[#1A1A1A] font-bold"
+                        : "text-[#1A1A1A] hover:bg-[#FAF5EF]"
                     }`}
                   >
                     <Settings className="w-4 h-4 text-[#1A1A1A]" />
@@ -354,7 +354,7 @@ export const MobileBottomNav: React.FC<NavbarProps> = ({ activeTab, onSelectTab 
   const activeIndex = navItems.findIndex((item) => item.key === activeTab);
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E8E8E8] px-2 py-2 shadow-lg safe-bottom">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E6D7C8] px-2 py-2 shadow-lg safe-bottom">
       <div className="relative grid grid-cols-5 items-center max-w-md mx-auto">
         {/* Animated Sliding & Bouncing Yellow Pill Indicator */}
         {activeIndex !== -1 && (
@@ -368,7 +368,7 @@ export const MobileBottomNav: React.FC<NavbarProps> = ({ activeTab, onSelectTab 
           >
             <div
               key={activeTab}
-              className="w-[84%] h-[92%] bg-[#FFF29A] border border-[#FFE966] rounded-2xl shadow-xs animate-nav-bounce"
+              className="w-[84%] h-[92%] bg-[#FDECD8] border border-[#E5C19A] rounded-2xl shadow-xs animate-nav-bounce"
             />
           </div>
         )}
@@ -382,12 +382,12 @@ export const MobileBottomNav: React.FC<NavbarProps> = ({ activeTab, onSelectTab 
               className={`relative z-10 flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-300 ${
                 isActive
                   ? "text-[#1A1A1A] font-extrabold"
-                  : "text-[#9A9A9A] hover:text-[#1A1A1A] font-medium"
+                  : "text-[#6E5D4F] hover:text-[#1A1A1A] font-medium"
               }`}
             >
               <span
                 className={`transition-all duration-300 ${
-                  isActive ? "text-[#1A1A1A] scale-110 -translate-y-0.5" : "text-[#9A9A9A] scale-100"
+                  isActive ? "text-[#1A1A1A] scale-110 -translate-y-0.5" : "text-[#6E5D4F] scale-100"
                 }`}
               >
                 {item.icon}

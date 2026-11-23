@@ -99,7 +99,7 @@ export function App() {
 
   // 2. Tampilkan Aplikasi Dashboard Utama
   return (
-    <div className="min-h-screen bg-[#F6F6F6] flex flex-col text-[#1A1A1A]">
+    <div className="min-h-screen bg-[#FAF5EF] flex flex-col text-[#1A1A1A]">
       {/* 1. Desktop Left Sidebar */}
       <DesktopSidebar
         activeTab={activeTab}
@@ -132,16 +132,16 @@ export function App() {
           <div
             className={`mb-5 rounded-2xl p-3.5 border transition-all flex flex-wrap items-center justify-between gap-3 text-xs ${
               osLock.isArmed
-                ? "bg-[#FFF29A]/90 border-[#FFE966] text-[#1A1A1A] shadow-xs"
-                : "bg-white border-[#E8E8E8] text-[#1A1A1A] shadow-2xs"
+                ? "bg-[#FDECD8]/90 border-[#E5C19A] text-[#1A1A1A] shadow-xs"
+                : "bg-white border-[#E6D7C8] text-[#1A1A1A] shadow-2xs"
             }`}
           >
             <div className="flex items-center gap-3">
               <div
                 className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                   osLock.isArmed
-                    ? "bg-[#1A1A1A] text-[#FFF29A]"
-                    : "bg-[#BDE6F0] text-[#1A1A1A]"
+                    ? "bg-[#1A1A1A] text-[#FDECD8]"
+                    : "bg-[#98C5E2] text-[#1A1A1A]"
                 }`}
               >
                 {osLock.isArmed ? <Timer className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
@@ -152,7 +152,7 @@ export function App() {
                     Proteksi Screen Time Level OS
                   </span>
                   {osLock.isArmed && osLock.remainingSeconds !== null && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#1A1A1A] text-[#FFF29A] font-mono font-extrabold text-xs">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#1A1A1A] text-[#FDECD8] font-mono font-extrabold text-xs">
                       {Math.floor(osLock.remainingSeconds / 60)
                         .toString()
                         .padStart(2, "0")}
@@ -189,7 +189,7 @@ export function App() {
                         "Batas Screen Time (15 Detik Mode Uji) Tercapai — Wajib Peregangan Aktif"
                       )
                     }
-                    className="px-3 py-1.5 rounded-xl bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] border border-[#FFE966] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl bg-[#FDECD8] hover:bg-[#E5C19A] text-[#1A1A1A] border border-[#E5C19A] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
                     title="Aktifkan timer 15 detik, lalu coba pindah ke tab lain atau aplikasi lain"
                   >
                     <Play className="w-3 h-3 fill-[#1A1A1A]" />
@@ -203,7 +203,7 @@ export function App() {
                         "Batas Screen Time Belajar (25 Menit) Tercapai — Wajib Peregangan Aktif"
                       )
                     }
-                    className="px-3 py-1.5 rounded-xl bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] border border-[#E8E8E8] font-bold transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl bg-[#FAF5EF] hover:bg-[#E6D7C8] text-[#1A1A1A] border border-[#E6D7C8] font-bold transition-colors cursor-pointer"
                   >
                     Timer 25m
                   </button>
@@ -214,7 +214,7 @@ export function App() {
                         "Kunci Layar Istirahat Aktif (Level OS) — Wajib Peregangan"
                       )
                     }
-                    className="px-3 py-1.5 rounded-xl bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] border border-[#B6DF97] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl bg-[#98C5E2] hover:bg-[#7BB1D3] text-[#1A1A1A] border border-[#7BB1D3] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Lock className="w-3 h-3" />
                     <span>Kunci Layar Sekarang</span>

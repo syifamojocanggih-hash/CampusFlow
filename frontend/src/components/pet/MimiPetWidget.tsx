@@ -191,7 +191,7 @@ export const MimiPetWidget: React.FC = () => {
       char: list[i % list.length],
       x: 30 + Math.random() * 40,
       y: 40 + Math.random() * 25,
-      color: i % 2 ? "#F7A8B0" : "#FFF29A",
+      color: i % 2 ? "#BF7E46" : "#FDECD8",
     }));
 
     setParticles((prev) => [...prev, ...newItems]);
@@ -386,11 +386,11 @@ export const MimiPetWidget: React.FC = () => {
         >
           {/* Floating Speech Bubble Tooltip */}
           {showTooltip && (
-            <div className="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white border border-[#E8E8E8] text-[#1A1A1A] font-extrabold text-[11px] px-3 py-1.5 rounded-2xl shadow-md pointer-events-none animate-in fade-in zoom-in-95 duration-200">
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white border border-[#E6D7C8] text-[#1A1A1A] font-extrabold text-[11px] px-3 py-1.5 rounded-2xl shadow-md pointer-events-none animate-in fade-in zoom-in-95 duration-200">
               <span className="flex items-center gap-1">
                 <span>Hai! apa kabar hari ini?</span>
               </span>
-              <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-2.5 h-2.5 bg-white border-b border-r border-[#E8E8E8] rotate-45" />
+              <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-2.5 h-2.5 bg-white border-b border-r border-[#E6D7C8] rotate-45" />
             </div>
           )}
 
@@ -407,8 +407,8 @@ export const MimiPetWidget: React.FC = () => {
             />
 
             {/* Streak Counter Beneath Pet (Clean & Stroke-free) */}
-            <div className="mt-1 bg-[#FFF29A] text-[#1A1A1A] px-2.5 py-0.5 rounded-full text-[11px] font-extrabold flex items-center gap-1 shadow-xs select-none">
-              <Flame className="w-3.5 h-3.5 fill-[#F9B99A] text-[#1A1A1A]" />
+            <div className="mt-1 bg-[#FDECD8] text-[#1A1A1A] px-2.5 py-0.5 rounded-full text-[11px] font-extrabold flex items-center gap-1 shadow-xs select-none">
+              <Flame className="w-3.5 h-3.5 fill-[#BF7E46] text-[#1A1A1A]" />
               <span>{streak} Hari</span>
             </div>
           </div>
@@ -422,10 +422,10 @@ export const MimiPetWidget: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="w-full max-w-xl bg-white border-2 border-[#1A1A1A] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
             {/* Top Modal Header */}
-            <div className="px-6 py-4 border-b border-[#F6F6F6] flex items-center justify-between bg-white shrink-0 gap-3">
+            <div className="px-6 py-4 border-b border-[#FAF5EF] flex items-center justify-between bg-white shrink-0 gap-3">
               <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                <div className="w-9 h-9 rounded-2xl bg-[#CDE8B5] flex items-center justify-center text-[#1A1A1A] border border-[#B6DF97] shadow-xs shrink-0">
-                  <Flame className="w-5 h-5 fill-[#F9B99A] text-[#1A1A1A]" />
+                <div className="w-9 h-9 rounded-2xl bg-[#98C5E2] flex items-center justify-center text-[#1A1A1A] border border-[#7BB1D3] shadow-xs shrink-0">
+                  <Flame className="w-5 h-5 fill-[#BF7E46] text-[#1A1A1A]" />
                 </div>
                 {isEditingName ? (
                   <form
@@ -442,11 +442,11 @@ export const MimiPetWidget: React.FC = () => {
                       maxLength={20}
                       autoFocus
                       placeholder="Nama pet..."
-                      className="px-2.5 py-1 text-xs sm:text-sm font-extrabold text-[#1A1A1A] bg-white border-2 border-[#1A1A1A] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FFF29A] shadow-xs w-36 sm:w-48"
+                      className="px-2.5 py-1 text-xs sm:text-sm font-extrabold text-[#1A1A1A] bg-white border-2 border-[#1A1A1A] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FDECD8] shadow-xs w-36 sm:w-48"
                     />
                     <button
                       type="submit"
-                      className="w-7 h-7 flex items-center justify-center rounded-xl bg-[#CDE8B5] hover:bg-[#bce09f] text-[#1A1A1A] border border-[#1A1A1A] transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded-xl bg-[#98C5E2] hover:bg-[#7BB1D3] text-[#1A1A1A] border border-[#1A1A1A] transition-colors"
                       title="Simpan Nama"
                       aria-label="Simpan Nama"
                     >
@@ -455,7 +455,7 @@ export const MimiPetWidget: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleCancelEditing}
-                      className="w-7 h-7 flex items-center justify-center rounded-xl bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] border border-[#E8E8E8] transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded-xl bg-[#FAF5EF] hover:bg-[#E6D7C8] text-[#1A1A1A] border border-[#E6D7C8] transition-colors"
                       title="Batal"
                       aria-label="Batal"
                     >
@@ -471,15 +471,15 @@ export const MimiPetWidget: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleStartEditing}
-                        className="p-1 rounded-lg text-[#9A9A9A] hover:text-[#1A1A1A] hover:bg-[#F6F6F6] transition-colors inline-flex items-center gap-1 text-xs font-semibold"
+                        className="p-1 rounded-lg text-[#6E5D4F] hover:text-[#1A1A1A] hover:bg-[#FAF5EF] transition-colors inline-flex items-center gap-1 text-xs font-semibold"
                         title="Ganti nama pet"
                         aria-label="Ganti nama pet"
                       >
                         <Pencil className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline text-[11px] text-[#9A9A9A]">Ganti</span>
+                        <span className="hidden sm:inline text-[11px] text-[#6E5D4F]">Ganti</span>
                       </button>
                     </div>
-                    <p className="text-[11px] text-[#9A9A9A] font-medium truncate">
+                    <p className="text-[11px] text-[#6E5D4F] font-medium truncate">
                       Tumbuh bersama rutinitas sehat &amp; kebiasaan aktif Anda
                     </p>
                   </div>
@@ -489,7 +489,7 @@ export const MimiPetWidget: React.FC = () => {
               {/* Close Button */}
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-8 h-8 rounded-full bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] flex items-center justify-center transition-colors focus:outline-none shrink-0"
+                className="w-8 h-8 rounded-full bg-[#FAF5EF] hover:bg-[#E6D7C8] text-[#1A1A1A] flex items-center justify-center transition-colors focus:outline-none shrink-0"
                 title="Tutup & Minimalkan ke Mascot Mengambang"
               >
                 <X className="w-4 h-4 stroke-[2.5]" />
@@ -498,14 +498,14 @@ export const MimiPetWidget: React.FC = () => {
 
             {/* Scrollable Body Content */}
             <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-4">
-              {/* Stage Arena (Pastel Mint Green #CDE8B5) */}
-              <div className="relative rounded-3xl bg-[#CDE8B5] p-5 sm:p-6 border border-[#B6DF97] overflow-hidden text-center text-[#1A1A1A] shadow-xs">
+              {/* Stage Arena (Pastel Mint Green #98C5E2) */}
+              <div className="relative rounded-3xl bg-[#98C5E2] p-5 sm:p-6 border border-[#7BB1D3] overflow-hidden text-center text-[#1A1A1A] shadow-xs">
                 {/* Top Stat Pills */}
                 <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
                   <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full font-bold shadow-xs">
-                    <Flame className="w-4 h-4 fill-[#F9B99A] text-[#1A1A1A]" />
+                    <Flame className="w-4 h-4 fill-[#BF7E46] text-[#1A1A1A]" />
                     <span className="text-base font-extrabold">{streak}</span>
-                    <span className="text-[11px] text-[#9A9A9A]">hari streak</span>
+                    <span className="text-[11px] text-[#6E5D4F]">hari streak</span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
@@ -592,8 +592,8 @@ export const MimiPetWidget: React.FC = () => {
                             <div
                               className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold border ${
                                 isDoneDay
-                                  ? "bg-[#FFF29A] border-[#1A1A1A] text-[#1A1A1A] shadow-2xs"
-                                  : "bg-white/50 border-dashed border-[#1A1A1A]/30 text-[#9A9A9A]"
+                                  ? "bg-[#FDECD8] border-[#1A1A1A] text-[#1A1A1A] shadow-2xs"
+                                  : "bg-white/50 border-dashed border-[#1A1A1A]/30 text-[#6E5D4F]"
                               }`}
                             >
                               {isDoneDay ? "✓" : ""}
@@ -610,7 +610,7 @@ export const MimiPetWidget: React.FC = () => {
                       <h4 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
                         Misi Sehat Hari Ini
                       </h4>
-                      <span className="text-[11px] font-bold text-[#9A9A9A]">
+                      <span className="text-[11px] font-bold text-[#6E5D4F]">
                         {completedCount} dari 3 Selesai
                       </span>
                     </div>
@@ -626,14 +626,14 @@ export const MimiPetWidget: React.FC = () => {
                             disabled={isDone}
                             className={`w-full p-3.5 rounded-2xl border text-left transition-all flex items-center gap-3 ${
                               isDone
-                                ? "bg-[#BDE6F0] border-[#8ECAD7] text-[#1A1A1A]"
-                                : "bg-[#FAFAFA] border-[#E8E8E8] hover:border-[#1A1A1A] text-[#1A1A1A]"
+                                ? "bg-[#98C5E2] border-[#7BB1D3] text-[#1A1A1A]"
+                                : "bg-[#F5ECE2] border-[#E6D7C8] hover:border-[#1A1A1A] text-[#1A1A1A]"
                             }`}
                           >
                             <div
                               className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-extrabold text-xs shrink-0 ${
                                 isDone
-                                  ? "bg-[#1A1A1A] text-[#BDE6F0] border-[#1A1A1A]"
+                                  ? "bg-[#1A1A1A] text-[#98C5E2] border-[#1A1A1A]"
                                   : "border-[#1A1A1A] text-transparent"
                               }`}
                             >
@@ -645,7 +645,7 @@ export const MimiPetWidget: React.FC = () => {
                               </p>
                               <p
                                 className={`text-[11px] leading-tight ${
-                                   isDone ? "text-[#35505a]" : "text-[#9A9A9A]"
+                                   isDone ? "text-[#35505a]" : "text-[#6E5D4F]"
                                 }`}
                               >
                                 {q.desc}
@@ -658,14 +658,14 @@ export const MimiPetWidget: React.FC = () => {
                   </div>
 
                   {/* Demo Simulation Controls */}
-                  <div className="p-3.5 bg-[#F6F6F6] rounded-2xl border border-[#E8E8E8] space-y-2 text-xs">
-                    <div className="text-[11px] font-bold text-[#9A9A9A]">
+                  <div className="p-3.5 bg-[#FAF5EF] rounded-2xl border border-[#E6D7C8] space-y-2 text-xs">
+                    <div className="text-[11px] font-bold text-[#6E5D4F]">
                       <span>Simulasi &amp; Kustomisasi Pet:</span>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
                         onClick={handleStartEditing}
-                        className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#E8E8E8] text-[#1A1A1A] font-bold text-xs border border-[#E8E8E8] transition-colors flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#E6D7C8] text-[#1A1A1A] font-bold text-xs border border-[#E6D7C8] transition-colors flex items-center gap-1"
                         title="Ganti nama panggilan pet"
                       >
                         <Pencil className="w-3 h-3" />
@@ -673,19 +673,19 @@ export const MimiPetWidget: React.FC = () => {
                       </button>
                       <button
                         onClick={handleSimulateNextDay}
-                        className="px-3 py-1.5 rounded-xl bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] font-bold text-xs border border-[#FFE966] transition-colors"
+                        className="px-3 py-1.5 rounded-xl bg-[#FDECD8] hover:bg-[#E5C19A] text-[#1A1A1A] font-bold text-xs border border-[#E5C19A] transition-colors"
                       >
                         Simulasi Besok
                       </button>
                       <button
                         onClick={handleJumpNextLevel}
-                        className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#E8E8E8] text-[#1A1A1A] font-bold text-xs border border-[#E8E8E8] transition-colors"
+                        className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#E6D7C8] text-[#1A1A1A] font-bold text-xs border border-[#E6D7C8] transition-colors"
                       >
                         Loncat Level Berikutnya
                       </button>
                       <button
                         onClick={handleResetPet}
-                        className="px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-rose-600 font-bold text-xs border border-[#E8E8E8] transition-colors ml-auto"
+                        className="px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-rose-600 font-bold text-xs border border-[#E6D7C8] transition-colors ml-auto"
                       >
                         Mulai Ulang
                       </button>
@@ -694,7 +694,7 @@ export const MimiPetWidget: React.FC = () => {
             </div>
 
             {/* Bottom Modal Footer with Drag Tip */}
-            <div className="px-6 py-3 border-t border-[#F6F6F6] bg-[#FAFAFA] flex items-center justify-between text-xs text-[#9A9A9A] shrink-0">
+            <div className="px-6 py-3 border-t border-[#FAF5EF] bg-[#F5ECE2] flex items-center justify-between text-xs text-[#6E5D4F] shrink-0">
               <span className="flex items-center gap-1.5 text-[11px] font-medium">
                 <GripHorizontal className="w-3.5 h-3.5" />
                 <span>{petName} mengambang &bull; Geser ke posisi mana pun di layar</span>

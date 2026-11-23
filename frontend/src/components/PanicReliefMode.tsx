@@ -41,20 +41,20 @@ export const PanicReliefMode: React.FC<PanicReliefModeProps> = ({ onClose, onCom
   const progressPercent = ((totalSeconds - remainingSec) / totalSeconds) * 100;
 
   return (
-    <div className="bg-white rounded-3xl p-6 sm:p-8 text-[#1A1A1A] shadow-card max-w-lg mx-auto space-y-6 relative overflow-hidden border border-[#E8E8E8]">
+    <div className="bg-white rounded-3xl p-6 sm:p-8 text-[#1A1A1A] shadow-card max-w-lg mx-auto space-y-6 relative overflow-hidden border border-[#E6D7C8]">
       {/* Decorative ambient lights */}
-      <div className="absolute top-0 right-0 w-48 h-48 bg-[#BDE6F0]/25 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#FFF29A]/25 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-48 h-48 bg-[#98C5E2]/25 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#FDECD8]/25 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header controls */}
       <div className="flex items-center justify-between relative z-10">
         <button
           onClick={onClose}
-          className="flex items-center gap-1.5 text-xs text-[#1A1A1A] hover:bg-[#E8E8E8] font-bold transition-colors bg-[#F6F6F6] px-3 py-1.5 rounded-xl border border-[#E8E8E8]"
+          className="flex items-center gap-1.5 text-xs text-[#1A1A1A] hover:bg-[#E6D7C8] font-bold transition-colors bg-[#FAF5EF] px-3 py-1.5 rounded-xl border border-[#E6D7C8]"
         >
           <ArrowLeft className="w-4 h-4" /> Kembali
         </button>
-        <span className="bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] text-[11px] px-3 py-1 rounded-full font-extrabold flex items-center gap-1 shadow-xs">
+        <span className="bg-[#FDECD8] text-[#1A1A1A] border border-[#E5C19A] text-[11px] px-3 py-1 rounded-full font-extrabold flex items-center gap-1 shadow-xs">
           <Award className="w-3.5 h-3.5" /> Protokol 15 Menit
         </span>
       </div>
@@ -64,7 +64,7 @@ export const PanicReliefMode: React.FC<PanicReliefModeProps> = ({ onClose, onCom
         <h2 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] tracking-tight">
           Pereda Cemas &amp; Panik Ujian
         </h2>
-        <p className="text-xs text-[#9A9A9A] max-w-sm mx-auto leading-relaxed">
+        <p className="text-xs text-[#6E5D4F] max-w-sm mx-auto leading-relaxed">
           Jalan santai di tempat atau atur napas selama 15 menit untuk menenangkan detak jantung dan meredakan rasa cemas sebelum ujian.
         </p>
       </div>
@@ -74,23 +74,23 @@ export const PanicReliefMode: React.FC<PanicReliefModeProps> = ({ onClose, onCom
         <div
           className={`w-44 h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300 shadow-md ${
             pulse
-              ? "scale-105 ring-8 ring-[#BDE6F0]/60 bg-[#BDE6F0] shadow-softSky"
-              : "scale-100 ring-4 ring-[#E8E8E8] bg-[#F6F6F6]"
+              ? "scale-105 ring-8 ring-[#98C5E2]/60 bg-[#98C5E2] shadow-softSky"
+              : "scale-100 ring-4 ring-[#E6D7C8] bg-[#FAF5EF]"
           }`}
         >
-          <Heart className={`w-8 h-8 mb-1.5 ${pulse ? "fill-[#F9B99A] text-[#F9B99A]" : "text-[#9A9A9A]"}`} />
+          <Heart className={`w-8 h-8 mb-1.5 ${pulse ? "fill-[#BF7E46] text-[#BF7E46]" : "text-[#6E5D4F]"}`} />
           <span className="text-3xl font-heading font-extrabold sensor-num text-[#1A1A1A] tracking-tight">
             {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
           </span>
-          <span className="text-[10px] uppercase tracking-wider text-[#9A9A9A] font-bold mt-1">
+          <span className="text-[10px] uppercase tracking-wider text-[#6E5D4F] font-bold mt-1">
             {isRunning ? "Ritme ~116 BPM" : "Siap Dimulai"}
           </span>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-[#F6F6F6] rounded-full h-3 mt-6 overflow-hidden border border-[#E8E8E8] p-0.5">
+        <div className="w-full bg-[#FAF5EF] rounded-full h-3 mt-6 overflow-hidden border border-[#E6D7C8] p-0.5">
           <div
-            className="bg-[#CDE8B5] h-full rounded-full transition-all duration-500 shadow-xs"
+            className="bg-[#98C5E2] h-full rounded-full transition-all duration-500 shadow-xs"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -102,8 +102,8 @@ export const PanicReliefMode: React.FC<PanicReliefModeProps> = ({ onClose, onCom
           onClick={() => setIsRunning(!isRunning)}
           className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-extrabold transition-all shadow-sm ${
             isRunning
-              ? "bg-[#CDE8B5] text-[#1A1A1A] hover:bg-[#B6DF97]"
-              : "bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] border border-[#FFE966] shadow-softPill"
+              ? "bg-[#98C5E2] text-[#1A1A1A] hover:bg-[#7BB1D3]"
+              : "bg-[#FDECD8] hover:bg-[#E5C19A] text-[#1A1A1A] border border-[#E5C19A] shadow-softPill"
           }`}
         >
           {isRunning ? (
@@ -122,7 +122,7 @@ export const PanicReliefMode: React.FC<PanicReliefModeProps> = ({ onClose, onCom
             setIsRunning(false);
             setRemainingSec(totalSeconds);
           }}
-          className="p-3 rounded-2xl bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] transition-colors border border-[#E8E8E8]"
+          className="p-3 rounded-2xl bg-[#FAF5EF] hover:bg-[#E6D7C8] text-[#1A1A1A] transition-colors border border-[#E6D7C8]"
           title="Reset Waktu"
         >
           <RotateCcw className="w-4 h-4" />
@@ -131,7 +131,7 @@ export const PanicReliefMode: React.FC<PanicReliefModeProps> = ({ onClose, onCom
         {remainingSec === 0 && (
           <button
             onClick={onComplete}
-            className="flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-[#CDE8B5] text-[#1A1A1A] text-xs font-extrabold hover:bg-[#B6DF97] shadow-softMint"
+            className="flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-[#98C5E2] text-[#1A1A1A] text-xs font-extrabold hover:bg-[#7BB1D3] shadow-softMint"
           >
             <CheckCircle className="w-4 h-4" /> Selesaikan &amp; Klaim +50 XP
           </button>

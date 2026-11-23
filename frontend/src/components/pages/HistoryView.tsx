@@ -52,25 +52,25 @@ export const HistoryView: React.FC = () => {
 
   // Calorie app style pastel badges
   const achievements = [
-    { title: "Early Bird", desc: "Selesai stretching pagi", color: "bg-[#BDE6F0] text-[#1A1A1A] border-[#8ECAD7]" },
-    { title: "Streak Master", desc: "7 hari berturut-turut", color: "bg-[#CDE8B5] text-[#1A1A1A] border-[#B6DF97]" },
-    { title: "Active Stretcher", desc: "100% anti-cheat lulus", color: "bg-[#FFF29A] text-[#1A1A1A] border-[#FFE966]" },
-    { title: "Sleep Protector", desc: "Tidur rata-rata 7.5 jam", color: "bg-[#C9B3E6] text-[#1A1A1A] border-[#AE8ED6]" },
+    { title: "Early Bird", desc: "Selesai stretching pagi", color: "bg-[#98C5E2] text-[#1A1A1A] border-[#7BB1D3]" },
+    { title: "Streak Master", desc: "7 hari berturut-turut", color: "bg-[#98C5E2] text-[#1A1A1A] border-[#7BB1D3]" },
+    { title: "Active Stretcher", desc: "100% anti-cheat lulus", color: "bg-[#FDECD8] text-[#1A1A1A] border-[#E5C19A]" },
+    { title: "Sleep Protector", desc: "Tidur rata-rata 7.5 jam", color: "bg-[#BF7E46] text-[#1A1A1A] border-[#A66935]" },
   ];
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-10">
       {/* Header Banner */}
-      <div className="learnova-card p-6 border-[#E8E8E8] flex items-center justify-between">
+      <div className="learnova-card p-6 border-[#E6D7C8] flex items-center justify-between">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-[#98C5E2] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
             <History className="w-6 h-6" />
           </div>
           <div>
             <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
               Riwayat &amp; Prestasi Kebugaran
             </h2>
-            <p className="text-xs text-[#9A9A9A] mt-0.5">
+            <p className="text-xs text-[#6E5D4F] mt-0.5">
               Konsistensi pilar 24-jam &amp; log sesi aktif 14 hari terakhir.
             </p>
           </div>
@@ -79,24 +79,24 @@ export const HistoryView: React.FC = () => {
 
       {/* Stats Summary Cards */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="learnova-card p-5 flex items-center gap-4 border-[#E8E8E8]">
-          <div className="w-12 h-12 rounded-2xl bg-[#F9B99A] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+        <div className="learnova-card p-5 flex items-center gap-4 border-[#E6D7C8]">
+          <div className="w-12 h-12 rounded-2xl bg-[#BF7E46] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
             <Flame className="w-6 h-6 fill-[#1A1A1A]" />
           </div>
           <div>
-            <span className="text-xs font-semibold text-[#9A9A9A]">Current Streak</span>
+            <span className="text-xs font-semibold text-[#6E5D4F]">Current Streak</span>
             <p className="text-xl font-heading font-extrabold text-[#1A1A1A] mt-0.5">
               {weeklySummary.currentStreakDays} Hari
             </p>
           </div>
         </div>
 
-        <div className="learnova-card p-5 flex items-center gap-4 border-[#E8E8E8]">
-          <div className="w-12 h-12 rounded-2xl bg-[#CDE8B5] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+        <div className="learnova-card p-5 flex items-center gap-4 border-[#E6D7C8]">
+          <div className="w-12 h-12 rounded-2xl bg-[#98C5E2] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs font-semibold text-[#9A9A9A]">Total Akumulasi XP</span>
+            <span className="text-xs font-semibold text-[#6E5D4F]">Total Akumulasi XP</span>
             <p className="text-xl font-heading font-extrabold text-[#1A1A1A] mt-0.5">
               {weeklySummary.xpPoints} XP
             </p>
@@ -105,7 +105,7 @@ export const HistoryView: React.FC = () => {
       </div>
 
       {/* Badges & Achievements Row */}
-      <div className="learnova-card p-6 space-y-4 border-[#E8E8E8]">
+      <div className="learnova-card p-6 space-y-4 border-[#E6D7C8]">
         <div className="flex items-center justify-between">
           <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
             Lencana Pencapaian (Badges)
@@ -129,19 +129,19 @@ export const HistoryView: React.FC = () => {
       </div>
 
       {/* Recent Activity Log Table */}
-      <div className="learnova-card p-6 space-y-4 border-[#E8E8E8]">
+      <div className="learnova-card p-6 space-y-4 border-[#E6D7C8]">
         <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
           Catatan Harian 14 Hari
         </h3>
 
-        <div className="divide-y divide-[#E8E8E8] border border-[#E8E8E8] rounded-2xl overflow-hidden bg-white">
+        <div className="divide-y divide-[#E6D7C8] border border-[#E6D7C8] rounded-2xl overflow-hidden bg-white">
           {enrichedHistory.map((row) => (
             <div
               key={row.logDate}
-              className="p-3.5 flex items-center justify-between text-xs hover:bg-[#F6F6F6] transition-colors"
+              className="p-3.5 flex items-center justify-between text-xs hover:bg-[#FAF5EF] transition-colors"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-[#F6F6F6] text-[#1A1A1A] flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg bg-[#FAF5EF] text-[#1A1A1A] flex items-center justify-center">
                   <Calendar className="w-3.5 h-3.5" />
                 </div>
                 <span className="font-semibold text-[#1A1A1A]">{row.logDate}</span>

@@ -301,29 +301,29 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
     if (burnoutStatus === "LOW") {
       return {
         label: "OPTIMAL / AMAN",
-        badgeBg: "bg-[#CDE8B5] text-[#166534]",
-        cardBg: "bg-[#F3F9EE] border-[#CDE8B5]",
+        badgeBg: "bg-[#98C5E2] text-[#1E4E6E]",
+        cardBg: "bg-[#EBF3F9] border-[#98C5E2]",
         ringColor: "#22C55E",
-        textColor: "text-[#166534]",
+        textColor: "text-[#1E4E6E]",
         desc: "Keseimbangan beban kuliah, waktu layar, dan pemulihan Anda berada di zona aman.",
       };
     }
     if (burnoutStatus === "MODERATE") {
       return {
         label: "WASPADA KELELAHAN",
-        badgeBg: "bg-[#FFF29A] text-[#854D0E]",
-        cardBg: "bg-[#FFFDF0] border-[#FFE966]",
+        badgeBg: "bg-[#FDECD8] text-[#7C4A1E]",
+        cardBg: "bg-[#FDF6EE] border-[#E5C19A]",
         ringColor: "#F59E0B",
-        textColor: "text-[#854D0E]",
+        textColor: "text-[#7C4A1E]",
         desc: "Beban belajar mulai mendominasi. Segera lakukan Active Break 2 menit dan cukupi tidur malam.",
       };
     }
     return {
       label: "RISIKO TINGGI (BURNOUT)",
-      badgeBg: "bg-[#F7A8B0] text-[#9F1239]",
-      cardBg: "bg-[#FFF1F2] border-[#F7A8B0]",
+      badgeBg: "bg-[#BF7E46] text-[#231408]",
+      cardBg: "bg-[#F7E6D5] border-[#BF7E46]",
       ringColor: "#EF4444",
-      textColor: "text-[#9F1239]",
+      textColor: "text-[#231408]",
       desc: "Kelelahan kognitif kritis. Disarankan jeda istirahat penuh dan konsultasi dengan AI Coach.",
     };
   }, [burnoutStatus]);
@@ -547,52 +547,52 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#1A1A1A" floodOpacity="0.08" />
               </filter>
               <filter id="hdSunGlow" x="-30%" y="-30%" width="160%" height="160%">
-                <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#FFC837" floodOpacity="0.5" />
+                <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#E5C19A" floodOpacity="0.5" />
               </filter>
               <filter id="hdMoonGlow" x="-30%" y="-30%" width="160%" height="160%">
-                <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#FFF29A" floodOpacity="0.5" />
+                <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#FDECD8" floodOpacity="0.5" />
               </filter>
 
               {/* Day Palette Gradients (HD Rich Warmth & Specular Depth) */}
               <linearGradient id="hdSunCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FFFDE7" />
-                <stop offset="35%" stopColor="#FFF29A" />
-                <stop offset="100%" stopColor="#FFC837" />
+                <stop offset="0%" stopColor="#FDF6EE" />
+                <stop offset="35%" stopColor="#FDECD8" />
+                <stop offset="100%" stopColor="#E5C19A" />
               </linearGradient>
               <radialGradient id="hdSunAuraGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#FFF29A" stopOpacity="0.80" />
-                <stop offset="55%" stopColor="#FFE082" stopOpacity="0.30" />
-                <stop offset="100%" stopColor="#FFF9C4" stopOpacity="0.00" />
+                <stop offset="0%" stopColor="#FDECD8" stopOpacity="0.80" />
+                <stop offset="55%" stopColor="#E5C19A" stopOpacity="0.30" />
+                <stop offset="100%" stopColor="#FDF6EE" stopOpacity="0.00" />
               </radialGradient>
               <linearGradient id="hdDayCloudFront" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#FFFFFF" />
-                <stop offset="65%" stopColor="#F5FBFC" />
-                <stop offset="100%" stopColor="#D8EEF7" />
+                <stop offset="65%" stopColor="#EBF3F9" />
+                <stop offset="100%" stopColor="#EBF3F9" />
               </linearGradient>
               <linearGradient id="hdDayCloudBack" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
-                <stop offset="100%" stopColor="#CDE8B5" stopOpacity="0.60" />
+                <stop offset="100%" stopColor="#98C5E2" stopOpacity="0.60" />
               </linearGradient>
 
               {/* Night Palette Gradients (HD Luminous Pearl & Lunar Glow) */}
               <linearGradient id="hdMoonCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FFFFEE" />
-                <stop offset="45%" stopColor="#FFF29A" />
-                <stop offset="100%" stopColor="#F9D76E" />
+                <stop offset="0%" stopColor="#FDF6EE" />
+                <stop offset="45%" stopColor="#FDECD8" />
+                <stop offset="100%" stopColor="#E5C19A" />
               </linearGradient>
               <radialGradient id="hdMoonAuraGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#FFF29A" stopOpacity="0.70" />
-                <stop offset="50%" stopColor="#BDE6F0" stopOpacity="0.30" />
-                <stop offset="100%" stopColor="#BDE6F0" stopOpacity="0.00" />
+                <stop offset="0%" stopColor="#FDECD8" stopOpacity="0.70" />
+                <stop offset="50%" stopColor="#98C5E2" stopOpacity="0.30" />
+                <stop offset="100%" stopColor="#98C5E2" stopOpacity="0.00" />
               </radialGradient>
               <linearGradient id="hdNightCloudFront" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#FFFFFF" />
-                <stop offset="65%" stopColor="#E9F2FA" />
-                <stop offset="100%" stopColor="#C9DCEB" />
+                <stop offset="65%" stopColor="#EBF3F9" />
+                <stop offset="100%" stopColor="#EBF3F9" />
               </linearGradient>
               <linearGradient id="hdNightCloudBack" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#F1F5F9" stopOpacity="0.95" />
-                <stop offset="100%" stopColor="#B2CBDD" stopOpacity="0.65" />
+                <stop offset="100%" stopColor="#7BB1D3" stopOpacity="0.65" />
               </linearGradient>
             </defs>
 
@@ -623,7 +623,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                         width={6}
                         height={11}
                         rx={3}
-                        fill="#FFD54F"
+                        fill="#E5C19A"
                         opacity={0.8}
                         transform={`rotate(${angle} 122 52)`}
                       />
@@ -713,7 +713,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   <path
                     key={idx}
                     d="M 0,-7 Q 0,0 7,0 Q 0,0 0,7 Q 0,0 -7,0 Q 0,0 0,-7 Z"
-                    fill="#FFF7B2"
+                    fill="#FDF6EE"
                     transform={`translate(${star.x}, ${star.y}) scale(${star.scale})`}
                     style={{
                       animation: "starTwinkleAnim 3s ease-in-out infinite",
@@ -745,8 +745,8 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   />
 
                   {/* Kawah Halus & Refleksi Lunar HD */}
-                  <circle cx="139" cy="46" r="3.8" fill="#FFE082" opacity={0.4} />
-                  <circle cx="134" cy="60" r="2.8" fill="#FFE082" opacity={0.35} />
+                  <circle cx="139" cy="46" r="3.8" fill="#E5C19A" opacity={0.4} />
+                  <circle cx="134" cy="60" r="2.8" fill="#E5C19A" opacity={0.35} />
                   <path
                     d="M 123,28 C 134,28 144,36 147,46 C 145,39 136,31 123,28 Z"
                     fill="#FFFFFF"
@@ -812,7 +812,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               <Clock className="w-3.5 h-3.5 text-[#1A1A1A]/70" />
               <span className="font-mono font-bold text-xs tabular-nums tracking-tight">
                 {timeFormatted.hours}:{timeFormatted.minutes}
-                <span className="text-[#8E8E93] font-normal text-[11px]">:{timeFormatted.seconds}</span>
+                <span className="text-[#6E5D4F] font-normal text-[11px]">:{timeFormatted.seconds}</span>
               </span>
             </div>
 
@@ -834,7 +834,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
             <button
               type="button"
               onClick={handleToggleTimeOfDay}
-              className="flex items-center gap-1.5 pl-1.5 pr-2 py-0.5 -mr-1 rounded-full bg-[#F6F6F6] hover:bg-[#EBEBEB] text-xs font-bold text-[#1A1A1A] transition-all active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 pl-1.5 pr-2 py-0.5 -mr-1 rounded-full bg-[#FAF5EF] hover:bg-[#F5ECE2] text-xs font-bold text-[#1A1A1A] transition-all active:scale-95 cursor-pointer"
               title={isDayTime ? "Beralih ke suasana Malam 🌙" : "Beralih ke suasana Siang ☀️"}
               aria-label="Ganti suasana Siang atau Malam"
             >
@@ -852,7 +852,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 cx="50"
                 cy="50"
                 r="42"
-                stroke="#E8E8E8"
+                stroke="#E6D7C8"
                 strokeWidth="8"
                 fill="none"
               />
@@ -873,7 +873,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               <span className="text-3xl sm:text-4xl font-heading font-extrabold text-[#1A1A1A] sensor-num leading-none">
                 {Math.round(burnoutIndex)}
               </span>
-              <span className="text-[10px] text-[#9A9A9A] font-bold uppercase tracking-wider mt-0.5">
+              <span className="text-[10px] text-[#6E5D4F] font-bold uppercase tracking-wider mt-0.5">
                 Index / 100
               </span>
             </div>
@@ -882,7 +882,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           {/* Title & Status */}
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#9A9A9A]">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#6E5D4F]">
                 Dashboard Akademik
               </span>
             </div>
@@ -903,14 +903,14 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         {/* Card 1: Academic Load (KRS) */}
         <div className="learnova-card p-4 sm:p-5 flex flex-col justify-center h-full">
           <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#F7A8B0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+            <div className="w-9 h-9 rounded-2xl bg-[#BF7E46] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
               <BookOpen className="w-4 h-4 text-[#1A1A1A]" />
             </div>
             <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Beban Kuliah</p>
           </div>
           <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
             {academicLoadScore}
-            <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Poin</span>
+            <span className="text-xs font-medium text-[#6E5D4F] ml-1.5">Poin</span>
           </h3>
         </div>
 
@@ -920,7 +920,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           title="Melacak seluruh aktivitas Layar OS (tetap berjalan saat pindah tab atau buka aplikasi lain seperti VS Code/Word/PDF)"
         >
           <div className="flex items-center gap-2.5 mb-2">
-            <div className="w-9 h-9 rounded-2xl bg-[#FFF29A] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+            <div className="w-9 h-9 rounded-2xl bg-[#FDECD8] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
               <Monitor className="w-4 h-4 text-[#1A1A1A]" />
             </div>
             <div>
@@ -941,9 +941,9 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           <div className="flex items-baseline justify-between gap-2 flex-wrap">
             <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
               {screenTimeHours}
-              <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Jam</span>
+              <span className="text-xs font-medium text-[#6E5D4F] ml-1.5">Jam</span>
             </h3>
-            <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-[#FFFDF0] border border-[#FFE966] text-[#854D0E]">
+            <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-[#FDF6EE] border border-[#E5C19A] text-[#7C4A1E]">
               {osScreenTime.formattedHMS}
             </span>
           </div>
@@ -960,12 +960,12 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               setIsSleepModalOpen(true);
             }
           }}
-          className="learnova-card p-4 sm:p-5 flex flex-col justify-between h-full cursor-pointer hover:border-[#8ECAD7] transition-all group"
+          className="learnova-card p-4 sm:p-5 flex flex-col justify-between h-full cursor-pointer hover:border-[#7BB1D3] transition-all group"
           title="Klik untuk melihat detail deteksi tidur otomatis atau simulasi jam tidur"
         >
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+              <div className="w-9 h-9 rounded-2xl bg-[#98C5E2] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
                 <Moon className="w-4 h-4 text-[#1A1A1A]" />
               </div>
               <div>
@@ -978,13 +978,13 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 </span>
               </div>
             </div>
-            <SlidersHorizontal className="w-3.5 h-3.5 text-[#9A9A9A] group-hover:text-[#1A1A1A] transition-colors shrink-0" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-[#6E5D4F] group-hover:text-[#1A1A1A] transition-colors shrink-0" />
           </div>
 
           <div className="flex items-baseline justify-between gap-2 flex-wrap">
             <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
               {sleepHours}
-              <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Jam</span>
+              <span className="text-xs font-medium text-[#6E5D4F] ml-1.5">Jam</span>
             </h3>
             <span
               className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${sleepClinicalMeta.badgeStyle}`}
@@ -997,14 +997,14 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         {/* Card 4: Verified Active Break (On-Demand MediaPipe 2 Mins) */}
         <div className="learnova-card p-4 sm:p-5 flex flex-col justify-center h-full">
           <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#CDE8B5] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
+            <div className="w-9 h-9 rounded-2xl bg-[#98C5E2] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
               <Play className="w-4 h-4 fill-[#1A1A1A] text-[#1A1A1A] ml-0.5" />
             </div>
             <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Active Break</p>
           </div>
           <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
             {verifiedBreakCount}
-            <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Sesi</span>
+            <span className="text-xs font-medium text-[#6E5D4F] ml-1.5">Sesi</span>
           </h3>
         </div>
       </div>
@@ -1029,7 +1029,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 </div>
                 <button
                   onClick={() => setIsKrsModalOpen(true)}
-                  className="text-xs font-bold text-[#1A1A1A] bg-[#F6F6F6] hover:bg-[#E8E8E8] px-3 py-1.5 rounded-full border border-[#E8E8E8] flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
+                  className="text-xs font-bold text-[#1A1A1A] bg-[#FAF5EF] hover:bg-[#E6D7C8] px-3 py-1.5 rounded-full border border-[#E6D7C8] flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Tambah / Edit KRS
@@ -1043,8 +1043,8 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   onClick={() => setSelectedDayFilter(realTodayDayOfWeek)}
                   className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all shrink-0 cursor-pointer ${
                     selectedDayFilter === realTodayDayOfWeek
-                      ? "bg-[#1A1A1A] text-[#FFF29A]"
-                      : "bg-[#F6F6F6] text-[#737373] hover:text-[#1A1A1A]"
+                      ? "bg-[#1A1A1A] text-[#FDECD8]"
+                      : "bg-[#FAF5EF] text-[#6E5D4F] hover:text-[#1A1A1A]"
                   }`}
                 >
                   Hari Ini
@@ -1054,8 +1054,8 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   onClick={() => setSelectedDayFilter("ALL")}
                   className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all shrink-0 cursor-pointer ${
                     selectedDayFilter === "ALL"
-                      ? "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966]"
-                      : "bg-[#F6F6F6] text-[#737373] hover:text-[#1A1A1A]"
+                      ? "bg-[#FDECD8] text-[#1A1A1A] border border-[#E5C19A]"
+                      : "bg-[#FAF5EF] text-[#6E5D4F] hover:text-[#1A1A1A]"
                   }`}
                 >
                   Semua ({schedules.length})
@@ -1070,8 +1070,8 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       onClick={() => setSelectedDayFilter(dayNum)}
                       className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
                         selectedDayFilter === dayNum
-                          ? "bg-[#BDE6F0] text-[#1A1A1A] font-extrabold"
-                          : "bg-[#F6F6F6] text-[#737373] hover:text-[#1A1A1A]"
+                          ? "bg-[#98C5E2] text-[#1A1A1A] font-extrabold"
+                          : "bg-[#FAF5EF] text-[#6E5D4F] hover:text-[#1A1A1A]"
                       }`}
                     >
                       {dayLabel.slice(0, 3)}
@@ -1084,12 +1084,12 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               {/* Schedule List */}
               <div className="space-y-3 pt-1">
                 {displayedSchedules.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center p-6 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] text-center space-y-2 min-h-[160px]">
-                    <Calendar className="w-8 h-8 text-[#9A9A9A] mx-auto" />
+                  <div className="flex-1 flex flex-col items-center justify-center p-6 rounded-2xl bg-[#F5ECE2] border border-[#E6D7C8] text-center space-y-2 min-h-[160px]">
+                    <Calendar className="w-8 h-8 text-[#6E5D4F] mx-auto" />
                     <p className="text-xs font-bold text-[#1A1A1A]">
                       Tidak Ada Jadwal Kuliah pada Hari Ini
                     </p>
-                    <p className="text-[11px] text-[#9A9A9A] max-w-xs">
+                    <p className="text-[11px] text-[#6E5D4F] max-w-xs">
                       Bagus untuk pemulihan energi! Pilih tab <strong>Semua ({schedules.length})</strong> untuk melihat seluruh mata kuliah KRS Anda.
                     </p>
                   </div>
@@ -1098,18 +1098,18 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                     {displayedSchedules.map((item, idx) => (
                       <div
                         key={item.id || `${item.subjectName}-${item.dayOfWeek}-${idx}`}
-                        className="p-3.5 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] flex items-center justify-between hover:bg-white hover:border-[#BDE6F0] transition-colors group"
+                        className="p-3.5 rounded-2xl bg-[#F5ECE2] border border-[#E6D7C8] flex items-center justify-between hover:bg-white hover:border-[#98C5E2] transition-colors group"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-xl bg-white border border-[#E8E8E8] flex flex-col items-center justify-center text-[#1A1A1A] shrink-0 font-mono">
+                          <div className="w-10 h-10 rounded-xl bg-white border border-[#E6D7C8] flex flex-col items-center justify-center text-[#1A1A1A] shrink-0 font-mono">
                             <span className="text-xs font-extrabold">{item.creditHours}</span>
-                            <span className="text-[9px] text-[#9A9A9A] uppercase">SKS</span>
+                            <span className="text-[9px] text-[#6E5D4F] uppercase">SKS</span>
                           </div>
                           <div className="min-w-0">
                             <h4 className="text-xs font-bold text-[#1A1A1A] truncate">
                               {item.subjectName}
                             </h4>
-                            <p className="text-[10px] text-[#737373] mt-0.5">
+                            <p className="text-[10px] text-[#6E5D4F] mt-0.5">
                               {DAY_NAMES[item.dayOfWeek - 1] || `Hari ${item.dayOfWeek}`} &bull;{" "}
                               {item.isPracticum ? "Praktikum (1.5x)" : "Teori (1.0x)"}
                               {item.startTime && item.endTime
@@ -1121,11 +1121,11 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                         <button
                           type="button"
                           onClick={() => handleDeleteSchedule(item)}
-                          className="w-7 h-7 rounded-xl bg-white hover:bg-[#FEE2E2] text-[#9A9A9A] hover:text-[#DC2626] border border-[#E8E8E8] hover:border-[#FCA5A5] flex items-center justify-center transition-colors shadow-2xs group/del shrink-0"
+                          className="w-7 h-7 rounded-xl bg-white hover:bg-[#FEE2E2] text-[#6E5D4F] hover:text-[#DC2626] border border-[#E6D7C8] hover:border-[#FCA5A5] flex items-center justify-center transition-colors shadow-2xs group/del shrink-0"
                           title={`Hapus jadwal ${item.subjectName}`}
                           aria-label={`Hapus jadwal ${item.subjectName}`}
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-[#9A9A9A] group-hover/del:text-[#DC2626] transition-colors" />
+                          <Trash2 className="w-3.5 h-3.5 text-[#6E5D4F] group-hover/del:text-[#DC2626] transition-colors" />
                         </button>
                       </div>
                     ))}
@@ -1135,12 +1135,12 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
             </div>
 
             {/* KRS Load Summary Bar */}
-            <div className="pt-3 border-t border-[#E8E8E8] flex items-center justify-between text-xs mt-4">
-              <span className="text-[#9A9A9A]">
+            <div className="pt-3 border-t border-[#E6D7C8] flex items-center justify-between text-xs mt-4">
+              <span className="text-[#6E5D4F]">
                 Total Bobot SKS Ditampilkan:{" "}
                 <strong>{displayedSchedules.reduce((acc, s) => acc + s.creditHours, 0)} SKS</strong>
               </span>
-              <span className="font-bold text-[#1A1A1A] bg-[#CDE8B5] px-2.5 py-0.5 rounded-full">
+              <span className="font-bold text-[#1A1A1A] bg-[#98C5E2] px-2.5 py-0.5 rounded-full">
                 Beban Kognitif: {academicLoadScore} Poin
               </span>
             </div>
@@ -1155,7 +1155,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
                   Tren Burnout &amp; Pemulihan 14 Hari
                 </h3>
-                <p className="text-[11px] text-[#9A9A9A]">
+                <p className="text-[11px] text-[#6E5D4F]">
                   Perbandingan Burnout Index vs Skor Pemulihan
                 </p>
               </div>
@@ -1165,22 +1165,22 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                     <defs>
                       <linearGradient id="burnoutGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#F7A8B0" stopOpacity={0.7} />
-                        <stop offset="95%" stopColor="#F7A8B0" stopOpacity={0.05} />
+                        <stop offset="5%" stopColor="#BF7E46" stopOpacity={0.7} />
+                        <stop offset="95%" stopColor="#BF7E46" stopOpacity={0.05} />
                       </linearGradient>
                       <linearGradient id="recoveryGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#CDE8B5" stopOpacity={0.7} />
-                        <stop offset="95%" stopColor="#CDE8B5" stopOpacity={0.05} />
+                        <stop offset="5%" stopColor="#98C5E2" stopOpacity={0.7} />
+                        <stop offset="95%" stopColor="#98C5E2" stopOpacity={0.05} />
                       </linearGradient>
                     </defs>
                     <XAxis
                       dataKey="logDate"
-                      tick={{ fontSize: 10, fill: "#9A9A9A" }}
+                      tick={{ fontSize: 10, fill: "#6E5D4F" }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fontSize: 10, fill: "#9A9A9A" }}
+                      tick={{ fontSize: 10, fill: "#6E5D4F" }}
                       axisLine={false}
                       tickLine={false}
                       domain={[0, 100]}
@@ -1190,7 +1190,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                         backgroundColor: "#FFFFFF",
                         color: "#1A1A1A",
                         borderRadius: "16px",
-                        border: "1px solid #E8E8E8",
+                        border: "1px solid #E6D7C8",
                         fontSize: "11px",
                         boxShadow: "0 8px 20px -4px rgba(26,26,26,0.08)",
                       }}
@@ -1199,7 +1199,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       type="monotone"
                       dataKey="burnoutIndex"
                       name="Burnout Index"
-                      stroke="#F7A8B0"
+                      stroke="#BF7E46"
                       strokeWidth={2}
                       fillOpacity={1}
                       fill="url(#burnoutGradient)"
@@ -1208,7 +1208,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       type="monotone"
                       dataKey="recoveryScore"
                       name="Skor Pemulihan"
-                      stroke="#8ECAD7"
+                      stroke="#7BB1D3"
                       strokeWidth={2}
                       fillOpacity={1}
                       fill="url(#recoveryGradient)"
@@ -1218,13 +1218,13 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               </div>
             </div>
 
-            <div className="pt-3 border-t border-[#E8E8E8] flex items-center justify-center gap-5 text-xs font-semibold text-[#1A1A1A] mt-4">
+            <div className="pt-3 border-t border-[#E6D7C8] flex items-center justify-center gap-5 text-xs font-semibold text-[#1A1A1A] mt-4">
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#F7A8B0]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#BF7E46]" />
                 <span>Burnout Index</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#CDE8B5]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#98C5E2]" />
                 <span>Skor Pemulihan</span>
               </div>
             </div>
@@ -1237,36 +1237,36 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           ======================================================== */}
       {isKrsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#E8E8E8] space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-[#F0F0F0]">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#E6D7C8] space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-[#F5ECE2]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#FFF29A] flex items-center justify-center text-[#1A1A1A]">
+                <div className="w-9 h-9 rounded-xl bg-[#FDECD8] flex items-center justify-center text-[#1A1A1A]">
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
                     Smart Academic Planner
                   </h3>
-                  <p className="text-[11px] text-[#9A9A9A]">Input Jadwal Kuliah &amp; Ekstraksi KRS Otomatis</p>
+                  <p className="text-[11px] text-[#6E5D4F]">Input Jadwal Kuliah &amp; Ekstraksi KRS Otomatis</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsKrsModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-[#FAF5EF] hover:bg-[#E6D7C8] text-[#1A1A1A] flex items-center justify-center transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Tabs: PDF Upload vs Manual Form vs Daftar Matakuliah */}
-            <div className="flex gap-2 p-1 bg-[#F6F6F6] rounded-2xl border border-[#E8E8E8]">
+            <div className="flex gap-2 p-1 bg-[#FAF5EF] rounded-2xl border border-[#E6D7C8]">
               <button
                 type="button"
                 onClick={() => setKrsModalTab("upload")}
                 className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                   krsModalTab === "upload"
                     ? "bg-white text-[#1A1A1A] shadow-xs"
-                    : "text-[#9A9A9A] hover:text-[#1A1A1A]"
+                    : "text-[#6E5D4F] hover:text-[#1A1A1A]"
                 }`}
               >
                 <UploadCloud className="w-3.5 h-3.5" />
@@ -1279,7 +1279,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                   krsModalTab === "manual"
                     ? "bg-white text-[#1A1A1A] shadow-xs"
-                    : "text-[#9A9A9A] hover:text-[#1A1A1A]"
+                    : "text-[#6E5D4F] hover:text-[#1A1A1A]"
                 }`}
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -1292,7 +1292,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                   krsModalTab === "manage"
                     ? "bg-white text-[#1A1A1A] shadow-xs"
-                    : "text-[#9A9A9A] hover:text-[#1A1A1A]"
+                    : "text-[#6E5D4F] hover:text-[#1A1A1A]"
                 }`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -1315,7 +1315,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 />
 
                 {krsUploadError && (
-                  <div className="p-3.5 rounded-2xl bg-[#FFF1F2] border border-[#F7A8B0] text-[#9F1239] text-xs flex items-start gap-2.5">
+                  <div className="p-3.5 rounded-2xl bg-[#F7E6D5] border border-[#BF7E46] text-[#231408] text-xs flex items-start gap-2.5">
                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <p className="font-extrabold">Gagal Memproses Dokumen KRS</p>
@@ -1350,8 +1350,8 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                     }}
                     className={`p-7 border-2 border-dashed rounded-2xl text-center space-y-3 transition-all cursor-pointer ${
                       isDragOverKrs
-                        ? "border-[#1A1A1A] bg-[#BDE6F0]/30 scale-[1.01]"
-                        : "border-[#BDE6F0] bg-[#F0F9FB] hover:border-[#8ECAD7]"
+                        ? "border-[#1A1A1A] bg-[#98C5E2]/30 scale-[1.01]"
+                        : "border-[#98C5E2] bg-[#EBF3F9] hover:border-[#7BB1D3]"
                     }`}
                   >
                     <div className="w-12 h-12 rounded-2xl bg-white text-[#1A1A1A] flex items-center justify-center mx-auto shadow-xs">
@@ -1363,7 +1363,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                           ? `Mengekstrak ${krsUploadedFileName || "Dokumen KRS"}...`
                           : "Tarik & Lepas Berkas PDF / Screenshot KRS"}
                       </p>
-                      <p className="text-[11px] text-[#737373] mt-0.5">
+                      <p className="text-[11px] text-[#6E5D4F] mt-0.5">
                         Mendukung dokumen KRS resmi format PDF, PNG, atau JPG (maksimal 10 MB).
                       </p>
                     </div>
@@ -1387,9 +1387,9 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 ) : (
                   /* Interactive Preview & Review Table before Saving to DB */
                   <div className="space-y-3.5">
-                    <div className="p-3 rounded-2xl bg-[#F3F9EE] border border-[#CDE8B5] flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="p-3 rounded-2xl bg-[#EBF3F9] border border-[#98C5E2] flex flex-wrap items-center justify-between gap-2 text-xs">
                       <div>
-                        <span className="font-extrabold text-[#166534] block">
+                        <span className="font-extrabold text-[#1E4E6E] block">
                           {krsPreviewItems.length} Mata Kuliah Berhasil Diekstrak (
                           {krsPreviewItems.reduce((sum, it) => sum + it.credit_hours, 0)} SKS)
                         </span>
@@ -1405,7 +1405,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                           setKrsUploadedFileName(null);
                           setKrsUploadError(null);
                         }}
-                        className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#F6F6F6] text-[#1A1A1A] border border-[#E8E8E8] text-[11px] font-bold cursor-pointer"
+                        className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#FAF5EF] text-[#1A1A1A] border border-[#E6D7C8] text-[11px] font-bold cursor-pointer"
                       >
                         Ganti File
                       </button>
@@ -1415,7 +1415,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       {krsPreviewItems.map((item, idx) => (
                         <div
                           key={idx}
-                          className="p-2.5 rounded-xl bg-[#FAFAFA] border border-[#E8E8E8] space-y-2 text-xs"
+                          className="p-2.5 rounded-xl bg-[#F5ECE2] border border-[#E6D7C8] space-y-2 text-xs"
                         >
                           <div className="flex items-center gap-2">
                             <input
@@ -1424,13 +1424,13 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                               onChange={(e) =>
                                 handleUpdatePreviewItem(idx, { subject_name: e.target.value })
                               }
-                              className="flex-1 px-2.5 py-1 rounded-lg bg-white border border-[#E8E8E8] font-bold text-xs text-[#1A1A1A]"
+                              className="flex-1 px-2.5 py-1 rounded-lg bg-white border border-[#E6D7C8] font-bold text-xs text-[#1A1A1A]"
                               placeholder="Nama Mata Kuliah"
                             />
                             <button
                               type="button"
                               onClick={() => handleRemovePreviewItem(idx)}
-                              className="w-7 h-7 rounded-lg bg-white hover:bg-[#FEE2E2] text-[#737373] hover:text-[#DC2626] border border-[#E8E8E8] flex items-center justify-center shrink-0 cursor-pointer"
+                              className="w-7 h-7 rounded-lg bg-white hover:bg-[#FEE2E2] text-[#6E5D4F] hover:text-[#DC2626] border border-[#E6D7C8] flex items-center justify-center shrink-0 cursor-pointer"
                               title="Hapus baris ini"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1445,7 +1445,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                                   day_of_week: e.target.value as DayOfWeekIndonesian,
                                 })
                               }
-                              className="px-2 py-1 rounded-lg bg-white border border-[#E8E8E8] text-[11px] font-semibold text-[#1A1A1A]"
+                              className="px-2 py-1 rounded-lg bg-white border border-[#E6D7C8] text-[11px] font-semibold text-[#1A1A1A]"
                             >
                               {VALID_DAYS_ID.map((d) => (
                                 <option key={d} value={d}>
@@ -1461,7 +1461,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                                   credit_hours: Number(e.target.value) || 2,
                                 })
                               }
-                              className="px-2 py-1 rounded-lg bg-white border border-[#E8E8E8] text-[11px] font-semibold text-[#1A1A1A]"
+                              className="px-2 py-1 rounded-lg bg-white border border-[#E6D7C8] text-[11px] font-semibold text-[#1A1A1A]"
                             >
                               {[1, 2, 3, 4, 5, 6].map((sks) => (
                                 <option key={sks} value={sks}>
@@ -1477,7 +1477,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                                   class_type: e.target.value as "teori" | "praktikum",
                                 })
                               }
-                              className="px-2 py-1 rounded-lg bg-white border border-[#E8E8E8] text-[11px] font-semibold text-[#1A1A1A]"
+                              className="px-2 py-1 rounded-lg bg-white border border-[#E6D7C8] text-[11px] font-semibold text-[#1A1A1A]"
                             >
                               <option value="teori">Teori (1.0x)</option>
                               <option value="praktikum">Praktikum (1.5x)</option>
@@ -1501,7 +1501,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       <button
                         type="button"
                         onClick={() => setKrsPreviewItems(null)}
-                        className="px-3.5 py-2 rounded-xl text-xs font-bold text-[#737373] hover:text-[#1A1A1A] cursor-pointer"
+                        className="px-3.5 py-2 rounded-xl text-xs font-bold text-[#6E5D4F] hover:text-[#1A1A1A] cursor-pointer"
                       >
                         Batal
                       </button>
@@ -1535,7 +1535,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                     value={newSubjectName}
                     onChange={(e) => setNewSubjectName(e.target.value)}
                     placeholder="Contoh: Pemrograman Mobile Lanjut"
-                    className="w-full px-3.5 py-2 text-xs bg-[#FAFAFA] border border-[#E8E8E8] rounded-xl text-[#1A1A1A] focus:outline-none focus:border-[#BDE6F0] focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-[#F5ECE2] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:border-[#98C5E2] focus:bg-white transition-all"
                   />
                 </div>
 
@@ -1547,7 +1547,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                     <select
                       value={newDayOfWeek}
                       onChange={(e) => setNewDayOfWeek(Number(e.target.value))}
-                      className="w-full px-3.5 py-2 text-xs bg-[#FAFAFA] border border-[#E8E8E8] rounded-xl text-[#1A1A1A] focus:outline-none focus:border-[#BDE6F0] focus:bg-white transition-all"
+                      className="w-full px-3.5 py-2 text-xs bg-[#F5ECE2] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:border-[#98C5E2] focus:bg-white transition-all"
                     >
                       {DAY_NAMES.map((name, idx) => (
                         <option key={idx + 1} value={idx + 1}>
@@ -1567,14 +1567,14 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       max={6}
                       value={newCreditHours}
                       onChange={(e) => setNewCreditHours(Number(e.target.value))}
-                      className="w-full px-3.5 py-2 text-xs bg-[#FAFAFA] border border-[#E8E8E8] rounded-xl text-[#1A1A1A] focus:outline-none focus:border-[#BDE6F0] focus:bg-white transition-all"
+                      className="w-full px-3.5 py-2 text-xs bg-[#F5ECE2] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:border-[#98C5E2] focus:bg-white transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Toggles */}
                 <div className="grid grid-cols-2 gap-3 pt-1">
-                  <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAFAFA] border border-[#EEEEEE] cursor-pointer text-xs font-semibold text-[#1A1A1A]">
+                  <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F5ECE2] border border-[#F5ECE2] cursor-pointer text-xs font-semibold text-[#1A1A1A]">
                     <input
                       type="checkbox"
                       checked={newIsPracticum}
@@ -1584,7 +1584,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                     <span>Praktikum (Bobot 1.5x)</span>
                   </label>
 
-                  <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAFAFA] border border-[#EEEEEE] cursor-pointer text-xs font-semibold text-[#1A1A1A]">
+                  <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F5ECE2] border border-[#F5ECE2] cursor-pointer text-xs font-semibold text-[#1A1A1A]">
                     <input
                       type="checkbox"
                       checked={newIsExamWeek}
@@ -1599,7 +1599,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsKrsModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors"
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-[#6E5D4F] hover:text-[#1A1A1A] transition-colors"
                   >
                     Batal
                   </button>
@@ -1614,33 +1614,33 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
             ) : (
               /* Tab 3: Daftar & Hapus Matakuliah */
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs text-[#737373]">
+                <div className="flex items-center justify-between text-xs text-[#6E5D4F]">
                   <span>Total Matakuliah: <strong>{schedules.length}</strong></span>
                   <span>Total Beban: <strong>{schedules.reduce((acc, s) => acc + s.creditHours, 0)} SKS</strong></span>
                 </div>
 
                 {schedules.length === 0 ? (
-                  <div className="p-6 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] text-center space-y-2">
-                    <Calendar className="w-8 h-8 text-[#9A9A9A] mx-auto" />
+                  <div className="p-6 rounded-2xl bg-[#F5ECE2] border border-[#E6D7C8] text-center space-y-2">
+                    <Calendar className="w-8 h-8 text-[#6E5D4F] mx-auto" />
                     <p className="text-xs font-bold text-[#1A1A1A]">Belum Ada Matakuliah</p>
-                    <p className="text-[11px] text-[#9A9A9A]">
+                    <p className="text-[11px] text-[#6E5D4F]">
                       Tambahkan matakuliah baru melalui tab Input Manual atau Upload PDF.
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 divide-y divide-[#F0F0F0]">
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 divide-y divide-[#F5ECE2]">
                     {schedules.map((item, idx) => (
                       <div
                         key={item.id || `${item.subjectName}-${item.dayOfWeek}-${idx}`}
                         className="pt-2 pb-1 flex items-center justify-between gap-3 text-xs"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="w-14 text-center px-2 py-1 rounded-lg bg-[#F6F6F6] text-[10px] font-extrabold text-[#1A1A1A] shrink-0">
+                          <span className="w-14 text-center px-2 py-1 rounded-lg bg-[#FAF5EF] text-[10px] font-extrabold text-[#1A1A1A] shrink-0">
                             {DAY_NAMES[item.dayOfWeek - 1] || `Hari ${item.dayOfWeek}`}
                           </span>
                           <div className="min-w-0">
                             <p className="font-bold text-[#1A1A1A] truncate">{item.subjectName}</p>
-                            <p className="text-[10px] text-[#9A9A9A]">
+                            <p className="text-[10px] text-[#6E5D4F]">
                               {item.creditHours} SKS · {item.isPracticum ? "Praktikum (1.5x)" : "Teori (1.0x)"}
                               {item.isExamWeek ? " · Ujian (+3.0)" : ""}
                             </p>
@@ -1650,11 +1650,11 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                         <button
                           type="button"
                           onClick={() => handleDeleteSchedule(item)}
-                          className="w-7 h-7 rounded-xl bg-white hover:bg-[#FEE2E2] text-[#9A9A9A] hover:text-[#DC2626] border border-[#E8E8E8] hover:border-[#FCA5A5] flex items-center justify-center transition-colors shadow-2xs shrink-0 group/del"
+                          className="w-7 h-7 rounded-xl bg-white hover:bg-[#FEE2E2] text-[#6E5D4F] hover:text-[#DC2626] border border-[#E6D7C8] hover:border-[#FCA5A5] flex items-center justify-center transition-colors shadow-2xs shrink-0 group/del"
                           title={`Hapus ${item.subjectName}`}
                           aria-label={`Hapus ${item.subjectName}`}
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-[#9A9A9A] group-hover/del:text-[#DC2626] transition-colors" />
+                          <Trash2 className="w-3.5 h-3.5 text-[#6E5D4F] group-hover/del:text-[#DC2626] transition-colors" />
                         </button>
                       </div>
                     ))}
@@ -1671,10 +1671,10 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           ======================================================== */}
       {isSleepModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#E8E8E8] space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-[#F0F0F0]">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#E6D7C8] space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-[#F5ECE2]">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shadow-2xs">
+                <div className="w-10 h-10 rounded-xl bg-[#98C5E2] flex items-center justify-center text-[#1A1A1A] shadow-2xs">
                   <Moon className="w-5 h-5" />
                 </div>
                 <div>
@@ -1688,7 +1688,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       {sleepClinicalMeta.label}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#9A9A9A]">
+                  <p className="text-[11px] text-[#6E5D4F]">
                     Inaktivitas Layar Malam &amp; Sensor OS PowerMonitor
                   </p>
                 </div>
@@ -1696,38 +1696,38 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsSleepModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#FAF5EF] hover:bg-[#E6D7C8] text-[#1A1A1A] flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Live Detection Breakdown */}
-            <div className="rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] p-4 space-y-3">
+            <div className="rounded-2xl bg-[#F5ECE2] border border-[#E6D7C8] p-4 space-y-3">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-[#525252] flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-[#1A1A1A]" />
                   Sumber Deteksi:
                 </span>
-                <span className="font-extrabold text-[#1A1A1A] bg-white px-2.5 py-0.5 rounded-full border border-[#E8E8E8]">
+                <span className="font-extrabold text-[#1A1A1A] bg-white px-2.5 py-0.5 rounded-full border border-[#E6D7C8]">
                   {getSleepSourceLabel(autoSleep.source)}
                 </span>
               </div>
 
               <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="p-2.5 rounded-xl bg-white border border-[#E8E8E8]">
-                  <span className="text-[10px] text-[#9A9A9A] block">Terakhir Aktif Malam</span>
+                <div className="p-2.5 rounded-xl bg-white border border-[#E6D7C8]">
+                  <span className="text-[10px] text-[#6E5D4F] block">Terakhir Aktif Malam</span>
                   <strong className="font-mono font-extrabold text-sm text-[#1A1A1A]">
                     {autoSleep.bedTime}
                   </strong>
                 </div>
-                <div className="p-2.5 rounded-xl bg-white border border-[#E8E8E8]">
-                  <span className="text-[10px] text-[#9A9A9A] block">Pertama Aktif Pagi</span>
+                <div className="p-2.5 rounded-xl bg-white border border-[#E6D7C8]">
+                  <span className="text-[10px] text-[#6E5D4F] block">Pertama Aktif Pagi</span>
                   <strong className="font-mono font-extrabold text-sm text-[#1A1A1A]">
                     {autoSleep.wakeTime}
                   </strong>
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#BDE6F0]/35 border border-[#8ECAD7]">
+                <div className="p-2.5 rounded-xl bg-[#98C5E2]/35 border border-[#7BB1D3]">
                   <span className="text-[10px] text-[#1A1A1A]/75 block">Tidur Bersih</span>
                   <strong className="font-heading font-extrabold text-sm text-[#1A1A1A]">
                     {autoSleep.sleepHours} Jam
@@ -1735,13 +1735,13 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-[#737373] pt-1 border-t border-[#ECECEC]">
+              <div className="flex items-center justify-between text-[11px] text-[#6E5D4F] pt-1 border-t border-[#F5ECE2]">
                 <span>
                   Jeda Inaktivitas: <strong>{autoSleep.rawInactiveHours}j</strong> (Latency{" "}
                   <strong>-{autoSleep.sleepLatencyMins}m</strong>)
                 </span>
                 <span>
-                  Kontribusi Recovery: <strong className="text-[#166534]">+{autoSleep.recoveryPoints}/40 Poin</strong>
+                  Kontribusi Recovery: <strong className="text-[#1E4E6E]">+{autoSleep.recoveryPoints}/40 Poin</strong>
                 </span>
               </div>
             </div>
@@ -1762,9 +1762,9 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       15
                     );
                   }}
-                  className="p-2.5 rounded-xl bg-[#FFF1F2] hover:bg-[#FFE4E6] border border-[#F7A8B0] text-left transition-all cursor-pointer"
+                  className="p-2.5 rounded-xl bg-[#F7E6D5] hover:bg-[#F7E6D5] border border-[#BF7E46] text-left transition-all cursor-pointer"
                 >
-                  <div className="text-[11px] font-extrabold text-[#9F1239]">
+                  <div className="text-[11px] font-extrabold text-[#231408]">
                     Begadang Tugas
                   </div>
                   <div className="text-[10px] font-mono text-[#1A1A1A] mt-0.5">
@@ -1782,9 +1782,9 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       15
                     );
                   }}
-                  className="p-2.5 rounded-xl bg-[#FFFDF0] hover:bg-[#FFF29A]/50 border border-[#FFE966] text-left transition-all cursor-pointer"
+                  className="p-2.5 rounded-xl bg-[#FDF6EE] hover:bg-[#FDECD8]/50 border border-[#E5C19A] text-left transition-all cursor-pointer"
                 >
-                  <div className="text-[11px] font-extrabold text-[#854D0E]">
+                  <div className="text-[11px] font-extrabold text-[#7C4A1E]">
                     Defisit Ringan
                   </div>
                   <div className="text-[10px] font-mono text-[#1A1A1A] mt-0.5">
@@ -1802,9 +1802,9 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       15
                     );
                   }}
-                  className="p-2.5 rounded-xl bg-[#F3F9EE] hover:bg-[#CDE8B5]/60 border border-[#CDE8B5] text-left transition-all cursor-pointer"
+                  className="p-2.5 rounded-xl bg-[#EBF3F9] hover:bg-[#98C5E2]/60 border border-[#98C5E2] text-left transition-all cursor-pointer"
                 >
-                  <div className="text-[11px] font-extrabold text-[#166534]">
+                  <div className="text-[11px] font-extrabold text-[#1E4E6E]">
                     Tidur Optimal
                   </div>
                   <div className="text-[10px] font-mono text-[#1A1A1A] mt-0.5">
@@ -1826,36 +1826,36 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 );
                 setIsSleepModalOpen(false);
               }}
-              className="space-y-3 pt-2 border-t border-[#F0F0F0]"
+              className="space-y-3 pt-2 border-t border-[#F5ECE2]"
             >
               <p className="text-xs font-extrabold text-[#1A1A1A]">
                 Kustomisasi Jendela Inaktivitas Malam:
               </p>
               <div className="grid grid-cols-3 gap-2.5">
                 <div>
-                  <label className="block text-[10px] font-bold text-[#737373] mb-1">
+                  <label className="block text-[10px] font-bold text-[#6E5D4F] mb-1">
                     Layar Mati (Malam)
                   </label>
                   <input
                     type="time"
                     value={customBedTime}
                     onChange={(e) => setCustomBedTime(e.target.value)}
-                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-[#FAFAFA] border border-[#E8E8E8] rounded-xl text-[#1A1A1A]"
+                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-[#F5ECE2] border border-[#E6D7C8] rounded-xl text-[#1A1A1A]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-[#737373] mb-1">
+                  <label className="block text-[10px] font-bold text-[#6E5D4F] mb-1">
                     Layar Aktif (Pagi)
                   </label>
                   <input
                     type="time"
                     value={customWakeTime}
                     onChange={(e) => setCustomWakeTime(e.target.value)}
-                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-[#FAFAFA] border border-[#E8E8E8] rounded-xl text-[#1A1A1A]"
+                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-[#F5ECE2] border border-[#E6D7C8] rounded-xl text-[#1A1A1A]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-[#737373] mb-1">
+                  <label className="block text-[10px] font-bold text-[#6E5D4F] mb-1">
                     Latency (Menit)
                   </label>
                   <input
@@ -1864,7 +1864,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                     max={120}
                     value={customLatencyMins}
                     onChange={(e) => setCustomLatencyMins(Math.max(0, Number(e.target.value) || 0))}
-                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-[#FAFAFA] border border-[#E8E8E8] rounded-xl text-[#1A1A1A]"
+                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-[#F5ECE2] border border-[#E6D7C8] rounded-xl text-[#1A1A1A]"
                   />
                 </div>
               </div>
@@ -1873,7 +1873,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsSleepModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-[#737373] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-[#6E5D4F] hover:text-[#1A1A1A] transition-colors cursor-pointer"
                 >
                   Tutup
                 </button>

@@ -222,7 +222,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
         <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] tracking-tight">
           Kamu tidak sendirian.
         </h1>
-        <p className="text-sm text-[#737373] mt-2">
+        <p className="text-sm text-[#6E5D4F] mt-2">
           Kenali kebutuhan tubuh dan pikiranmu bersama Wellbeing AI Coach.
         </p>
       </div>
@@ -236,7 +236,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             -------------------------------------------------------- */}
         <div className="lg:col-span-4 space-y-5">
           {/* CARD 1: Cerita tubuhmu hari ini */}
-          <div className="bg-white rounded-[1.75rem] p-6 shadow-xs border border-[#F0F0F0] space-y-5">
+          <div className="bg-white rounded-[1.75rem] p-6 shadow-xs border border-[#F5ECE2] space-y-5">
             <h2 className="font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A]">
               Cerita tubuhmu hari ini
             </h2>
@@ -244,12 +244,12 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             <div className="space-y-4">
               {/* Item 1: Beban kuliah */}
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#FCE4E6] text-[#E11D48] flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-12 h-12 rounded-2xl bg-[#F7E6D5] text-[#231408] flex items-center justify-center shrink-0 shadow-2xs">
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Beban kuliah</p>
-                  <p className="text-xs text-[#737373] mt-0.5">
+                  <p className="text-xs text-[#6E5D4F] mt-0.5">
                     {totalSks} SKS ({totalCourses} Matkul) &middot;{" "}
                     {hasExamWeek ? "Pekan ujian" : "Perkuliahan aktif"}
                   </p>
@@ -258,12 +258,12 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
               {/* Item 2: Paparan layar */}
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#FFF29A] text-[#B45309] flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-12 h-12 rounded-2xl bg-[#FDECD8] text-[#7C4A1E] flex items-center justify-center shrink-0 shadow-2xs">
                   <Monitor className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Paparan layar</p>
-                  <p className="text-xs text-[#737373] mt-0.5">
+                  <p className="text-xs text-[#6E5D4F] mt-0.5">
                     {screenHours} jam &middot; {screenHours > 8 ? "Butuh jeda aktif" : "Batas aman"}
                   </p>
                 </div>
@@ -271,12 +271,12 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
               {/* Item 3: Pemulihan tidur */}
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#BDE6F0] text-[#0369A1] flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-12 h-12 rounded-2xl bg-[#98C5E2] text-[#1E4E6E] flex items-center justify-center shrink-0 shadow-2xs">
                   <Moon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Pemulihan tidur</p>
-                  <p className="text-xs text-[#737373] mt-0.5">
+                  <p className="text-xs text-[#6E5D4F] mt-0.5">
                     {autoSleep.sleepHours} jam dari target 8 jam ({autoSleep.bedTime}&ndash;{autoSleep.wakeTime})
                   </p>
                 </div>
@@ -285,7 +285,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
           </div>
 
           {/* CARD 2: Sedikit lebih baik, hari ini. */}
-          <div className="bg-[#F2F8EE] rounded-[1.75rem] p-6 border border-[#E2EED8] space-y-5">
+          <div className="bg-[#EBF3F9] rounded-[1.75rem] p-6 border border-[#EBF3F9] space-y-5">
             <h2 className="font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A]">
               Sedikit lebih baik, hari ini.
             </h2>
@@ -293,12 +293,12 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             <div className="space-y-4">
               {/* Step 01 */}
               <div className="flex items-start gap-3.5">
-                <div className="w-9 h-9 rounded-full bg-[#CDE8B5] text-[#1A1A1A] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <div className="w-9 h-9 rounded-full bg-[#98C5E2] text-[#1A1A1A] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   01
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Ambil 2 jeda aktif</p>
-                  <p className="text-xs text-[#737373] mt-0.5 leading-relaxed">
+                  <p className="text-xs text-[#6E5D4F] mt-0.5 leading-relaxed">
                     Peregangan singkat di sela tugas.
                   </p>
                 </div>
@@ -306,12 +306,12 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
               {/* Step 02 */}
               <div className="flex items-start gap-3.5">
-                <div className="w-9 h-9 rounded-full bg-[#CDE8B5] text-[#1A1A1A] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <div className="w-9 h-9 rounded-full bg-[#98C5E2] text-[#1A1A1A] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   02
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Jalan santai 20 menit</p>
-                  <p className="text-xs text-[#737373] mt-0.5 leading-relaxed">
+                  <p className="text-xs text-[#6E5D4F] mt-0.5 leading-relaxed">
                     Bergerak tanpa melihat layar.
                   </p>
                 </div>
@@ -319,12 +319,12 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
               {/* Step 03 */}
               <div className="flex items-start gap-3.5">
-                <div className="w-9 h-9 rounded-full bg-[#CDE8B5] text-[#1A1A1A] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <div className="w-9 h-9 rounded-full bg-[#98C5E2] text-[#1A1A1A] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   03
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Tidur lebih awal</p>
-                  <p className="text-xs text-[#737373] mt-0.5 leading-relaxed">
+                  <p className="text-xs text-[#6E5D4F] mt-0.5 leading-relaxed">
                     Tambah 2 jam untuk capai target.
                   </p>
                 </div>
@@ -333,7 +333,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
           </div>
 
           {/* CARD 3: Ruang aman untuk bercerita */}
-          <div className="bg-[#BDE6F0] rounded-[1.75rem] p-6 border border-[#A9DFEC] space-y-2">
+          <div className="bg-[#98C5E2] rounded-[1.75rem] p-6 border border-[#7BB1D3] space-y-2">
             <div className="w-7 h-7 flex items-center justify-center text-[#1A1A1A]">
               <ShieldCheck className="w-6 h-6 stroke-[2]" />
             </div>
@@ -350,9 +350,9 @@ export const CoachView: React.FC<CoachViewProps> = () => {
         {/* --------------------------------------------------------
             RIGHT COLUMN: CHAT PANEL
             -------------------------------------------------------- */}
-        <div className="lg:col-span-8 bg-white rounded-[1.75rem] shadow-xs border border-[#F0F0F0] overflow-hidden flex flex-col">
+        <div className="lg:col-span-8 bg-white rounded-[1.75rem] shadow-xs border border-[#F5ECE2] overflow-hidden flex flex-col">
           {/* Header Chat Panel */}
-          <div className="bg-[#BDE6F0] px-6 py-4 flex items-center justify-between border-b border-[#A9DFEC]">
+          <div className="bg-[#98C5E2] px-6 py-4 flex items-center justify-between border-b border-[#7BB1D3]">
             <div className="flex items-center gap-3">
               <Heart className="w-6 h-6 text-[#1A1A1A] stroke-[2]" />
               <div>
@@ -389,7 +389,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                   <h3 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A]">
                     Hai, {userName}! Apa kabar hari ini?
                   </h3>
-                  <p className="text-xs sm:text-sm text-[#737373] mt-1.5 max-w-md mx-auto leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[#6E5D4F] mt-1.5 max-w-md mx-auto leading-relaxed">
                     Kenali ritme tubuh dan pikiranmu. Pilih salah satu rekomendasi topik di bawah untuk memulai sesi obrolan sehat:
                   </p>
                 </div>
@@ -402,17 +402,17 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                       type="button"
                       onClick={() => handleSendQuickPrompt(rec.prompt)}
                       disabled={isTyping}
-                      className="w-full bg-white hover:bg-[#F2F8EE] border border-[#E5E5E5] hover:border-[#CDE8B5] rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition-all shadow-2xs group active:scale-[0.99] disabled:opacity-50"
+                      className="w-full bg-white hover:bg-[#EBF3F9] border border-[#E6D7C8] hover:border-[#98C5E2] rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition-all shadow-2xs group active:scale-[0.99] disabled:opacity-50"
                     >
                       <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-[#F6F6F6] group-hover:bg-white text-[#1A1A1A] flex items-center justify-center shrink-0 border border-transparent group-hover:border-[#E0E0E0] shadow-2xs transition-colors">
+                        <div className="w-9 h-9 rounded-xl bg-[#FAF5EF] group-hover:bg-white text-[#1A1A1A] flex items-center justify-center shrink-0 border border-transparent group-hover:border-[#E6D7C8] shadow-2xs transition-colors">
                           {rec.icon}
                         </div>
                         <span className="text-xs sm:text-sm font-semibold text-[#1A1A1A] group-hover:text-black">
                           {rec.prompt}
                         </span>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-[#9A9A9A] group-hover:text-[#1A1A1A] shrink-0 transition-colors" />
+                      <ArrowRight className="w-4 h-4 text-[#6E5D4F] group-hover:text-[#1A1A1A] shrink-0 transition-colors" />
                     </button>
                   ))}
                 </div>
@@ -421,7 +421,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
               <>
                 {/* Timestamp Separator */}
                 <div className="text-center">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#9A9A9A]">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#6E5D4F]">
                     {sessionTimestampLabel}
                   </span>
                 </div>
@@ -436,8 +436,8 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                     >
                       <div
                         className={`text-sm leading-relaxed ${isUser
-                          ? "bg-[#E5F5D9] text-[#1A1A1A] rounded-2xl sm:rounded-3xl p-4 max-w-lg shadow-2xs"
-                          : "bg-[#F2F2F2] text-[#1A1A1A] rounded-2xl sm:rounded-3xl p-5 max-w-xl shadow-2xs"
+                          ? "bg-[#EBF3F9] text-[#1A1A1A] rounded-2xl sm:rounded-3xl p-4 max-w-lg shadow-2xs"
+                          : "bg-[#F5ECE2] text-[#1A1A1A] rounded-2xl sm:rounded-3xl p-5 max-w-xl shadow-2xs"
                           }`}
                       >
                         {msg.text.replace("Tiara", userName)}
@@ -449,10 +449,10 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                 {/* Typing Indicator */}
                 {isTyping && (
                   <div className="flex justify-start">
-                    <div className="bg-[#F2F2F2] rounded-2xl px-4 py-3 flex items-center gap-1.5 shadow-2xs">
-                      <span className="w-2 h-2 rounded-full bg-[#9A9A9A] animate-pulse" />
-                      <span className="w-2 h-2 rounded-full bg-[#9A9A9A] animate-pulse delay-150" />
-                      <span className="w-2 h-2 rounded-full bg-[#9A9A9A] animate-pulse delay-300" />
+                    <div className="bg-[#F5ECE2] rounded-2xl px-4 py-3 flex items-center gap-1.5 shadow-2xs">
+                      <span className="w-2 h-2 rounded-full bg-[#6E5D4F] animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-[#6E5D4F] animate-pulse delay-150" />
+                      <span className="w-2 h-2 rounded-full bg-[#6E5D4F] animate-pulse delay-300" />
                     </div>
                   </div>
                 )}
@@ -462,17 +462,17 @@ export const CoachView: React.FC<CoachViewProps> = () => {
           </div>
 
           {/* Chat Input Bar */}
-          <div className="px-6 pb-6 pt-2 border-t border-[#F0F0F0]">
+          <div className="px-6 pb-6 pt-2 border-t border-[#F5ECE2]">
             <form
               onSubmit={handleSendMessage}
-              className="flex items-center gap-2 bg-white rounded-full border border-[#E0E0E0] pl-5 pr-2 py-2 focus-within:border-[#1A1A1A] transition-colors shadow-2xs"
+              className="flex items-center gap-2 bg-white rounded-full border border-[#E6D7C8] pl-5 pr-2 py-2 focus-within:border-[#1A1A1A] transition-colors shadow-2xs"
             >
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder="Ceritakan yang sedang kamu rasakan..."
-                className="flex-1 bg-transparent text-xs sm:text-sm text-[#1A1A1A] placeholder-[#9A9A9A] focus:outline-none"
+                className="flex-1 bg-transparent text-xs sm:text-sm text-[#1A1A1A] placeholder-[#6E5D4F] focus:outline-none"
               />
               <button
                 type="submit"
