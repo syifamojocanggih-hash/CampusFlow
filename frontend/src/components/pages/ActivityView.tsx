@@ -65,7 +65,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
   }, [completedDates]);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-10">
+    <div className="space-y-6 w-full pb-10">
       {/* Header Banner */}
       <div className="learnova-card p-6 border-[#E8DDCF] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">

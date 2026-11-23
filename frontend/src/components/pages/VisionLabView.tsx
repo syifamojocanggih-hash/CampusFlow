@@ -8,7 +8,7 @@ export const VisionLabView: React.FC = () => {
   const [lastPayload, setLastPayload] = useState<SedentarySessionPayload | null>(null);
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6 w-full pb-12">
       {/* Header Banner */}
       <div className="learnova-card p-6 border-[#E8DDCF] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">

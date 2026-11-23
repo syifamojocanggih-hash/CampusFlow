@@ -33,7 +33,7 @@ export const navItems: { key: TabKey; label: string; icon: React.ReactNode }[] =
 export const DesktopSidebar: React.FC<NavbarProps> = ({
   activeTab,
   onSelectTab,
-  userName,
+  userName: _userName,
   onBackToLanding,
 }) => {
   return (
@@ -75,30 +75,9 @@ export const DesktopSidebar: React.FC<NavbarProps> = ({
         </nav>
       </div>
 
-      {/* User Profile Snippet & Logout Button in Sidebar */}
-      <div className="pt-4 border-t border-[#E8DDCF] space-y-2">
-        <button
-          onClick={() => onSelectTab("profile")}
-          className={`w-full flex items-center gap-3 p-2 rounded-2xl transition-all text-left ${
-            activeTab === "profile"
-              ? "bg-[#CFD8C4] ring-2 ring-[#CFD8C4] shadow-xs"
-              : "hover:bg-[#FAF6F0]"
-          }`}
-          title="Atur Profil Pengguna"
-        >
-          <div className="w-10 h-10 rounded-full bg-[#E8DDCF] text-[#636B60] font-bold flex items-center justify-center text-sm shadow-xs ring-2 ring-[#E8DDCF] shrink-0">
-            {userName ? userName.charAt(0).toUpperCase() : "M"}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-[#2F3A2E] truncate">{userName}</p>
-            <p className="text-[11px] text-[#636B60] font-medium truncate flex items-center justify-between">
-              <span>Mahasiswa Aktif</span>
-              <span className="text-[10px] text-[#2F3A2E] font-bold">Edit &rarr;</span>
-            </p>
-          </div>
-        </button>
-
-        {onBackToLanding && (
+      {/* Logout Button in Sidebar */}
+      {onBackToLanding && (
+        <div className="pt-4 border-t border-[#E8DDCF]">
           <button
             onClick={onBackToLanding}
             className="w-full py-2.5 px-3 rounded-xl text-xs font-bold text-[#636B60] hover:text-[#2F3A2E] hover:bg-[#FAF6F0] transition-all flex items-center gap-2 group"
@@ -107,8 +86,8 @@ export const DesktopSidebar: React.FC<NavbarProps> = ({
             <LogOut className="w-4 h-4 text-[#636B60] group-hover:text-[#2F3A2E] transition-colors" />
             <span>Log out</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </aside>
   );
 };

@@ -332,7 +332,7 @@ export const FocusView: React.FC = () => {
   const strokeDashoffset = circumference * (1 - progressPct / 100);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12 font-sans">
+    <div className="w-full space-y-6 pb-12 font-sans">
       {/* ========================================================
           1. TOP PAGE HEADER
           ======================================================== */}

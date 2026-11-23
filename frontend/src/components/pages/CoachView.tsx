@@ -214,7 +214,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-12 font-sans">
+    <div className="w-full space-y-6 pb-12 font-sans">
       {/* ========================================================
           1. TOP PAGE HEADER
           ======================================================== */}

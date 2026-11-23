@@ -20,7 +20,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigateToProfile 
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto pb-10">
+    <div className="space-y-6 w-full pb-10">
       {/* Header Banner */}
       <div className="learnova-card p-6 border-[#E8DDCF] flex items-center justify-between">
         <div className="flex items-center gap-3.5">
