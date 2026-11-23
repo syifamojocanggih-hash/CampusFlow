@@ -68,6 +68,38 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       setSensorSupported(false);
     }
 
+    // Muat akumulasi langkah & METs hari ini dari database MySQL
+    const todayIso = new Date().toISOString().slice(0, 10);
+    api
+      .getPhysicalActivities(7)
+      .then((res) => {
+        const items = Array.isArray(res.data?.items)
+          ? (res.data.items as Array<{
+              activityDate?: string;
+              stepsCount?: number | null;
+              calculatedMets?: number;
+            }>)
+          : [];
+        const todayItems = items.filter((it) =>
+          String(it.activityDate || "").startsWith(todayIso)
+        );
+        if (todayItems.length > 0) {
+          const sumSteps = todayItems.reduce(
+            (acc, it) => acc + (Number(it.stepsCount) || 0),
+            0
+          );
+          const sumMets = todayItems.reduce(
+            (acc, it) => acc + (Number(it.calculatedMets) || 0),
+            0
+          );
+          if (sumSteps > 0 || sumMets > 0) {
+            setTotalSteps(sumSteps);
+            setMetMinutes(sumMets);
+          }
+        }
+      })
+      .catch(() => {});
+
     return () => {
       engine.stop();
     };
@@ -110,7 +142,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
     }
   };
 
-  // Quick Campus Activity Logger
+  // Quick Campus Activity Logger (Auto-Sync to MySQL Database)
   const handleLogQuickActivity = (addSteps: number, addMet: number, name: string) => {
     const newSteps = totalSteps + addSteps;
     const newMet = metMinutes + addMet;
@@ -120,8 +152,20 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
     if (onStepsChange) {
       onStepsChange(newSteps, newMet);
     }
-    setQuickActivityFeedback(`+${addSteps.toLocaleString()} langkah dari ${name}!`);
+    setQuickActivityFeedback(`+${addSteps.toLocaleString()} langkah dari ${name} (Tersimpan ke DB)!`);
     setTimeout(() => setQuickActivityFeedback(null), 3000);
+
+    void api
+      .submitPhysicalActivity({
+        activityDate: new Date().toISOString().slice(0, 10),
+        intensityType: "MODERATE",
+        durationMinutes: Math.max(1, Math.round(addSteps / 100)),
+        stepsCount: addSteps,
+        avgCadenceSpm: 105,
+        source: "WEB_SENSOR_API",
+        notes: `${name}: +${addSteps} langkah (${addMet} MET-menit)`,
+      })
+      .catch((err) => console.warn("Gagal menyimpan aktivitas cepat ke DB:", err));
   };
 
   const handleSaveToActivity = async () => {

@@ -218,51 +218,70 @@ export async function syncAutoSleepToDatabase(userId: string, record: AutoSleepR
     nonAcademicScreenHours,
   });
 
-  const wellbeingLog = await prisma.dailyWellbeingLog.upsert({
-    where: { userId_logDate: { userId, logDate: utcLogDate } },
-    update: {
-      sleepHours: record.sleepHours,
-      sleepQualityScore: record.sleepQualityScore,
-      totalSedentaryHours,
-      totalMvpaMinutes,
-      mvpaPerSedentaryRatio: triad.mvpaPerSedentaryRatio,
-      triadPillarsMet: triad.triadPillarsMet,
-    },
-    create: {
-      userId,
-      logDate: utcLogDate,
-      sleepHours: record.sleepHours,
-      sleepQualityScore: record.sleepQualityScore,
-      nonAcademicScreenHours,
-      pss4RawAnswersJson: existingAnswers,
-      pss4TotalScore,
-      totalSedentaryHours,
-      totalMvpaMinutes,
-      mvpaPerSedentaryRatio: triad.mvpaPerSedentaryRatio,
-      triadPillarsMet: triad.triadPillarsMet,
-      stressRiskLevel,
-    },
-  });
+  const wellbeingUpdateData = {
+    sleepHours: record.sleepHours,
+    sleepQualityScore: record.sleepQualityScore,
+    totalSedentaryHours,
+    totalMvpaMinutes,
+    mvpaPerSedentaryRatio: triad.mvpaPerSedentaryRatio,
+    triadPillarsMet: triad.triadPillarsMet,
+  };
+
+  const wellbeingCreateData = {
+    userId,
+    logDate: utcLogDate,
+    sleepHours: record.sleepHours,
+    sleepQualityScore: record.sleepQualityScore,
+    nonAcademicScreenHours,
+    pss4RawAnswersJson: existingAnswers,
+    pss4TotalScore,
+    totalSedentaryHours,
+    totalMvpaMinutes,
+    mvpaPerSedentaryRatio: triad.mvpaPerSedentaryRatio,
+    triadPillarsMet: triad.triadPillarsMet,
+    stressRiskLevel,
+  };
+
+  let wellbeingLog;
+  try {
+    wellbeingLog = await prisma.dailyWellbeingLog.upsert({
+      where: { userId_logDate: { userId, logDate: utcLogDate } },
+      update: wellbeingUpdateData,
+      create: wellbeingCreateData,
+    });
+  } catch {
+    wellbeingLog = await prisma.dailyWellbeingLog.update({
+      where: { userId_logDate: { userId, logDate: utcLogDate } },
+      data: wellbeingUpdateData,
+    });
+  }
 
   // Update sleepHours di DailyFussionLog sebelum recalculateTodayBurnoutLog
-  await prisma.dailyFussionLog.upsert({
-    where: { userId_logDate: { userId, logDate: utcLogDate } },
-    update: {
-      sleepHours: record.sleepHours,
-    },
-    create: {
-      userId,
-      logDate: utcLogDate,
-      totalScreenTimeMins: existingFussion?.totalScreenTimeMins ?? 0,
-      sleepHours: record.sleepHours,
-      academicLoadScore: 0,
-      screenFatigueScore: 0,
-      recoveryScore: record.recoveryPoints,
-      verifiedBreakCount: 0,
-      burnoutIndex: 0,
-      status: "LOW",
-    },
-  });
+  try {
+    await prisma.dailyFussionLog.upsert({
+      where: { userId_logDate: { userId, logDate: utcLogDate } },
+      update: {
+        sleepHours: record.sleepHours,
+      },
+      create: {
+        userId,
+        logDate: utcLogDate,
+        totalScreenTimeMins: existingFussion?.totalScreenTimeMins ?? 0,
+        sleepHours: record.sleepHours,
+        academicLoadScore: 0,
+        screenFatigueScore: 0,
+        recoveryScore: record.recoveryPoints,
+        verifiedBreakCount: 0,
+        burnoutIndex: 0,
+        status: "LOW",
+      },
+    });
+  } catch {
+    await prisma.dailyFussionLog.update({
+      where: { userId_logDate: { userId, logDate: utcLogDate } },
+      data: { sleepHours: record.sleepHours },
+    });
+  }
 
   const burnoutSummary = await recalculateTodayBurnoutLog(userId, record.logDate);
 

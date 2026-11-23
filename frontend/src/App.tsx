@@ -26,12 +26,26 @@ import type { TabKey, UserProfileDTO } from "@/types";
 
 export function App() {
   const osLock = useOsScreenLock();
-  const [isLandingPage, setIsLandingPage] = useState(
-    () => !osScreenLock.getState().isLocked && !window.location.search.includes("os_lock=1")
-  );
+  const [isLandingPage, setIsLandingPage] = useState(() => {
+    if (osScreenLock.getState().isLocked || window.location.search.includes("os_lock=1")) {
+      return false;
+    }
+    const existingToken = api.getToken();
+    return !existingToken || existingToken.startsWith("mock-jwt-");
+  });
   const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
   const [isPanicReliefActive, setIsPanicReliefActive] = useState(false);
-  const [user, setUser] = useState<UserProfileDTO | null>(null);
+  const [user, setUser] = useState<UserProfileDTO | null>(() => {
+    const saved = localStorage.getItem("cf_user_profile");
+    if (saved) {
+      try {
+        return JSON.parse(saved) as UserProfileDTO;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
 
   useEffect(() => {
     if (osLock.isLocked && isLandingPage) {
@@ -49,16 +63,23 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    if (isLandingPage) return;
     api
       .getCurrentUser()
-      .then((res) => setUser(res.data))
+      .then((res) => {
+        if (res?.data) {
+          setUser(res.data);
+          localStorage.setItem("cf_user_profile", JSON.stringify(res.data));
+        }
+      })
       .catch((err) => console.error("Gagal memuat profil:", err));
-  }, []);
+  }, [isLandingPage]);
 
-  const userName = user?.name || "Mutiara Dewanda";
+  const userName = user?.name || "Mahasiswa";
 
   const handleLogout = () => {
     api.setToken(null);
+    localStorage.removeItem("cf_user_profile");
     setUser(null);
     setIsLandingPage(true);
   };

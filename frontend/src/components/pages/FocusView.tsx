@@ -17,7 +17,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { VisionGuard } from "@/components/vision/VisionGuard";
-import { screenTimeTracker } from "@/utils/screenTimeTracker";
+import { useOsScreenTime } from "@/utils/screenTimeTracker";
 import { osScreenLock, useOsScreenLock } from "@/utils/osScreenLock";
 
 interface FocusTask {
@@ -70,10 +70,9 @@ export const FocusView: React.FC = () => {
     }
   }, [osLock.isLocked]);
 
-  // Passive Screen Time State
-  const [screenMinutes, setScreenMinutes] = useState<number>(() =>
-    Math.max(600, screenTimeTracker.getTodayScreenTimeMinutes())
-  );
+  // OS-Level Screen Time State
+  const osScreenTime = useOsScreenTime();
+  const screenMinutes = osScreenTime.totalMinutes;
 
   // Active Break Incidental Modal State
   const [isActiveBreakOpen, setIsActiveBreakOpen] = useState<boolean>(false);
@@ -97,14 +96,6 @@ export const FocusView: React.FC = () => {
   const [isEyeBreakOpen, setIsEyeBreakOpen] = useState<boolean>(false);
   const [eyeBreakSeconds, setEyeBreakSeconds] = useState<number>(20);
   const [eyeBreakActive, setEyeBreakActive] = useState<boolean>(false);
-
-  // Update passive screen time every 10 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setScreenMinutes(Math.max(600, screenTimeTracker.getTodayScreenTimeMinutes()));
-    }, 10000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Timer Tick Loop
   useEffect(() => {

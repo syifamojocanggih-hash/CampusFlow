@@ -43,14 +43,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onNavigateToFocus: _onNavigateToFocus,
 }) => {
   // Form State
-  const [name, setName] = useState(currentUser?.name || "Mahasiswa Demo CampusFlow");
-  const [nim, setNim] = useState(
-    currentUser?.nim ? currentUser.nim.replace(/[^0-9]/g, "") : "43324001"
-  );
-  const [email, setEmail] = useState(currentUser?.email || "demo@campusflow.id");
+  const [name, setName] = useState(currentUser?.name || "Mahasiswa CampusFlow");
+  const [nim, setNim] = useState(currentUser?.nim || "-");
+  const [email, setEmail] = useState(currentUser?.email || "");
   const [department, setDepartment] = useState(currentUser?.department || "Teknik Informatika");
-  const [semester, setSemester] = useState("Semester 4");
-  const [weeklyMetsTarget, setWeeklyMetsTarget] = useState(currentUser?.weeklyMetsTarget || 1500);
+  const [semester, setSemester] = useState("Semester 3");
+  const [weeklyMetsTarget, setWeeklyMetsTarget] = useState(currentUser?.weeklyMetsTarget ?? 1500);
   const [selectedAvatarColor, setSelectedAvatarColor] = useState(
     localStorage.getItem("cf_avatar_color") || "#F7A8B0"
   );
@@ -63,10 +61,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   useEffect(() => {
     if (currentUser) {
       setName(currentUser.name);
-      setNim(currentUser.nim ? currentUser.nim.replace(/[^0-9]/g, "") : "43324001");
+      setNim(currentUser.nim || "-");
       setEmail(currentUser.email);
       setDepartment(currentUser.department);
-      setWeeklyMetsTarget(currentUser.weeklyMetsTarget);
+      setWeeklyMetsTarget(currentUser.weeklyMetsTarget ?? 1500);
     }
   }, [currentUser]);
 
@@ -175,7 +173,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <div className="flex items-center gap-1 text-[#F9B99A]">
                   <Flame className="w-4 h-4 fill-[#F9B99A]" />
                   <span className="font-extrabold text-sm text-[#1A1A1A]">
-                    {currentUser?.currentStreakDays || 7}
+                    {currentUser?.currentStreakDays ?? 1}
                   </span>
                 </div>
                 <span className="text-[10px] text-[#9A9A9A] font-medium mt-0.5">Hari Streak</span>
@@ -185,7 +183,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <div className="flex items-center gap-1 text-amber-500">
                   <Award className="w-4 h-4" />
                   <span className="font-extrabold text-sm text-[#1A1A1A]">
-                    {currentUser?.xpPoints || 420}
+                    {currentUser?.xpPoints ?? 0}
                   </span>
                 </div>
                 <span className="text-[10px] text-[#9A9A9A] font-medium mt-0.5">XP Terkumpul</span>
@@ -194,7 +192,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <div className="bg-[#F6F6F6] border border-[#E8E8E8] rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
                 <div className="flex items-center gap-1 text-emerald-600">
                   <Sparkles className="w-4 h-4" />
-                  <span className="font-extrabold text-sm text-[#1A1A1A]">Level 4</span>
+                  <span className="font-extrabold text-sm text-[#1A1A1A]">
+                    Level {Math.max(1, Math.floor((currentUser?.xpPoints ?? 0) / 100) + 1)}
+                  </span>
                 </div>
                 <span className="text-[10px] text-[#9A9A9A] font-medium mt-0.5">Habit Champion</span>
               </div>
@@ -237,9 +237,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               </label>
               <input
                 type="text"
-                inputMode="numeric"
                 value={nim}
-                onChange={(e) => setNim(e.target.value.replace(/[^0-9]/g, ""))}
+                onChange={(e) => setNim(e.target.value)}
                 placeholder="43324001"
                 required
                 className="w-full px-3.5 py-2.5 text-xs bg-[#F6F6F6] border border-[#E8E8E8] rounded-xl text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#BDE6F0] transition-all font-medium"

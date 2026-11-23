@@ -75,7 +75,8 @@ scheduleRouter.post(
       }
 
       const apiKey = (req.headers["x-gemini-api-key"] as string) || undefined;
-      const parseResult = await parseSchedulePdf(buffer, { apiKey });
+      const mimeType = req.file?.mimetype || req.body?.mimeType || "application/pdf";
+      const parseResult = await parseSchedulePdf(buffer, { apiKey, mimeType });
       const summary = computeScheduleSummary(parseResult.items);
 
       sendSuccess(res, {
@@ -217,10 +218,16 @@ scheduleRouter.post("/", async (req: AuthenticatedRequest, res: Response, next: 
         subjectName: parsed.subjectName,
         creditHours: parsed.creditHours,
         isPracticum: parsed.isPracticum,
+        classType: parsed.isPracticum ? "praktikum" : "teori",
         isExamWeek: parsed.isExamWeek || Boolean(parsed.examDate),
         examDate: parsed.examDate ? toUtcDateOnly(parsed.examDate) : null,
       },
     });
+    try {
+      await recalculateTodayBurnoutLog(userId);
+    } catch {
+      // Non-fatal in isolated mock tests
+    }
     sendSuccess(res, created, 201);
   } catch (error) {
     next(error);
@@ -242,10 +249,16 @@ scheduleRouter.post("/bulk", async (req: AuthenticatedRequest, res: Response, ne
         subjectName: s.subjectName,
         creditHours: s.creditHours,
         isPracticum: s.isPracticum,
+        classType: s.isPracticum ? "praktikum" : "teori",
         isExamWeek: s.isExamWeek || Boolean(s.examDate),
         examDate: s.examDate ? toUtcDateOnly(s.examDate) : null,
       })),
     });
+    try {
+      await recalculateTodayBurnoutLog(userId);
+    } catch {
+      // Non-fatal in isolated mock tests
+    }
     sendSuccess(res, { count: createdCount.count }, 201);
   } catch (error) {
     next(error);

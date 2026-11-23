@@ -1,24 +1,68 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { PedometerCard } from "@/components/sensor/PedometerCard";
 import { CheckinView } from "@/components/pages/CheckinView";
 import { Footprints, ClipboardCheck, Flame, Calendar } from "lucide-react";
+import { api } from "@/lib/api";
 
 interface ActivityViewProps {
   defaultSubTab?: "pedometer" | "checkin";
 }
 
-const WEEK_DAYS = [
-  { day: "Sen", date: "16 Nov", isCompleted: true, isToday: false },
-  { day: "Sel", date: "17 Nov", isCompleted: true, isToday: true },
-  { day: "Rab", date: "18 Nov", isCompleted: false, isToday: false },
-  { day: "Kam", date: "19 Nov", isCompleted: false, isToday: false },
-  { day: "Jum", date: "20 Nov", isCompleted: false, isToday: false },
-  { day: "Sab", date: "21 Nov", isCompleted: false, isToday: false },
-  { day: "Min", date: "22 Nov", isCompleted: false, isToday: false },
+const SHORT_DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+const SHORT_MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
 ];
 
 export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "pedometer" }) => {
   const [subTab, setSubTab] = useState<"pedometer" | "checkin">(defaultSubTab);
+  const [streakDays, setStreakDays] = useState<number>(1);
+  const [completedDates, setCompletedDates] = useState<Set<string>>(() => {
+    const todayIso = new Date().toISOString().slice(0, 10);
+    return new Set([todayIso]);
+  });
+
+  useEffect(() => {
+    api
+      .getTriadDashboard(7)
+      .then((res) => {
+        if (typeof res.data?.weeklySummary?.currentStreakDays === "number") {
+          setStreakDays(res.data.weeklySummary.currentStreakDays);
+        }
+        if (Array.isArray(res.data?.history)) {
+          const dates = new Set<string>();
+          for (const item of res.data.history) {
+            if (item.logDate) dates.add(item.logDate.slice(0, 10));
+          }
+          setCompletedDates(dates);
+        }
+      })
+      .catch(() => {});
+  }, [subTab]);
+
+  // Hitung 7 hari pekan berjalan secara dinamis berdasarkan tanggal hari ini
+  const weekDays = useMemo(() => {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0=Min, 1=Sen, ...
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    const todayIso = now.toISOString().slice(0, 10);
+
+    return Array.from({ length: 7 }).map((_, idx) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + idx);
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+        d.getDate()
+      ).padStart(2, "0")}`;
+      return {
+        day: SHORT_DAYS[d.getDay()],
+        date: `${d.getDate()} ${SHORT_MONTHS[d.getMonth()]}`,
+        isCompleted: completedDates.has(iso),
+        isToday: iso === todayIso,
+      };
+    });
+  }, [completedDates]);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-10">
@@ -49,7 +93,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
         {/* Streak Pill */}
         <div className="flex items-center gap-2 bg-[#FFF29A] text-[#1A1A1A] px-3.5 py-1.5 rounded-full border border-[#FFE966] shadow-2xs text-xs font-extrabold shrink-0">
           <Flame className="w-4 h-4 fill-[#1A1A1A]" />
-          <span>5 Hari Streak Konsisten</span>
+          <span>{streakDays} Hari Streak Konsisten</span>
         </div>
       </div>
 
@@ -69,7 +113,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
 
         {/* 7-Day Strip */}
         <div className="grid grid-cols-7 gap-1.5 sm:gap-3">
-          {WEEK_DAYS.map((item) => (
+          {weekDays.map((item) => (
             <div
               key={item.day}
               className={`p-2.5 rounded-2xl text-center border transition-all ${

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Moon,
   BookOpen,
@@ -14,6 +14,7 @@ import {
   Sparkles,
   SlidersHorizontal,
   CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import {
   AreaChart,
@@ -24,7 +25,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { api } from "@/lib/api";
-import { screenTimeTracker } from "@/utils/screenTimeTracker";
+import {
+  VALID_DAYS_ID,
+  type ExtractedKrsCourse,
+  type DayOfWeekIndonesian,
+} from "@/lib/krsPdfClient";
+import { useOsScreenTime } from "@/utils/screenTimeTracker";
 import {
   autoSleepTracker,
   useAutoSleep,
@@ -52,37 +58,15 @@ const DAY_NAMES = [
   "Minggu",
 ];
 
-const INITIAL_SCHEDULES: AcademicScheduleDTO[] = [
-  { id: "sch-1", dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: true, isExamWeek: false },
-  { id: "sch-2", dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false, isExamWeek: false },
-  { id: "sch-3", dayOfWeek: 3, subjectName: "Basis Data Terdistribusi", creditHours: 3, isPracticum: true, isExamWeek: false },
-  { id: "sch-4", dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 2, isPracticum: true, isExamWeek: false },
-  { id: "sch-5", dayOfWeek: 5, subjectName: "Etika Profesi & Komunikasi", creditHours: 2, isPracticum: false, isExamWeek: false },
-];
-
-const MOCK_14_DAY_TREND = [
-  { logDate: "03/11", burnoutIndex: 58, recoveryScore: 30, academicLoad: 12 },
-  { logDate: "04/11", burnoutIndex: 52, recoveryScore: 35, academicLoad: 10 },
-  { logDate: "05/11", burnoutIndex: 44, recoveryScore: 40, academicLoad: 8 },
-  { logDate: "06/11", burnoutIndex: 38, recoveryScore: 45, academicLoad: 7 },
-  { logDate: "07/11", burnoutIndex: 32, recoveryScore: 50, academicLoad: 6 },
-  { logDate: "08/11", burnoutIndex: 26, recoveryScore: 50, academicLoad: 4 },
-  { logDate: "09/11", burnoutIndex: 20, recoveryScore: 50, academicLoad: 3 },
-  { logDate: "10/11", burnoutIndex: 35, recoveryScore: 45, academicLoad: 9 },
-  { logDate: "11/11", burnoutIndex: 42, recoveryScore: 40, academicLoad: 11 },
-  { logDate: "12/11", burnoutIndex: 48, recoveryScore: 38, academicLoad: 12 },
-  { logDate: "13/11", burnoutIndex: 40, recoveryScore: 45, academicLoad: 8 },
-  { logDate: "14/11", burnoutIndex: 34, recoveryScore: 50, academicLoad: 7 },
-  { logDate: "15/11", burnoutIndex: 29, recoveryScore: 50, academicLoad: 6 },
-  { logDate: "16/11", burnoutIndex: 25, recoveryScore: 50, academicLoad: 6.5 },
-];
-
 export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   onStartPanicRelief: _onStartPanicRelief,
   onNavigateToFocus: _onNavigateToFocus,
 }) => {
-  // 1. Data States
-  const [schedules, setSchedules] = useState<AcademicScheduleDTO[]>(INITIAL_SCHEDULES);
+  // 1. Data States (100% Dynamic from MySQL Database)
+  const [schedules, setSchedules] = useState<AcademicScheduleDTO[]>([]);
+  const [trendHistory, setTrendHistory] = useState<
+    Array<{ logDate: string; burnoutIndex: number; recoveryScore: number; academicLoad: number }>
+  >([]);
   const autoSleep = useAutoSleep();
   const sleepHours = autoSleep.sleepHours;
   const sleepClinicalMeta = useMemo(
@@ -90,14 +74,26 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
     [autoSleep.clinicalStatus]
   );
 
-  const [screenTimeHours, setScreenTimeHours] = useState<number>(() => {
-    const tracked = screenTimeTracker.getTodayScreenTimeHours();
-    return tracked > 0 ? tracked : 5.4;
-  });
-  const [verifiedBreakCount, setVerifiedBreakCount] = useState<number>(1);
+  const osScreenTime = useOsScreenTime();
+  const screenTimeHours = osScreenTime.totalHours;
+  const [verifiedBreakCount, setVerifiedBreakCount] = useState<number>(0);
   const [isKrsModalOpen, setIsKrsModalOpen] = useState<boolean>(false);
   const [krsModalTab, setKrsModalTab] = useState<"upload" | "manual" | "manage">("upload");
   const [isExtractingPdf, setIsExtractingPdf] = useState<boolean>(false);
+  const krsFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isDragOverKrs, setIsDragOverKrs] = useState<boolean>(false);
+  const [krsUploadError, setKrsUploadError] = useState<string | null>(null);
+  const [krsUploadedFileName, setKrsUploadedFileName] = useState<string | null>(null);
+  const [krsPreviewItems, setKrsPreviewItems] = useState<ExtractedKrsCourse[] | null>(null);
+  const [krsExtractionSource, setKrsExtractionSource] = useState<string | null>(null);
+  const [replaceExistingKrs, setReplaceExistingKrs] = useState<boolean>(true);
+  const [isConfirmingKrs, setIsConfirmingKrs] = useState<boolean>(false);
+
+  const realTodayDayOfWeek = useMemo(() => {
+    const d = new Date().getDay();
+    return d === 0 ? 7 : d;
+  }, []);
+  const [selectedDayFilter, setSelectedDayFilter] = useState<number | "ALL">(realTodayDayOfWeek);
 
   // Auto-Sleep Inspector & Simulator Modal States
   const [isSleepModalOpen, setIsSleepModalOpen] = useState<boolean>(false);
@@ -169,14 +165,12 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   const [newIsPracticum, setNewIsPracticum] = useState<boolean>(false);
   const [newIsExamWeek, setNewIsExamWeek] = useState<boolean>(false);
 
-  // Load schedule & active break count from API or fallback
-  useEffect(() => {
+  // Load schedule, active break count & 14-day burnout history from MySQL API
+  const refreshDashboardFromDb = () => {
     api
       .getAcademicSchedules()
       .then((res) => {
-        if (res.data && res.data.length > 0) {
-          setSchedules(res.data);
-        }
+        setSchedules(Array.isArray(res.data) ? res.data : []);
       })
       .catch((err) => console.warn("[TriadDashboard] Gagal memuat jadwal KRS:", err));
 
@@ -188,35 +182,64 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         }
       })
       .catch(() => {});
-  }, []);
 
-  // Sync screen time periodically
+    api
+      .getBurnoutHistory(14)
+      .then((res) => {
+        const items = Array.isArray(res.data?.items)
+          ? (res.data.items as Array<{
+              logDate?: string;
+              burnoutIndex?: number;
+              recoveryScore?: number;
+              academicLoadScore?: number;
+            }>)
+          : [];
+        if (items.length > 0) {
+          setTrendHistory(
+            items.map((item) => {
+              const rawDate = String(item.logDate || "");
+              const parts = rawDate.split("-");
+              const label =
+                parts.length === 3 ? `${parts[2]}/${parts[1]}` : rawDate || "Hari Ini";
+              return {
+                logDate: label,
+                burnoutIndex: Number(item.burnoutIndex ?? 0),
+                recoveryScore: Number(item.recoveryScore ?? 0),
+                academicLoad: Number(item.academicLoadScore ?? 0),
+              };
+            })
+          );
+        }
+      })
+      .catch(() => {});
+  };
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      const live = screenTimeTracker.getTodayScreenTimeHours();
-      if (live > 0) {
-        setScreenTimeHours(live);
-      }
-    }, 15000);
-    return () => clearInterval(interval);
+    refreshDashboardFromDb();
   }, []);
 
-  // Today is Wednesday in academic demo (Day 3: Rabu, or getDay() dynamically)
-  const currentDayOfWeek = 3;
+  // Filter jadwal kuliah untuk perhitungan Burnout Hari Ini & tampilan kartu Jadwal
+  const todaySchedulesForBurnout = useMemo(() => {
+    const exactToday = schedules.filter((s) => s.dayOfWeek === realTodayDayOfWeek);
+    if (exactToday.length > 0) return exactToday;
+    return schedules.filter(
+      (s) => s.dayOfWeek === (selectedDayFilter === "ALL" ? realTodayDayOfWeek : selectedDayFilter)
+    );
+  }, [schedules, realTodayDayOfWeek, selectedDayFilter]);
 
-  // Filter schedules for today
-  const todaySchedules = useMemo(() => {
-    return schedules.filter((s) => s.dayOfWeek === currentDayOfWeek);
-  }, [schedules, currentDayOfWeek]);
+  const displayedSchedules = useMemo(() => {
+    if (selectedDayFilter === "ALL") return schedules;
+    return schedules.filter((s) => s.dayOfWeek === selectedDayFilter);
+  }, [schedules, selectedDayFilter]);
 
   // Compute PRD v4.0 Unified Burnout Risk Index (0-100)
   const scheduleInputs: ScheduleItemInput[] = useMemo(() => {
-    return todaySchedules.map((s) => ({
+    return todaySchedulesForBurnout.map((s) => ({
       creditHours: s.creditHours,
       isPracticum: s.isPracticum,
       isExamWeek: s.isExamWeek,
     }));
-  }, [todaySchedules]);
+  }, [todaySchedulesForBurnout]);
 
   const burnoutResult = useMemo(() => {
     return calculateBurnoutRiskIndex(
@@ -229,9 +252,47 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
 
   const {
     academicLoadScore,
+    recoveryScore,
     burnoutIndex,
     status: burnoutStatus,
   } = burnoutResult;
+
+  // Sinkronkan perhitungan Burnout hari ini ke tabel DailyFussionLog di MySQL setiap ada perubahan
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void api
+        .calculateBurnout({
+          totalScreenTimeMins: Math.max(1, Math.round(screenTimeHours * 60)),
+          sleepHours,
+        })
+        .catch(() => {});
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [schedules.length, screenTimeHours, sleepHours, verifiedBreakCount]);
+
+  // Gabungkan riwayat 14 hari dari database dengan skor live hari ini
+  const chartData = useMemo(() => {
+    const now = new Date();
+    const todayLabel = `${String(now.getDate()).padStart(2, "0")}/${String(
+      now.getMonth() + 1
+    ).padStart(2, "0")}`;
+    const todayPoint = {
+      logDate: todayLabel,
+      burnoutIndex: Math.round(burnoutIndex),
+      recoveryScore: Math.round(recoveryScore),
+      academicLoad: academicLoadScore,
+    };
+
+    if (trendHistory.length === 0) {
+      return [todayPoint];
+    }
+
+    const existsIdx = trendHistory.findIndex((p) => p.logDate === todayLabel);
+    if (existsIdx >= 0) {
+      return trendHistory.map((p, i) => (i === existsIdx ? todayPoint : p));
+    }
+    return [...trendHistory, todayPoint];
+  }, [trendHistory, burnoutIndex, recoveryScore, academicLoadScore]);
 
 
 
@@ -282,8 +343,12 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
     };
 
     try {
-      await api.saveAcademicSchedule(newCourse);
-      setSchedules((prev) => [...prev, newCourse]);
+      const saved = await api.saveAcademicSchedule(newCourse);
+      if (saved && typeof saved === "object" && "id" in saved) {
+        setSchedules((prev) => [...prev, saved]);
+      } else {
+        refreshDashboardFromDb();
+      }
       setNewSubjectName("");
       setNewCreditHours(3);
       setNewIsPracticum(false);
@@ -315,21 +380,88 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
     }
   };
 
-  // Handle Smart PDF KRS Parser simulation (PRD v4.0 Section 3.1)
-  const handleSimulatePdfParse = () => {
+  // Handle Real KRS File Upload & Preview Extraction (PRD v4.0 Section 3.1)
+  const handleKrsFileUpload = async (file: File | null | undefined) => {
+    if (!file) return;
+    setKrsUploadError(null);
     setIsExtractingPdf(true);
-    setTimeout(() => {
-      const extractedCourses: AcademicScheduleDTO[] = [
-        { id: "ext-1", dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: true, isExamWeek: false },
-        { id: "ext-2", dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false, isExamWeek: false },
-        { id: "ext-3", dayOfWeek: 3, subjectName: "Basis Data Terdistribusi", creditHours: 3, isPracticum: true, isExamWeek: false },
-        { id: "ext-4", dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 3, isPracticum: true, isExamWeek: false },
-        { id: "ext-5", dayOfWeek: 5, subjectName: "Jaringan Komputer Lanjut", creditHours: 3, isPracticum: true, isExamWeek: false },
-      ];
-      setSchedules(extractedCourses);
+    setKrsUploadedFileName(file.name);
+
+    try {
+      const res = await api.uploadKrsPdfPreview(file);
+      if (!res.data?.items || res.data.items.length === 0) {
+        throw new Error(
+          "Tidak ada mata kuliah yang terdeteksi dari file ini. Pastikan dokumen KRS memuat nama mata kuliah dan SKS."
+        );
+      }
+      setKrsPreviewItems(res.data.items);
+      setKrsExtractionSource(
+        res.data.source === "GEMINI_API" ? "Google Gemini AI OCR" : "Ekstraktor Dokumen KRS"
+      );
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Gagal mengekstrak file KRS. Pastikan format file PDF atau gambar terbaca jelas.";
+      setKrsUploadError(msg);
+      setKrsPreviewItems(null);
+    } finally {
       setIsExtractingPdf(false);
+      if (krsFileInputRef.current) {
+        krsFileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleUpdatePreviewItem = (idx: number, patch: Partial<ExtractedKrsCourse>) => {
+    setKrsPreviewItems((prev) => {
+      if (!prev) return prev;
+      return prev.map((item, i) => (i === idx ? { ...item, ...patch } : item));
+    });
+  };
+
+  const handleRemovePreviewItem = (idx: number) => {
+    setKrsPreviewItems((prev) => {
+      if (!prev) return prev;
+      const next = prev.filter((_, i) => i !== idx);
+      return next.length > 0 ? next : null;
+    });
+  };
+
+  const handleConfirmExtractedKrs = async () => {
+    if (!krsPreviewItems || krsPreviewItems.length === 0) return;
+    setIsConfirmingKrs(true);
+    setKrsUploadError(null);
+
+    try {
+      await api.confirmAcademicSchedules(krsPreviewItems, replaceExistingKrs);
+      const refreshed = await api.getAcademicSchedules();
+      if (refreshed.data && refreshed.data.length > 0) {
+        setSchedules(refreshed.data);
+      } else {
+        const mapped: AcademicScheduleDTO[] = krsPreviewItems.map((item, idx) => ({
+          id: `krs-${Date.now()}-${idx}`,
+          dayOfWeek: Math.max(1, VALID_DAYS_ID.indexOf(item.day_of_week) + 1),
+          subjectName: item.subject_name,
+          creditHours: item.credit_hours,
+          isPracticum: item.class_type === "praktikum",
+          isExamWeek: item.is_exam_week,
+          startTime: item.start_time,
+          endTime: item.end_time,
+        }));
+        setSchedules((prev) => (replaceExistingKrs ? mapped : [...prev, ...mapped]));
+      }
+      setSelectedDayFilter("ALL");
+      setKrsPreviewItems(null);
+      setKrsUploadedFileName(null);
       setIsKrsModalOpen(false);
-    }, 1200);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Gagal menyimpan jadwal KRS ke database.";
+      setKrsUploadError(msg);
+    } finally {
+      setIsConfirmingKrs(false);
+    }
   };
 
   return (
@@ -782,18 +914,39 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           </h3>
         </div>
 
-        {/* Card 2: Screen Time (Passive Page Visibility API) */}
-        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-center h-full">
-          <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
+        {/* Card 2: Screen Time (OS-Level System Idle & Activity Tracker) */}
+        <div
+          className="learnova-card p-4 sm:p-5 flex flex-col justify-between h-full"
+          title="Melacak seluruh aktivitas Layar OS (tetap berjalan saat pindah tab atau buka aplikasi lain seperti VS Code/Word/PDF)"
+        >
+          <div className="flex items-center gap-2.5 mb-2">
             <div className="w-9 h-9 rounded-2xl bg-[#FFF29A] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-xs">
               <Monitor className="w-4 h-4 text-[#1A1A1A]" />
             </div>
-            <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">Waktu Layar</p>
+            <div>
+              <p className="text-xs sm:text-sm font-bold text-[#1A1A1A] leading-tight">
+                Waktu Layar
+              </p>
+              <span className="text-[10px] font-bold text-[#525252] flex items-center gap-1">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    osScreenTime.isOsActive ? "bg-emerald-500 animate-pulse" : "bg-amber-400"
+                  }`}
+                />
+                Sensor Layar OS (Lintas App)
+              </span>
+            </div>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
-            {screenTimeHours}
-            <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Jam</span>
-          </h3>
+
+          <div className="flex items-baseline justify-between gap-2 flex-wrap">
+            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1A1A1A] sensor-num">
+              {screenTimeHours}
+              <span className="text-xs font-medium text-[#9A9A9A] ml-1.5">Jam</span>
+            </h3>
+            <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-[#FFFDF0] border border-[#FFE966] text-[#854D0E]">
+              {osScreenTime.formattedHMS}
+            </span>
+          </div>
         </div>
 
         {/* Card 3: Sleep Duration & Recovery (Automatic Passive Sleep Detector) */}
@@ -864,49 +1017,111 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         <div className="lg:col-span-7 flex flex-col">
           <div className="learnova-card p-5 sm:p-6 flex flex-col justify-between h-full">
             <div>
-              <div className="flex items-center justify-between pb-3">
+              <div className="flex items-center justify-between pb-2.5">
                 <div>
                   <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
-                    Jadwal Kuliah Hari Ini
+                    {selectedDayFilter === "ALL"
+                      ? "Seluruh Jadwal Kuliah (KRS)"
+                      : selectedDayFilter === realTodayDayOfWeek
+                      ? `Jadwal Kuliah Hari Ini (${DAY_NAMES[realTodayDayOfWeek - 1]})`
+                      : `Jadwal Kuliah Hari ${DAY_NAMES[selectedDayFilter - 1]}`}
                   </h3>
                 </div>
                 <button
                   onClick={() => setIsKrsModalOpen(true)}
-                  className="text-xs font-bold text-[#1A1A1A] bg-[#F6F6F6] hover:bg-[#E8E8E8] px-3 py-1.5 rounded-full border border-[#E8E8E8] flex items-center gap-1.5 transition-colors shrink-0"
+                  className="text-xs font-bold text-[#1A1A1A] bg-[#F6F6F6] hover:bg-[#E8E8E8] px-3 py-1.5 rounded-full border border-[#E8E8E8] flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Tambah / Edit KRS
                 </button>
               </div>
 
+              {/* Filter Hari Perkuliahan */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-2.5 mb-1">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDayFilter(realTodayDayOfWeek)}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all shrink-0 cursor-pointer ${
+                    selectedDayFilter === realTodayDayOfWeek
+                      ? "bg-[#1A1A1A] text-[#FFF29A]"
+                      : "bg-[#F6F6F6] text-[#737373] hover:text-[#1A1A1A]"
+                  }`}
+                >
+                  Hari Ini
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDayFilter("ALL")}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all shrink-0 cursor-pointer ${
+                    selectedDayFilter === "ALL"
+                      ? "bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966]"
+                      : "bg-[#F6F6F6] text-[#737373] hover:text-[#1A1A1A]"
+                  }`}
+                >
+                  Semua ({schedules.length})
+                </button>
+                {DAY_NAMES.slice(0, 6).map((dayLabel, idx) => {
+                  const dayNum = idx + 1;
+                  const countForDay = schedules.filter((s) => s.dayOfWeek === dayNum).length;
+                  return (
+                    <button
+                      key={dayNum}
+                      type="button"
+                      onClick={() => setSelectedDayFilter(dayNum)}
+                      className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
+                        selectedDayFilter === dayNum
+                          ? "bg-[#BDE6F0] text-[#1A1A1A] font-extrabold"
+                          : "bg-[#F6F6F6] text-[#737373] hover:text-[#1A1A1A]"
+                      }`}
+                    >
+                      {dayLabel.slice(0, 3)}
+                      {countForDay > 0 ? ` (${countForDay})` : ""}
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* Schedule List */}
               <div className="space-y-3 pt-1">
-                {todaySchedules.length === 0 ? (
+                {displayedSchedules.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center p-6 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] text-center space-y-2 min-h-[160px]">
                     <Calendar className="w-8 h-8 text-[#9A9A9A] mx-auto" />
-                    <p className="text-xs font-bold text-[#1A1A1A]">Tidak Ada Jadwal Kuliah Hari Ini</p>
+                    <p className="text-xs font-bold text-[#1A1A1A]">
+                      Tidak Ada Jadwal Kuliah pada Hari Ini
+                    </p>
                     <p className="text-[11px] text-[#9A9A9A] max-w-xs">
-                      Bagus untuk pemulihan energi! Anda dapat fokus pada tugas mandiri atau istirahat aktif.
+                      Bagus untuk pemulihan energi! Pilih tab <strong>Semua ({schedules.length})</strong> untuk melihat seluruh mata kuliah KRS Anda.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-[260px] overflow-y-auto pr-0.5">
-                    {todaySchedules.map((item, idx) => (
+                    {displayedSchedules.map((item, idx) => (
                       <div
                         key={item.id || `${item.subjectName}-${item.dayOfWeek}-${idx}`}
                         className="p-3.5 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] flex items-center justify-between hover:bg-white hover:border-[#BDE6F0] transition-colors group"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
                           <div className="w-10 h-10 rounded-xl bg-white border border-[#E8E8E8] flex flex-col items-center justify-center text-[#1A1A1A] shrink-0 font-mono">
                             <span className="text-xs font-extrabold">{item.creditHours}</span>
                             <span className="text-[9px] text-[#9A9A9A] uppercase">SKS</span>
                           </div>
-                          <h4 className="text-xs font-bold text-[#1A1A1A]">{item.subjectName}</h4>
+                          <div className="min-w-0">
+                            <h4 className="text-xs font-bold text-[#1A1A1A] truncate">
+                              {item.subjectName}
+                            </h4>
+                            <p className="text-[10px] text-[#737373] mt-0.5">
+                              {DAY_NAMES[item.dayOfWeek - 1] || `Hari ${item.dayOfWeek}`} &bull;{" "}
+                              {item.isPracticum ? "Praktikum (1.5x)" : "Teori (1.0x)"}
+                              {item.startTime && item.endTime
+                                ? ` · ${item.startTime}–${item.endTime}`
+                                : ""}
+                            </p>
+                          </div>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleDeleteSchedule(item)}
-                          className="w-7 h-7 rounded-xl bg-white hover:bg-[#FEE2E2] text-[#9A9A9A] hover:text-[#DC2626] border border-[#E8E8E8] hover:border-[#FCA5A5] flex items-center justify-center transition-colors shadow-2xs group/del"
+                          className="w-7 h-7 rounded-xl bg-white hover:bg-[#FEE2E2] text-[#9A9A9A] hover:text-[#DC2626] border border-[#E8E8E8] hover:border-[#FCA5A5] flex items-center justify-center transition-colors shadow-2xs group/del shrink-0"
                           title={`Hapus jadwal ${item.subjectName}`}
                           aria-label={`Hapus jadwal ${item.subjectName}`}
                         >
@@ -922,7 +1137,8 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
             {/* KRS Load Summary Bar */}
             <div className="pt-3 border-t border-[#E8E8E8] flex items-center justify-between text-xs mt-4">
               <span className="text-[#9A9A9A]">
-                Total Bobot SKS Hari Ini: <strong>{todaySchedules.reduce((acc, s) => acc + s.creditHours, 0)} SKS</strong>
+                Total Bobot SKS Ditampilkan:{" "}
+                <strong>{displayedSchedules.reduce((acc, s) => acc + s.creditHours, 0)} SKS</strong>
               </span>
               <span className="font-bold text-[#1A1A1A] bg-[#CDE8B5] px-2.5 py-0.5 rounded-full">
                 Beban Kognitif: {academicLoadScore} Poin
@@ -946,7 +1162,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
 
               <div className="h-52 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={MOCK_14_DAY_TREND} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                  <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                     <defs>
                       <linearGradient id="burnoutGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#F7A8B0" stopOpacity={0.7} />
@@ -1084,42 +1300,227 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               </button>
             </div>
 
-            {/* Tab 1: PDF Upload Dropzone (Section 3.1 PDF KRS Parser) */}
+            {/* Tab 1: Real PDF / Image KRS Upload Dropzone & Preview Editor (No Demo Button) */}
             {krsModalTab === "upload" ? (
               <div className="space-y-4">
-                <div className="p-6 border-2 border-dashed border-[#BDE6F0] rounded-2xl bg-[#F0F9FB] text-center space-y-2.5">
-                  <div className="w-12 h-12 rounded-2xl bg-white text-[#1A1A1A] flex items-center justify-center mx-auto shadow-xs">
-                    <FileText className="w-6 h-6 text-[#1A1A1A]" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-extrabold text-[#1A1A1A]">
-                      Tarik &amp; Lepas Berkas PDF / Screenshot KRS
-                    </p>
-                    <p className="text-[11px] text-[#9A9A9A] mt-0.5">
-                      Mendukung format PDF, PNG, atau JPG (maksimal 10 MB).
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleSimulatePdfParse}
-                    disabled={isExtractingPdf}
-                    className="px-4 py-2 rounded-xl bg-[#1A1A1A] hover:bg-black text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 inline-flex items-center gap-1.5"
-                  >
-                    <UploadCloud className="w-3.5 h-3.5" />
-                    <span>{isExtractingPdf ? "Mengekstrak Jadwal & SKS..." : "Pilih File & Ekstrak Otomatis"}</span>
-                  </button>
-                </div>
+                <input
+                  ref={krsFileInputRef}
+                  type="file"
+                  accept=".pdf,application/pdf,image/png,image/jpeg,image/jpg,image/webp,.txt,.csv"
+                  className="hidden"
+                  onChange={(e) => {
+                    const selected = e.target.files?.[0];
+                    void handleKrsFileUpload(selected);
+                  }}
+                />
 
-                <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#EEEEEE] text-[11px] text-[#9A9A9A] flex items-center justify-between">
-                  <span>Demo Template KRS:</span>
-                  <button
-                    type="button"
-                    onClick={handleSimulatePdfParse}
-                    className="font-bold text-[#1A1A1A] hover:underline"
+                {krsUploadError && (
+                  <div className="p-3.5 rounded-2xl bg-[#FFF1F2] border border-[#F7A8B0] text-[#9F1239] text-xs flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="font-extrabold">Gagal Memproses Dokumen KRS</p>
+                      <p className="text-[11px] mt-0.5">{krsUploadError}</p>
+                    </div>
+                  </div>
+                )}
+
+                {!krsPreviewItems ? (
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDragOverKrs(true);
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDragOverKrs(false);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDragOverKrs(false);
+                      const droppedFile = e.dataTransfer.files?.[0];
+                      void handleKrsFileUpload(droppedFile);
+                    }}
+                    onClick={() => {
+                      if (!isExtractingPdf) {
+                        krsFileInputRef.current?.click();
+                      }
+                    }}
+                    className={`p-7 border-2 border-dashed rounded-2xl text-center space-y-3 transition-all cursor-pointer ${
+                      isDragOverKrs
+                        ? "border-[#1A1A1A] bg-[#BDE6F0]/30 scale-[1.01]"
+                        : "border-[#BDE6F0] bg-[#F0F9FB] hover:border-[#8ECAD7]"
+                    }`}
                   >
-                    KRS_Semester_Ganjil_Tiara.pdf &rarr;
-                  </button>
-                </div>
+                    <div className="w-12 h-12 rounded-2xl bg-white text-[#1A1A1A] flex items-center justify-center mx-auto shadow-xs">
+                      <FileText className="w-6 h-6 text-[#1A1A1A]" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-extrabold text-[#1A1A1A]">
+                        {isExtractingPdf
+                          ? `Mengekstrak ${krsUploadedFileName || "Dokumen KRS"}...`
+                          : "Tarik & Lepas Berkas PDF / Screenshot KRS"}
+                      </p>
+                      <p className="text-[11px] text-[#737373] mt-0.5">
+                        Mendukung dokumen KRS resmi format PDF, PNG, atau JPG (maksimal 10 MB).
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        krsFileInputRef.current?.click();
+                      }}
+                      disabled={isExtractingPdf}
+                      className="px-4 py-2.5 rounded-xl bg-[#1A1A1A] hover:bg-black text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <UploadCloud className="w-3.5 h-3.5" />
+                      <span>
+                        {isExtractingPdf
+                          ? "Mengekstrak Jadwal & SKS..."
+                          : "Pilih File KRS & Ekstrak Otomatis"}
+                      </span>
+                    </button>
+                  </div>
+                ) : (
+                  /* Interactive Preview & Review Table before Saving to DB */
+                  <div className="space-y-3.5">
+                    <div className="p-3 rounded-2xl bg-[#F3F9EE] border border-[#CDE8B5] flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div>
+                        <span className="font-extrabold text-[#166534] block">
+                          {krsPreviewItems.length} Mata Kuliah Berhasil Diekstrak (
+                          {krsPreviewItems.reduce((sum, it) => sum + it.credit_hours, 0)} SKS)
+                        </span>
+                        <span className="text-[10px] text-[#525252]">
+                          Berkas: <strong>{krsUploadedFileName}</strong> &bull; Mesin:{" "}
+                          <strong>{krsExtractionSource}</strong>
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setKrsPreviewItems(null);
+                          setKrsUploadedFileName(null);
+                          setKrsUploadError(null);
+                        }}
+                        className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#F6F6F6] text-[#1A1A1A] border border-[#E8E8E8] text-[11px] font-bold cursor-pointer"
+                      >
+                        Ganti File
+                      </button>
+                    </div>
+
+                    <div className="max-h-[250px] overflow-y-auto space-y-2 pr-1">
+                      {krsPreviewItems.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="p-2.5 rounded-xl bg-[#FAFAFA] border border-[#E8E8E8] space-y-2 text-xs"
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={item.subject_name}
+                              onChange={(e) =>
+                                handleUpdatePreviewItem(idx, { subject_name: e.target.value })
+                              }
+                              className="flex-1 px-2.5 py-1 rounded-lg bg-white border border-[#E8E8E8] font-bold text-xs text-[#1A1A1A]"
+                              placeholder="Nama Mata Kuliah"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePreviewItem(idx)}
+                              className="w-7 h-7 rounded-lg bg-white hover:bg-[#FEE2E2] text-[#737373] hover:text-[#DC2626] border border-[#E8E8E8] flex items-center justify-center shrink-0 cursor-pointer"
+                              title="Hapus baris ini"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2">
+                            <select
+                              value={item.day_of_week}
+                              onChange={(e) =>
+                                handleUpdatePreviewItem(idx, {
+                                  day_of_week: e.target.value as DayOfWeekIndonesian,
+                                })
+                              }
+                              className="px-2 py-1 rounded-lg bg-white border border-[#E8E8E8] text-[11px] font-semibold text-[#1A1A1A]"
+                            >
+                              {VALID_DAYS_ID.map((d) => (
+                                <option key={d} value={d}>
+                                  {d}
+                                </option>
+                              ))}
+                            </select>
+
+                            <select
+                              value={item.credit_hours}
+                              onChange={(e) =>
+                                handleUpdatePreviewItem(idx, {
+                                  credit_hours: Number(e.target.value) || 2,
+                                })
+                              }
+                              className="px-2 py-1 rounded-lg bg-white border border-[#E8E8E8] text-[11px] font-semibold text-[#1A1A1A]"
+                            >
+                              {[1, 2, 3, 4, 5, 6].map((sks) => (
+                                <option key={sks} value={sks}>
+                                  {sks} SKS
+                                </option>
+                              ))}
+                            </select>
+
+                            <select
+                              value={item.class_type}
+                              onChange={(e) =>
+                                handleUpdatePreviewItem(idx, {
+                                  class_type: e.target.value as "teori" | "praktikum",
+                                })
+                              }
+                              className="px-2 py-1 rounded-lg bg-white border border-[#E8E8E8] text-[11px] font-semibold text-[#1A1A1A]"
+                            >
+                              <option value="teori">Teori (1.0x)</option>
+                              <option value="praktikum">Praktikum (1.5x)</option>
+                            </select>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <label className="flex items-center gap-2 text-xs font-semibold text-[#1A1A1A] cursor-pointer pt-1">
+                      <input
+                        type="checkbox"
+                        checked={replaceExistingKrs}
+                        onChange={(e) => setReplaceExistingKrs(e.target.checked)}
+                        className="rounded text-[#1A1A1A]"
+                      />
+                      <span>Ganti seluruh jadwal kuliah lama dengan hasil ekstraksi KRS ini</span>
+                    </label>
+
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setKrsPreviewItems(null)}
+                        className="px-3.5 py-2 rounded-xl text-xs font-bold text-[#737373] hover:text-[#1A1A1A] cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isConfirmingKrs}
+                        onClick={() => void handleConfirmExtractedKrs()}
+                        className="px-4 py-2 rounded-xl bg-[#1A1A1A] hover:bg-black text-white text-xs font-extrabold flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>
+                          {isConfirmingKrs
+                            ? "Menyimpan Jadwal..."
+                            : `Simpan ${krsPreviewItems.length} Mata Kuliah`}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : krsModalTab === "manual" ? (
               /* Tab 2: Manual Form */

@@ -36,23 +36,31 @@ export const uploadKrs = multer({
 export const uploadSchedulePdf = multer({
   storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // Maksimal 5 MB sesuai spesifikasi
+    fileSize: 10 * 1024 * 1024, // Maksimal 10 MB
   },
   fileFilter: (_req, file, cb) => {
     const original = file.originalname.toLowerCase();
-    const isPdf =
+    const isSupported =
       file.mimetype === "application/pdf" ||
       original.endsWith(".pdf") ||
+      file.mimetype.startsWith("image/") ||
+      original.endsWith(".png") ||
+      original.endsWith(".jpg") ||
+      original.endsWith(".jpeg") ||
+      original.endsWith(".webp") ||
+      file.mimetype.startsWith("text/") ||
+      original.endsWith(".txt") ||
+      original.endsWith(".csv") ||
       file.mimetype === "application/octet-stream";
 
-    if (isPdf) {
+    if (isSupported) {
       cb(null, true);
     } else {
       cb(
         new AppError(
           400,
           "VALIDATION_ERROR",
-          "Format file tidak didukung. Harap unggah dokumen PDF jadwal kuliah (.pdf) berukuran maksimal 5 MB."
+          "Format file tidak didukung. Harap unggah dokumen KRS berformat PDF (.pdf), Gambar (.png, .jpg), atau Teks (.txt)."
         )
       );
     }

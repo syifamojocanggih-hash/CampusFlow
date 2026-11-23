@@ -354,6 +354,36 @@ Harap cek kembali ruangannya.`;
     assert.equal(selasa.academic_load_score, 6.0);
     assert.equal(selasa.stress_level, "HIGH");
   });
+
+  test("parseLocalScheduleFallback: mengekstrak tabel KRS SIAKAD baik dengan jam, tanpa jam, maupun multi-baris", () => {
+    const siakadTableText = `
+      KARTU RENCANA STUDI (KRS)
+      Semester Ganjil 2026/2027
+      1 | IF2101 | Algoritma dan Struktur Data | 3 | A
+      2 | IF2102 | Praktikum Basis Data Terdistribusi | 2 | B
+      3 | IF2103 | Kecerdasan Buatan | 3 | A
+    `;
+    const items = parseLocalScheduleFallback(siakadTableText);
+    assert.equal(items.length, 3);
+    assert.equal(items[0].subject_name, "Algoritma dan Struktur Data");
+    assert.equal(items[0].credit_hours, 3);
+    assert.equal(items[1].class_type, "praktikum");
+    assert.equal(items[1].credit_hours, 2);
+
+    const multiLineText = `
+      KARTU RENCANA STUDI
+      IF3101
+      Pemrograman Web Lanjut
+      3
+      IF3102
+      Praktikum Jaringan Komputer
+      2
+    `;
+    const multiItems = parseLocalScheduleFallback(multiLineText);
+    assert.equal(multiItems.length, 2);
+    assert.equal(multiItems[0].subject_name, "Pemrograman Web Lanjut");
+    assert.equal(multiItems[1].class_type, "praktikum");
+  });
 });
 
 describe("Schedule Parser HTTP Endpoints (/api/academic-schedule & /api/v1/schedule)", () => {

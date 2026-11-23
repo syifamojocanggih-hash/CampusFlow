@@ -57,7 +57,37 @@ class ApiClient {
     return this.token;
   }
 
+  /**
+   * Memastikan token JWT backend asli tersedia (bukan token mock lokal)
+   * sebelum memanggil endpoint backend seperti upload/confirm KRS.
+   */
+  private async ensureRealBackendToken(): Promise<string | null> {
+    if (this.token && !this.token.startsWith("mock-jwt-")) {
+      return this.token;
+    }
+    try {
+      const res = await fetch(`${BASE_URL}/auth/demo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        const json = (await res.json()) as { data?: { token?: string } };
+        if (json.data?.token) {
+          this.setToken(json.data.token);
+          return json.data.token;
+        }
+      }
+    } catch {
+      // Backend unreachable
+    }
+    return this.token;
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    if (!this.token || this.token.startsWith("mock-jwt-")) {
+      await this.ensureRealBackendToken();
+    }
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),
@@ -67,10 +97,23 @@ class ApiClient {
       headers["Authorization"] = `Bearer ${this.token}`;
     }
 
-    const res = await fetch(`${BASE_URL}${endpoint}`, {
+    let res = await fetch(`${BASE_URL}${endpoint}`, {
       ...options,
       headers,
     });
+
+    // Jika token kedaluwarsa (401), coba refresh otomatis lewat sesi demo backend sekali
+    if (res.status === 401 && !endpoint.startsWith("/auth/")) {
+      this.setToken(null);
+      const refreshed = await this.ensureRealBackendToken();
+      if (refreshed) {
+        headers["Authorization"] = `Bearer ${refreshed}`;
+        res = await fetch(`${BASE_URL}${endpoint}`, {
+          ...options,
+          headers,
+        });
+      }
+    }
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
@@ -110,17 +153,18 @@ class ApiClient {
   }
 
   async login(email: string, password: string): Promise<UserResponse> {
+    const savedProfile = localStorage.getItem("cf_user_profile");
+    let customData: Partial<UserProfileDTO> = {};
+    if (savedProfile) {
+      try {
+        customData = JSON.parse(savedProfile);
+      } catch {
+        // ignore
+      }
+    }
+
     if (USE_MOCK) {
       this.setToken("mock-jwt-token-" + Date.now());
-      const savedProfile = localStorage.getItem("cf_user_profile");
-      let customData = {};
-      if (savedProfile) {
-        try {
-          customData = JSON.parse(savedProfile);
-        } catch {
-          // ignore
-        }
-      }
       const user: UserResponse = {
         ...MOCK_USER,
         data: {
@@ -132,11 +176,19 @@ class ApiClient {
       localStorage.setItem("cf_user_profile", JSON.stringify(user.data));
       return user;
     }
+
     const res = await this.request<{ data: { token: string; user: UserProfileDTO }; meta: unknown }>("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({
+        email,
+        password,
+        name: customData.name,
+        nim: customData.nim,
+        department: customData.department,
+      }),
     });
     this.setToken(res.data.token);
+    localStorage.setItem("cf_user_profile", JSON.stringify(res.data.user));
     return { data: res.data.user, meta: res.meta } as UserResponse;
   }
 
@@ -161,6 +213,7 @@ class ApiClient {
       body: JSON.stringify(payload),
     });
     this.setToken(res.data.token);
+    localStorage.setItem("cf_user_profile", JSON.stringify(res.data.user));
     return { data: res.data.user, meta: res.meta } as UserResponse;
   }
 
@@ -433,39 +486,44 @@ class ApiClient {
 
   // --- PRD v4.0: Academic Strava, PDF KRS Parser & Burnout Index ---
   async getAcademicSchedules(): Promise<AcademicScheduleListResponse> {
-    if (USE_MOCK) {
-      return {
-        data: [
-          { id: "sch-1", dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: true },
-          { id: "sch-2", dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false },
-          { id: "sch-3", dayOfWeek: 3, subjectName: "Basis Data Terdistribusi", creditHours: 3, isPracticum: true },
-          { id: "sch-4", dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 2, isPracticum: true },
-          { id: "sch-5", dayOfWeek: 5, subjectName: "Etika Profesi & Komunikasi", creditHours: 2, isPracticum: false },
-        ],
-        meta: { timestamp: new Date().toISOString(), version: "4.0" },
-      };
+    try {
+      return await this.request<AcademicScheduleListResponse>("/schedule");
+    } catch (err) {
+      if (USE_MOCK) {
+        return {
+          data: [
+            { id: "sch-1", dayOfWeek: 1, subjectName: "Algoritma & Struktur Data", creditHours: 3, isPracticum: true },
+            { id: "sch-2", dayOfWeek: 2, subjectName: "Kecerdasan Buatan", creditHours: 3, isPracticum: false },
+            { id: "sch-3", dayOfWeek: 3, subjectName: "Basis Data Terdistribusi", creditHours: 3, isPracticum: true },
+            { id: "sch-4", dayOfWeek: 4, subjectName: "Pemrograman Web Lanjut", creditHours: 2, isPracticum: true },
+            { id: "sch-5", dayOfWeek: 5, subjectName: "Etika Profesi & Komunikasi", creditHours: 2, isPracticum: false },
+          ],
+          meta: { timestamp: new Date().toISOString(), version: "4.0" },
+        };
+      }
+      throw err;
     }
-    return this.request<AcademicScheduleListResponse>("/schedule");
   }
 
-  async saveAcademicSchedule(payload: AcademicScheduleDTO): Promise<void> {
-    if (USE_MOCK) {
-      console.log("[MOCK] Save Schedule:", payload);
-      return;
+  async saveAcademicSchedule(payload: AcademicScheduleDTO): Promise<AcademicScheduleDTO | void> {
+    try {
+      const res = await this.request<{ data: AcademicScheduleDTO; meta: unknown }>("/schedule", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      return res.data;
+    } catch (err) {
+      if (USE_MOCK) {
+        return payload;
+      }
+      throw err;
     }
-    await this.request("/schedule", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
   }
 
   async updateAcademicSchedule(
     id: string,
     payload: Partial<AcademicScheduleDTO> & { classType?: "teori" | "praktikum"; startTime?: string | null; endTime?: string | null }
   ): Promise<{ data: unknown; meta: unknown }> {
-    if (USE_MOCK) {
-      return { data: { id, ...payload }, meta: { timestamp: new Date().toISOString(), version: "4.0" } };
-    }
     return this.request(`/schedule/${id}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
@@ -473,25 +531,27 @@ class ApiClient {
   }
 
   async deleteAcademicSchedule(id?: string): Promise<void> {
-    if (USE_MOCK) {
-      console.log("[MOCK] Delete Schedule:", id);
-      return;
-    }
     if (!id) return;
-    await this.request(`/schedule/${id}`, {
-      method: "DELETE",
-    });
+    try {
+      await this.request(`/schedule/${id}`, {
+        method: "DELETE",
+      });
+    } catch (err) {
+      if (!USE_MOCK) throw err;
+    }
   }
 
   async uploadKrsPdfPreview(
     file: File,
     geminiApiKey?: string
   ): Promise<KrsUploadPreviewResponse> {
+    const token = await this.ensureRealBackendToken();
     return uploadKrsPdfHelper(file, {
       baseUrl: BASE_URL,
-      token: this.token,
+      token,
       geminiApiKey,
-      useMock: USE_MOCK,
+      useMock: false,
+      allowExtendedFormats: true,
     });
   }
 
@@ -499,19 +559,21 @@ class ApiClient {
     schedules: ExtractedKrsCourse[],
     replaceExisting = true
   ): Promise<KrsConfirmResponse> {
+    const token = await this.ensureRealBackendToken();
     return confirmKrsSchedulesHelper(schedules, replaceExisting, {
       baseUrl: BASE_URL,
-      token: this.token,
-      useMock: USE_MOCK,
+      token,
+      useMock: false,
     });
   }
 
   async parseKrsText(text: string, saveToDatabase = false, geminiApiKey?: string): Promise<unknown> {
+    const token = await this.ensureRealBackendToken();
     return parseKrsTextHelper(text, saveToDatabase, {
       baseUrl: BASE_URL,
-      token: this.token,
+      token,
       geminiApiKey,
-      useMock: USE_MOCK,
+      useMock: false,
     });
   }
 

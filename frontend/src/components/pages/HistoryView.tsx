@@ -7,31 +7,48 @@ import type { TriadHistoryPointDTO } from "@/types";
 
 export const HistoryView: React.FC = () => {
   const autoSleep = useAutoSleep();
-  const [history, setHistory] = useState<TriadHistoryPointDTO[]>(
-    MOCK_TRIAD_DASHBOARD.data.history
-  );
-  const [weeklySummary, setWeeklySummary] = useState(
-    MOCK_TRIAD_DASHBOARD.data.weeklySummary
-  );
+  const [history, setHistory] = useState<TriadHistoryPointDTO[]>([]);
+  const [weeklySummary, setWeeklySummary] = useState({
+    weeklyMetsTotal: 0,
+    weeklyMetsTarget: 1500,
+    weeklyMseDays: 0,
+    weeklyMseTarget: 2,
+    currentStreakDays: 1,
+    xpPoints: 0,
+  });
 
   useEffect(() => {
     api
       .getTriadDashboard(14)
       .then((res) => {
-        if (res.data?.history && res.data.history.length > 0) {
+        if (Array.isArray(res.data?.history)) {
           setHistory(res.data.history);
         }
         if (res.data?.weeklySummary) {
           setWeeklySummary(res.data.weeklySummary);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setHistory(MOCK_TRIAD_DASHBOARD.data.history);
+      });
   }, [autoSleep.sleepHours]);
 
   // Pastikan baris paling atas/terbaru menampilkan durasi tidur otomatis hari ini
-  const enrichedHistory = history.map((row, idx) =>
-    idx === 0 ? { ...row, sleepHours: autoSleep.sleepHours } : row
-  );
+  const enrichedHistory =
+    history.length > 0
+      ? [...history]
+          .reverse()
+          .map((row, idx) => (idx === 0 ? { ...row, sleepHours: autoSleep.sleepHours } : row))
+      : [
+          {
+            logDate: autoSleep.logDate,
+            totalSedentaryHours: 0,
+            totalMvpaMinutes: 0,
+            sleepHours: autoSleep.sleepHours,
+            pss4TotalScore: 0,
+            triadPillarsMet: 1,
+          },
+        ];
 
   // Calorie app style pastel badges
   const achievements = [

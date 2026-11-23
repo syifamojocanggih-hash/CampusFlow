@@ -11,6 +11,8 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { screenTimeTracker } from "@/utils/screenTimeTracker";
+import { useAutoSleep } from "@/utils/autoSleepTracker";
 
 interface CoachViewProps {
   onNavigateToFocus?: () => void;
@@ -59,12 +61,30 @@ const CHAT_RECOMMENDATIONS: RecommendationItem[] = [
 ];
 
 export const CoachView: React.FC<CoachViewProps> = () => {
-  const [userName, setUserName] = useState<string>("Tiara");
+  const autoSleep = useAutoSleep();
+  const [userName, setUserName] = useState<string>("Mahasiswa");
+  const [totalSks, setTotalSks] = useState<number>(0);
+  const [totalCourses, setTotalCourses] = useState<number>(0);
+  const [hasExamWeek, setHasExamWeek] = useState<boolean>(false);
+  const [screenHours, setScreenHours] = useState<number>(() =>
+    screenTimeTracker.getTodayScreenTimeHours()
+  );
   const [inputText, setInputText] = useState<string>("");
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const sessionTimestampLabel = React.useMemo(() => {
+    const now = new Date();
+    const months = [
+      "JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI",
+      "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER",
+    ];
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    return `${now.getDate()} ${months[now.getMonth()]} · ${hh}.${mm}`;
+  }, []);
 
   const handleResetSession = () => {
     if (typingTimeoutRef.current) {
@@ -96,13 +116,25 @@ export const CoachView: React.FC<CoachViewProps> = () => {
       .catch((err) => {
         console.warn("Gagal memuat profil pengguna:", err);
       });
+
+    api
+      .getAcademicSchedules()
+      .then((res) => {
+        const list = Array.isArray(res.data) ? res.data : [];
+        setTotalCourses(list.length);
+        setTotalSks(list.reduce((sum, s) => sum + (Number(s.creditHours) || 0), 0));
+        setHasExamWeek(list.some((s) => Boolean(s.isExamWeek)));
+      })
+      .catch(() => {});
+
+    setScreenHours(screenTimeTracker.getTodayScreenTimeHours());
   }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSendQuickPrompt = (promptText: string) => {
+  const sendMessageToBackendCoach = async (promptText: string) => {
     if (isTyping) return;
     setInputText("");
 
@@ -115,101 +147,70 @@ export const CoachView: React.FC<CoachViewProps> = () => {
     setMessages((prev) => [...prev, newMsg]);
     setIsTyping(true);
 
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    typingTimeoutRef.current = setTimeout(() => {
+    try {
+      const res = await api.generateAiCoachInsight(promptText);
+      const data = res?.data;
       let reply = "";
-      const lower = promptText.toLowerCase();
 
-      if (lower.includes("beban kuliah") || (lower.includes("tugas") && lower.includes("bantuan"))) {
-        reply =
-          "Menghadapi tumpukan tugas memang seringkali memicu rasa overwhelmed. Strategi terbaik adalah memecahnya: pilih 1 tugas kecil yang bisa diselesaikan dalam 15-20 menit. Setelah itu, berikan dirimu apresiasi dan jeda 5 menit. Kamu tidak harus menyelesaikan semuanya dalam satu malam sekaligus.";
-      } else if (lower.includes("jadwal belajar") || lower.includes("istirahat seimbang")) {
-        reply =
-          "Untuk ritme harian seimbang: terapkan rasio fokus 50:10 (50 menit belajar fokus, 10 menit gerak tanpa layar). Pastikan juga menetapkan batas akhir belajar (hard stop) minimal 1 jam sebelum tidur agar pikiran punya waktu cooling down.";
-      } else if (lower.includes("peregangan") || lower.includes("mata lelah") || lower.includes("leher")) {
-        reply =
-          "Mari lakukan 3 langkah cepat: (1) Aturan 20-20-20: tatap titik berjarak 6 meter selama 20 detik. (2) Tarik bahu ke atas lalu putar ke belakang 5 kali. (3) Lakukan chin tuck (tarik dagu ke belakang perlahan) untuk meluruskan postur servikal. Kamu juga bisa membuka tab Workstation untuk memandu sesi jeda aktif 2 menit!";
-      } else if (lower.includes("kualitas tidur") || lower.includes("tidur malam")) {
-        reply =
-          "Tidur adalah fondasi energi dan pemulihan otakmu. Agar tidur malam lebih nyenyak: redupkan lampu 30 menit sebelum tidur, hindari ponsel di atas kasur, dan lakukan 3 menit teknik pernapasan 4-7-8 (tarik 4 detik, tahan 7 detik, hembus 8 detik) untuk menurunkan ketegangan sistem saraf.";
-      } else if (lower.includes("menenangkan pikiran") || lower.includes("stres")) {
-        reply =
-          "Tarik napas dalam-dalam bersamaku... Tarik perlahan lewat hidung, tahan sejenak, lalu hembuskan perlahan lewat mulut. Ingat, perasaan tertekan ini bersifat sementara dan kamu telah berjuang sangat baik hari ini. Luangkan 10 menit tanpa layar untuk mendengarkan alunan instrumen tenang atau minum air hangat.";
-      } else {
-        reply =
-          "Aku mendengarkanmu. Bernapaslah perlahan sejenak. Kamu sudah berjuang sebaik mungkin hari ini, dan tidak apa-apa untuk beristirahat sebentar.";
+      if (data?.clarification?.question) {
+        const opts = (data.clarification.options || [])
+          .map((o) => `${o.id}. ${o.label}`)
+          .join("\n");
+        reply = `${data.clarification.question}\n${opts}`;
+      } else if (data?.diagnosisSummary || data?.isotemporalActionPlan) {
+        const parts = [data.diagnosisSummary, data.isotemporalActionPlan].filter(Boolean);
+        reply = parts.join(" ");
+        if (Array.isArray(data.guidance) && data.guidance.length > 0) {
+          reply += `\n\nLangkah Panduan:\n${data.guidance.map((g, i) => `${i + 1}. ${g}`).join("\n")}`;
+        }
       }
 
-      const coachMsg: ChatMessage = {
-        id: `coach-${Date.now()}`,
-        sender: "coach",
-        text: reply,
-      };
+      if (!reply.trim()) {
+        throw new Error("Empty coach reply");
+      }
 
-      setMessages((prev) => [...prev, coachMsg]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: data?.id || `coach-${Date.now()}`,
+          sender: "coach",
+          text: reply,
+        },
+      ]);
+    } catch {
+      let fallbackReply =
+        "Aku mendengarkanmu. Bernapaslah perlahan sejenak. Kamu sudah berjuang sebaik mungkin hari ini, dan tidak apa-apa untuk beristirahat sebentar.";
+      const lower = promptText.toLowerCase();
+      if (lower.includes("beban kuliah") || lower.includes("tugas") || lower.includes("ujian")) {
+        fallbackReply = `Dengan beban aktif ${totalSks} SKS (${totalCourses} mata kuliah), strategi terbaik adalah memecah tugas menjadi sesi mikro 25 menit diikuti jeda aktif 2 menit agar beban kognitif tetap terkendali.`;
+      } else if (lower.includes("peregangan") || lower.includes("mata lelah") || lower.includes("leher")) {
+        fallbackReply =
+          "Mari lakukan 3 langkah cepat: (1) Aturan 20-20-20: tatap titik berjarak 6 meter selama 20 detik. (2) Tarik bahu ke atas lalu putar ke belakang 5 kali. (3) Buka tab VisionLab untuk memandu sesi jeda aktif peregangan 2 menit.";
+      } else if (lower.includes("tidur") || lower.includes("lelah") || lower.includes("capek")) {
+        fallbackReply = `Tidur terdeteksimu saat ini ${autoSleep.sleepHours} jam (${autoSleep.bedTime}–${autoSleep.wakeTime}). Redupkan layar 30 menit sebelum tidur dan lakukan teknik pernapasan 4-7-8 untuk memulihkan sistem saraf.`;
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `coach-${Date.now()}`,
+          sender: "coach",
+          text: fallbackReply,
+        },
+      ]);
+    } finally {
       setIsTyping(false);
-      typingTimeoutRef.current = null;
-    }, 650);
+    }
+  };
+
+  const handleSendQuickPrompt = (promptText: string) => {
+    void sendMessageToBackendCoach(promptText);
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim() || isTyping) return;
-
-    const userText = inputText.trim();
-    setInputText("");
-
-    const newMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
-      sender: "user",
-      text: userText,
-    };
-
-    setMessages((prev) => [...prev, newMsg]);
-    setIsTyping(true);
-
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    typingTimeoutRef.current = setTimeout(() => {
-      let reply =
-        "Aku mendengarkanmu. Bernapaslah perlahan sejenak. Kamu sudah berjuang sebaik mungkin hari ini, dan tidak apa-apa untuk beristirahat sebentar.";
-
-      const lower = userText.toLowerCase();
-      if (
-        lower.includes("mati") ||
-        lower.includes("bunuh") ||
-        lower.includes("menyerah") ||
-        lower.includes("tidak sanggup") ||
-        lower.includes("putus asa") ||
-        lower.includes("menyakiti") ||
-        lower.includes("darurat") ||
-        lower.includes("tolong")
-      ) {
-        reply =
-          "Keselamatan dan kesehatan mentalmu adalah prioritas nomor satu saat ini. Kamu sangat berharga dan tidak sendirian. Silakan hubungi nomor bantuan darurat 119 ekstensi 8 atau kunjungi healing119.id sekarang juga.";
-      } else if (lower.includes("tidur") || lower.includes("lelah") || lower.includes("capek")) {
-        reply =
-          "Tubuhmu mengirimkan sinyal bahwa ia membutuhkan pemulihan fisik dan mental. Cobalah tutup laptop, redupkan lampu, dan luangkan waktu untuk tidur lebih awal malam ini.";
-      } else if (lower.includes("tugas") || lower.includes("ujian") || lower.includes("kuliah")) {
-        reply =
-          "Beban akademik memang bisa sangat menekan di pekan ujian. Cobalah bagi tugas menjadi bagian-bagian kecil (mikro-tugas 15 menit) dan berikan dirimu jeda 5 menit untuk relaksasi.";
-      }
-
-      const coachMsg: ChatMessage = {
-        id: `coach-${Date.now()}`,
-        sender: "coach",
-        text: reply,
-      };
-
-      setMessages((prev) => [...prev, coachMsg]);
-      setIsTyping(false);
-      typingTimeoutRef.current = null;
-    }, 700);
+    void sendMessageToBackendCoach(inputText.trim());
   };
 
   return (
@@ -248,7 +249,10 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Beban kuliah</p>
-                  <p className="text-xs text-[#737373] mt-0.5">24 SKS · Pekan ujian</p>
+                  <p className="text-xs text-[#737373] mt-0.5">
+                    {totalSks} SKS ({totalCourses} Matkul) &middot;{" "}
+                    {hasExamWeek ? "Pekan ujian" : "Perkuliahan aktif"}
+                  </p>
                 </div>
               </div>
 
@@ -259,7 +263,9 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Paparan layar</p>
-                  <p className="text-xs text-[#737373] mt-0.5">10 jam · Butuh jeda</p>
+                  <p className="text-xs text-[#737373] mt-0.5">
+                    {screenHours} jam &middot; {screenHours > 8 ? "Butuh jeda aktif" : "Batas aman"}
+                  </p>
                 </div>
               </div>
 
@@ -270,7 +276,9 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-[#1A1A1A] leading-tight">Pemulihan tidur</p>
-                  <p className="text-xs text-[#737373] mt-0.5">6 jam dari target 8 jam</p>
+                  <p className="text-xs text-[#737373] mt-0.5">
+                    {autoSleep.sleepHours} jam dari target 8 jam ({autoSleep.bedTime}&ndash;{autoSleep.wakeTime})
+                  </p>
                 </div>
               </div>
             </div>
@@ -414,7 +422,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                 {/* Timestamp Separator */}
                 <div className="text-center">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-[#9A9A9A]">
-                    17 NOVEMBER · 17.10
+                    {sessionTimestampLabel}
                   </span>
                 </div>
 

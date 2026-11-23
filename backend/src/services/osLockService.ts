@@ -1,5 +1,18 @@
 import { execFile } from "node:child_process";
 import fs from "node:fs";
+import path from "node:path";
+
+export interface OsScreenTimeState {
+  dateKey: string;
+  osActiveSeconds: number;
+  osActiveMinutes: number;
+  osActiveHours: number;
+  osIdleSeconds: number;
+  isOsActive: boolean;
+  idleThresholdSeconds: number;
+  trackingMode: "OS_LEVEL";
+  platform: NodeJS.Platform;
+}
 
 export interface OsLockState {
   isLocked: boolean;
@@ -15,6 +28,7 @@ export interface OsLockState {
   activeBrowser: string | null;
   lastUnlockSource: string | null;
   lastUnlockedAt: string | null;
+  screenTime?: OsScreenTimeState;
 }
 
 const CHROMIUM_BROWSERS: Array<{ name: string; appPaths: string[] }> = [
@@ -79,6 +93,16 @@ function runCommandAsync(cmd: string, args: string[], timeoutMs = 2000): Promise
   });
 }
 
+function getLocalTodayDateKey(d: Date = new Date()): string {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+const OS_IDLE_THRESHOLD_SECONDS = 180; // 3 menit tanpa input mouse/keyboard di seluruh OS = Idle
+const OS_SCREENTIME_STATE_FILE = path.resolve(process.cwd(), ".os-screentime.json");
+
 class OsLockService {
   private isLocked = false;
   private isArmed = false;
@@ -98,6 +122,173 @@ class OsLockService {
 
   private installedChromiumBrowsers: string[] = detectInstalledChromiumBrowsers();
   private safariAvailable: boolean = isSafariInstalled();
+
+  // OS-Level Screen Time Tracking State
+  private screenTimeDateKey: string = getLocalTodayDateKey();
+  private osActiveSecondsToday = 0;
+  private osIdleSeconds = 0;
+  private lastScreenTimeTickMs: number = Date.now();
+  private lastScreenTimePersistMs = 0;
+  private screenTimeInterval: ReturnType<typeof setInterval> | null = null;
+  private isPollingIdle = false;
+
+  constructor() {
+    this.loadPersistedScreenTime();
+    this.startScreenTimeDaemon();
+  }
+
+  private loadPersistedScreenTime(): void {
+    const todayKey = getLocalTodayDateKey();
+    this.screenTimeDateKey = todayKey;
+    try {
+      if (fs.existsSync(OS_SCREENTIME_STATE_FILE)) {
+        const raw = fs.readFileSync(OS_SCREENTIME_STATE_FILE, "utf-8");
+        const parsed = JSON.parse(raw) as { dateKey?: string; osActiveSeconds?: number };
+        if (parsed.dateKey === todayKey && typeof parsed.osActiveSeconds === "number") {
+          this.osActiveSecondsToday = Math.max(0, Math.floor(parsed.osActiveSeconds));
+        }
+      }
+    } catch {
+      // Ignore corrupt or missing local cache file
+    }
+  }
+
+  private persistScreenTime(force = false): void {
+    const now = Date.now();
+    if (!force && now - this.lastScreenTimePersistMs < 10_000) return;
+    this.lastScreenTimePersistMs = now;
+    try {
+      fs.writeFileSync(
+        OS_SCREENTIME_STATE_FILE,
+        JSON.stringify({
+          dateKey: this.screenTimeDateKey,
+          osActiveSeconds: this.osActiveSecondsToday,
+          updatedAt: new Date(now).toISOString(),
+        }),
+        "utf-8"
+      );
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  startScreenTimeDaemon(): void {
+    if (process.env.NODE_ENV === "test" || process.env.NODE_TEST_CONTEXT) return;
+    if (this.screenTimeInterval) return;
+
+    this.lastScreenTimeTickMs = Date.now();
+    this.screenTimeInterval = setInterval(() => {
+      void this.tickOsScreenTime();
+    }, 3000);
+  }
+
+  private async queryOsIdleSeconds(): Promise<number> {
+    try {
+      if (process.platform === "darwin") {
+        // Baca HIDIdleTime langsung dari kernel macOS IOHIDSystem (dalam nanodetik)
+        const out = await runCommandAsync("ioreg", ["-c", "IOHIDSystem", "-d", "4"], 1200);
+        const match = out.match(/"HIDIdleTime"\s*=\s*(\d+)/);
+        if (match && match[1]) {
+          return Math.max(0, Math.floor(Number(match[1]) / 1_000_000_000));
+        }
+      } else if (process.platform === "win32") {
+        const ps = `
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public class IdleTime {
+  [StructLayout(LayoutKind.Sequential)]
+  struct LASTINPUTINFO { public uint cbSize; public uint dwTime; }
+  [DllImport("user32.dll")]
+  static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+  public static uint GetIdleSeconds() {
+    LASTINPUTINFO lii = new LASTINPUTINFO();
+    lii.cbSize = (uint)Marshal.SizeOf(lii);
+    GetLastInputInfo(ref lii);
+    return ((uint)Environment.TickCount - lii.dwTime) / 1000;
+  }
+}
+'@
+[IdleTime]::GetIdleSeconds()
+`;
+        const out = await runCommandAsync(
+          "powershell",
+          ["-NoProfile", "-NonInteractive", "-Command", ps],
+          1500
+        );
+        const parsed = parseInt(out, 10);
+        if (!isNaN(parsed) && parsed >= 0) return parsed;
+      } else if (process.platform === "linux") {
+        const out = await runCommandAsync("xprintidle", [], 1000);
+        const parsed = parseInt(out, 10);
+        if (!isNaN(parsed) && parsed >= 0) return Math.floor(parsed / 1000);
+      }
+    } catch {
+      // Fallback to 0 (active)
+    }
+    return 0;
+  }
+
+  private async tickOsScreenTime(): Promise<void> {
+    if (this.isPollingIdle) return;
+    this.isPollingIdle = true;
+
+    try {
+      const now = Date.now();
+      const todayKey = getLocalTodayDateKey(new Date(now));
+
+      if (this.screenTimeDateKey !== todayKey) {
+        this.screenTimeDateKey = todayKey;
+        this.osActiveSecondsToday = 0;
+      }
+
+      const elapsedSeconds = Math.max(0, Math.round((now - this.lastScreenTimeTickMs) / 1000));
+      this.lastScreenTimeTickMs = now;
+
+      const idleSec = await this.queryOsIdleSeconds();
+      this.osIdleSeconds = idleSec;
+
+      // Jika laptop tidak sedang sleep (elapsed <= 30s) dan user aktif di OS (idle < 180s)
+      if (elapsedSeconds > 0 && elapsedSeconds <= 30 && idleSec < OS_IDLE_THRESHOLD_SECONDS) {
+        this.osActiveSecondsToday += elapsedSeconds;
+        this.persistScreenTime(false);
+      }
+    } finally {
+      this.isPollingIdle = false;
+    }
+  }
+
+  getScreenTimeState(clientSeedSeconds?: number): OsScreenTimeState {
+    const todayKey = getLocalTodayDateKey();
+    if (this.screenTimeDateKey !== todayKey) {
+      this.screenTimeDateKey = todayKey;
+      this.osActiveSecondsToday = 0;
+    }
+
+    if (
+      typeof clientSeedSeconds === "number" &&
+      Number.isFinite(clientSeedSeconds) &&
+      clientSeedSeconds > this.osActiveSecondsToday
+    ) {
+      this.osActiveSecondsToday = Math.floor(clientSeedSeconds);
+      this.persistScreenTime(true);
+    }
+
+    const osActiveMinutes = Math.floor(this.osActiveSecondsToday / 60);
+    const osActiveHours = Number((this.osActiveSecondsToday / 3600).toFixed(2));
+
+    return {
+      dateKey: this.screenTimeDateKey,
+      osActiveSeconds: this.osActiveSecondsToday,
+      osActiveMinutes,
+      osActiveHours,
+      osIdleSeconds: this.osIdleSeconds,
+      isOsActive: this.osIdleSeconds < OS_IDLE_THRESHOLD_SECONDS,
+      idleThresholdSeconds: OS_IDLE_THRESHOLD_SECONDS,
+      trackingMode: "OS_LEVEL",
+      platform: process.platform,
+    };
+  }
 
   getStatus(): OsLockState {
     let remainingSeconds: number | null = null;
@@ -122,6 +313,7 @@ class OsLockService {
       activeBrowser: this.activeBrowser,
       lastUnlockSource: this.lastUnlockSource,
       lastUnlockedAt: this.lastUnlockedAt,
+      screenTime: this.getScreenTimeState(),
     };
   }
 

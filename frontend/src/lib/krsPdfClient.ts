@@ -91,29 +91,58 @@ export interface KrsClientOptions {
   token?: string | null;
   geminiApiKey?: string;
   useMock?: boolean;
+  allowExtendedFormats?: boolean;
   fetchImpl?: typeof fetch;
 }
 
-const MAX_PDF_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB sesuai limit multer backend
+const MAX_PDF_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB default
+const MAX_EXTENDED_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB untuk PDF/Gambar KRS
 const HHMM_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 /**
- * Validasi file PDF di sisi klien sebelum dikirim ke backend.
+ * Validasi file KRS di sisi klien sebelum dikirim ke backend.
  */
-export function validateKrsFile(file: { name: string; type?: string; size: number }): {
+export function validateKrsFile(
+  file: { name: string; type?: string; size: number },
+  allowExtendedFormats = false
+): {
   valid: boolean;
   error?: string;
 } {
   if (!file || file.size <= 0) {
-    return { valid: false, error: "File PDF kosong atau belum dipilih." };
+    return { valid: false, error: "File KRS kosong atau belum dipilih." };
   }
   const lowerName = file.name.toLowerCase();
   const isPdf = file.type === "application/pdf" || lowerName.endsWith(".pdf");
-  if (!isPdf) {
-    return { valid: false, error: "Format file tidak didukung. Harap unggah dokumen PDF (.pdf)." };
+  const isImage =
+    allowExtendedFormats &&
+    (Boolean(file.type?.startsWith("image/")) ||
+      lowerName.endsWith(".png") ||
+      lowerName.endsWith(".jpg") ||
+      lowerName.endsWith(".jpeg") ||
+      lowerName.endsWith(".webp"));
+  const isText =
+    allowExtendedFormats &&
+    (Boolean(file.type?.startsWith("text/")) ||
+      lowerName.endsWith(".txt") ||
+      lowerName.endsWith(".csv"));
+
+  if (!isPdf && !isImage && !isText) {
+    return {
+      valid: false,
+      error: allowExtendedFormats
+        ? "Format file tidak didukung. Harap unggah dokumen PDF (.pdf), Gambar (.png, .jpg), atau Teks (.txt)."
+        : "Format file tidak didukung. Harap unggah dokumen PDF (.pdf).",
+    };
   }
-  if (file.size > MAX_PDF_SIZE_BYTES) {
-    return { valid: false, error: "Ukuran file terlalu besar. Maksimal ukuran PDF KRS adalah 5 MB." };
+  const maxBytes = allowExtendedFormats ? MAX_EXTENDED_SIZE_BYTES : MAX_PDF_SIZE_BYTES;
+  if (file.size > maxBytes) {
+    return {
+      valid: false,
+      error: `Ukuran file terlalu besar. Maksimal ukuran file KRS adalah ${
+        allowExtendedFormats ? "10 MB" : "5 MB"
+      }.`,
+    };
   }
   return { valid: true };
 }
@@ -191,11 +220,14 @@ export async function uploadKrsPdfPreview(
   file: Blob & { name?: string; type?: string; size: number },
   options: KrsClientOptions = {}
 ): Promise<KrsUploadPreviewResponse> {
-  const fileCheck = validateKrsFile({
-    name: file.name || "krs.pdf",
-    type: file.type,
-    size: file.size,
-  });
+  const fileCheck = validateKrsFile(
+    {
+      name: file.name || "krs.pdf",
+      type: file.type,
+      size: file.size,
+    },
+    Boolean(options.allowExtendedFormats)
+  );
   if (!fileCheck.valid) {
     throw new Error(fileCheck.error);
   }

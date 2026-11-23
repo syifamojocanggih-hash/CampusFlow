@@ -36,6 +36,20 @@ osLockRouter.get("/status", (_req: Request, res: Response) => {
   sendSuccess(res, osLockService.getStatus());
 });
 
+osLockRouter.get("/screentime", (req: Request, res: Response) => {
+  const clientSeconds =
+    req.query.clientSeconds !== undefined ? Number(req.query.clientSeconds) : undefined;
+  sendSuccess(res, osLockService.getScreenTimeState(clientSeconds));
+});
+
+osLockRouter.post("/screentime/sync", (req: Request, res: Response) => {
+  const clientSeconds =
+    req.body && typeof req.body.clientSeconds === "number"
+      ? req.body.clientSeconds
+      : undefined;
+  sendSuccess(res, osLockService.getScreenTimeState(clientSeconds));
+});
+
 osLockRouter.post("/arm", (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = armPayloadSchema.parse(req.body ?? {});

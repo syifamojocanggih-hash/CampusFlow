@@ -21,6 +21,24 @@
 
 ---
 
+## [2026-11-23] — Perbaikan Penuh Upload & Ekstraksi Dokumen KRS Tanpa Mode Demo (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-KRS-UPLOAD-4.0`, `FE-KRS-UPLOAD-4.0`
+- **Ringkasan:** Menghapus tombol dan template demo KRS (`KRS_Semester_Ganjil_Tiara.pdf` & `handleSimulatePdfParse`) pada `TriadDashboard.tsx` dan menghubungkan dropzone upload file langsung ke `<input type="file" />` serta drag-and-drop yang memanggil endpoint asli `POST /api/v1/schedule/upload` (Preview & Edit) dan `POST /api/v1/schedule/confirm` (Commit ke MySQL & Auto-Recalculate Burnout Index); memperluas `scheduleParser.ts` agar mendukung ekstraksi tabel SIAKAD (baik dengan jam, tanpa kolom hari/jam, maupun sel tabel multi-baris `pdf-parse`) serta dokumen PDF, PNG, JPG, dan TXT hingga 10 MB; serta menambahkan filter hari (`Hari Ini`, `Semua`, `Sen`–`Sab`) pada kartu Jadwal Kuliah di dashboard.
+- **Daftar File Diubah:**
+  - `backend/src/services/scheduleParser.ts`
+  - `backend/src/services/scheduleParser.test.ts`
+  - `backend/src/middleware/upload.ts`
+  - `backend/src/routes/academicSchedule.ts`
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `frontend/src/lib/krsPdfClient.ts`
+  - `frontend/src/lib/api.ts`
+  - `frontend/.env`
+- **Catatan Cross-Scope:**
+  - `[CROSS-SCOPE] frontend/src/components/TriadDashboard.tsx` — menghapus tombol demo KRS dan menggantinya dengan uploader file nyata, tabel preview/edit hasil ekstraksi, dan filter hari jadwal kuliah.
+  - `[CROSS-SCOPE] frontend/src/lib/krsPdfClient.ts` & `api.ts` — memastikan upload dan konfirmasi KRS selalu memanggil endpoint backend asli dengan token JWT valid.
+  - `[CROSS-SCOPE] frontend/.env` — mengaktifkan koneksi REST API backend (`VITE_USE_MOCK="false"`).
+- **Verifikasi:** `npm --prefix backend test` (131/131 lulus), `npm --prefix frontend test` (23/23 lulus), `npm --prefix backend run build`, dan `npm --prefix frontend run build` berhasil tanpa error.
+
 ## [2026-11-22] — Deteksi & Sinkronisasi Jam Tidur Otomatis (Passive Overnight Inactivity & OS PowerMonitor) (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-AUTO-SLEEP-4.0`, `FE-AUTO-SLEEP-4.0`
 - **Ringkasan:** Mengimplementasikan sistem deteksi jam tidur otomatis (`autoSleepService.ts`, `autoSleepCalculator.ts`, `autoSleepTracker.ts`, dan `/api/v1/wellbeing/auto-sleep`) berbasis jendela inaktivitas layar malam hari (*Last Evening Activity* s/d *First Morning Wakeup*) dan integrasi native `powerMonitor` Electron (`suspend`, `resume`, `lock-screen`, `unlock-screen`), lengkap dengan pengurangan *sleep onset latency*, inferensi skor kualitas tidur (1–5), kalkulasi otomatis *Recovery Score* (maks 40 poin) & *Burnout Risk Index*, serta panel inspeksi & simulasi 1-klik di `TriadDashboard.tsx` dan `CheckinView.tsx`.

@@ -1,4 +1,25 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables from possible locations
+const candidatePaths = [
+  path.resolve(process.cwd(), ".env"),
+  path.resolve(process.cwd(), "backend/.env"),
+  path.resolve(__dirname, "../../.env"),
+  path.resolve(__dirname, "../.env"),
+];
+
+for (const p of candidatePaths) {
+  if (fs.existsSync(p)) {
+    dotenv.config({ path: p, override: false });
+  }
+}
+
 import { z } from "zod";
 
 const envSchema = z.object({
@@ -9,7 +30,7 @@ const envSchema = z.object({
   OLLAMA_MODEL: z.string().min(1).default("campusflow-coach"),
   OLLAMA_TIMEOUT_MS: z.coerce.number().int().positive().default(60000),
   GEMINI_API_KEY: z.string().optional().default(""),
-  GEMINI_MODEL: z.string().default("gemini-1.5-flash"),
+  GEMINI_MODEL: z.string().default("gemini-3-flash-preview"),
   VAPID_PUBLIC_KEY: z.string().optional().default(""),
   VAPID_PRIVATE_KEY: z.string().optional().default(""),
   VAPID_SUBJECT: z.string().default("mailto:admin@campusflow.id"),
