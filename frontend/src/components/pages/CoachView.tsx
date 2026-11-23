@@ -285,7 +285,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
           </div>
 
           {/* CARD 2: Sedikit lebih baik, hari ini. */}
-          <div className="bg-[#FAF6F0] rounded-[1.75rem] p-6 border border-[#E8DDCF] space-y-5">
+          <div className="bg-white rounded-[1.75rem] p-6 shadow-xs border border-[#E8DDCF] space-y-5">
             <h2 className="font-heading font-extrabold text-base sm:text-lg text-[#2F3A2E]">
               Sedikit lebih baik, hari ini.
             </h2>
