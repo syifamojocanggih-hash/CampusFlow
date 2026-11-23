@@ -338,21 +338,21 @@ export const FocusView: React.FC = () => {
           ======================================================== */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A] tracking-tight">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#2F3A2E] tracking-tight">
             Workstation Belajar &amp; Jeda
           </h1>
-          <p className="text-xs sm:text-sm text-[#6E5D4F] mt-1">
+          <p className="text-xs sm:text-sm text-[#636B60] mt-1">
             Fokus menyelesaikan satu tugas dalam satu waktu, diselingi jeda restoratif ergonomis.
           </p>
         </div>
 
         {/* Live Active Target Pill */}
         {activeTask && (
-          <div className="inline-flex items-center gap-2 bg-[#FDECD8]/80 border border-[#E5C19A] px-3.5 py-1.5 rounded-2xl shadow-2xs self-start sm:self-auto">
-            <Target className="w-3.5 h-3.5 text-[#1A1A1A]" />
+          <div className="inline-flex items-center gap-2 bg-[#E8DDCF] border border-[#E8DDCF] px-3.5 py-1.5 rounded-2xl shadow-2xs self-start sm:self-auto">
+            <Target className="w-3.5 h-3.5 text-[#2F3A2E]" />
             <div className="text-xs">
-              <span className="text-[#6E5D4F] font-semibold">Target Aktif: </span>
-              <strong className="text-[#1A1A1A] font-extrabold truncate max-w-[200px] sm:max-w-[260px] inline-block align-bottom">
+              <span className="text-[#636B60] font-semibold">Target Aktif: </span>
+              <strong className="text-[#2F3A2E] font-extrabold truncate max-w-[200px] sm:max-w-[260px] inline-block align-bottom">
                 {activeTask.text}
               </strong>
             </div>
@@ -363,21 +363,21 @@ export const FocusView: React.FC = () => {
       {/* ========================================================
           2. MAIN FOCUS WORKSTATION CARD
           ======================================================== */}
-      <div className="bg-white rounded-[1.75rem] p-6 sm:p-8 shadow-xs border border-[#E6D7C8] space-y-6">
+      <div className="bg-white rounded-[1.75rem] p-6 sm:p-8 shadow-xs border border-[#E8DDCF] space-y-6">
         {/* Top Control Bar of Card */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#F5ECE2] pb-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#E8DDCF] pb-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold tracking-wider text-[#525252] uppercase">
+            <span className="text-xs font-extrabold tracking-wider text-[#636B60] uppercase">
               SESI FOKUS KE-{completedBouts + 1}
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#98C5E2] text-[#1A1A1A]">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E8DDCF] text-[#2F3A2E]">
               Pomodoro
             </span>
           </div>
 
           <div className="flex items-center flex-wrap gap-2">
             {/* Preset Duration Switcher */}
-            <div className="bg-[#FAF5EF] p-1 rounded-2xl flex items-center gap-1 border border-[#E6D7C8]">
+            <div className="bg-[#FAF6F0] p-1 rounded-2xl flex items-center gap-1 border border-[#E8DDCF]">
               <button
                 type="button"
                 onClick={() => {
@@ -391,8 +391,8 @@ export const FocusView: React.FC = () => {
                 }}
                 className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
                   sessionDurationMins === 0.25
-                    ? "bg-[#FDECD8] text-[#1A1A1A] font-extrabold shadow-2xs border border-[#E5C19A]"
-                    : "text-[#6E5D4F] hover:text-[#1A1A1A]"
+                    ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold shadow-2xs border border-[#BCC8AE]"
+                    : "text-[#636B60] hover:text-[#2F3A2E]"
                 }`}
                 title="Klik lalu pindah ke tab/aplikasi lain. Dalam 15 detik layar otomatis ditarik kembali ke sini."
               >
@@ -403,8 +403,8 @@ export const FocusView: React.FC = () => {
                 onClick={() => handleSelectPreset(25)}
                 className={`px-3.5 py-1 rounded-xl text-xs font-bold transition-all ${
                   sessionDurationMins === 25
-                    ? "bg-[#FDECD8] text-[#1A1A1A] font-extrabold shadow-2xs border border-[#E5C19A]"
-                    : "text-[#6E5D4F] hover:text-[#1A1A1A]"
+                    ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold shadow-2xs border border-[#BCC8AE]"
+                    : "text-[#636B60] hover:text-[#2F3A2E]"
                 }`}
               >
                 25 menit
@@ -414,8 +414,8 @@ export const FocusView: React.FC = () => {
                 onClick={() => handleSelectPreset(50)}
                 className={`px-3.5 py-1 rounded-xl text-xs font-bold transition-all ${
                   sessionDurationMins === 50
-                    ? "bg-[#FDECD8] text-[#1A1A1A] font-extrabold shadow-2xs border border-[#E5C19A]"
-                    : "text-[#6E5D4F] hover:text-[#1A1A1A]"
+                    ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold shadow-2xs border border-[#BCC8AE]"
+                    : "text-[#636B60] hover:text-[#2F3A2E]"
                 }`}
               >
                 50 menit
@@ -430,7 +430,7 @@ export const FocusView: React.FC = () => {
                   "Sesi Jeda Aktif Dimulai — Selesaikan 3 Repetisi Peregangan"
                 )
               }
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#98C5E2] hover:bg-[#7BB1D3] text-xs font-bold text-[#1A1A1A] transition-colors border border-[#7BB1D3]"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-xs font-bold text-[#2F3A2E] transition-colors border border-[#CFD8C4]"
               title="Kunci layar level OS sekarang dan mulai peregangan 2 menit dengan validasi MediaPipe on-device."
             >
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -451,7 +451,7 @@ export const FocusView: React.FC = () => {
                 cy="125"
                 r={radius}
                 fill="none"
-                stroke="#EBF3F9"
+                stroke="#E8DDCF"
                 strokeWidth="11"
               />
               <circle
@@ -459,7 +459,7 @@ export const FocusView: React.FC = () => {
                 cy="125"
                 r={radius}
                 fill="none"
-                stroke="#98C5E2"
+                stroke="#2F3A2E"
                 strokeWidth="11"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
@@ -470,10 +470,10 @@ export const FocusView: React.FC = () => {
 
             {/* Inner Center Display */}
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 select-none">
-              <span className="font-heading font-extrabold text-5xl sm:text-6xl text-[#1A1A1A] tracking-tight tabular-nums leading-none">
+              <span className="font-heading font-extrabold text-5xl sm:text-6xl text-[#2F3A2E] tracking-tight tabular-nums leading-none">
                 {formatTimer(secondsRemaining)}
               </span>
-              <span className="text-xs sm:text-[13px] text-[#6E5D4F] mt-3 font-medium max-w-[200px] truncate">
+              <span className="text-xs sm:text-[13px] text-[#636B60] mt-3 font-medium max-w-[200px] truncate">
                 {activeTask ? activeTask.text : "Tetap di sini, satu langkah lagi."}
               </span>
             </div>
@@ -485,7 +485,7 @@ export const FocusView: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsTimerRunning(!isTimerRunning)}
-            className="py-3 px-8 rounded-2xl bg-[#1A1A1A] hover:bg-black text-white font-extrabold text-xs sm:text-sm transition-all shadow-softPill active:scale-95 flex items-center gap-2"
+            className="py-3 px-8 rounded-2xl bg-[#CFD8C4] hover:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] font-extrabold text-xs sm:text-sm transition-all shadow-softPill active:scale-95 flex items-center gap-2"
           >
             {isTimerRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             <span>{isTimerRunning ? "Jeda Sesi" : "Lanjutkan Sesi"}</span>
@@ -493,23 +493,23 @@ export const FocusView: React.FC = () => {
           <button
             type="button"
             onClick={handleResetTimer}
-            className="py-3 px-6 rounded-2xl bg-[#FAF5EF] hover:bg-[#E6D7C8] text-[#1A1A1A] font-bold text-xs sm:text-sm transition-colors active:scale-95 flex items-center gap-1.5 border border-[#E6D7C8]"
+            className="py-3 px-6 rounded-2xl bg-[#FAF6F0] hover:bg-[#CFD8C4] text-[#2F3A2E] font-bold text-xs sm:text-sm transition-colors active:scale-95 flex items-center gap-1.5 border border-[#E8DDCF]"
           >
-            <RotateCcw className="w-4 h-4 text-[#6E5D4F]" />
+            <RotateCcw className="w-4 h-4 text-[#636B60]" />
             <span>Reset</span>
           </button>
         </div>
 
         {/* Study Soundscapes Mini-Bar */}
-        <div className="bg-[#F5ECE2] rounded-2xl p-3.5 border border-[#E6D7C8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="bg-[#FAF6F0] rounded-2xl p-3.5 border border-[#E8DDCF] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={handleToggleAudio}
               className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
                 isAudioPlaying
-                  ? "bg-[#98C5E2] text-[#1A1A1A] shadow-xs"
-                  : "bg-white border border-[#E6D7C8] text-[#6E5D4F] hover:text-[#1A1A1A]"
+                  ? "bg-[#CFD8C4] text-[#2F3A2E] shadow-xs"
+                  : "bg-white border border-[#E8DDCF] text-[#636B60] hover:text-[#2F3A2E]"
               }`}
               title={isAudioPlaying ? "Hentikan Suara Ambience" : "Putar Suara Ambience"}
             >
@@ -517,18 +517,18 @@ export const FocusView: React.FC = () => {
             </button>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-heading font-extrabold text-[#1A1A1A]">
+                <span className="font-heading font-extrabold text-[#2F3A2E]">
                   Suara Ambience Belajar
                 </span>
                 {isAudioPlaying && (
                   <span className="flex items-center gap-0.5">
-                    <span className="w-1 h-3 bg-[#1A1A1A] rounded-full animate-pulse" />
-                    <span className="w-1 h-4 bg-[#1A1A1A] rounded-full animate-pulse delay-75" />
-                    <span className="w-1 h-2 bg-[#1A1A1A] rounded-full animate-pulse delay-150" />
+                    <span className="w-1 h-3 bg-[#CFD8C4] rounded-full animate-pulse" />
+                    <span className="w-1 h-4 bg-[#CFD8C4] rounded-full animate-pulse delay-75" />
+                    <span className="w-1 h-2 bg-[#CFD8C4] rounded-full animate-pulse delay-150" />
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-[#6E5D4F]">
+              <p className="text-[11px] text-[#636B60]">
                 Audio sintesis lokal santai untuk meredam kebisingan sekitar.
               </p>
             </div>
@@ -547,8 +547,8 @@ export const FocusView: React.FC = () => {
                 onClick={() => handleChangeSoundType(snd.key as "rain" | "alpha" | "white" | "cafe")}
                 className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
                   soundscapeType === snd.key
-                    ? "bg-[#FDECD8] text-[#1A1A1A] border border-[#E5C19A] shadow-2xs font-extrabold"
-                    : "bg-white border border-[#E6D7C8] text-[#6E5D4F] hover:text-[#1A1A1A]"
+                    ? "bg-[#CFD8C4] text-[#2F3A2E] border border-[#BCC8AE] shadow-2xs font-extrabold"
+                    : "bg-white border border-[#E8DDCF] text-[#636B60] hover:text-[#2F3A2E]"
                 }`}
               >
                 {snd.label}
@@ -564,7 +564,7 @@ export const FocusView: React.FC = () => {
                 step="0.05"
                 value={audioVolume}
                 onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                className="w-16 accent-[#1A1A1A] h-1.5 bg-[#E6D7C8] rounded cursor-pointer"
+                className="w-16 accent-[#4A3B2C] h-1.5 bg-[#E8DDCF] rounded cursor-pointer"
                 title={`Volume: ${Math.round(audioVolume * 100)}%`}
               />
             </div>
@@ -575,22 +575,22 @@ export const FocusView: React.FC = () => {
       {/* ========================================================
           3. SUPPORTING FEATURE 1: TARGET TUGAS SESI INI (Checklist)
           ======================================================== */}
-      <div className="bg-white rounded-3xl p-6 border border-[#E6D7C8] shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F5ECE2] pb-3">
+      <div className="bg-white rounded-3xl p-6 border border-[#E8DDCF] shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8DDCF] pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#FDECD8] text-[#1A1A1A] flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center font-bold">
               <ListTodo className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+              <h3 className="font-heading font-extrabold text-base text-[#2F3A2E]">
                 Target Tugas Sesi Ini
               </h3>
-              <p className="text-[11px] text-[#6E5D4F]">
+              <p className="text-[11px] text-[#636B60]">
                 Pilih atau tandai tugas akademik yang sedang Anda kerjakan saat ini.
               </p>
             </div>
           </div>
-          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#FAF5EF] text-[#1A1A1A] border border-[#E6D7C8] self-start sm:self-auto">
+          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#FAF6F0] text-[#2F3A2E] border border-[#E8DDCF] self-start sm:self-auto">
             {completedTaskCount} dari {tasks.length} Selesai
           </span>
         </div>
@@ -604,8 +604,8 @@ export const FocusView: React.FC = () => {
                 key={task.id}
                 className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                   isSelected
-                    ? "bg-[#FDECD8]/20 border-[#E5C19A]"
-                    : "bg-[#F5ECE2] border-[#E6D7C8] hover:bg-white"
+                    ? "bg-[#CFD8C4]/20 border-[#BCC8AE]"
+                    : "bg-[#FAF6F0] border-[#E8DDCF] hover:bg-white"
                 }`}
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -614,8 +614,8 @@ export const FocusView: React.FC = () => {
                     onClick={() => handleToggleTask(task.id)}
                     className={`w-5 h-5 rounded-lg flex items-center justify-center transition-colors border ${
                       task.isCompleted
-                        ? "bg-[#98C5E2] border-[#98C5E2] text-[#1A1A1A]"
-                        : "border-[#E6D7C8] bg-white hover:border-[#1A1A1A]"
+                        ? "bg-[#CFD8C4] border-[#CFD8C4] text-[#2F3A2E]"
+                        : "border-[#E8DDCF] bg-white hover:border-[#4A3B2C]"
                     }`}
                   >
                     {task.isCompleted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -628,8 +628,8 @@ export const FocusView: React.FC = () => {
                     <p
                       className={`text-xs sm:text-sm font-semibold truncate ${
                         task.isCompleted
-                          ? "line-through text-[#6E5D4F]"
-                          : "text-[#1A1A1A]"
+                          ? "line-through text-[#636B60]"
+                          : "text-[#2F3A2E]"
                       }`}
                     >
                       {task.text}
@@ -638,7 +638,7 @@ export const FocusView: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-[#E6D7C8] text-[#6E5D4F]">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-[#E8DDCF] text-[#636B60]">
                     {task.tag}
                   </span>
                   <button
@@ -646,8 +646,8 @@ export const FocusView: React.FC = () => {
                     onClick={() => setActiveTaskId(task.id)}
                     className={`text-[11px] font-bold px-2.5 py-1 rounded-xl transition-all ${
                       isSelected
-                        ? "bg-[#1A1A1A] text-white"
-                        : "bg-white border border-[#E6D7C8] text-[#6E5D4F] hover:text-[#1A1A1A]"
+                        ? "bg-[#CFD8C4] text-[#2F3A2E]"
+                        : "bg-white border border-[#E8DDCF] text-[#636B60] hover:text-[#2F3A2E]"
                     }`}
                   >
                     {isSelected ? "Fokus Aktif" : "Pilih"}
@@ -655,7 +655,7 @@ export const FocusView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleDeleteTask(task.id)}
-                    className="w-7 h-7 rounded-lg hover:bg-red-50 text-[#6E5D4F] hover:text-red-600 flex items-center justify-center transition-colors"
+                    className="w-7 h-7 rounded-lg hover:bg-red-50 text-[#636B60] hover:text-red-600 flex items-center justify-center transition-colors"
                     title="Hapus Tugas"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -673,12 +673,12 @@ export const FocusView: React.FC = () => {
             value={newTaskInput}
             onChange={(e) => setNewTaskInput(e.target.value)}
             placeholder="Tambah tugas belajar baru..."
-            className="flex-1 px-3.5 py-2 rounded-xl text-xs sm:text-sm bg-[#FAF5EF] border border-[#E6D7C8] focus:outline-none focus:border-[#1A1A1A] text-[#1A1A1A]"
+            className="flex-1 px-3.5 py-2 rounded-xl text-xs sm:text-sm bg-[#FAF6F0] border border-[#E8DDCF] focus:outline-none focus:border-[#4A3B2C] text-[#2F3A2E]"
           />
           <select
             value={newTaskTag}
             onChange={(e) => setNewTaskTag(e.target.value)}
-            className="px-2.5 py-2 rounded-xl text-xs font-bold bg-[#FAF5EF] border border-[#E6D7C8] text-[#1A1A1A] focus:outline-none"
+            className="px-2.5 py-2 rounded-xl text-xs font-bold bg-[#FAF6F0] border border-[#E8DDCF] text-[#2F3A2E] focus:outline-none"
           >
             <option value="Tugas">Tugas</option>
             <option value="Praktikum">Praktikum</option>
@@ -687,7 +687,7 @@ export const FocusView: React.FC = () => {
           </select>
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-[#1A1A1A] hover:bg-black text-white font-bold text-xs transition-colors flex items-center gap-1.5 shrink-0"
+            className="px-4 py-2 rounded-xl bg-[#CFD8C4] hover:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] font-bold text-xs transition-colors flex items-center gap-1.5 shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Tambah</span>
@@ -700,20 +700,20 @@ export const FocusView: React.FC = () => {
           ======================================================== */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Card A: Aturan 20-20-20 (Eye Relaxation) */}
-        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E6D7C8] shadow-xs flex flex-col justify-between space-y-4">
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8DDCF] shadow-xs flex flex-col justify-between space-y-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[#98C5E2] text-[#1A1A1A] flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center font-bold">
                 <Eye className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="font-heading font-extrabold text-sm sm:text-base text-[#1A1A1A]">
+                <h4 className="font-heading font-extrabold text-sm sm:text-base text-[#2F3A2E]">
                   Aturan 20-20-20 Istirahat Mata
                 </h4>
-                <span className="text-[10px] text-[#6E5D4F]">Protokol Pencegahan Digital Eye Strain</span>
+                <span className="text-[10px] text-[#636B60]">Protokol Pencegahan Digital Eye Strain</span>
               </div>
             </div>
-            <p className="text-xs text-[#525252] leading-relaxed">
+            <p className="text-xs text-[#636B60] leading-relaxed">
               Setiap <strong>20 menit</strong> menatap layar, istirahatkan mata dengan memandang objek sejauh <strong>20 kaki (6 meter)</strong> selama <strong>20 detik</strong>.
             </p>
           </div>
@@ -725,7 +725,7 @@ export const FocusView: React.FC = () => {
               setEyeBreakActive(true);
               setIsEyeBreakOpen(true);
             }}
-            className="w-full py-2.5 px-4 rounded-xl bg-[#98C5E2] hover:bg-[#7BB1D3] text-[#1A1A1A] font-extrabold text-xs transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer"
+            className="w-full py-2.5 px-4 rounded-xl bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-[#2F3A2E] font-extrabold text-xs transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer"
           >
             <Eye className="w-4 h-4" />
             <span>Mulai Jeda Mata 20 Detik</span>
@@ -733,37 +733,37 @@ export const FocusView: React.FC = () => {
         </div>
 
         {/* Card B: Checklist Postur Ergonomis */}
-        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E6D7C8] shadow-xs flex flex-col justify-between space-y-3">
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8DDCF] shadow-xs flex flex-col justify-between space-y-3">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[#98C5E2] text-[#1A1A1A] flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center font-bold">
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="font-heading font-extrabold text-sm sm:text-base text-[#1A1A1A]">
+                <h4 className="font-heading font-extrabold text-sm sm:text-base text-[#2F3A2E]">
                   Checklist Postur Belajar Nyaman
                 </h4>
-                <span className="text-[10px] text-[#6E5D4F]">Mencegah Kelelahan Leher &amp; Punggung</span>
+                <span className="text-[10px] text-[#636B60]">Mencegah Kelelahan Leher &amp; Punggung</span>
               </div>
             </div>
 
-            <div className="space-y-2 text-xs text-[#525252] pt-1">
+            <div className="space-y-2 text-xs text-[#636B60] pt-1">
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1A1A1A]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#CFD8C4]" />
                 <span>Bezel atas layar sejajar garis pandang mata (hindari menunduk).</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1A1A1A]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#CFD8C4]" />
                 <span>Bahu rileks &amp; siku bertumpu membentuk sudut siku-siku (~90&deg;).</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1A1A1A]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#CFD8C4]" />
                 <span>Kedua telapak kaki menapak rata di lantai secara stabil.</span>
               </div>
             </div>
           </div>
 
-          <div className="pt-1 text-[11px] text-[#6E5D4F] flex items-center justify-between border-t border-[#F5ECE2]">
+          <div className="pt-1 text-[11px] text-[#636B60] flex items-center justify-between border-t border-[#E8DDCF]">
             <span>Perlu evaluasi kamera?</span>
             <button
               type="button"
@@ -772,7 +772,7 @@ export const FocusView: React.FC = () => {
                   "Uji Active Break 2 Menit — Selesaikan 3 Repetisi Peregangan"
                 )
               }
-              className="text-[#1A1A1A] font-bold underline hover:text-black cursor-pointer"
+              className="text-[#2F3A2E] font-bold underline hover:text-black cursor-pointer"
             >
               Uji Active Break 2 Menit
             </button>
@@ -783,15 +783,15 @@ export const FocusView: React.FC = () => {
       {/* ========================================================
           5. SUPPORTING FEATURE 3: TIMELINE SESI FOKUS HARI INI
           ======================================================== */}
-      <div className="bg-white rounded-3xl p-6 border border-[#E6D7C8] shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-[#F5ECE2] pb-3">
+      <div className="bg-white rounded-3xl p-6 border border-[#E8DDCF] shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-[#E8DDCF] pb-3">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#1A1A1A]" />
-            <h3 className="font-heading font-extrabold text-sm sm:text-base text-[#1A1A1A]">
+            <Clock className="w-4 h-4 text-[#2F3A2E]" />
+            <h3 className="font-heading font-extrabold text-sm sm:text-base text-[#2F3A2E]">
               Garis Waktu Sesi Fokus Hari Ini
             </h3>
           </div>
-          <span className="text-[11px] font-bold text-[#6E5D4F]">
+          <span className="text-[11px] font-bold text-[#636B60]">
             Total Akumulasi: {formattedFocusHours}
           </span>
         </div>
@@ -800,17 +800,17 @@ export const FocusView: React.FC = () => {
           {COMPLETED_SESSIONS.map((session, index) => (
             <div
               key={session.id}
-              className="p-3 rounded-2xl bg-[#F5ECE2] border border-[#E6D7C8] space-y-1.5 text-center"
+              className="p-3 rounded-2xl bg-[#FAF6F0] border border-[#E8DDCF] space-y-1.5 text-center"
             >
-              <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-[#1A1A1A]">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#1E4E6E]" />
+              <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-[#2F3A2E]">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#2F3A2E]" />
                 <span>Sesi #{index + 1}</span>
               </div>
-              <p className="font-heading font-extrabold text-xs text-[#1A1A1A] truncate">
+              <p className="font-heading font-extrabold text-xs text-[#2F3A2E] truncate">
                 {session.topic}
               </p>
-              <div className="text-[10px] text-[#6E5D4F]">{session.time}</div>
-              <span className="inline-block text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-[#98C5E2] text-[#1A1A1A]">
+              <div className="text-[10px] text-[#636B60]">{session.time}</div>
+              <span className="inline-block text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-[#E8DDCF] text-[#2F3A2E]">
                 {session.duration}
               </span>
             </div>
@@ -822,57 +822,57 @@ export const FocusView: React.FC = () => {
           6. BOTTOM METRIC CARDS: RITME FOKUS HARI INI
           ======================================================== */}
       <div className="space-y-4 pt-1">
-        <h3 className="font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A]">
+        <h3 className="font-heading font-extrabold text-base sm:text-lg text-[#2F3A2E]">
           Statistik Ringkasan Hari Ini
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           {/* Card 1: Total Durasi Fokus */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E6D7C8] shadow-xs text-center flex flex-col justify-between">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8DDCF] shadow-xs text-center flex flex-col justify-between">
             <div className="space-y-1">
-              <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+              <h4 className="font-heading font-extrabold text-base text-[#2F3A2E]">
                 Total Waktu Fokus
               </h4>
-              <p className="text-[11px] text-[#6E5D4F] font-medium">
+              <p className="text-[11px] text-[#636B60] font-medium">
                 {sessionDurationMins} mnt / sesi
               </p>
             </div>
             <div className="my-2">
-              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] sensor-num tracking-tight">
+              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#2F3A2E] sensor-num tracking-tight">
                 {formattedFocusHours}
               </div>
             </div>
           </div>
 
           {/* Card 2: Pomodoro Selesai */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E6D7C8] shadow-xs text-center flex flex-col justify-between">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8DDCF] shadow-xs text-center flex flex-col justify-between">
             <div className="space-y-1">
-              <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+              <h4 className="font-heading font-extrabold text-base text-[#2F3A2E]">
                 Pomodoro Selesai
               </h4>
-              <p className="text-[11px] text-[#6E5D4F] font-medium">
+              <p className="text-[11px] text-[#636B60] font-medium">
                 Target harian 6 sesi
               </p>
             </div>
             <div className="my-2">
-              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] sensor-num tracking-tight">
+              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#2F3A2E] sensor-num tracking-tight">
                 {completedBouts} sesi
               </div>
             </div>
           </div>
 
           {/* Card 3: Waktu Layar Pasif */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E6D7C8] shadow-xs text-center flex flex-col justify-between">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8DDCF] shadow-xs text-center flex flex-col justify-between">
             <div className="space-y-1">
-              <h4 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+              <h4 className="font-heading font-extrabold text-base text-[#2F3A2E]">
                 Waktu Layar Pasif
               </h4>
-              <p className="text-[11px] text-[#6E5D4F] font-medium">
+              <p className="text-[11px] text-[#636B60] font-medium">
                 Batas aman &le; 8 jam
               </p>
             </div>
             <div className="my-2">
-              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#1A1A1A] sensor-num tracking-tight">
+              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#2F3A2E] sensor-num tracking-tight">
                 {Math.floor(screenMinutes / 60)} jam
               </div>
             </div>
@@ -885,26 +885,26 @@ export const FocusView: React.FC = () => {
           ======================================================== */}
       {isEyeBreakOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 text-center space-y-5 shadow-2xl border border-[#E6D7C8]">
-            <div className="w-16 h-16 rounded-3xl bg-[#98C5E2] text-[#1A1A1A] flex items-center justify-center mx-auto shadow-sm">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 text-center space-y-5 shadow-2xl border border-[#E8DDCF]">
+            <div className="w-16 h-16 rounded-3xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center mx-auto shadow-sm">
               <Eye className="w-8 h-8" />
             </div>
 
             <div>
-              <h3 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
+              <h3 className="font-heading font-extrabold text-xl text-[#2F3A2E]">
                 Jeda Istirahat Mata (20 Detik)
               </h3>
-              <p className="text-xs text-[#525252] mt-1.5 max-w-xs mx-auto leading-relaxed">
+              <p className="text-xs text-[#636B60] mt-1.5 max-w-xs mx-auto leading-relaxed">
                 Tatap objek di luar jendela atau sudut terjauh ruangan (~6 meter). Biarkan otot fokus mata beristirahat.
               </p>
             </div>
 
             {/* Countdown Display */}
             <div className="py-2">
-              <div className="font-heading font-extrabold text-5xl text-[#1A1A1A] tabular-nums">
+              <div className="font-heading font-extrabold text-5xl text-[#2F3A2E] tabular-nums">
                 {eyeBreakSeconds}s
               </div>
-              <p className="text-[11px] text-[#6E5D4F] mt-1 font-semibold">
+              <p className="text-[11px] text-[#636B60] mt-1 font-semibold">
                 {eyeBreakSeconds > 0
                   ? "Kedipkan mata perlahan & tarik napas dalam..."
                   : "Mata Anda telah kembali segar! ✨"}
@@ -916,7 +916,7 @@ export const FocusView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsEyeBreakOpen(false)}
-                  className="py-3 px-6 rounded-2xl bg-[#98C5E2] hover:bg-[#7BB1D3] text-[#1A1A1A] font-extrabold text-xs transition-colors shadow-xs"
+                  className="py-3 px-6 rounded-2xl bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-[#2F3A2E] font-extrabold text-xs transition-colors shadow-xs"
                 >
                   Kembali Belajar
                 </button>
@@ -924,7 +924,7 @@ export const FocusView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsEyeBreakOpen(false)}
-                  className="py-2.5 px-5 rounded-2xl bg-[#FAF5EF] hover:bg-[#E6D7C8] text-[#1A1A1A] font-bold text-xs transition-colors"
+                  className="py-2.5 px-5 rounded-2xl bg-[#FAF6F0] hover:bg-[#CFD8C4] text-[#2F3A2E] font-bold text-xs transition-colors"
                 >
                   Tutup Saja
                 </button>
@@ -939,18 +939,18 @@ export const FocusView: React.FC = () => {
           ======================================================== */}
       {isActiveBreakOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-[#E6D7C8] space-y-4 max-h-[92vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-[#E8DDCF] space-y-4 max-h-[92vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#F5ECE2]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E8DDCF]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#98C5E2] text-[#1E4E6E] flex items-center justify-center shrink-0">
-                  <Play className="w-5 h-5 fill-[#1E4E6E] ml-0.5" />
+                <div className="w-10 h-10 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0">
+                  <Play className="w-5 h-5 fill-[#2F3A2E] ml-0.5" />
                 </div>
                 <div>
-                  <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                  <h3 className="font-heading font-extrabold text-base text-[#2F3A2E]">
                     On-Demand Active Break (2 Menit)
                   </h3>
-                  <p className="text-[11px] text-[#6E5D4F]">
+                  <p className="text-[11px] text-[#636B60]">
                     Rentangkan tangan di atas kepala (Overhead Reach) atau beranjak berdiri selama 3 repetisi.
                   </p>
                 </div>
@@ -958,7 +958,7 @@ export const FocusView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsActiveBreakOpen(false)}
-                className="w-8 h-8 rounded-full bg-[#FAF5EF] hover:bg-[#E6D7C8] text-[#1A1A1A] flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-[#FAF6F0] hover:bg-[#CFD8C4] text-[#2F3A2E] flex items-center justify-center transition-colors"
                 title="Tutup & Matikan Kamera"
               >
                 <X className="w-4 h-4" />
@@ -967,7 +967,7 @@ export const FocusView: React.FC = () => {
 
             {/* Success Banner if Completed */}
             {activeBreakSuccess && (
-              <div className="p-4 rounded-2xl bg-[#98C5E2] text-[#1E4E6E] flex items-center gap-3 animate-in zoom-in-95">
+              <div className="p-4 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center gap-3 animate-in zoom-in-95">
                 <CheckCircle2 className="w-5 h-5 shrink-0" />
                 <div className="text-xs font-bold">
                   Selamat! Sesi Active Break Berhasil Terverifikasi (+10 Poin Pemulihan Ditambahkan). Kamera telah dinonaktifkan.
@@ -990,12 +990,12 @@ export const FocusView: React.FC = () => {
             </div>
 
             {/* Modal Footer Reassurance */}
-            <div className="pt-2 flex items-center justify-between text-xs text-[#6E5D4F]">
+            <div className="pt-2 flex items-center justify-between text-xs text-[#636B60]">
               <span>Kamera otomatis dimatikan setelah pose peregangan selesai.</span>
               <button
                 type="button"
                 onClick={() => setIsActiveBreakOpen(false)}
-                className="px-4 py-2 rounded-xl bg-[#F5ECE2] hover:bg-[#F5ECE2] text-[#1A1A1A] font-bold text-xs transition-colors"
+                className="px-4 py-2 rounded-xl bg-[#FAF6F0] hover:bg-[#FAF6F0] text-[#2F3A2E] font-bold text-xs transition-colors"
               >
                 Selesai / Tutup
               </button>

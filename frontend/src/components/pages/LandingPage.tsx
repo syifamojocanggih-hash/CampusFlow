@@ -163,8 +163,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
     {
       id: "c1",
       category: "akademik",
-      cardBg: "bg-[#EBF3F9] border-[#98C5E2] hover:border-[#7BB1D3]",
-      iconBg: "bg-[#98C5E2] text-[#1A1A1A]",
+      cardBg: "bg-[#FAF6F0] border-[#CFD8C4] hover:border-[#CFD8C4]",
+      iconBg: "bg-[#E8DDCF] text-[#2F3A2E]",
       icon: <BookOpen className="w-5 h-5" />,
       title: "Smart Academic Planner (PDF KRS Parser)",
       description:
@@ -173,8 +173,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
     {
       id: "c2",
       category: "layar",
-      cardBg: "bg-[#EBF3F9] border-[#98C5E2] hover:border-[#7BB1D3]",
-      iconBg: "bg-[#98C5E2] text-[#1A1A1A]",
+      cardBg: "bg-[#FAF6F0] border-[#CFD8C4] hover:border-[#CFD8C4]",
+      iconBg: "bg-[#E8DDCF] text-[#2F3A2E]",
       icon: <Eye className="w-5 h-5" />,
       title: "Cross-Device Screen Time & Zero Continuous Camera",
       description:
@@ -183,8 +183,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
     {
       id: "c3",
       category: "jeda",
-      cardBg: "bg-[#FDF6EE] border-[#E5C19A] hover:border-[#E5C19A]",
-      iconBg: "bg-[#FDECD8] text-[#1A1A1A]",
+      cardBg: "bg-[#FAF6F0] border-[#E8DDCF] hover:border-[#E8DDCF]",
+      iconBg: "bg-[#E8DDCF] text-[#2F3A2E]",
       icon: <Footprints className="w-5 h-5" />,
       title: "On-Demand Active Break Validator (MediaPipe 2 Menit)",
       description:
@@ -193,8 +193,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
     {
       id: "c4",
       category: "ai",
-      cardBg: "bg-[#F7E6D5] border-[#BF7E46] hover:border-[#A66935]",
-      iconBg: "bg-[#BF7E46] text-[#1A1A1A]",
+      cardBg: "bg-[#FAF6F0] border-[#CFD8C4] hover:border-[#E8DDCF]",
+      iconBg: "bg-[#E8DDCF] text-[#636B60]",
       icon: <Bot className="w-5 h-5" />,
       title: "Wellbeing AI Coach & Konsultasi Stres Proaktif",
       description:
@@ -222,13 +222,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
       {/* ========================================================
           TOP NAVIGATION BAR (FIXED AT THE VERY TOP OF SCREEN)
           ======================================================== */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#F7E6D5]/95 backdrop-blur-md border-b border-[#F7E6D5] shadow-xs">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#FAF6F0]/95 backdrop-blur-md border-b border-[#E8DDCF] shadow-xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between">
           {/* Left Brand & Mobile Menu Toggle */}
           <div className="flex items-center gap-3 sm:gap-4">
             <button
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="md:hidden p-2 rounded-xl hover:bg-white/80 text-[#1A1A1A] transition-colors focus:outline-none"
+              className="md:hidden p-2 rounded-xl hover:bg-white/80 text-[#2F3A2E] transition-colors focus:outline-none"
               title="Menu Navigasi"
               aria-label="Toggle menu navigasi"
               aria-expanded={mobileMenuOpen}
@@ -243,10 +243,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
               onClick={() => scrollToSection("home")}
               className="flex items-center gap-2.5 cursor-pointer select-none"
             >
-              <div className="w-9 h-9 rounded-2xl bg-[#98C5E2] flex items-center justify-center text-[#1A1A1A] shadow-xs">
+              <div className="w-9 h-9 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shadow-xs">
                 <GraduationCap className="w-5 h-5" />
               </div>
-              <span className="font-heading font-extrabold text-lg text-[#1A1A1A] tracking-tight">
+              <span className="font-heading font-extrabold text-lg text-[#2F3A2E] tracking-tight">
                 CampusFlow
               </span>
             </div>
@@ -262,8 +262,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                   onClick={() => scrollToSection(navKey)}
                   className={`px-4 py-1.5 rounded-full uppercase transition-all duration-200 ${
                     isActive
-                      ? "bg-[#FDECD8] text-[#1A1A1A] border border-[#E5C19A] font-extrabold shadow-xs scale-105"
-                      : "text-[#6E5D4F] hover:text-[#1A1A1A] hover:bg-white/80"
+                      ? "bg-[#CFD8C4] text-[#2F3A2E] border border-[#BCC8AE] font-extrabold shadow-xs scale-105"
+                      : "text-[#636B60] hover:text-[#2F3A2E] hover:bg-white/80"
                   }`}
                 >
                   {navKey}
@@ -276,15 +276,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleOpenAuth("login")}
-              className="px-3.5 py-1.5 rounded-full text-xs font-bold text-[#1A1A1A] hover:bg-white/80 transition-colors border border-transparent hover:border-[#F7E6D5] active:scale-95 flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-full text-xs font-bold text-[#2F3A2E] hover:bg-white/80 transition-colors border border-transparent hover:border-[#E8DDCF] active:scale-95 flex items-center gap-1.5"
               title="Masuk ke Akun Mahasiswa"
             >
-              <LogIn className="w-3.5 h-3.5 text-[#1A1A1A]" />
+              <LogIn className="w-3.5 h-3.5 text-[#2F3A2E]" />
               <span>Masuk</span>
             </button>
             <button
               onClick={() => handleOpenAuth("register")}
-              className="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-[#98C5E2] hover:bg-[#7BB1D3] text-[#1A1A1A] transition-colors shadow-xs border border-[#7BB1D3] active:scale-95 shrink-0 flex items-center gap-1.5 group"
+              className="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-[#CFD8C4] hover:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] transition-colors shadow-xs active:scale-95 shrink-0 flex items-center gap-1.5 group cursor-pointer"
               title="Daftar Akun Mahasiswa Baru"
             >
               <UserPlus className="w-3.5 h-3.5" />
@@ -297,8 +297,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
 
       {/* Mobile Navigation Dropdown (Fixed under top navbar) */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed top-[61px] left-0 right-0 z-40 px-4 py-3 bg-[#F7E6D5]/98 backdrop-blur-md border-b border-[#F7E6D5] shadow-md transition-all animate-in fade-in slide-in-from-top-2 duration-150">
-          <nav className="flex flex-col gap-1 text-xs font-bold tracking-wider text-[#1A1A1A] max-w-6xl mx-auto">
+        <div className="md:hidden fixed top-[61px] left-0 right-0 z-40 px-4 py-3 bg-[#FAF6F0]/98 backdrop-blur-md border-b border-[#E8DDCF] shadow-md transition-all animate-in fade-in slide-in-from-top-2 duration-150">
+          <nav className="flex flex-col gap-1 text-xs font-bold tracking-wider text-[#2F3A2E] max-w-6xl mx-auto">
             {(["home", "courses", "about", "contact"] as const).map((navKey) => {
               const isActive = activeNav === navKey;
               return (
@@ -310,23 +310,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                   }}
                   className={`py-2 px-3 rounded-xl text-left uppercase transition-colors ${
                     isActive
-                      ? "bg-[#FDECD8] text-[#1A1A1A] font-extrabold border border-[#E5C19A]"
-                      : "text-[#6E5D4F] hover:text-[#1A1A1A] hover:bg-white/80"
+                      ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold border border-[#BCC8AE]"
+                      : "text-[#636B60] hover:text-[#2F3A2E] hover:bg-white/80"
                   }`}
                 >
                   {navKey}
                 </button>
               );
             })}
-            <div className="pt-2 mt-1 border-t border-[#F7E6D5] flex flex-col gap-2">
+            <div className="pt-2 mt-1 border-t border-[#E8DDCF] flex flex-col gap-2">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   handleOpenAuth("login");
                 }}
-                className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-white/90 text-[#1A1A1A] font-bold text-center text-xs flex items-center justify-center gap-2 border border-[#E6D7C8] shadow-xs active:scale-95"
+                className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-white/90 text-[#2F3A2E] font-bold text-center text-xs flex items-center justify-center gap-2 border border-[#E8DDCF] shadow-xs active:scale-95"
               >
-                <LogIn className="w-3.5 h-3.5 text-[#1A1A1A]" />
+                <LogIn className="w-3.5 h-3.5 text-[#2F3A2E]" />
                 <span>Masuk (Login)</span>
               </button>
               <button
@@ -334,7 +334,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                   setMobileMenuOpen(false);
                   handleOpenAuth("register");
                 }}
-                className="w-full py-2.5 px-3 rounded-xl bg-[#98C5E2] hover:bg-[#7BB1D3] text-[#1A1A1A] font-bold text-center text-xs flex items-center justify-center gap-2 shadow-xs border border-[#7BB1D3] active:scale-95"
+                className="w-full py-2.5 px-3 rounded-xl bg-[#CFD8C4] hover:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] font-bold text-center text-xs flex items-center justify-center gap-2 shadow-xs active:scale-95 cursor-pointer"
               >
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>Daftar Akun (Register)</span>
@@ -355,7 +355,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
             ======================================================== */}
         <section
           id="home"
-          className="scroll-mt-24 px-6 sm:px-12 py-10 lg:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center border-b border-[#FAF5EF]"
+          className="scroll-mt-24 px-6 sm:px-12 py-10 lg:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center border-b border-[#E8DDCF]"
         >
           {/* LEFT COLUMN: Hero Copy Animated Slider */}
           <div className="lg:col-span-6 space-y-6 sm:space-y-8 z-10 w-full overflow-hidden">
@@ -380,16 +380,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                     }`}
                     aria-hidden={activeSlide !== index}
                   >
-                    <span className="text-xs font-bold tracking-wider text-[#6E5D4F] uppercase block">
+                    <span className="text-xs font-bold tracking-wider text-[#636B60] uppercase block">
                       {item.subtitle}
                     </span>
 
-                    <h1 className="font-heading font-extrabold text-4xl sm:text-5xl lg:text-[3.4rem] text-[#1A1A1A] leading-[1.12] mt-2 tracking-tight">
+                    <h1 className="font-heading font-extrabold text-4xl sm:text-5xl lg:text-[3.4rem] text-[#2F3A2E] leading-[1.12] mt-2 tracking-tight">
                       {item.titleLine1} <br />
-                      <span className="text-[#1A1A1A]">{item.titleLine2}</span>
+                      <span className="text-[#2F3A2E]">{item.titleLine2}</span>
                     </h1>
 
-                    <p className="text-xs sm:text-sm text-[#6E5D4F] font-medium mt-3 max-w-md leading-relaxed">
+                    <p className="text-xs sm:text-sm text-[#636B60] font-medium mt-3 max-w-md leading-relaxed">
                       {item.description}
                     </p>
                   </div>
@@ -398,22 +398,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
             </div>
 
             {/* Feature Pills / Quick Entry */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 text-[11px] font-bold text-[#1A1A1A]">
+            <div className="flex flex-wrap items-center gap-2 pt-2 text-[11px] font-bold text-[#2F3A2E]">
               <button
                 onClick={() => scrollToSection("about")}
-                className="px-3.5 py-2 rounded-full bg-[#98C5E2] hover:bg-[#7BB1D3] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
+                className="px-3.5 py-2 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
               >
                 <Eye className="w-3.5 h-3.5" /> Zero Continuous Camera
               </button>
               <button
                 onClick={() => scrollToSection("courses")}
-                className="px-3.5 py-2 rounded-full bg-[#98C5E2] hover:bg-[#7BB1D3] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
+                className="px-3.5 py-2 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
               >
                 <BookOpen className="w-3.5 h-3.5" /> Strava Akademik (KRS)
               </button>
               <button
                 onClick={() => scrollToSection("courses")}
-                className="px-3.5 py-2 rounded-full bg-[#FDECD8] hover:bg-[#E5C19A] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
+                className="px-3.5 py-2 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
               >
                 <Bot className="w-3.5 h-3.5" /> Wellbeing AI Coach
               </button>
@@ -437,19 +437,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
             ======================================================== */}
         <section
           id="courses"
-          className="scroll-mt-24 px-6 sm:px-12 py-12 lg:py-16 space-y-8 border-b border-[#FAF5EF]"
+          className="scroll-mt-24 px-6 sm:px-12 py-12 lg:py-16 space-y-8 border-b border-[#E8DDCF]"
         >
           {/* Header Title */}
-          <div className="pb-2 border-b border-[#FAF5EF]">
+          <div className="pb-2 border-b border-[#E8DDCF]">
             <div>
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#6E5D4F] flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-[#1A1A1A]" />
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#636B60] flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-[#2F3A2E]" />
                 Kurikulum Wellbeing &amp; Ergonomi Kampus
               </span>
-              <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A] mt-1">
+              <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#2F3A2E] mt-1">
                 Katalog Modul Pembelajaran
               </h2>
-              <p className="text-xs text-[#6E5D4F] max-w-xl mt-1">
+              <p className="text-xs text-[#636B60] max-w-xl mt-1">
                 Dirancang oleh praktisi ergonomi &amp; kedokteran olahraga untuk mendukung mahasiswa belajar produktif tanpa nyeri otot, kelelahan mata, dan burnout.
               </p>
             </div>
@@ -469,11 +469,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                     {c.icon}
                   </div>
 
-                  <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                  <h3 className="font-heading font-extrabold text-base text-[#2F3A2E]">
                     {c.title}
                   </h3>
 
-                  <p className="text-xs text-[#1A1A1A]/70 leading-relaxed font-medium">
+                  <p className="text-xs text-[#2F3A2E]/70 leading-relaxed font-medium">
                     {c.description}
                   </p>
                 </div>
@@ -481,7 +481,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                 <div className="pt-4 mt-5 border-t border-black/5 flex items-center justify-end">
                   <button
                     onClick={() => handleOpenAuth("register")}
-                    className="px-4 py-2 rounded-full bg-white hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] font-bold text-xs transition-colors active:scale-95 flex items-center gap-1.5 border border-black/10 shadow-xs group/btn"
+                    className="px-4 py-2 rounded-full bg-white hover:bg-[#CFD8C4] hover:text-[#2F3A2E] text-[#2F3A2E] font-bold text-xs transition-colors active:scale-95 flex items-center gap-1.5 border border-black/10 shadow-xs group/btn"
                   >
                     <span>Ikuti Modul</span>
                     <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5" />
@@ -497,55 +497,55 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
             ======================================================== */}
         <section
           id="about"
-          className="scroll-mt-24 px-6 sm:px-12 py-12 lg:py-16 space-y-8 border-b border-[#FAF5EF]"
+          className="scroll-mt-24 px-6 sm:px-12 py-12 lg:py-16 space-y-8 border-b border-[#E8DDCF]"
         >
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto space-y-2.5">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#6E5D4F]">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#636B60]">
               Tiga Pilar Utama CampusFlow Versi 4.0
             </span>
-            <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A]">
+            <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#2F3A2E]">
               Academic Strava &amp; Predictive Burnout Management
             </h2>
-            <p className="text-xs text-[#6E5D4F] leading-relaxed">
+            <p className="text-xs text-[#636B60] leading-relaxed">
               Keseimbangan sistemik antara Beban Akademik (Academic Load), Waktu Layar (Screen Time), dan Waktu Pemulihan (Tidur &amp; Jeda Aktif) untuk mencegah academic burnout mahasiswa.
             </p>
           </div>
 
           {/* 3 Pillars Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
-            <div className="p-6 rounded-3xl bg-[#FAF5EF] border border-[#E6D7C8] space-y-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#98C5E2] flex items-center justify-center text-[#1A1A1A] shadow-xs">
+            <div className="p-6 rounded-3xl bg-[#FAF6F0] border border-[#E8DDCF] space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shadow-xs">
                 <Eye className="w-5 h-5" />
               </div>
-              <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
+              <h3 className="font-heading font-extrabold text-sm text-[#2F3A2E]">
                 1. Zero Continuous Camera
               </h3>
-              <p className="text-xs text-[#6E5D4F] leading-relaxed">
+              <p className="text-xs text-[#636B60] leading-relaxed">
                 Kamera laptop default OFF saat belajar. Kamera HANYA menyala MAKSIMAL 2 MENIT saat tombol &apos;Active Break&apos; ditekan untuk validasi pose peregangan.
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-[#FAF5EF] border border-[#E6D7C8] space-y-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#98C5E2] flex items-center justify-center text-[#1A1A1A] shadow-xs">
+            <div className="p-6 rounded-3xl bg-[#FAF6F0] border border-[#E8DDCF] space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shadow-xs">
                 <BookOpen className="w-5 h-5" />
               </div>
-              <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
+              <h3 className="font-heading font-extrabold text-sm text-[#2F3A2E]">
                 2. Konsep &apos;Strava Akademik&apos; &amp; Fusi Parameter
               </h3>
-              <p className="text-xs text-[#6E5D4F] leading-relaxed">
+              <p className="text-xs text-[#636B60] leading-relaxed">
                 Stres dihitung dari fusi 4 variabel harian: Jam Tidur, Layar, Jeda Aktif, dan Academic Load (KRS). Menghasilkan satu metrik intuitif Burnout Risk Index (0–100).
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-[#FAF5EF] border border-[#E6D7C8] space-y-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#FDECD8] flex items-center justify-center text-[#1A1A1A] shadow-xs">
+            <div className="p-6 rounded-3xl bg-[#FAF6F0] border border-[#E8DDCF] space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shadow-xs">
                 <Bot className="w-5 h-5" />
               </div>
-              <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
+              <h3 className="font-heading font-extrabold text-sm text-[#2F3A2E]">
                 3. Proactive AI Coaching
               </h3>
-              <p className="text-xs text-[#6E5D4F] leading-relaxed">
+              <p className="text-xs text-[#636B60] leading-relaxed">
                 AI Coach mendampingi mahasiswa secara terstruktur: menganalisis keluhan fisik, mitigasi krisis darurat (119), dan rekomendasi preventif esok hari berbasis mesin lokal Ollama.
               </p>
             </div>
@@ -560,11 +560,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
           className="scroll-mt-24 px-6 sm:px-12 py-12 lg:py-16 space-y-8"
         >
           {/* Header */}
-          <div className="pb-2 border-b border-[#FAF5EF]">
-            <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1A1A1A]">
+          <div className="pb-2 border-b border-[#E8DDCF]">
+            <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#2F3A2E]">
               Hubungi Tim CampusFlow
             </h2>
-            <p className="text-xs text-[#6E5D4F] max-w-xl mt-1">
+            <p className="text-xs text-[#636B60] max-w-xl mt-1">
               Punya pertanyaan seputar integrasi sistem di kampus, kendala sensor, atau ingin berkolaborasi riset ergonomi? Kami siap membantu.
             </p>
           </div>
@@ -572,30 +572,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
           {/* Grid: Form & Info */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             {/* Left: Contact Form */}
-            <div className="p-6 sm:p-7 rounded-3xl bg-white border border-[#E6D7C8] shadow-xs flex flex-col justify-between space-y-4">
+            <div className="p-6 sm:p-7 rounded-3xl bg-white border border-[#E8DDCF] shadow-xs flex flex-col justify-between space-y-4">
               <div>
-                <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                <h3 className="font-heading font-extrabold text-base text-[#2F3A2E]">
                   Kirim Pesan / Pengaduan
                 </h3>
-                <p className="text-xs text-[#6E5D4F] mt-0.5">
+                <p className="text-xs text-[#636B60] mt-0.5">
                   Sampaikan kendala teknis atau pertanyaan Anda langsung ke tim pengembang.
                 </p>
               </div>
 
               {contactSubmitted ? (
-                <div className="p-6 rounded-2xl bg-[#FAF5EF] border border-[#98C5E2] text-center space-y-2 animate-in zoom-in-95 my-auto">
-                  <div className="w-12 h-12 rounded-full bg-[#98C5E2] text-emerald-800 flex items-center justify-center mx-auto">
+                <div className="p-6 rounded-2xl bg-[#FAF6F0] border border-[#CFD8C4] text-center space-y-2 animate-in zoom-in-95 my-auto">
+                  <div className="w-12 h-12 rounded-full bg-[#E8DDCF] text-emerald-800 flex items-center justify-center mx-auto">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
-                  <h4 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
+                  <h4 className="font-heading font-extrabold text-sm text-[#2F3A2E]">
                     Pesan Berhasil Terkirim!
                   </h4>
-                  <p className="text-xs text-[#6E5D4F]">
+                  <p className="text-xs text-[#636B60]">
                     Terima kasih, tim dukungan CampusFlow akan merespons melalui email dalam waktu 1x24 jam kerja.
                   </p>
                   <button
                     onClick={() => setContactSubmitted(false)}
-                    className="mt-3 px-4 py-1.5 rounded-full text-xs font-bold bg-[#1A1A1A] text-white transition-transform active:scale-95"
+                    className="mt-3 px-4 py-1.5 rounded-full text-xs font-bold bg-[#CFD8C4] text-[#2F3A2E] transition-transform active:scale-95"
                   >
                     Kirim Pesan Lain
                   </button>
@@ -605,7 +605,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                   <div className="space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[11px] font-bold text-[#1A1A1A] mb-1">
+                        <label className="block text-[11px] font-bold text-[#2F3A2E] mb-1">
                           Nama Lengkap
                         </label>
                         <input
@@ -614,12 +614,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                           value={contactName}
                           onChange={(e) => setContactName(e.target.value)}
                           placeholder="Mutiara Dewanda"
-                          className="w-full px-3.5 py-2 text-xs bg-[#F5ECE2] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:border-[#98C5E2] focus:bg-white transition-all"
+                          className="w-full px-3.5 py-2 text-xs bg-[#FAF6F0] border border-[#E8DDCF] rounded-xl text-[#2F3A2E] focus:outline-none focus:border-[#CFD8C4] focus:bg-white transition-all"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-[#1A1A1A] mb-1">
+                        <label className="block text-[11px] font-bold text-[#2F3A2E] mb-1">
                           Email Kampus / Personal
                         </label>
                         <input
@@ -628,19 +628,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                           value={contactEmail}
                           onChange={(e) => setContactEmail(e.target.value)}
                           placeholder="nama@kampus.ac.id"
-                          className="w-full px-3.5 py-2 text-xs bg-[#F5ECE2] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:border-[#98C5E2] focus:bg-white transition-all"
+                          className="w-full px-3.5 py-2 text-xs bg-[#FAF6F0] border border-[#E8DDCF] rounded-xl text-[#2F3A2E] focus:outline-none focus:border-[#CFD8C4] focus:bg-white transition-all"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-[#1A1A1A] mb-1">
+                      <label className="block text-[11px] font-bold text-[#2F3A2E] mb-1">
                         Kategori Pertanyaan
                       </label>
                       <select
                         value={contactCategory}
                         onChange={(e) => setContactCategory(e.target.value)}
-                        className="w-full px-3.5 py-2 text-xs bg-[#F5ECE2] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:border-[#98C5E2] focus:bg-white transition-all"
+                        className="w-full px-3.5 py-2 text-xs bg-[#FAF6F0] border border-[#E8DDCF] rounded-xl text-[#2F3A2E] focus:outline-none focus:border-[#CFD8C4] focus:bg-white transition-all"
                       >
                         <option>Dukungan Teknis &amp; Sensor</option>
                         <option>Integrasi LMS / SSO Kampus</option>
@@ -650,7 +650,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-[#1A1A1A] mb-1">
+                      <label className="block text-[11px] font-bold text-[#2F3A2E] mb-1">
                         Pesan / Uraian Masalah
                       </label>
                       <textarea
@@ -659,14 +659,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                         value={contactMessage}
                         onChange={(e) => setContactMessage(e.target.value)}
                         placeholder="Jelaskan kebutuhan atau kendala yang Anda hadapi..."
-                        className="w-full px-3.5 py-2 text-xs bg-[#F5ECE2] border border-[#E6D7C8] rounded-xl text-[#1A1A1A] focus:outline-none focus:border-[#98C5E2] focus:bg-white transition-all resize-none"
+                        className="w-full px-3.5 py-2 text-xs bg-[#FAF6F0] border border-[#E8DDCF] rounded-xl text-[#2F3A2E] focus:outline-none focus:border-[#CFD8C4] focus:bg-white transition-all resize-none"
                       />
                     </div>
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full py-2.5 rounded-xl bg-[#FDECD8] hover:bg-[#E5C19A] text-[#1A1A1A] font-bold text-xs transition-transform active:scale-95 shadow-xs border border-[#E5C19A] flex items-center justify-center gap-1.5 mt-2"
+                    className="w-full py-2.5 rounded-xl bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-[#2F3A2E] font-bold text-xs transition-transform active:scale-95 shadow-xs border border-[#E8DDCF] flex items-center justify-center gap-1.5 mt-2"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>Kirim Pesan Sekarang</span>
@@ -676,59 +676,59 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
             </div>
 
             {/* Right: Channels & FAQ Combined Card */}
-            <div className="p-6 sm:p-7 rounded-3xl bg-white border border-[#E6D7C8] shadow-xs flex flex-col justify-between space-y-5">
+            <div className="p-6 sm:p-7 rounded-3xl bg-white border border-[#E8DDCF] shadow-xs flex flex-col justify-between space-y-5">
               {/* Saluran Dukungan Resmi */}
               <div className="space-y-3">
                 <div>
-                  <h3 className="font-heading font-extrabold text-base text-[#1A1A1A]">
+                  <h3 className="font-heading font-extrabold text-base text-[#2F3A2E]">
                     Saluran Dukungan Resmi
                   </h3>
-                  <p className="text-xs text-[#6E5D4F] mt-0.5">
+                  <p className="text-xs text-[#636B60] mt-0.5">
                     Layanan komunikasi langsung dengan tim pengembang dan praktisi.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-2.5 text-xs pt-1">
-                  <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#F5ECE2] border border-[#F5ECE2]">
-                    <div className="w-8 h-8 rounded-xl bg-[#98C5E2] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-2xs">
+                  <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#FAF6F0] border border-[#E8DDCF]">
+                    <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-2xs">
                       <Mail className="w-4 h-4" />
                     </div>
                     <div>
-                      <span className="font-bold text-[#1A1A1A] block text-[11px]">Email Dukungan</span>
-                      <span className="text-[#6E5D4F] text-[11px]">support@campusflow.id</span>
+                      <span className="font-bold text-[#2F3A2E] block text-[11px]">Email Dukungan</span>
+                      <span className="text-[#636B60] text-[11px]">support@campusflow.id</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#F5ECE2] border border-[#F5ECE2]">
-                    <div className="w-8 h-8 rounded-xl bg-[#98C5E2] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-2xs">
+                  <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#FAF6F0] border border-[#E8DDCF]">
+                    <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-2xs">
                       <Phone className="w-4 h-4" />
                     </div>
                     <div>
-                      <span className="font-bold text-[#1A1A1A] block text-[11px]">Hotline Mahasiswa</span>
-                      <span className="text-[#6E5D4F] text-[11px]">+62 (021) 500-FLOW</span>
+                      <span className="font-bold text-[#2F3A2E] block text-[11px]">Hotline Mahasiswa</span>
+                      <span className="text-[#636B60] text-[11px]">+62 (021) 500-FLOW</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#F5ECE2] border border-[#F5ECE2]">
-                    <div className="w-8 h-8 rounded-xl bg-[#FDECD8] flex items-center justify-center text-[#1A1A1A] shrink-0 shadow-2xs">
+                  <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#FAF6F0] border border-[#E8DDCF]">
+                    <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-2xs">
                       <MapPin className="w-4 h-4" />
                     </div>
                     <div>
-                      <span className="font-bold text-[#1A1A1A] block text-[11px]">Laboratorium Riset</span>
-                      <span className="text-[#6E5D4F] text-[11px]">Gedung Smart Wellbeing Kampus Terpadu</span>
+                      <span className="font-bold text-[#2F3A2E] block text-[11px]">Laboratorium Riset</span>
+                      <span className="text-[#636B60] text-[11px]">Gedung Smart Wellbeing Kampus Terpadu</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Divider */}
-              <div className="border-t border-[#F5ECE2]" />
+              <div className="border-t border-[#E8DDCF]" />
 
               {/* Accordion FAQ */}
               <div className="space-y-2.5">
                 <div className="flex items-center gap-1.5">
-                  <HelpCircle className="w-4 h-4 text-[#1A1A1A]" />
-                  <h4 className="font-heading font-extrabold text-xs text-[#1A1A1A]">
+                  <HelpCircle className="w-4 h-4 text-[#2F3A2E]" />
+                  <h4 className="font-heading font-extrabold text-xs text-[#2F3A2E]">
                     Pertanyaan Umum (FAQ)
                   </h4>
                 </div>
@@ -737,22 +737,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                   {faqs.map((faq, idx) => (
                     <div
                       key={idx}
-                      className="rounded-2xl bg-[#F5ECE2] border border-[#F5ECE2] p-3 transition-colors"
+                      className="rounded-2xl bg-[#FAF6F0] border border-[#E8DDCF] p-3 transition-colors"
                     >
                       <button
                         type="button"
                         onClick={() =>
                           setOpenFaqIndex(openFaqIndex === idx ? null : idx)
                         }
-                        className="w-full text-left font-bold text-[11px] text-[#1A1A1A] flex items-center justify-between gap-2"
+                        className="w-full text-left font-bold text-[11px] text-[#2F3A2E] flex items-center justify-between gap-2"
                       >
                         <span>{faq.q}</span>
-                        <span className="text-[#6E5D4F] text-xs font-mono">
+                        <span className="text-[#636B60] text-xs font-mono">
                           {openFaqIndex === idx ? "−" : "+"}
                         </span>
                       </button>
                       {openFaqIndex === idx && (
-                        <p className="text-[10px] text-[#6E5D4F] mt-2 leading-relaxed pt-1.5 border-t border-[#E6D7C8]">
+                        <p className="text-[10px] text-[#636B60] mt-2 leading-relaxed pt-1.5 border-t border-[#E8DDCF]">
                           {faq.a}
                         </p>
                       )}

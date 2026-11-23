@@ -7,86 +7,100 @@ export default {
   theme: {
     extend: {
       colors: {
-        // --- Fresh Pastel Health & Calorie Palette ---
-        // Warna Utama
+        // --- 3-Color Minimalist Sage, Linen & Ivory Palette ---
+        softSage: {
+          DEFAULT: "#CFD8C4", // Swatch 1: Primary buttons, accents, active icons
+          400: "#BCC8AE",     // Hover state for primary buttons
+          500: "#CFD8C4",
+          600: "#636B60",     // Muted text
+          700: "#2F3A2E",     // Deep sage-charcoal ink for WCAG AAA readability
+        },
+        warmLinen: {
+          DEFAULT: "#E8DDCF", // Swatch 2: Active pills, secondary buttons, borders
+          300: "#DDD0BE",     // Hover state for secondary buttons
+          400: "#E8DDCF",
+        },
+        warmIvory: {
+          DEFAULT: "#FAF6F0", // Swatch 3: Main web background canvas & sidebar
+          100: "#FFFFFF",     // Crisp elevated cards
+          200: "#FAF6F0",
+        },
+
+        // --- Semantic & Backward-Compatible Mappings (Strictly 3 Colors) ---
         sky: {
-          DEFAULT: "#BDE6F0", // Sky Blue: Your Progress, Water, Taco
-          50: "#F4FAFC",
-          100: "#E6F5F8",
-          200: "#D3EFF5",
-          300: "#BDE6F0",
-          400: "#A2DCF0",
-          500: "#83D0E8",
+          DEFAULT: "#CFD8C4",
+          50: "#FAF6F0",
+          100: "#FAF6F0",
+          200: "#E8DDCF",
+          300: "#CFD8C4",
+          400: "#BCC8AE",
+          500: "#CFD8C4",
         },
         mint: {
-          DEFAULT: "#CDE8B5", // Mint Green: Breakfast, Cal/Prot/Carb bars
-          50: "#F7FAF3",
-          100: "#EEF7E6",
-          200: "#DFEFD0",
-          300: "#CDE8B5",
-          400: "#B6DF97",
-          500: "#9ED378",
+          DEFAULT: "#CFD8C4",
+          50: "#FAF6F0",
+          100: "#FAF6F0",
+          200: "#E8DDCF",
+          300: "#CFD8C4",
+          400: "#BCC8AE",
+          500: "#CFD8C4",
         },
         butter: {
-          DEFAULT: "#FFF29A", // Butter Yellow: Calorie count button, active nav
-          50: "#FFFDF0",
-          100: "#FFFAE0",
-          200: "#FFF6BD",
-          300: "#FFF29A",
-          400: "#FFE966",
-          500: "#FFDD33",
+          DEFAULT: "#E8DDCF",
+          50: "#FAF6F0",
+          100: "#FAF6F0",
+          200: "#E8DDCF",
+          300: "#DDD0BE",
+          400: "#E8DDCF",
+          500: "#E8DDCF",
         },
-
-        // Warna Pendukung
         peach: {
-          DEFAULT: "#F9B99A", // Peach Orange: Calorie progress ring
-          50: "#FDF5F2",
-          100: "#FCE8E0",
-          200: "#FBD4C3",
-          300: "#F9B99A",
-          400: "#F6966C",
+          DEFAULT: "#E8DDCF",
+          50: "#FAF6F0",
+          100: "#FAF6F0",
+          200: "#E8DDCF",
+          300: "#DDD0BE",
+          400: "#CFD8C4",
         },
         softPink: {
-          DEFAULT: "#F7A8B0", // Soft Pink: Badge notifikasi, latar avatar
-          50: "#FCF4F5",
-          100: "#FAE5E7",
-          200: "#F7CED3",
-          300: "#F7A8B0",
-          400: "#F27885",
+          DEFAULT: "#E8DDCF",
+          50: "#FAF6F0",
+          100: "#FAF6F0",
+          200: "#E8DDCF",
+          300: "#DDD0BE",
+          400: "#CFD8C4",
         },
         lavender: {
-          DEFAULT: "#C9B3E6", // Lavender: Indikator kecil di kartu
-          50: "#F8F5FC",
-          100: "#F0EBF9",
-          200: "#DFD4F2",
-          300: "#C9B3E6",
-          400: "#AE8ED6",
+          DEFAULT: "#CFD8C4",
+          50: "#FAF6F0",
+          100: "#FAF6F0",
+          200: "#E8DDCF",
+          300: "#CFD8C4",
         },
 
-        // Warna Netral
+        // Neutral & Layout Mappings
         pureWhite: "#FFFFFF",
-        cloud: "#F6F6F6",     // Cloud Gray: Kartu netral, tombol ikon, track bar
-        lightGray: "#E8E8E8", // Light Gray: Garis/border dan latar halaman presentasi
-        ink: "#1A1A1A",       // Ink Black: Teks utama dan angka besar
-        muted: "#9A9A9A",     // Muted Gray: Teks sekunder (Kg, Kcal, label)
+        cloud: "#FAF6F0",
+        lightGray: "#E8DDCF",
+        ink: "#2F3A2E",
+        muted: "#636B60",
 
-        // General Mappings for Layout
-        surface: "#F6F6F6",
+        surface: "#FAF6F0",
         card: "#FFFFFF",
-        cardBorder: "#E8E8E8",
-        textMain: "#1A1A1A",
-        textMuted: "#9A9A9A",
+        cardBorder: "#E8DDCF",
+        textMain: "#2F3A2E",
+        textMuted: "#636B60",
 
         primary: {
-          DEFAULT: "#1A1A1A",
-          50: "#F6F6F6",
-          100: "#E8E8E8",
-          200: "#BDE6F0",
-          300: "#CDE8B5",
-          400: "#FFF29A",
-          500: "#1A1A1A",
-          600: "#1A1A1A",
-          700: "#000000",
+          DEFAULT: "#CFD8C4",
+          50: "#FAF6F0",
+          100: "#FAF6F0",
+          200: "#E8DDCF",
+          300: "#CFD8C4",
+          400: "#CFD8C4",
+          500: "#CFD8C4",
+          600: "#BCC8AE",
+          700: "#2F3A2E",
         },
       },
       fontFamily: {
@@ -94,11 +108,12 @@ export default {
         sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
       },
       boxShadow: {
-        card: "0 2px 10px -2px rgba(26, 26, 26, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02)",
-        cardHover: "0 8px 20px -4px rgba(26, 26, 26, 0.07), 0 3px 6px -2px rgba(0, 0, 0, 0.02)",
-        softPill: "0 2px 8px -1px rgba(255, 242, 154, 0.4)",
-        softSky: "0 4px 14px -2px rgba(189, 230, 240, 0.4)",
-        softMint: "0 4px 14px -2px rgba(205, 232, 181, 0.4)",
+        card: "0 4px 16px -4px rgba(47, 58, 46, 0.05), 0 1px 3px 0 rgba(47, 58, 46, 0.03)",
+        cardHover: "0 10px 24px -6px rgba(47, 58, 46, 0.09), 0 3px 8px -2px rgba(47, 58, 46, 0.04)",
+        softPill: "0 4px 12px -2px rgba(207, 216, 196, 0.45)",
+        softSky: "0 4px 14px -2px rgba(207, 216, 196, 0.45)",
+        softMint: "0 4px 14px -2px rgba(207, 216, 196, 0.45)",
+        softRosy: "0 4px 14px -2px rgba(232, 221, 207, 0.50)",
       },
       borderRadius: {
         '2xl': '1.25rem',

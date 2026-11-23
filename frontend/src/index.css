@@ -5,21 +5,21 @@
 @layer base {
   html {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #F6F6F6;
-    color: #1A1A1A;
+    background-color: #FAF6F0;
+    color: #2F3A2E;
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
   }
 
   body {
-    background-color: #F6F6F6;
-    color: #1A1A1A;
+    background-color: #FAF6F0;
+    color: #2F3A2E;
     min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Poppins', sans-serif;
-    color: #1A1A1A;
+    color: #2F3A2E;
   }
 
   .sensor-num {
@@ -37,45 +37,55 @@
     -moz-appearance: textfield;
     appearance: textfield;
   }
+
+  /* Global active/clicked button feedback: turns Soft Sage Green (#CFD8C4) */
+  button:not(:disabled):active {
+    background-color: #CFD8C4 !important;
+    border-color: #BCC8AE !important;
+    color: #2F3A2E !important;
+  }
 }
 
-/* Custom Learnova & Calorie Counter style card elevations */
+/* Minimalist Sage & Warm Ivory Card Elevations */
 .learnova-card {
   background-color: #FFFFFF;
   border-radius: 1.5rem;
-  border: 1px solid #E8E8E8;
-  box-shadow: 0 2px 10px -2px rgba(26, 26, 26, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  border: 1px solid #E8DDCF;
+  box-shadow: 0 4px 16px -4px rgba(47, 58, 46, 0.05), 0 1px 3px 0 rgba(47, 58, 46, 0.03);
   transition: all 0.2s ease-in-out;
 }
 
 .learnova-card:hover {
-  box-shadow: 0 6px 18px -3px rgba(26, 26, 26, 0.06);
+  box-shadow: 0 10px 24px -6px rgba(47, 58, 46, 0.09), 0 3px 8px -2px rgba(47, 58, 46, 0.04);
 }
 
-/* Pastel Theme Card Variants */
+/* 3-Color Card Variants */
 .card-sky {
-  background-color: #BDE6F0;
+  background-color: #CFD8C4;
   border-radius: 1.75rem;
-  color: #1A1A1A;
+  color: #2F3A2E;
+  border: 1px solid #BCC8AE;
 }
 
 .card-mint {
-  background-color: #CDE8B5;
+  background-color: #CFD8C4;
   border-radius: 1.75rem;
-  color: #1A1A1A;
+  color: #2F3A2E;
+  border: 1px solid #BCC8AE;
 }
 
 .card-butter {
-  background-color: #FFF29A;
+  background-color: #E8DDCF;
   border-radius: 1.75rem;
-  color: #1A1A1A;
+  color: #2F3A2E;
+  border: 1px solid #DDD0BE;
 }
 
 .card-cloud {
-  background-color: #F6F6F6;
+  background-color: #FAF6F0;
   border-radius: 1.5rem;
-  border: 1px solid #E8E8E8;
-  color: #1A1A1A;
+  border: 1px solid #E8DDCF;
+  color: #2F3A2E;
 }
 
 /* Custom scrollbar */
@@ -84,11 +94,14 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F6F6F6;
+  background: #FAF6F0;
 }
 ::-webkit-scrollbar-thumb {
-  background: #E8E8E8;
+  background: #CFD8C4;
   border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #BCC8AE;
 }
 
 /* Mobile Bottom Nav spring-bounce animation */
@@ -154,8 +167,4 @@
 
 .animate-mimi-rise {
   animation: mimiRise 1s forwards ease-out;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #9A9A9A;
 }

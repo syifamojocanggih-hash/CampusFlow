@@ -1,14 +1,14 @@
 export type PetMood = "happy" | "sad" | "sleepy" | "excited";
 
-const K = 'stroke="#1A1A1A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"';
-const PK = "#F7A8B0";
-const CR = "#FFF6E0";
-const YE = "#FFF29A";
-const MI = "#CDE8B5";
-const BL = "#BDE6F0";
+const K = 'stroke="#2F3A2E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"';
+const PK = "#CFD8C4";
+const CR = "#FAF6F0";
+const YE = "#FAF6F0";
+const MI = "#CFD8C4";
+const BL = "#E8DDCF";
 
 function star(t: string): string {
-  return `<path transform="${t}" d="M0 -10 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z" fill="${YE}" stroke="#1A1A1A" stroke-width="2.5" stroke-linejoin="round"/>`;
+  return `<path transform="${t}" d="M0 -10 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z" fill="${PK}" stroke="#2F3A2E" stroke-width="2.5" stroke-linejoin="round"/>`;
 }
 
 /**
@@ -19,7 +19,7 @@ function star(t: string): string {
  */
 export function getMimiSvg(st: number, m: PetMood = "happy", crack: boolean = false): string {
   let s = '<svg viewBox="0 0 200 200" role="img" aria-label="Mimi Pet" class="w-full h-full select-none pointer-events-none">';
-  const SO = "#E7B48C";
+  const SO = "#CBB6A2";
   const leaf = (x: number, y: number, r: number, w: number) =>
     `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="${w * 0.55}" transform="rotate(${r} ${x} ${y})" fill="${MI}" ${K} stroke-width="3"/>`;
 
@@ -38,14 +38,14 @@ export function getMimiSvg(st: number, m: PetMood = "happy", crack: boolean = fa
         : `<path d="M78 134q6 6 12 0M110 134q6 6 12 0" fill="none" ${K} stroke-width="3"/>`;
     s += `<ellipse cx="72" cy="148" rx="8" ry="5" fill="${PK}"/><ellipse cx="128" cy="148" rx="8" ry="5" fill="${PK}"/>`;
     if (m === "sleepy") {
-      s += '<text x="144" y="86" font-size="24" font-weight="800" font-family="sans-serif" fill="#1A1A1A">z</text>';
+      s += '<text x="144" y="86" font-size="24" font-weight="800" font-family="sans-serif" fill="#2F3A2E">z</text>';
     }
     return s + "</svg>";
   }
 
   const up = m === "excited";
   const sc = [0, 0.62, 0.72, 0.82, 0.9, 0.95, 1][st] || 0.72;
-  const BODY = ["", "#FFE9ED", "#FFDDE3", "#FBCFD8", "#F4C2DD", "#E3C0EE", "#FFE08A"][st] || "#FFDDE3";
+  const BODY = ["", "#F2D3D1", "#F2D3D1", "#F2D3D1", "#F2D3D1", "#C9DCE6", "#E7DCCF"][st] || "#F2D3D1";
 
   s += `<g transform="translate(100 190) scale(${sc}) translate(-100 -190)">`;
   if (st === 6) {
@@ -90,7 +90,7 @@ export function getMimiSvg(st: number, m: PetMood = "happy", crack: boolean = fa
       [120, 54],
       [100, 48],
     ].forEach((p) => {
-      s += `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="${PK}" stroke="#1A1A1A" stroke-width="2"/>`;
+      s += `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="${PK}" stroke="#2F3A2E" stroke-width="2"/>`;
     });
     s += bf(164, 48);
   }
@@ -103,18 +103,18 @@ export function getMimiSvg(st: number, m: PetMood = "happy", crack: boolean = fa
   } else if (m === "sleepy") {
     s += `<path d="M65 126q11 10 22 0M113 126q11 10 22 0" fill="none" ${K}/>`;
   } else {
-    s += `<ellipse cx="76" cy="126" rx="11" ry="13" fill="#1A1A1A"/><ellipse cx="124" cy="126" rx="11" ry="13" fill="#1A1A1A"/><circle cx="80" cy="120" r="${m === "sad" ? 5.6 : 4.6}" fill="#fff"/><circle cx="72" cy="131" r="2.2" fill="#fff"/><circle cx="128" cy="120" r="${m === "sad" ? 5.6 : 4.6}" fill="#fff"/><circle cx="120" cy="131" r="2.2" fill="#fff"/>`;
+    s += `<ellipse cx="76" cy="126" rx="11" ry="13" fill="#2F3A2E"/><ellipse cx="124" cy="126" rx="11" ry="13" fill="#2F3A2E"/><circle cx="80" cy="120" r="${m === "sad" ? 5.6 : 4.6}" fill="#fff"/><circle cx="72" cy="131" r="2.2" fill="#fff"/><circle cx="128" cy="120" r="${m === "sad" ? 5.6 : 4.6}" fill="#fff"/><circle cx="120" cy="131" r="2.2" fill="#fff"/>`;
   }
 
   if (m === "sad") {
-    s += `<path d="M64 142q-5 10 0 14q5-4 0-14z" fill="${BL}" stroke="#1A1A1A" stroke-width="2"/>`;
+    s += `<path d="M64 142q-5 10 0 14q5-4 0-14z" fill="${BL}" stroke="#2F3A2E" stroke-width="2"/>`;
   }
   s += `<ellipse cx="54" cy="146" rx="11" ry="7" fill="${PK}" fill-opacity=".85"/><ellipse cx="146" cy="146" rx="11" ry="7" fill="${PK}" fill-opacity=".85"/>`;
 
   if (m === "excited") {
-    s += `<path d="M90 138q10 18 20 0z" fill="#1A1A1A" ${K} stroke-width="3"/>`;
+    s += `<path d="M90 138q10 18 20 0z" fill="#2F3A2E" ${K} stroke-width="3"/>`;
   } else if (m === "sleepy") {
-    s += `<ellipse cx="100" cy="142" rx="3.5" ry="4.5" fill="#1A1A1A"/>`;
+    s += `<ellipse cx="100" cy="142" rx="3.5" ry="4.5" fill="#2F3A2E"/>`;
   } else if (m === "sad") {
     s += `<path d="M92 148q8-8 16 0" fill="none" ${K} stroke-width="3.5"/>`;
   } else {
@@ -122,7 +122,7 @@ export function getMimiSvg(st: number, m: PetMood = "happy", crack: boolean = fa
   }
 
   if (m === "sleepy") {
-    s += '<text x="148" y="76" font-size="26" font-weight="800" font-family="sans-serif" fill="#1A1A1A">z</text>';
+    s += '<text x="148" y="76" font-size="26" font-weight="800" font-family="sans-serif" fill="#2F3A2E">z</text>';
   }
   if (st >= 3 || m === "excited") {
     s += star("translate(30 66)") + star("translate(172 74) scale(.8)");
