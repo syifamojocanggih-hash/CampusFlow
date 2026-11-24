@@ -9,7 +9,7 @@ import { TriadDashboard } from "@/components/TriadDashboard";
 import { PanicReliefMode } from "@/components/PanicReliefMode";
 import { FocusView } from "@/components/pages/FocusView";
 import { ActivityView } from "@/components/pages/ActivityView";
-import { CoachView } from "@/components/pages/CoachView";
+import { CoachView, resetCoachChatSession } from "@/components/pages/CoachView";
 import { HistoryView } from "@/components/pages/HistoryView";
 import { SettingsView } from "@/components/pages/SettingsView";
 import { VisionLabView } from "@/components/pages/VisionLabView";
@@ -80,6 +80,7 @@ export function App() {
   const handleLogout = () => {
     api.setToken(null);
     localStorage.removeItem("cf_user_profile");
+    resetCoachChatSession();
     setUser(null);
     setIsLandingPage(true);
   };

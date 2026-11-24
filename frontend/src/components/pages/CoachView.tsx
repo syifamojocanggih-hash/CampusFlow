@@ -6,6 +6,7 @@ import {
   Moon,
   ShieldCheck,
   ArrowRight,
+  ArrowLeft,
   Clock,
   Sparkles,
   RotateCcw,
@@ -60,6 +61,16 @@ const CHAT_RECOMMENDATIONS: RecommendationItem[] = [
   },
 ];
 
+// In-memory session store: survives tab/page switches within the SPA,
+// but naturally resets on browser refresh/close or explicit logout.
+let cachedCoachMessages: ChatMessage[] = [];
+let cachedIsFullChatMode = false;
+
+export function resetCoachChatSession(): void {
+  cachedCoachMessages = [];
+  cachedIsFullChatMode = false;
+}
+
 export const CoachView: React.FC<CoachViewProps> = () => {
   const autoSleep = useAutoSleep();
   const [userName, setUserName] = useState<string>("Mahasiswa");
@@ -71,9 +82,18 @@ export const CoachView: React.FC<CoachViewProps> = () => {
   );
   const [inputText, setInputText] = useState<string>("");
   const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => cachedCoachMessages);
+  const [isFullChatMode, setIsFullChatMode] = useState<boolean>(() => cachedIsFullChatMode);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    cachedCoachMessages = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    cachedIsFullChatMode = isFullChatMode;
+  }, [isFullChatMode]);
 
   const sessionTimestampLabel = React.useMemo(() => {
     const now = new Date();
@@ -91,7 +111,9 @@ export const CoachView: React.FC<CoachViewProps> = () => {
       clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = null;
     }
+    resetCoachChatSession();
     setMessages([]);
+    setIsFullChatMode(false);
     setInputText("");
     setIsTyping(false);
   };
@@ -145,6 +167,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
     };
 
     setMessages((prev) => [...prev, newMsg]);
+    setIsFullChatMode(true);
     setIsTyping(true);
 
     try {
@@ -213,6 +236,8 @@ export const CoachView: React.FC<CoachViewProps> = () => {
     void sendMessageToBackendCoach(inputText.trim());
   };
 
+  const isChatting = isFullChatMode && messages.length > 0;
+
   return (
     <div className="w-full space-y-6 pb-12 font-sans">
       {/* ========================================================
@@ -228,12 +253,13 @@ export const CoachView: React.FC<CoachViewProps> = () => {
       </div>
 
       {/* ========================================================
-          2. TWO COLUMNS LAYOUT: LEFT SIDEBAR + RIGHT CHAT PANEL
+          2. DYNAMIC LAYOUT: 2 COLUMNS BY DEFAULT, FULL-WIDTH LEFT-ALIGNED WHEN CHATTING
           ======================================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* --------------------------------------------------------
-            LEFT COLUMN (3 Cards)
+            LEFT COLUMN (3 Cards — Hidden automatically while chatting)
             -------------------------------------------------------- */}
+        {!isChatting && (
         <div className="lg:col-span-4 space-y-5">
           {/* CARD 1: Cerita tubuhmu hari ini */}
           <div className="bg-white rounded-[1.75rem] p-6 shadow-xs border border-[#E8DDCF] space-y-5">
@@ -346,15 +372,31 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             </p>
           </div>
         </div>
+        )}
 
         {/* --------------------------------------------------------
-            RIGHT COLUMN: CHAT PANEL
+            CHAT PANEL (8 cols default, full 12 cols flush-left when chatting)
             -------------------------------------------------------- */}
-        <div className="lg:col-span-8 bg-white rounded-[1.75rem] shadow-xs border border-[#E8DDCF] overflow-hidden flex flex-col">
+        <div
+          className={`${
+            isChatting ? "lg:col-span-12" : "lg:col-span-8"
+          } w-full bg-white rounded-[1.75rem] shadow-xs border border-[#E8DDCF] overflow-hidden flex flex-col transition-all duration-300`}
+        >
           {/* Header Chat Panel */}
           <div className="bg-[#E8DDCF] px-6 py-4 flex items-center justify-between border-b border-[#CFD8C4]">
             <div className="flex items-center gap-3">
-              <Heart className="w-6 h-6 text-[#2F3A2E] stroke-[2]" />
+              {isChatting && (
+                <button
+                  type="button"
+                  onClick={() => setIsFullChatMode(false)}
+                  className="w-8 h-8 rounded-full bg-white/85 hover:bg-white text-[#2F3A2E] flex items-center justify-center shadow-2xs transition-all active:scale-95 cursor-pointer shrink-0"
+                  title="Kembali ke tampilan awal"
+                  aria-label="Kembali ke tampilan awal"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+              )}
+              <Heart className="w-6 h-6 text-[#2F3A2E] stroke-[2] shrink-0" />
               <div>
                 <h3 className="font-heading font-extrabold text-base text-[#2F3A2E] leading-tight">
                   Wellbeing AI Coach
@@ -364,10 +406,21 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              {!isChatting && messages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setIsFullChatMode(true)}
+                  className="px-3.5 py-1.5 rounded-full bg-[#CFD8C4] hover:bg-[#BCC8AE] text-xs font-bold text-[#2F3A2E] transition-colors flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
+                  title="Lanjutkan obrolan sebelumnya"
+                >
+                  <span>Lanjutkan Chat</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleResetSession}
-                className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white text-xs font-bold text-[#2F3A2E] transition-colors flex items-center gap-1.5 shadow-2xs active:scale-95"
+                className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white text-xs font-bold text-[#2F3A2E] transition-colors flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
                 title="Reset sesi obrolan"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-[#636B60]" />
@@ -381,8 +434,12 @@ export const CoachView: React.FC<CoachViewProps> = () => {
           </div>
 
           {/* Chat Messages Body */}
-          <div className="p-6 space-y-5 flex-1 overflow-y-auto max-h-[580px]">
-            {messages.length === 0 ? (
+          <div
+            className={`p-6 space-y-5 flex-1 overflow-y-auto ${
+              isChatting ? "min-h-[460px] max-h-[640px]" : "max-h-[580px]"
+            }`}
+          >
+            {!isChatting ? (
               /* Hero State */
               <div className="py-8 px-2 sm:px-6 flex flex-col items-center justify-center text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
                 <div>
@@ -435,9 +492,9 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                       className={`flex ${isUser ? "justify-end" : "justify-start"} animate-in fade-in duration-200`}
                     >
                       <div
-                        className={`text-sm leading-relaxed ${isUser
-                          ? "bg-[#FAF6F0] text-[#2F3A2E] rounded-2xl sm:rounded-3xl p-4 max-w-lg shadow-2xs"
-                          : "bg-[#FAF6F0] text-[#2F3A2E] rounded-2xl sm:rounded-3xl p-5 max-w-xl shadow-2xs"
+                        className={`text-sm leading-relaxed whitespace-pre-line text-left ${isUser
+                          ? "bg-[#CFD8C4]/65 border border-[#BCC8AE] text-[#2F3A2E] rounded-2xl sm:rounded-3xl p-4 max-w-xl shadow-2xs"
+                          : "bg-[#FAF6F0] border border-[#E8DDCF] text-[#2F3A2E] rounded-2xl sm:rounded-3xl p-5 max-w-3xl shadow-2xs"
                           }`}
                       >
                         {msg.text.replace("Tiara", userName)}
