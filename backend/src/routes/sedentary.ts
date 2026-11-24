@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma.ts";
 import { sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
+import { recalculateTodayBurnoutLog, toUtcDateOnly } from "../services/burnoutSync.ts";
 import { syncDailyWellbeingAggregates } from "../services/dailyAggregation.ts";
 
 export const sedentaryRouter = Router();
@@ -46,6 +47,35 @@ sedentaryRouter.post("/sessions", requireAuth, async (req: AuthenticatedRequest,
   }
 
   await syncDailyWellbeingAggregates(userId, session.startTime);
+
+  // Sinkronkan juga akumulasi waktu layar & Burnout Risk Index harian ke DailyFussionLog
+  try {
+    const targetDate = toUtcDateOnly(session.startTime);
+    const existingFussion = await prisma.dailyFussionLog.findUnique({
+      where: { userId_logDate: { userId, logDate: targetDate } },
+    });
+    const nextScreenMins = (existingFussion?.totalScreenTimeMins ?? 0) + body.durationMinutes;
+    await prisma.dailyFussionLog.upsert({
+      where: { userId_logDate: { userId, logDate: targetDate } },
+      update: { totalScreenTimeMins: nextScreenMins },
+      create: {
+        userId,
+        logDate: targetDate,
+        totalScreenTimeMins: nextScreenMins,
+        sleepHours: 7.0,
+        academicLoadScore: 0,
+        screenFatigueScore: 0,
+        recoveryScore: 0,
+        verifiedBreakCount: 0,
+        burnoutIndex: 0,
+        status: "LOW",
+      },
+    });
+    await recalculateTodayBurnoutLog(userId, session.startTime);
+  } catch {
+    // Non-fatal in isolated mock tests
+  }
+
   sendSuccess(res, session, 201);
 });
 

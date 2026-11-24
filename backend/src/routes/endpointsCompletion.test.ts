@@ -56,6 +56,7 @@ describe("Kelengkapan Endpoint Backend & Integrasi PRD v4.0", () => {
       await prisma.dailyFussionLog.deleteMany({ where: { userId: TEST_USER_ID } });
       await prisma.activeBreakSession.deleteMany({ where: { userId: TEST_USER_ID } });
       await prisma.dailyWellbeingLog.deleteMany({ where: { userId: TEST_USER_ID } });
+      await prisma.userNotification.deleteMany({ where: { userId: TEST_USER_ID } });
       await prisma.user.deleteMany({ where: { id: TEST_USER_ID } });
     } catch (_e) {
       // Abaikan jika sudah terhapus
@@ -387,5 +388,72 @@ describe("Kelengkapan Endpoint Backend & Integrasi PRD v4.0", () => {
     const unlockBody: any = await unlockRes.json();
     assert.equal(unlockBody.data.isLocked, false);
     assert.equal(unlockBody.data.lastUnlockSource, "POSE_CAMERA_AI");
+  });
+
+  test("GET /dashboard/daily-summary, /notifications CRUD, & /os-lock/screentime/sync tersambung penuh ke MySQL", async () => {
+    // 1. Sinkronkan screen time terautentikasi ke MySQL DailyFussionLog
+    const syncRes = await fetch(`${baseUrl}/os-lock/screentime/sync`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ clientSeconds: 7200 }), // 120 menit
+    });
+    assert.equal(syncRes.status, 200);
+    const syncBody: any = await syncRes.json();
+    assert.equal(syncBody.data.persistedToDb, true);
+    assert.ok(syncBody.data.osActiveMinutes >= 120);
+
+    // 2. Ambil ringkasan harian dinamis dari MySQL
+    const summaryRes = await fetch(`${baseUrl}/dashboard/daily-summary`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    assert.equal(summaryRes.status, 200);
+    const summaryBody: any = await summaryRes.json();
+    assert.equal(summaryBody.data.user.id, TEST_USER_ID);
+    assert.ok(summaryBody.data.burnout.totalScreenTimeMins >= 120);
+    assert.equal(typeof summaryBody.data.unreadNotifications, "number");
+
+    // 3. Notifikasi harian dinamis berbasis database
+    const notifRes = await fetch(`${baseUrl}/notifications`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    assert.equal(notifRes.status, 200);
+    const notifBody: any = await notifRes.json();
+    assert.ok(Array.isArray(notifBody.data.items));
+    assert.equal(typeof notifBody.data.unreadCount, "number");
+
+    if (notifBody.data.items.length > 0) {
+      const firstId = notifBody.data.items[0].id;
+      const readRes = await fetch(`${baseUrl}/notifications/${firstId}/read`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      assert.equal(readRes.status, 200);
+      const readBody: any = await readRes.json();
+      assert.equal(readBody.data.isRead, true);
+
+      const delRes = await fetch(`${baseUrl}/notifications/${firstId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      assert.equal(delRes.status, 200);
+      const delBody: any = await delRes.json();
+      assert.equal(delBody.data.deleted, true);
+    }
+
+    // 4. Register dengan email yang sudah ada ditolak 409 (tidak menimpa akun)
+    const dupRes = await fetch(`${baseUrl}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Penyerang",
+        nim: "9.99.99.9.99",
+        email: "completion-test@campusflow.id",
+        password: "hacked-password",
+      }),
+    });
+    assert.equal(dupRes.status, 409);
   });
 });

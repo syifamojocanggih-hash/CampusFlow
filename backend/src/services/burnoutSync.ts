@@ -79,7 +79,7 @@ export async function recalculateTodayBurnoutLog(
 
   const totalScreenTimeMins = existingLog?.totalScreenTimeMins ?? 0;
   const totalScreenHours = totalScreenTimeMins / 60.0;
-  const sleepHours = existingLog?.sleepHours ?? wellbeingLog?.sleepHours ?? 7.0;
+  const sleepHours = wellbeingLog?.sleepHours ?? existingLog?.sleepHours ?? 7.0;
 
   const calc = calculateBurnoutRiskIndex(
     todaySchedules.map((s) => ({
@@ -103,6 +103,7 @@ export async function recalculateTodayBurnoutLog(
       },
     },
     update: {
+      sleepHours,
       academicLoadScore: calc.academicLoadScore,
       screenFatigueScore: calc.screenFatigueScore,
       recoveryScore: calc.recoveryScore,

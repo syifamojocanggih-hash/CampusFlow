@@ -16,7 +16,7 @@ import {
   computeAutoSleepRecord,
   syncAutoSleepToDatabase,
 } from "../services/autoSleepService.ts";
-import { recalculateTodayBurnoutLog } from "../services/burnoutSync.ts";
+import { recalculateTodayBurnoutLog, toUtcDateOnly } from "../services/burnoutSync.ts";
 
 export const wellbeingRouter = Router();
 export const assessmentsRouter = Router();
@@ -180,8 +180,8 @@ wellbeingRouter.post("/auto-sleep", requireAuth, async (req: AuthenticatedReques
  */
 wellbeingRouter.get("/auto-sleep", requireAuth, async (req: AuthenticatedRequest, res) => {
   const userId = req.user!.sub;
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const logDate = new Date(`${todayStr}T00:00:00.000Z`);
+  const logDate = toUtcDateOnly(new Date());
+  const todayStr = logDate.toISOString().slice(0, 10);
 
   const existing = await prisma.dailyWellbeingLog.findUnique({
     where: { userId_logDate: { userId, logDate } },
@@ -222,8 +222,8 @@ wellbeingRouter.get("/auto-sleep", requireAuth, async (req: AuthenticatedRequest
  */
 wellbeingRouter.get("/today", requireAuth, async (req: AuthenticatedRequest, res) => {
   const userId = req.user!.sub;
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const logDate = new Date(`${todayStr}T00:00:00.000Z`);
+  const logDate = toUtcDateOnly(new Date());
+  const todayStr = logDate.toISOString().slice(0, 10);
 
   const log = await prisma.dailyWellbeingLog.findUnique({
     where: { userId_logDate: { userId, logDate } },

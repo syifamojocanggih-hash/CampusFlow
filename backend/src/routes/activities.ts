@@ -60,14 +60,21 @@ activitiesRouter.get("/", requireAuth, async (req: AuthenticatedRequest, res) =>
   since.setUTCHours(0, 0, 0, 0);
   since.setUTCDate(since.getUTCDate() - (days - 1));
 
-  const activities = await prisma.physicalActivity.findMany({
-    where: { userId: req.user!.sub, activityDate: { gte: since } },
-    orderBy: [{ activityDate: "desc" }, { createdAt: "desc" }],
-  });
+  const [activities, user] = await Promise.all([
+    prisma.physicalActivity.findMany({
+      where: { userId: req.user!.sub, activityDate: { gte: since } },
+      orderBy: [{ activityDate: "desc" }, { createdAt: "desc" }],
+    }),
+    prisma.user.findUnique({
+      where: { id: req.user!.sub },
+      select: { weeklyMetsTarget: true },
+    }),
+  ]);
 
   const totalMets = Number(
     activities.reduce((sum, item) => sum + item.calculatedMets, 0).toFixed(1)
   );
+  const totalSteps = activities.reduce((sum, item) => sum + item.stepsCount, 0);
   const mseDaysSet = new Set(
     activities
       .filter((item) => item.intensityType === "MUSCLE_STRENGTHENING")
@@ -78,7 +85,8 @@ activitiesRouter.get("/", requireAuth, async (req: AuthenticatedRequest, res) =>
     items: activities,
     summary: {
       totalMets,
-      weeklyMetsTarget: CLINICAL_CONSTANTS.WEEKLY_TOTAL_METS_TARGET,
+      totalSteps,
+      weeklyMetsTarget: user?.weeklyMetsTarget ?? CLINICAL_CONSTANTS.WEEKLY_TOTAL_METS_TARGET,
       mseDaysCount: mseDaysSet.size,
       weeklyMseTarget: CLINICAL_CONSTANTS.WEEKLY_MSE_TARGET_DAYS,
     },

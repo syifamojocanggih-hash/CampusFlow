@@ -4,7 +4,7 @@ import { prisma } from "../lib/prisma.ts";
 import { sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
 import { calculateBurnoutRiskIndex } from "../services/burnoutScoring.ts";
-import { toUtcDateOnly } from "../services/burnoutSync.ts";
+import { recalculateTodayBurnoutLog, toUtcDateOnly } from "../services/burnoutSync.ts";
 
 export const burnoutRouter = Router();
 
@@ -18,43 +18,16 @@ const calculateBurnoutPayloadSchema = z.object({
 
 /**
  * GET /api/v1/burnout/today
- * Mengambil ringkasan Burnout Risk Index hari ini berdasarkan jadwal dan log fusi.
+ * Mengambil ringkasan Burnout Risk Index hari ini secara dinamis & segar dari database
+ * (otomatis menyinkronkan jadwal kuliah hari ini, active break, jam tidur, dan screen time).
  */
 burnoutRouter.get("/today", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const today = toUtcDateOnly();
-    const todayStr = today.toISOString().slice(0, 10);
-    const localDayStart = new Date(`${todayStr}T00:00:00`);
-    const localDayEnd = new Date(localDayStart);
-    localDayEnd.setDate(localDayEnd.getDate() + 1);
 
-    const existingLog = await prisma.dailyFussionLog.findUnique({
-      where: {
-        userId_logDate: {
-          userId,
-          logDate: today,
-        },
-      },
-    });
-
-    if (existingLog) {
-      return sendSuccess(res, existingLog);
-    }
-
-    // Jika belum ada log tersimpan, hitung estimasi berdasarkan jadwal kuliah hari ini & log tidur terbaru
-    const dayOfWeek = today.getUTCDay() === 0 ? 7 : today.getUTCDay(); // 1 = Senin, ... 7 = Minggu
-    const [schedules, activeBreaksCount, todayWellbeing] = await Promise.all([
-      prisma.academicSchedule.findMany({
-        where: { userId, dayOfWeek },
-      }),
-      prisma.activeBreakSession.count({
-        where: {
-          userId,
-          startTime: { gte: localDayStart, lt: localDayEnd },
-          poseVerified: true,
-        },
-      }),
+    const [recalculated, todayWellbeing] = await Promise.all([
+      recalculateTodayBurnoutLog(userId, today),
       prisma.dailyWellbeingLog.findUnique({
         where: {
           userId_logDate: {
@@ -65,33 +38,17 @@ burnoutRouter.get("/today", async (req: AuthenticatedRequest, res: Response, nex
       }),
     ]);
 
-    const detectedSleepHours = todayWellbeing?.sleepHours ?? 7.0;
-
-    // Estimasi awal hari menggunakan jam tidur otomatis / terbaru
-    const calc = calculateBurnoutRiskIndex(
-      schedules.map((s) => ({
-        creditHours: s.creditHours,
-        isPracticum: s.isPracticum,
-        classType: s.classType,
-        isExamWeek: s.isExamWeek,
-        examDate: s.examDate,
-      })),
-      0, // screen time hours awal
-      detectedSleepHours,
-      activeBreaksCount,
-      today
-    );
-
     return sendSuccess(res, {
-      logDate: today.toISOString().split("T")[0],
-      totalScreenTimeMins: 0,
-      sleepHours: detectedSleepHours,
-      academicLoadScore: calc.academicLoadScore,
-      screenFatigueScore: calc.screenFatigueScore,
-      recoveryScore: calc.recoveryScore,
-      verifiedBreakCount: activeBreaksCount,
-      burnoutIndex: calc.burnoutIndex,
-      status: calc.status,
+      id: recalculated.fussionLogId,
+      logDate: recalculated.logDate,
+      totalScreenTimeMins: recalculated.totalScreenTimeMins,
+      sleepHours: recalculated.sleepHours,
+      academicLoadScore: recalculated.academicLoadScore,
+      screenFatigueScore: recalculated.screenFatigueScore,
+      recoveryScore: recalculated.recoveryScore,
+      verifiedBreakCount: recalculated.verifiedBreakCount,
+      burnoutIndex: recalculated.burnoutIndex,
+      status: recalculated.status,
       isEstimated: !todayWellbeing,
     });
   } catch (error) {

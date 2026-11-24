@@ -53,6 +53,7 @@ model User {
   academicSchedules   AcademicSchedule[]
   dailyFussionLogs    DailyFussionLog[]
   activeBreakSessions ActiveBreakSession[]
+  notifications       UserNotification[]
 }
 
 model SedentarySession {
@@ -198,6 +199,24 @@ model ActiveBreakSession {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, startTime])
+}
+
+model UserNotification {
+  id          String   @id @default(uuid())
+  userId      String
+  category    String   @default("system") @db.VarChar(30) // break | academic | coach | streak | system
+  title       String   @db.VarChar(150)
+  message     String   @db.Text
+  actionTab   String?  @db.VarChar(40)
+  actionLabel String?  @db.VarChar(80)
+  isRead      Boolean  @default(false)
+  logDate     DateTime @db.Date
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, logDate])
 }
 
 

@@ -89,6 +89,13 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5174,
       host: true,
+      allowedHosts: true,
+      proxy: {
+        "/api": {
+          target: "http://localhost:4000",
+          changeOrigin: true,
+        },
+      },
     },
   };
 });

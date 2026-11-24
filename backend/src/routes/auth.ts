@@ -30,6 +30,7 @@ function sanitizeUser(user: {
   email: string;
   department: string;
   weeklyMetsTarget: number;
+  targetRecoveryScore?: number | null;
   currentStreakDays: number;
   xpPoints: number;
   postureBaselineJson: unknown;
@@ -41,6 +42,7 @@ function sanitizeUser(user: {
     email: user.email,
     department: user.department,
     weeklyMetsTarget: user.weeklyMetsTarget,
+    targetRecoveryScore: user.targetRecoveryScore ?? 40,
     currentStreakDays: user.currentStreakDays,
     xpPoints: user.xpPoints,
     postureBaselineJson: user.postureBaselineJson,
@@ -52,22 +54,17 @@ authRouter.post("/register", async (req, res) => {
   const normalizedEmail = body.email.trim().toLowerCase();
   const passwordHash = await bcrypt.hash(body.password, 10);
 
-  // Cek apakah email sudah ada (misal migrasi dari akun lokal)
+  // Tolak registrasi jika email sudah terdaftar agar akun existing tidak dapat ditimpa
   const existingByEmail = await prisma.user.findUnique({
     where: { email: normalizedEmail },
   });
 
   if (existingByEmail) {
-    const updated = await prisma.user.update({
-      where: { id: existingByEmail.id },
-      data: {
-        name: body.name,
-        passwordHash,
-        department: body.department ?? existingByEmail.department,
-      },
-    });
-    const token = signAuthToken({ sub: updated.id, email: updated.email });
-    return sendSuccess(res, { token, user: sanitizeUser(updated) }, 201);
+    throw new AppError(
+      409,
+      "VALIDATION_ERROR",
+      "Email sudah terdaftar. Silakan masuk menggunakan kata sandi Anda."
+    );
   }
 
   // Pastikan NIM tidak bentrok dengan akun lain

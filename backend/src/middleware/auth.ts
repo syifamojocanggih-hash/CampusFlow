@@ -36,3 +36,23 @@ export function requireAuth(req: AuthenticatedRequest, _res: Response, next: Nex
   }
 }
 
+/**
+ * Middleware opsional: mengisi req.user jika header Bearer JWT valid,
+ * namun tetap melanjutkan request jika tidak ada token.
+ */
+export function optionalAuth(req: AuthenticatedRequest, _res: Response, next: NextFunction): void {
+  const header = req.headers.authorization;
+  if (header?.startsWith("Bearer ")) {
+    const token = header.slice(7).trim();
+    try {
+      const decoded = jwt.verify(token, env.JWT_SECRET) as AuthJwtPayload;
+      if (decoded?.sub) {
+        req.user = decoded;
+      }
+    } catch {
+      // Abaikan token tidak valid untuk rute opsional
+    }
+  }
+  next();
+}
+
