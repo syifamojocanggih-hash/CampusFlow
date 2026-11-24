@@ -100,25 +100,25 @@ export function getSleepClinicalMeta(status: SleepClinicalStatus): {
     case "OPTIMAL":
       return {
         label: "Tidur Optimal",
-        badgeStyle: "bg-[#CDE8B5] text-[#166534] border-[#B6DF97]",
+        badgeStyle: "bg-[#CFD8C4] text-[#2F3A2E] border-[#CFD8C4]",
         description: "Durasi tidur memenuhi target pemulihan biologis 7.0–9.0 jam.",
       };
     case "DEFICIT_WARNING":
       return {
         label: "Defisit Ringan",
-        badgeStyle: "bg-[#FFF29A] text-[#854D0E] border-[#FFE966]",
+        badgeStyle: "bg-[#E8DDCF] text-[#2F3A2E] border-[#E8DDCF]",
         description: "Tidur sedikit di bawah 7 jam. Disarankan jeda aktif lebih sering.",
       };
     case "CRITICAL_DEFICIT":
       return {
         label: "Defisit Kritis",
-        badgeStyle: "bg-[#F7A8B0] text-[#9F1239] border-[#F27885]",
+        badgeStyle: "bg-[#E8DDCF] text-[#636B60] border-[#E8DDCF]",
         description: "Kurang tidur parah (<5.5 jam). AI Coach membatasi latihan fisik berat.",
       };
     case "OVERSLEEP":
       return {
         label: "Tidur Berlebih",
-        badgeStyle: "bg-[#BDE6F0] text-[#1A1A1A] border-[#8ECAD7]",
+        badgeStyle: "bg-[#CFD8C4] text-[#2F3A2E] border-[#CFD8C4]",
         description: "Durasi tidur >9.5 jam. Lakukan peregangan pagi untuk mengaktifkan sirkulasi.",
       };
   }

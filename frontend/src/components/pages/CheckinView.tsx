@@ -55,24 +55,24 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto pb-10">
+    <div className="space-y-6 w-full pb-10">
       {/* Header (Hidden when embedded in unified Activity view) */}
       {!embedded && (
-        <div className="learnova-card p-6 border-[#E8E8E8] flex items-center justify-between">
+        <div className="learnova-card p-6 border-[#E8DDCF] flex items-center justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-[#BDE6F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
               <ClipboardCheck className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-heading font-extrabold text-xl text-[#1A1A1A]">
+                <h2 className="font-heading font-extrabold text-xl text-[#2F3A2E]">
                   Check-in Harian
                 </h2>
-                <span className="text-[10px] bg-[#FFF29A] text-[#1A1A1A] font-extrabold px-2.5 py-0.5 rounded-full border border-[#FFE966]">
+                <span className="text-[10px] bg-[#E8DDCF] text-[#2F3A2E] font-extrabold px-2.5 py-0.5 rounded-full border border-[#E8DDCF]">
                   30 Detik
                 </span>
               </div>
-              <p className="text-xs text-[#9A9A9A] mt-0.5">
+              <p className="text-xs text-[#636B60] mt-0.5">
                 Evaluasi tingkat stres &amp; waktu tidur harian untuk rekomendasi dari AI Coach.
               </p>
             </div>
@@ -81,19 +81,19 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
       )}
 
       {submitted ? (
-        <div className="learnova-card p-8 text-center space-y-4 bg-[#CDE8B5]/30 border-[#CDE8B5]">
-          <div className="w-14 h-14 bg-[#CDE8B5] text-[#1A1A1A] rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+        <div className="learnova-card p-8 text-center space-y-4 bg-[#E8DDCF]/30 border-[#CFD8C4]">
+          <div className="w-14 h-14 bg-[#E8DDCF] text-[#2F3A2E] rounded-2xl flex items-center justify-center mx-auto shadow-sm">
             <Check className="w-7 h-7" />
           </div>
-          <h3 className="font-heading font-extrabold text-lg text-[#1A1A1A]">
+          <h3 className="font-heading font-extrabold text-lg text-[#2F3A2E]">
             Check-in Berhasil Disimpan!
           </h3>
-          <p className="text-xs text-[#1A1A1A]/80 max-w-sm mx-auto leading-relaxed">
+          <p className="text-xs text-[#2F3A2E]/80 max-w-sm mx-auto leading-relaxed">
             Data kebugaran Anda telah diperbarui. Kunjungi tab <strong>AI Coach</strong> untuk melihat rekomendasi aktivitas fisik hari ini.
           </p>
           <button
             onClick={() => setSubmitted(false)}
-            className="text-xs font-bold text-[#1A1A1A] underline pt-2"
+            className="text-xs font-bold text-[#2F3A2E] underline pt-2"
           >
             Isi Ulang Formulir
           </button>
@@ -101,22 +101,22 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Card 1: Sleep Hours (Auto-Populated by Passive Overnight Tracker) */}
-          <div className="learnova-card p-5 sm:p-6 space-y-4 border-[#E8E8E8]">
+          <div className="learnova-card p-5 sm:p-6 space-y-4 border-[#E8DDCF]">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2 text-xs font-bold text-[#1A1A1A]">
-                <div className="w-8 h-8 rounded-xl bg-[#CDE8B5] text-[#1A1A1A] flex items-center justify-center">
+              <div className="flex items-center gap-2 text-xs font-bold text-[#2F3A2E]">
+                <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center">
                   <Moon className="w-4 h-4" />
                 </div>
                 <div>
                   <span className="block">Durasi Tidur Semalam (Target 7.0–9.0 Jam)</span>
-                  <span className="text-[10px] font-bold text-[#166534] flex items-center gap-1 mt-0.5">
+                  <span className="text-[10px] font-bold text-[#2F3A2E] flex items-center gap-1 mt-0.5">
                     <Sparkles className="w-3 h-3" />
                     Terisi Otomatis ({getSleepSourceLabel(autoSleep.source)}: {autoSleep.bedTime} &rarr;{" "}
                     {autoSleep.wakeTime})
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 bg-[#F6F6F6] focus-within:bg-white border border-[#E8E8E8] focus-within:border-[#1A1A1A] rounded-xl px-2.5 py-1 transition-all shadow-xs">
+              <div className="flex items-center gap-1.5 bg-[#FAF6F0] focus-within:bg-white border border-[#E8DDCF] focus-within:border-[#4A3B2C] rounded-xl px-2.5 py-1 transition-all shadow-xs">
                 <input
                   type="number"
                   min="0"
@@ -127,28 +127,28 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
                     const val = e.target.value;
                     handleSleepHoursChange(val === "" ? ("" as unknown as number) : parseFloat(val));
                   }}
-                  className="w-14 text-center font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-14 text-center font-heading font-extrabold text-base sm:text-lg text-[#2F3A2E] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   aria-label="Ketik durasi tidur dalam jam"
                 />
-                <span className="font-heading font-extrabold text-xs sm:text-sm text-[#1A1A1A] select-none pr-0.5">
+                <span className="font-heading font-extrabold text-xs sm:text-sm text-[#2F3A2E] select-none pr-0.5">
                   Jam
                 </span>
               </div>
             </div>
 
             {/* Auto-Detection Telemetry Summary Strip */}
-            <div className="p-3 rounded-2xl bg-[#FAFAFA] border border-[#E8E8E8] flex flex-wrap items-center justify-between gap-2 text-[11px]">
-              <div className="flex items-center gap-2 text-[#525252]">
+            <div className="p-3 rounded-2xl bg-[#FAF6F0] border border-[#E8DDCF] flex flex-wrap items-center justify-between gap-2 text-[11px]">
+              <div className="flex items-center gap-2 text-[#636B60]">
                 <span>
-                  Layar Mati: <strong className="text-[#1A1A1A] font-mono">{autoSleep.bedTime}</strong>
+                  Layar Mati: <strong className="text-[#2F3A2E] font-mono">{autoSleep.bedTime}</strong>
                 </span>
                 <span>&bull;</span>
                 <span>
-                  Bangun: <strong className="text-[#1A1A1A] font-mono">{autoSleep.wakeTime}</strong>
+                  Bangun: <strong className="text-[#2F3A2E] font-mono">{autoSleep.wakeTime}</strong>
                 </span>
                 <span>&bull;</span>
                 <span>
-                  Recovery: <strong className="text-[#166534]">+{autoSleep.recoveryPoints}/40 Poin</strong>
+                  Recovery: <strong className="text-[#2F3A2E]">+{autoSleep.recoveryPoints}/40 Poin</strong>
                 </span>
               </div>
               <span
@@ -167,25 +167,25 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
               step="0.5"
               value={typeof sleepHours === "number" && !isNaN(sleepHours) ? Math.min(16, Math.max(0, sleepHours)) : 0}
               onChange={(e) => handleSleepHoursChange(parseFloat(e.target.value))}
-              className="w-full accent-[#1A1A1A] h-2 bg-[#F6F6F6] rounded-lg cursor-pointer"
+              className="w-full accent-[#4A3B2C] h-2 bg-[#FAF6F0] rounded-lg cursor-pointer"
             />
-            <div className="flex justify-between text-[11px] text-[#9A9A9A]">
+            <div className="flex justify-between text-[11px] text-[#636B60]">
               <span>Kurang (&lt; 7h)</span>
-              <span className="text-[#1A1A1A] font-extrabold">Optimal (7–9h)</span>
+              <span className="text-[#2F3A2E] font-extrabold">Optimal (7–9h)</span>
               <span>Lebih (&gt; 9h)</span>
             </div>
           </div>
 
           {/* Card 2: Recreational Screen Time */}
-          <div className="learnova-card p-5 sm:p-6 space-y-4 border-[#E8E8E8]">
+          <div className="learnova-card p-5 sm:p-6 space-y-4 border-[#E8DDCF]">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-bold text-[#1A1A1A]">
-                <div className="w-8 h-8 rounded-xl bg-[#FFF29A] text-[#1A1A1A] flex items-center justify-center">
+              <div className="flex items-center gap-2 text-xs font-bold text-[#2F3A2E]">
+                <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center">
                   <Smartphone className="w-4 h-4" />
                 </div>
                 <span>Waktu Layar Non-Akademik / Hiburan</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-[#F6F6F6] focus-within:bg-white border border-[#E8E8E8] focus-within:border-[#1A1A1A] rounded-xl px-2.5 py-1 transition-all shadow-xs">
+              <div className="flex items-center gap-1.5 bg-[#FAF6F0] focus-within:bg-white border border-[#E8DDCF] focus-within:border-[#4A3B2C] rounded-xl px-2.5 py-1 transition-all shadow-xs">
                 <input
                   type="number"
                   min="0"
@@ -196,10 +196,10 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
                     const val = e.target.value;
                     setScreenHours(val === "" ? ("" as unknown as number) : parseFloat(val));
                   }}
-                  className="w-14 text-center font-heading font-extrabold text-base sm:text-lg text-[#1A1A1A] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-14 text-center font-heading font-extrabold text-base sm:text-lg text-[#2F3A2E] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   aria-label="Ketik waktu layar non-akademik dalam jam"
                 />
-                <span className="font-heading font-extrabold text-xs sm:text-sm text-[#1A1A1A] select-none pr-0.5">
+                <span className="font-heading font-extrabold text-xs sm:text-sm text-[#2F3A2E] select-none pr-0.5">
                   Jam
                 </span>
               </div>
@@ -211,20 +211,20 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
               step="0.5"
               value={typeof screenHours === "number" && !isNaN(screenHours) ? Math.min(16, Math.max(0, screenHours)) : 0}
               onChange={(e) => setScreenHours(parseFloat(e.target.value))}
-              className="w-full accent-[#1A1A1A] h-2 bg-[#F6F6F6] rounded-lg cursor-pointer"
+              className="w-full accent-[#4A3B2C] h-2 bg-[#FAF6F0] rounded-lg cursor-pointer"
             />
-            <p className="text-[11px] text-[#9A9A9A]">
+            <p className="text-[11px] text-[#636B60]">
               Media sosial, game, atau video streaming di luar perkuliahan dan tugas kampus.
             </p>
           </div>
 
           {/* Card 3: PSS-4 Questionnaire */}
-          <div className="learnova-card p-5 sm:p-6 space-y-5 border-[#E8E8E8]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8E8E8] pb-3 gap-1">
-              <h3 className="font-heading font-extrabold text-sm text-[#1A1A1A]">
+          <div className="learnova-card p-5 sm:p-6 space-y-5 border-[#E8DDCF]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8DDCF] pb-3 gap-1">
+              <h3 className="font-heading font-extrabold text-sm text-[#2F3A2E]">
                 Evaluasi Tingkat Stres (24 Jam Terakhir)
               </h3>
-              <span className="text-[11px] text-[#9A9A9A] font-medium">Skala 1 (Tidak Pernah) &ndash; 5 (Sangat Sering)</span>
+              <span className="text-[11px] text-[#636B60] font-medium">Skala 1 (Tidak Pernah) &ndash; 5 (Sangat Sering)</span>
             </div>
 
             {[
@@ -234,7 +234,7 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
               "4. Seberapa sering Anda merasa beban dan kesulitan menumpuk begitu tinggi?",
             ].map((q, idx) => (
               <div key={idx} className="space-y-2.5 pt-1">
-                <p className="text-xs font-semibold text-[#1A1A1A] leading-snug">{q}</p>
+                <p className="text-xs font-semibold text-[#2F3A2E] leading-snug">{q}</p>
                 <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
                   {[1, 2, 3, 4, 5].map((val) => (
                     <button
@@ -247,8 +247,8 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
                       }}
                       className={`py-2 rounded-xl text-center text-xs font-bold transition-all ${
                         answers[idx] === val
-                          ? "bg-[#FFF29A] text-[#1A1A1A] font-extrabold border border-[#FFE966] shadow-softPill scale-102"
-                          : "bg-[#F6F6F6] border border-[#E8E8E8] text-[#1A1A1A] hover:bg-white"
+                          ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold border border-[#BCC8AE] shadow-softPill scale-102"
+                          : "bg-[#FAF6F0] border border-[#E8DDCF] text-[#2F3A2E] hover:bg-white"
                       }`}
                     >
                       {val}
@@ -271,17 +271,17 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
               const isOptimal = numSleep >= 7 && numScreen <= 5 && stressSum <= 14;
               const isWarning = numSleep < 6 || numScreen > 7 || stressSum > 16;
               const statusBadge = isOptimal
-                ? { label: "Kebugaran Optimal", style: "bg-[#CDE8B5] text-[#166534] border-[#B6DF97]" }
+                ? { label: "Kebugaran Optimal", style: "bg-[#E8DDCF] text-[#2F3A2E] border-[#CFD8C4]" }
                 : isWarning
-                ? { label: "Perlu Pemulihan", style: "bg-[#F7A8B0] text-[#1A1A1A] border-[#F27885]" }
-                : { label: "Waspada Ringan", style: "bg-[#FFF29A] text-[#1A1A1A] border-[#FFE966]" };
+                ? { label: "Perlu Pemulihan", style: "bg-[#E8DDCF] text-[#636B60] border-[#E8DDCF]" }
+                : { label: "Waspada Ringan", style: "bg-[#E8DDCF] text-[#2F3A2E] border-[#E8DDCF]" };
 
               return (
-                <div className="bg-[#FAFAFA] rounded-2xl p-4 border border-[#E8E8E8] space-y-3 mt-3">
+                <div className="bg-[#FAF6F0] rounded-2xl p-4 border border-[#E8DDCF] space-y-3 mt-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-[#1A1A1A]" />
-                      <span className="font-heading font-extrabold text-xs text-[#1A1A1A]">
+                      <Activity className="w-4 h-4 text-[#2F3A2E]" />
+                      <span className="font-heading font-extrabold text-xs text-[#2F3A2E]">
                         Pratinjau Kebugaran &amp; Pemulihan Instan
                       </span>
                     </div>
@@ -291,21 +291,21 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-xs">
-                    <div className="p-2.5 rounded-xl bg-white border border-[#E8E8E8]">
-                      <span className="text-[10px] text-[#9A9A9A] block mb-0.5">Pemulihan Tidur</span>
-                      <strong className="text-xs font-heading font-extrabold text-[#1A1A1A]">
+                    <div className="p-2.5 rounded-xl bg-white border border-[#E8DDCF]">
+                      <span className="text-[10px] text-[#636B60] block mb-0.5">Pemulihan Tidur</span>
+                      <strong className="text-xs font-heading font-extrabold text-[#2F3A2E]">
                         {sleepLabel}
                       </strong>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-white border border-[#E8E8E8]">
-                      <span className="text-[10px] text-[#9A9A9A] block mb-0.5">Beban Layar Hiburan</span>
-                      <strong className="text-xs font-heading font-extrabold text-[#1A1A1A]">
+                    <div className="p-2.5 rounded-xl bg-white border border-[#E8DDCF]">
+                      <span className="text-[10px] text-[#636B60] block mb-0.5">Beban Layar Hiburan</span>
+                      <strong className="text-xs font-heading font-extrabold text-[#2F3A2E]">
                         {screenLabel}
                       </strong>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-white border border-[#E8E8E8]">
-                      <span className="text-[10px] text-[#9A9A9A] block mb-0.5">Tingkat Stres PSS-4</span>
-                      <strong className="text-xs font-heading font-extrabold text-[#1A1A1A]">
+                    <div className="p-2.5 rounded-xl bg-white border border-[#E8DDCF]">
+                      <span className="text-[10px] text-[#636B60] block mb-0.5">Tingkat Stres PSS-4</span>
+                      <strong className="text-xs font-heading font-extrabold text-[#2F3A2E]">
                         {stressLabel}
                       </strong>
                     </div>
@@ -316,7 +316,7 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
 
             <button
               type="submit"
-              className="w-full mt-4 bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] font-extrabold text-xs sm:text-sm py-3.5 rounded-2xl transition-all shadow-softPill flex items-center justify-center gap-2 border border-[#FFE966]"
+              className="w-full mt-4 bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-[#2F3A2E] font-extrabold text-xs sm:text-sm py-3.5 rounded-2xl transition-all shadow-softPill flex items-center justify-center gap-2 border border-[#E8DDCF]"
             >
               Simpan &amp; Analisis Rekomendasi AI Coach
             </button>

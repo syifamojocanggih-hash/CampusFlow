@@ -9,7 +9,7 @@ import { TriadDashboard } from "@/components/TriadDashboard";
 import { PanicReliefMode } from "@/components/PanicReliefMode";
 import { FocusView } from "@/components/pages/FocusView";
 import { ActivityView } from "@/components/pages/ActivityView";
-import { CoachView } from "@/components/pages/CoachView";
+import { CoachView, resetCoachChatSession } from "@/components/pages/CoachView";
 import { HistoryView } from "@/components/pages/HistoryView";
 import { SettingsView } from "@/components/pages/SettingsView";
 import { VisionLabView } from "@/components/pages/VisionLabView";
@@ -80,6 +80,7 @@ export function App() {
   const handleLogout = () => {
     api.setToken(null);
     localStorage.removeItem("cf_user_profile");
+    resetCoachChatSession();
     setUser(null);
     setIsLandingPage(true);
   };
@@ -99,7 +100,7 @@ export function App() {
 
   // 2. Tampilkan Aplikasi Dashboard Utama
   return (
-    <div className="min-h-screen bg-[#F6F6F6] flex flex-col text-[#1A1A1A]">
+    <div className="min-h-screen bg-white flex flex-col text-[#2F3A2E]">
       {/* 1. Desktop Left Sidebar */}
       <DesktopSidebar
         activeTab={activeTab}
@@ -130,29 +131,29 @@ export function App() {
 
           {/* OS-Level Screen Time Enforcer Status & Quick Control Bar */}
           <div
-            className={`mb-5 rounded-2xl p-3.5 border transition-all flex flex-wrap items-center justify-between gap-3 text-xs ${
+            className={`mb-5 rounded-[1.6rem] px-5 py-4 border transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 lg:gap-5 text-xs ${
               osLock.isArmed
-                ? "bg-[#FFF29A]/90 border-[#FFE966] text-[#1A1A1A] shadow-xs"
-                : "bg-white border-[#E8E8E8] text-[#1A1A1A] shadow-2xs"
+                ? "bg-[#E5ECE0] border-[#C8D4BC] text-[#2F3A2E] shadow-[0_6px_22px_-6px_rgba(47,58,46,0.08)]"
+                : "bg-[#FDFBF8] border-[#ECE5DA] text-[#2F3A2E] shadow-[0_6px_22px_-6px_rgba(47,58,46,0.08),0_2px_6px_-2px_rgba(47,58,46,0.04)]"
             }`}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3.5 flex-1 min-w-0">
               <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
                   osLock.isArmed
-                    ? "bg-[#1A1A1A] text-[#FFF29A]"
-                    : "bg-[#BDE6F0] text-[#1A1A1A]"
+                    ? "bg-[#C8D4BC] text-[#2F3A2E]"
+                    : "bg-[#D9E0D1] text-[#2F3A2E]"
                 }`}
               >
-                {osLock.isArmed ? <Timer className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
+                {osLock.isArmed ? <Timer className="w-5 h-5 animate-spin" /> : <ShieldAlert className="w-5 h-5" />}
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-heading font-extrabold text-xs sm:text-sm text-[#1A1A1A]">
+                  <span className="font-heading font-extrabold text-sm text-[#2F3A2E]">
                     Proteksi Screen Time Level OS
                   </span>
                   {osLock.isArmed && osLock.remainingSeconds !== null && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#1A1A1A] text-[#FFF29A] font-mono font-extrabold text-xs">
+                    <span className="px-2.5 py-0.5 rounded-full bg-white text-[#2F3A2E] border border-[#C8D4BC] font-mono font-extrabold text-xs">
                       {Math.floor(osLock.remainingSeconds / 60)
                         .toString()
                         .padStart(2, "0")}
@@ -161,7 +162,7 @@ export function App() {
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-[#525252] mt-0.5">
+                <p className="text-[11px] sm:text-xs text-[#636B60] mt-0.5 leading-relaxed">
                   {osLock.isArmed
                     ? "Timer aktif di background OS! Silakan buka tab lain atau aplikasi lain. Saat waktu habis, layar otomatis ditarik kembali ke tab ini dan dikunci untuk peregangan."
                     : "Saat waktu screen time habis, layar laptop otomatis ditarik ke tab ini dan dikunci sampai prosedur peregangan kamera selesai."}
@@ -169,14 +170,14 @@ export function App() {
               </div>
             </div>
 
-            <div className="flex items-center flex-wrap gap-2">
+            <div className="flex items-center flex-wrap lg:flex-nowrap shrink-0 gap-2">
               {osLock.isArmed ? (
                 <button
                   type="button"
                   onClick={() => void osScreenLock.disarmTimer()}
-                  className="px-3.5 py-1.5 rounded-xl bg-[#1A1A1A] hover:bg-black text-white font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-3.5 py-2 rounded-full bg-[#EAE1D6] hover:bg-[#DFD4C6] text-[#2F3A2E] border border-[#DDD1C2] font-bold flex items-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer"
                 >
-                  <Square className="w-3 h-3 fill-white" />
+                  <Square className="w-3 h-3 fill-[#2F3A2E]" />
                   <span>Batalkan Timer</span>
                 </button>
               ) : (
@@ -189,10 +190,10 @@ export function App() {
                         "Batas Screen Time (15 Detik Mode Uji) Tercapai — Wajib Peregangan Aktif"
                       )
                     }
-                    className="px-3 py-1.5 rounded-xl bg-[#FFF29A] hover:bg-[#FFE966] text-[#1A1A1A] border border-[#FFE966] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-3.5 py-2 rounded-full bg-[#C8D4BC] hover:bg-[#BBC9AD] text-[#2F3A2E] border border-[#B9C7AC] font-bold flex items-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer"
                     title="Aktifkan timer 15 detik, lalu coba pindah ke tab lain atau aplikasi lain"
                   >
-                    <Play className="w-3 h-3 fill-[#1A1A1A]" />
+                    <Play className="w-3 h-3 fill-[#2F3A2E] shrink-0" />
                     <span>Timer Lock 15s (Uji Pindah Tab/App)</span>
                   </button>
                   <button
@@ -203,7 +204,7 @@ export function App() {
                         "Batas Screen Time Belajar (25 Menit) Tercapai — Wajib Peregangan Aktif"
                       )
                     }
-                    className="px-3 py-1.5 rounded-xl bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] border border-[#E8E8E8] font-bold transition-colors cursor-pointer"
+                    className="px-3.5 py-2 rounded-full bg-[#EAE1D6] hover:bg-[#E0D4C6] text-[#2F3A2E] border border-[#DFD4C6] font-bold whitespace-nowrap transition-colors cursor-pointer"
                   >
                     Timer 25m
                   </button>
@@ -214,9 +215,9 @@ export function App() {
                         "Kunci Layar Istirahat Aktif (Level OS) — Wajib Peregangan"
                       )
                     }
-                    className="px-3 py-1.5 rounded-xl bg-[#CDE8B5] hover:bg-[#B6DF97] text-[#1A1A1A] border border-[#B6DF97] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-3.5 py-2 rounded-full bg-[#FDFBF8] hover:bg-[#FAF6F0] text-[#2F3A2E] border border-[#DDD4C7] font-bold flex items-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer"
                   >
-                    <Lock className="w-3 h-3" />
+                    <Lock className="w-3.5 h-3.5 shrink-0" />
                     <span>Kunci Layar Sekarang</span>
                   </button>
                 </>

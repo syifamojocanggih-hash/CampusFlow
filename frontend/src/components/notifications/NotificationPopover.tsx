@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Bell,
   X,
   CheckCheck,
   Eye,
@@ -126,10 +125,6 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
     );
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-  };
-
   const deleteNotification = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -137,37 +132,35 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
 
   const filteredNotifs = notifications;
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
-
   const renderIcon = (category: NotificationItem["category"]) => {
     switch (category) {
       case "break":
         return (
-          <div className="w-9 h-9 rounded-xl bg-[#CDE8B5] text-[#166534] flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-9 h-9 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
             <Eye className="w-4 h-4" />
           </div>
         );
       case "academic":
         return (
-          <div className="w-9 h-9 rounded-xl bg-[#F7A8B0] text-[#9F1239] flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-9 h-9 rounded-xl bg-[#E8DDCF] text-[#636B60] flex items-center justify-center shrink-0 shadow-2xs">
             <BookOpen className="w-4 h-4" />
           </div>
         );
       case "coach":
         return (
-          <div className="w-9 h-9 rounded-xl bg-[#BDE6F0] text-[#0369A1] flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-9 h-9 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
             <Bot className="w-4 h-4" />
           </div>
         );
       case "streak":
         return (
-          <div className="w-9 h-9 rounded-xl bg-[#FFF29A] text-[#854D0E] flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-9 h-9 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
             <Sparkles className="w-4 h-4" />
           </div>
         );
       default:
         return (
-          <div className="w-9 h-9 rounded-xl bg-[#F0F0F0] text-[#1A1A1A] flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-9 h-9 rounded-xl bg-[#FAF6F0] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
             <Info className="w-4 h-4" />
           </div>
         );
@@ -177,54 +170,17 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
   return (
     <div
       ref={popoverRef}
-      className="absolute right-0 top-12 z-50 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-[#E8E8E8] overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]"
+      className="absolute right-0 top-12 z-50 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-[#E8DDCF] overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]"
     >
-      {/* Header Popover */}
-      <div className="p-4 sm:p-5 border-b border-[#F0F0F0] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-[#BDE6F0] flex items-center justify-center text-[#1A1A1A] shadow-2xs">
-            <Bell className="w-4 h-4" />
-          </div>
-          <h3 className="font-heading font-extrabold text-sm sm:text-base text-[#1A1A1A] leading-tight flex items-center gap-2">
-            <span>Notifikasi</span>
-            {unreadCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-[#F7A8B0] text-[#9F1239] text-[10px] font-extrabold">
-                {unreadCount} Baru
-              </span>
-            )}
-          </h3>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllAsRead}
-              className="px-2.5 py-1 rounded-xl text-[11px] font-bold text-[#1A1A1A] hover:bg-[#F6F6F6] transition-colors flex items-center gap-1"
-              title="Tandai semua telah dibaca"
-            >
-              <CheckCheck className="w-3.5 h-3.5 text-[#166534]" />
-              <span className="hidden sm:inline">Tandai Dibaca</span>
-            </button>
-          )}
-          <button
-            onClick={onClose}
-            className="w-7 h-7 rounded-full bg-[#F6F6F6] hover:bg-[#E8E8E8] text-[#1A1A1A] flex items-center justify-center transition-colors"
-            title="Tutup Notifikasi"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
       {/* Notification List Body */}
-      <div className="p-2 space-y-1.5 overflow-y-auto max-h-[360px] divide-y divide-[#F6F6F6]">
+      <div className="p-2 space-y-1.5 overflow-y-auto max-h-[360px] divide-y divide-[#E7DCCF]">
         {filteredNotifs.length === 0 ? (
           <div className="p-8 text-center space-y-2 select-none">
-            <div className="w-12 h-12 rounded-2xl bg-[#F6F6F6] text-[#9A9A9A] mx-auto flex items-center justify-center">
-              <CheckCheck className="w-6 h-6 text-[#166534]" />
+            <div className="w-12 h-12 rounded-2xl bg-[#FAF6F0] text-[#636B60] mx-auto flex items-center justify-center">
+              <CheckCheck className="w-6 h-6 text-[#2F3A2E]" />
             </div>
-            <p className="text-xs font-bold text-[#1A1A1A]">Tidak Ada Notifikasi</p>
-            <p className="text-[11px] text-[#9A9A9A] leading-relaxed max-w-[220px] mx-auto">
+            <p className="text-xs font-bold text-[#2F3A2E]">Tidak Ada Notifikasi</p>
+            <p className="text-[11px] text-[#636B60] leading-relaxed max-w-[220px] mx-auto">
               Semua pengingat telah selesai. Fokus belajar atau nikmati waktu istirahatmu!
             </p>
           </div>
@@ -241,8 +197,8 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
               }}
               className={`p-3 rounded-2xl transition-all cursor-pointer group flex items-start gap-3 relative ${
                 notif.isRead
-                  ? "bg-white hover:bg-[#FAFAFA] opacity-80 hover:opacity-100"
-                  : "bg-[#FFFDF0] hover:bg-[#FFF9DC] border border-[#FFE966]/40 shadow-2xs"
+                  ? "bg-white hover:bg-[#FAF6F0] opacity-80 hover:opacity-100"
+                  : "bg-[#FAF6F0] hover:bg-[#FAF6F0] border border-[#E8DDCF] shadow-2xs"
               }`}
             >
               {renderIcon(notif.category)}
@@ -252,25 +208,25 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                   <h4
                     className={`text-xs truncate leading-tight ${
                       notif.isRead
-                        ? "font-semibold text-[#1A1A1A]"
-                        : "font-extrabold text-[#1A1A1A]"
+                        ? "font-semibold text-[#2F3A2E]"
+                        : "font-extrabold text-[#2F3A2E]"
                     }`}
                   >
                     {notif.title}
                   </h4>
                   {!notif.isRead && (
-                    <span className="w-2 h-2 rounded-full bg-[#F7A8B0] shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-[#E8DDCF] shrink-0" />
                   )}
                 </div>
 
                 <div className="flex items-center justify-between pt-1.5 mt-0.5">
-                  <span className="text-[10px] text-[#9A9A9A] flex items-center gap-1">
+                  <span className="text-[10px] text-[#636B60] flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {notif.time}
                   </span>
 
                   {notif.actionLabel && (
-                    <span className="text-[11px] font-bold text-[#1A1A1A] hover:underline flex items-center gap-1 group-hover:text-black">
+                    <span className="text-[11px] font-bold text-[#2F3A2E] hover:underline flex items-center gap-1 group-hover:text-black">
                       <span>{notif.actionLabel}</span>
                       <ArrowRight className="w-3 h-3" />
                     </span>
@@ -281,7 +237,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
               {/* Delete button */}
               <button
                 onClick={(e) => deleteNotification(notif.id, e)}
-                className="opacity-0 group-hover:opacity-100 text-[#9A9A9A] hover:text-[#E11D48] p-1 rounded-md transition-opacity absolute top-2 right-2"
+                className="opacity-0 group-hover:opacity-100 text-[#636B60] hover:text-[#2F3A2E] p-1 rounded-md transition-opacity absolute top-2 right-2"
                 title="Hapus notifikasi ini"
               >
                 <X className="w-3.5 h-3.5" />

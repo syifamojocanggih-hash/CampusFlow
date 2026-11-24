@@ -19,9 +19,9 @@ export const StatusPill: React.FC<StatusPillProps> = ({
   if (normalized === "OPTIMAL" || normalized === "LOW" || normalized === "COMPLETED") {
     return (
       <span
-        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#CDE8B5] text-[#1A1A1A] border border-[#B6DF97] ${className}`}
+        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E8DDCF] text-[#2F3A2E] border border-[#CFD8C4] ${className}`}
       >
-        {showIcon && <CheckCircle2 className="w-3.5 h-3.5 text-[#1A1A1A] shrink-0" />}
+        {showIcon && <CheckCircle2 className="w-3.5 h-3.5 text-[#2F3A2E] shrink-0" />}
         Optimal
       </span>
     );
@@ -30,9 +30,9 @@ export const StatusPill: React.FC<StatusPillProps> = ({
   if (normalized === "WASPADA" || normalized === "MODERATE" || normalized === "IN_PROGRESS") {
     return (
       <span
-        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#FFF29A] text-[#1A1A1A] border border-[#FFE966] ${className}`}
+        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E8DDCF] text-[#2F3A2E] border border-[#E8DDCF] ${className}`}
       >
-        {showIcon && <AlertTriangle className="w-3.5 h-3.5 text-[#1A1A1A] shrink-0" />}
+        {showIcon && <AlertTriangle className="w-3.5 h-3.5 text-[#2F3A2E] shrink-0" />}
         Waspada
       </span>
     );
@@ -41,9 +41,9 @@ export const StatusPill: React.FC<StatusPillProps> = ({
   if (normalized === "LIVE" || normalized === "AKTIF") {
     return (
       <span
-        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#BDE6F0] text-[#1A1A1A] border border-[#8ECAD7] shadow-xs ${className}`}
+        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E8DDCF] text-[#2F3A2E] border border-[#CFD8C4] shadow-xs ${className}`}
       >
-        {showIcon && <span className="w-2 h-2 rounded-full bg-[#1A1A1A] animate-pulse shrink-0" />}
+        {showIcon && <span className="w-2 h-2 rounded-full bg-[#CFD8C4] animate-pulse shrink-0" />}
         Live Sesi
       </span>
     );
@@ -52,9 +52,9 @@ export const StatusPill: React.FC<StatusPillProps> = ({
   if (normalized === "UPCOMING") {
     return (
       <span
-        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#F6F6F6] text-[#9A9A9A] border border-[#E8E8E8] ${className}`}
+        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FAF6F0] text-[#636B60] border border-[#E8DDCF] ${className}`}
       >
-        {showIcon && <Sparkles className="w-3 h-3 text-[#9A9A9A] shrink-0" />}
+        {showIcon && <Sparkles className="w-3 h-3 text-[#636B60] shrink-0" />}
         Upcoming
       </span>
     );
@@ -63,9 +63,9 @@ export const StatusPill: React.FC<StatusPillProps> = ({
   // TINGGI / ALERT / HIGH
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#F7A8B0] text-[#1A1A1A] border border-[#DF7E89] ${className}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E8DDCF] text-[#636B60] border border-[#E8DDCF] ${className}`}
     >
-      {showIcon && <AlertCircle className="w-3.5 h-3.5 text-[#1A1A1A] shrink-0" />}
+      {showIcon && <AlertCircle className="w-3.5 h-3.5 text-[#2F3A2E] shrink-0" />}
       Tinggi
     </span>
   );
