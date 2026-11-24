@@ -674,16 +674,40 @@ end tell
 
   private async enforceWindowsFocus(): Promise<void> {
     const psScript = `
-$wshell = New-Object -ComObject WScript.Shell
-if (-not $wshell.AppActivate('CampusFlow')) {
-  if (-not $wshell.AppActivate('Brave')) {
-    if (-not $wshell.AppActivate('Chrome')) {
-      $wshell.AppActivate('Edge') | Out-Null
-    }
-  }
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public class WinFocus {
+  [DllImport("user32.dll")] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+  [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr hWnd);
+}
+'@
+$browserNames = @('msedge','chrome','brave','firefox','vivaldi','opera','arc')
+$procs = Get-Process -ErrorAction SilentlyContinue | Where-Object {
+  $_.MainWindowHandle -ne 0 -and $browserNames -contains $_.ProcessName.ToLower()
+}
+$target = $procs | Where-Object { $_.MainWindowTitle -like '*CampusFlow*' } | Select-Object -First 1
+if (-not $target) {
+  $target = $procs | Where-Object { $_.MainWindowTitle -ne '' } | Select-Object -First 1
+}
+if ($target) {
+  $hwnd = $target.MainWindowHandle
+  if ([WinFocus]::IsIconic($hwnd)) { [WinFocus]::ShowWindowAsync($hwnd, 9) | Out-Null }
+  [WinFocus]::SetForegroundWindow($hwnd) | Out-Null
+  $wshell = New-Object -ComObject WScript.Shell
+  $wshell.AppActivate($target.Id) | Out-Null
+  Write-Output $target.ProcessName
 }
 `.trim();
-    await runCommandAsync("powershell", ["-NoProfile", "-Command", psScript], 1800);
+    const focused = await runCommandAsync(
+      "powershell",
+      ["-NoProfile", "-NonInteractive", "-Command", psScript],
+      1800
+    );
+    if (focused) {
+      this.activeBrowser = focused;
+    }
   }
 
   private async enforceLinuxFocus(): Promise<void> {

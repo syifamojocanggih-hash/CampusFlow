@@ -300,30 +300,30 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   const statusMeta = useMemo(() => {
     if (burnoutStatus === "LOW") {
       return {
-        label: "OPTIMAL / AMAN",
-        badgeBg: "bg-[#E8DDCF] text-[#2F3A2E] border border-[#E8DDCF]",
-        cardBg: "bg-[#FAF6F0] border-[#E8DDCF]",
-        ringColor: "#CFD8C4",
-        textColor: "text-[#2F3A2E]",
+        label: "Zona aman",
+        cardBg: "bg-gradient-to-br from-[#E7EEE2] via-[#E3EBE0] to-[#DCE6D6] border-[#D3DFCC]",
+        trackColor: "#C7D3C1",
+        ringColor: "#4E8B57",
+        textColor: "text-[#1E2E24]",
         desc: "Keseimbangan beban kuliah, waktu layar, dan pemulihan Anda berada di zona aman.",
       };
     }
     if (burnoutStatus === "MODERATE") {
       return {
-        label: "WASPADA KELELAHAN",
-        badgeBg: "bg-[#E8DDCF] text-[#2F3A2E] border border-[#CFD8C4]",
-        cardBg: "bg-[#FAF6F0] border-[#CFD8C4]",
-        ringColor: "#CFD8C4",
-        textColor: "text-[#2F3A2E]",
+        label: "Waspada kelelahan",
+        cardBg: "bg-gradient-to-br from-[#EFECE0] via-[#EAE6D8] to-[#E4DFCE] border-[#D9D3C1]",
+        trackColor: "#DFD7C3",
+        ringColor: "#D98A1C",
+        textColor: "text-[#1E2E24]",
         desc: "Beban belajar mulai mendominasi. Segera lakukan Active Break 2 menit dan cukupi tidur malam.",
       };
     }
     return {
-      label: "RISIKO TINGGI (BURNOUT)",
-      badgeBg: "bg-[#E8DDCF] text-[#636B60]",
-      cardBg: "bg-[#FAF6F0] border-[#CFD8C4]",
-      ringColor: "#CFD8C4",
-      textColor: "text-[#2F3A2E]",
+      label: "Risiko tinggi",
+      cardBg: "bg-gradient-to-br from-[#F1E6E3] via-[#ECE0DD] to-[#E6D8D4] border-[#DBCBC6]",
+      trackColor: "#E4C8C4",
+      ringColor: "#DC2626",
+      textColor: "text-[#1E2E24]",
       desc: "Kelelahan kognitif kritis. Disarankan jeda istirahat penuh dan konsultasi dengan AI Coach.",
     };
   }, [burnoutStatus]);
@@ -469,7 +469,26 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
       {/* ========================================================
           1. HERO CARD: STRAVA AKADEMIK & BURNOUT RISK INDEX (0-100)
           ======================================================== */}
-      <div className={`relative overflow-hidden rounded-3xl p-6 sm:p-8 border shadow-xs transition-all ${statusMeta.cardBg}`}>
+      <div className={`relative overflow-hidden rounded-[1.75rem] p-6 sm:p-8 border shadow-[0_6px_22px_-6px_rgba(47,58,46,0.08),0_2px_6px_-2px_rgba(47,58,46,0.04)] transition-all ${statusMeta.cardBg}`}>
+        {/* Subtle Layered Wave Decoration (Bottom Background) */}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 800 180"
+          preserveAspectRatio="none"
+          className="pointer-events-none select-none absolute inset-x-0 bottom-0 w-full h-36 sm:h-40 z-0"
+        >
+          <path
+            d="M0,70 C140,35 280,105 440,85 C600,65 700,115 800,90 L800,180 L0,180 Z"
+            fill="#D4DFCD"
+            fillOpacity="0.45"
+          />
+          <path
+            d="M0,120 C170,88 320,145 500,120 C650,100 730,135 800,122 L800,180 L0,180 Z"
+            fill="#C7D6BF"
+            fillOpacity="0.38"
+          />
+        </svg>
+
         {/* Dynamic Celestial Sky Illustration: Strolling Sun/Moon Above 2 Layered Clouds */}
         <div
           className="absolute right-2 sm:right-6 bottom-0 sm:bottom-1 w-56 sm:w-64 md:w-72 h-32 sm:h-36 select-none pointer-events-auto z-0 group cursor-pointer flex items-end justify-center"
@@ -805,46 +824,49 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
         </div>
 
         {/* Top-Right Unified Capsule: Live Clock & Date + Day/Night Mode Switcher */}
-        <div className="absolute top-3 sm:top-4 right-3 sm:right-6 z-20 flex items-center select-none">
-          <div className="inline-flex items-center gap-2 sm:gap-2.5 px-3 sm:px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white backdrop-blur-md border border-white/95 shadow-2xs text-[#2F3A2E] transition-all">
+        <div className="absolute top-4 sm:top-5 right-4 sm:right-6 z-20 flex items-center select-none">
+          <div className="inline-flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-2 rounded-full bg-white/95 hover:bg-white backdrop-blur-md border border-white/95 shadow-xs text-[#2F3A2E] transition-all">
             {/* Live Digital Clock */}
             <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-[#2F3A2E]/70" />
-              <span className="font-mono font-bold text-xs tabular-nums tracking-tight">
-                {timeFormatted.hours}:{timeFormatted.minutes}
-                <span className="text-[#636B60] font-normal text-[11px]">:{timeFormatted.seconds}</span>
+              <Clock className="w-3.5 h-3.5 text-[#5C6B5C]" />
+              <span className="font-mono font-bold text-xs tabular-nums tracking-tight text-[#2F3A2E]">
+                {timeFormatted.hours}:{timeFormatted.minutes}:{timeFormatted.seconds}
               </span>
             </div>
 
-            <span className="w-px h-3.5 bg-zinc-200" />
+            <span className="w-px h-3.5 bg-[#E0E5DC]" />
 
             {/* Localized Date */}
             <div className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-[#2F3A2E]/70" />
-              <span className="text-[11px] sm:text-xs font-semibold text-[#2F3A2E]/85 tracking-tight">
+              <Calendar className="w-3.5 h-3.5 text-[#5C6B5C]" />
+              <span className="text-[11px] sm:text-xs font-semibold text-[#2F3A2E] tracking-tight">
                 <span className="hidden md:inline">{dateFormatted.dayName}, </span>
                 {dateFormatted.dateNum} {dateFormatted.monthName}
                 <span className="hidden sm:inline"> {dateFormatted.yearNum}</span>
               </span>
             </div>
 
-            <span className="w-px h-3.5 bg-zinc-200" />
+            <span className="w-px h-3.5 bg-[#E0E5DC]" />
 
             {/* Day / Night Mode Switcher Button */}
             <button
               type="button"
               onClick={handleToggleTimeOfDay}
-              className="flex items-center gap-1.5 pl-1.5 pr-2 py-0.5 -mr-1 rounded-full bg-[#FAF6F0] hover:bg-[#FAF6F0] text-xs font-bold text-[#2F3A2E] transition-all active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-bold text-[#2F3A2E] hover:opacity-80 transition-all active:scale-95 cursor-pointer"
               title={isDayTime ? "Beralih ke suasana Malam 🌙" : "Beralih ke suasana Siang ☀️"}
               aria-label="Ganti suasana Siang atau Malam"
             >
-              <span className="text-xs leading-none">{isDayTime ? "☀️" : "🌙"}</span>
-              <span className="text-[11px] font-extrabold leading-none">{isDayTime ? "Siang" : "Malam"}</span>
+              <span
+                className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                  isDayTime ? "bg-[#F5B014]" : "bg-[#64748B]"
+                }`}
+              />
+              <span className="text-[11px] sm:text-xs font-bold leading-none">{isDayTime ? "Siang" : "Malam"}</span>
             </button>
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-7">
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8">
           {/* Circular Ring Gauge */}
           <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0 flex items-center justify-center select-none">
             <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
@@ -852,8 +874,8 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 cx="50"
                 cy="50"
                 r="42"
-                stroke="#E8DDCF"
-                strokeWidth="8"
+                stroke={statusMeta.trackColor}
+                strokeWidth="7.5"
                 fill="none"
               />
               <circle
@@ -861,35 +883,37 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 cy="50"
                 r="42"
                 stroke={statusMeta.ringColor}
-                strokeWidth="8"
+                strokeWidth="7.5"
                 strokeDasharray={263.89}
                 strokeDashoffset={263.89 - (Math.min(100, burnoutIndex) / 100) * 263.89}
                 strokeLinecap="round"
                 fill="none"
                 className="transition-all duration-1000 ease-out"
               />
+              {/* 12 o'clock Status Indicator Dot */}
+              <circle cx="92" cy="50" r="4" fill={statusMeta.ringColor} />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="text-3xl sm:text-4xl font-heading font-extrabold text-[#2F3A2E] sensor-num leading-none">
+              <span className="text-3xl sm:text-4xl font-heading font-extrabold text-[#1E2E24] sensor-num leading-none">
                 {Math.round(burnoutIndex)}
               </span>
-              <span className="text-[10px] text-[#636B60] font-bold uppercase tracking-wider mt-0.5">
+              <span className="text-[10px] text-[#5C6B5C] font-bold uppercase tracking-wider mt-1">
                 Index / 100
               </span>
             </div>
           </div>
 
-          {/* Title & Status */}
+          {/* Title & Description */}
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#636B60]">
+              <span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#5C6B5C]">
                 Dashboard Akademik
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#2F3A2E] leading-tight">
+            <h2 className="text-2xl sm:text-[1.95rem] font-heading font-extrabold text-[#1E2E24] tracking-tight leading-tight">
               Burnout Risk Index
             </h2>
-            <p className="text-xs text-[#2F3A2E]/80 font-medium max-w-xl leading-relaxed">
+            <p className="text-xs sm:text-[13px] text-[#3E4F40] font-medium max-w-md leading-relaxed">
               {statusMeta.desc}
             </p>
           </div>
@@ -901,42 +925,52 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           ======================================================== */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Academic Load (KRS) */}
-        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-center h-full">
-          <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-xs">
-              <BookOpen className="w-4 h-4 text-[#2F3A2E]" />
+        <div className="relative overflow-hidden bg-[#FDFBF8] rounded-[1.6rem] border border-[#EDE6DB] shadow-[0_6px_22px_-6px_rgba(47,58,46,0.08),0_2px_6px_-2px_rgba(47,58,46,0.04)] hover:shadow-[0_10px_28px_-6px_rgba(47,58,46,0.11),0_3px_8px_-2px_rgba(47,58,46,0.05)] transition-all p-5 flex flex-col justify-between min-h-[126px] h-full">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 110 110"
+            className="pointer-events-none select-none absolute bottom-0 right-0 w-24 h-24 sm:w-28 sm:h-28 text-[#EFEAE1]"
+          >
+            <circle cx="84" cy="86" r="44" fill="none" stroke="currentColor" strokeWidth="11" />
+            <circle cx="84" cy="86" r="19" fill="none" stroke="currentColor" strokeWidth="11" />
+          </svg>
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#D9E0D1] flex items-center justify-center text-[#2F3A2E] shrink-0">
+              <BookOpen className="w-[18px] h-[18px] text-[#2F3A2E]" />
             </div>
             <p className="text-xs sm:text-sm font-bold text-[#2F3A2E]">Beban Kuliah</p>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#2F3A2E] sensor-num">
+          <h3 className="relative z-10 mt-5 text-3xl sm:text-[2.1rem] font-heading font-extrabold text-[#2F3A2E] sensor-num tracking-tight leading-none">
             {academicLoadScore}
-            <span className="text-xs font-medium text-[#636B60] ml-1.5">Poin</span>
+            <span className="text-xs sm:text-sm font-medium text-[#636B60] ml-1.5">Poin</span>
           </h3>
         </div>
 
         {/* Card 2: Screen Time (OS-Level System Idle & Activity Tracker) */}
         <div
-          className="learnova-card p-4 sm:p-5 flex flex-col justify-between h-full"
+          className="relative overflow-hidden bg-[#FDFBF8] rounded-[1.6rem] border border-[#EDE6DB] shadow-[0_6px_22px_-6px_rgba(47,58,46,0.08),0_2px_6px_-2px_rgba(47,58,46,0.04)] hover:shadow-[0_10px_28px_-6px_rgba(47,58,46,0.11),0_3px_8px_-2px_rgba(47,58,46,0.05)] transition-all p-5 flex flex-col justify-between min-h-[126px] h-full"
           title="Melacak seluruh aktivitas Layar OS (tetap berjalan saat pindah tab atau buka aplikasi lain seperti VS Code/Word/PDF)"
         >
-          <div className="flex items-center gap-2.5 mb-2">
-            <div className="w-9 h-9 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-xs">
-              <Monitor className="w-4 h-4 text-[#2F3A2E]" />
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 110 110"
+            className="pointer-events-none select-none absolute bottom-0 right-0 w-24 h-24 sm:w-28 sm:h-28 text-[#EFEAE1]"
+          >
+            <circle cx="84" cy="86" r="44" fill="none" stroke="currentColor" strokeWidth="11" />
+            <circle cx="84" cy="86" r="19" fill="none" stroke="currentColor" strokeWidth="11" />
+          </svg>
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#D9E0D1] flex items-center justify-center text-[#2F3A2E] shrink-0">
+              <Monitor className="w-[18px] h-[18px] text-[#2F3A2E]" />
             </div>
             <p className="text-xs sm:text-sm font-bold text-[#2F3A2E] leading-tight">
               Waktu Layar
             </p>
           </div>
-
-          <div className="flex items-baseline justify-between gap-2 flex-wrap">
-            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#2F3A2E] sensor-num">
-              {screenTimeHours}
-              <span className="text-xs font-medium text-[#636B60] ml-1.5">Jam</span>
-            </h3>
-            <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-[#FAF6F0] border border-[#E8DDCF] text-[#2F3A2E]">
-              {osScreenTime.formattedHMS}
-            </span>
-          </div>
+          <h3 className="relative z-10 mt-5 text-3xl sm:text-[2.1rem] font-heading font-extrabold text-[#2F3A2E] sensor-num tracking-tight leading-none">
+            {screenTimeHours}
+            <span className="text-xs sm:text-sm font-medium text-[#636B60] ml-1.5">Jam</span>
+          </h3>
         </div>
 
         {/* Card 3: Sleep Duration & Recovery (Automatic Passive Sleep Detector) */}
@@ -950,45 +984,53 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               setIsSleepModalOpen(true);
             }
           }}
-          className="learnova-card p-4 sm:p-5 flex flex-col justify-between h-full cursor-pointer hover:border-[#CFD8C4] transition-all group"
+          className="relative overflow-hidden bg-[#FDFBF8] rounded-[1.6rem] border border-[#EDE6DB] hover:border-[#CFD8C4] shadow-[0_6px_22px_-6px_rgba(47,58,46,0.08),0_2px_6px_-2px_rgba(47,58,46,0.04)] hover:shadow-[0_10px_28px_-6px_rgba(47,58,46,0.11),0_3px_8px_-2px_rgba(47,58,46,0.05)] transition-all p-5 flex flex-col justify-between min-h-[126px] h-full cursor-pointer group"
           title="Klik untuk melihat detail deteksi tidur otomatis atau simulasi jam tidur"
         >
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-xs">
-                <Moon className="w-4 h-4 text-[#2F3A2E]" />
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 110 110"
+            className="pointer-events-none select-none absolute bottom-0 right-0 w-24 h-24 sm:w-28 sm:h-28 text-[#EFEAE1]"
+          >
+            <circle cx="84" cy="86" r="44" fill="none" stroke="currentColor" strokeWidth="11" />
+            <circle cx="84" cy="86" r="19" fill="none" stroke="currentColor" strokeWidth="11" />
+          </svg>
+          <div className="relative z-10 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#D9E0D1] flex items-center justify-center text-[#2F3A2E] shrink-0">
+                <Moon className="w-[18px] h-[18px] text-[#2F3A2E]" />
               </div>
               <p className="text-xs sm:text-sm font-bold text-[#2F3A2E] leading-tight">
                 Tidur Semalam
               </p>
             </div>
-            <SlidersHorizontal className="w-3.5 h-3.5 text-[#636B60] group-hover:text-[#2F3A2E] transition-colors shrink-0" />
+            <SlidersHorizontal className="w-4 h-4 text-[#636B60] group-hover:text-[#2F3A2E] transition-colors shrink-0" />
           </div>
-
-          <div className="flex items-baseline justify-between gap-2 flex-wrap">
-            <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#2F3A2E] sensor-num">
-              {sleepHours}
-              <span className="text-xs font-medium text-[#636B60] ml-1.5">Jam</span>
-            </h3>
-            <span
-              className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${sleepClinicalMeta.badgeStyle}`}
-            >
-              {autoSleep.bedTime}&ndash;{autoSleep.wakeTime} &bull; +{autoSleep.recoveryPoints} Poin
-            </span>
-          </div>
+          <h3 className="relative z-10 mt-5 text-3xl sm:text-[2.1rem] font-heading font-extrabold text-[#2F3A2E] sensor-num tracking-tight leading-none">
+            {sleepHours}
+            <span className="text-xs sm:text-sm font-medium text-[#636B60] ml-1.5">Jam</span>
+          </h3>
         </div>
 
         {/* Card 4: Verified Active Break (On-Demand MediaPipe 2 Mins) */}
-        <div className="learnova-card p-4 sm:p-5 flex flex-col justify-center h-full">
-          <div className="flex items-center gap-2.5 mb-2 sm:mb-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-xs">
-              <Play className="w-4 h-4 fill-[#2F3A2E] text-[#2F3A2E] ml-0.5" />
+        <div className="relative overflow-hidden bg-[#FDFBF8] rounded-[1.6rem] border border-[#EDE6DB] shadow-[0_6px_22px_-6px_rgba(47,58,46,0.08),0_2px_6px_-2px_rgba(47,58,46,0.04)] hover:shadow-[0_10px_28px_-6px_rgba(47,58,46,0.11),0_3px_8px_-2px_rgba(47,58,46,0.05)] transition-all p-5 flex flex-col justify-between min-h-[126px] h-full">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 110 110"
+            className="pointer-events-none select-none absolute bottom-0 right-0 w-24 h-24 sm:w-28 sm:h-28 text-[#EFEAE1]"
+          >
+            <circle cx="84" cy="86" r="44" fill="none" stroke="currentColor" strokeWidth="11" />
+            <circle cx="84" cy="86" r="19" fill="none" stroke="currentColor" strokeWidth="11" />
+          </svg>
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#D9E0D1] flex items-center justify-center text-[#2F3A2E] shrink-0">
+              <Play className="w-[18px] h-[18px] fill-[#2F3A2E] text-[#2F3A2E] ml-0.5" />
             </div>
             <p className="text-xs sm:text-sm font-bold text-[#2F3A2E]">Active Break</p>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#2F3A2E] sensor-num">
+          <h3 className="relative z-10 mt-5 text-3xl sm:text-[2.1rem] font-heading font-extrabold text-[#2F3A2E] sensor-num tracking-tight leading-none">
             {verifiedBreakCount}
-            <span className="text-xs font-medium text-[#636B60] ml-1.5">Sesi</span>
+            <span className="text-xs sm:text-sm font-medium text-[#636B60] ml-1.5">Sesi</span>
           </h3>
         </div>
       </div>
@@ -1124,8 +1166,9 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                 Total Bobot SKS Ditampilkan:{" "}
                 <strong>{displayedSchedules.reduce((acc, s) => acc + s.creditHours, 0)} SKS</strong>
               </span>
-              <span className="font-bold text-[#2F3A2E] bg-[#E8DDCF] px-2.5 py-0.5 rounded-full">
-                Beban Kognitif: {academicLoadScore} Poin
+              <span className="inline-flex items-center gap-1.5 font-bold text-xs text-[#2F3A2E] bg-[#EAE1D6] px-3.5 py-1.5 rounded-full">
+                <BookOpen className="w-3.5 h-3.5 text-[#2F3A2E] shrink-0" />
+                <span>Beban Kognitif: {academicLoadScore} Poin</span>
               </span>
             </div>
           </div>

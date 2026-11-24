@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   Footprints,
-  Activity,
-  Flame,
   Play,
   Square,
   RotateCcw,
@@ -11,7 +9,13 @@ import {
   AlertTriangle,
   Sparkles,
   TrendingUp,
-  Compass,
+  Home,
+  BookOpen,
+  Waves,
+  Flag,
+  Bike,
+  Globe,
+  Plus,
 } from "lucide-react";
 import {
   PedometerEngine,
@@ -23,18 +27,99 @@ import { api } from "@/lib/api";
 interface PedometerCardProps {
   onStepsChange?: (steps: number, metMinutes: number) => void;
   className?: string;
+  afterMainCard?: React.ReactNode;
+}
+
+interface RoutePoint {
+  x: number;
+  y: number;
+}
+
+interface RouteSegment {
+  minSteps: number;
+  maxSteps: number;
+  p0: RoutePoint;
+  c1: RoutePoint;
+  c2: RoutePoint;
+  p3: RoutePoint;
+}
+
+const ROUTE_SEGMENTS: RouteSegment[] = [
+  {
+    minSteps: 0,
+    maxSteps: 500,
+    p0: { x: 78, y: 134 },
+    c1: { x: 108, y: 134 },
+    c2: { x: 132, y: 108 },
+    p3: { x: 170, y: 108 },
+  },
+  {
+    minSteps: 500,
+    maxSteps: 1500,
+    p0: { x: 170, y: 108 },
+    c1: { x: 222, y: 108 },
+    c2: { x: 268, y: 132 },
+    p3: { x: 325, y: 132 },
+  },
+  {
+    minSteps: 1500,
+    maxSteps: 3000,
+    p0: { x: 325, y: 132 },
+    c1: { x: 400, y: 132 },
+    c2: { x: 448, y: 98 },
+    p3: { x: 515, y: 98 },
+  },
+  {
+    minSteps: 3000,
+    maxSteps: 6000,
+    p0: { x: 515, y: 98 },
+    c1: { x: 625, y: 74 },
+    c2: { x: 725, y: 118 },
+    p3: { x: 832, y: 102 },
+  },
+];
+
+const ROUTE_SVG_PATH =
+  "M 78 134 C 108 134, 132 108, 170 108 C 222 108, 268 132, 325 132 C 400 132, 448 98, 515 98 C 625 74, 725 118, 832 102";
+
+function evalCubicBezier(seg: RouteSegment, u: number): RoutePoint {
+  const t = Math.max(0, Math.min(1, u));
+  const mt = 1 - t;
+  const x =
+    mt * mt * mt * seg.p0.x +
+    3 * mt * mt * t * seg.c1.x +
+    3 * mt * t * t * seg.c2.x +
+    t * t * t * seg.p3.x;
+  const y =
+    mt * mt * mt * seg.p0.y +
+    3 * mt * mt * t * seg.c1.y +
+    3 * mt * t * t * seg.c2.y +
+    t * t * t * seg.p3.y;
+  return { x, y };
+}
+
+function getMarkerPositionForSteps(steps: number): RoutePoint {
+  const clamped = Math.max(0, Math.min(6000, steps));
+  for (const seg of ROUTE_SEGMENTS) {
+    if (clamped <= seg.maxSteps) {
+      const u = (clamped - seg.minSteps) / Math.max(1, seg.maxSteps - seg.minSteps);
+      return evalCubicBezier(seg, u);
+    }
+  }
+  return ROUTE_SEGMENTS[ROUTE_SEGMENTS.length - 1].p3;
 }
 
 const CAMPUS_MILESTONES = [
-  { steps: 500, label: "Halte Kampus ke Gedung Kuliah", landmark: "Rute Gerbang Utama" },
-  { steps: 1500, label: "Perpustakaan Pusat ke Lab Riset", landmark: "Koridor Akademik" },
-  { steps: 3000, label: "Keliling Danau & Area Rektorat", landmark: "Lingkar Luar Kampus" },
-  { steps: 6000, label: "Target Sehat Harian (WHO/IPAQ-SF)", landmark: "Optimal Mahasiswa Aktif" },
+  { steps: 500, title: "Gerbang Utama", icon: "home" as const, x: 170, y: 108 },
+  { steps: 1500, title: "Koridor Akademik", icon: "book" as const, x: 325, y: 132 },
+  { steps: 3000, title: "Lingkar Luar", icon: "waves" as const, x: 515, y: 98 },
+  { steps: 6000, title: "Target Sehat", icon: "flag" as const, x: 832, y: 102 },
 ];
 
 export const PedometerCard: React.FC<PedometerCardProps> = ({
   onStepsChange,
   className = "",
+  afterMainCard,
 }) => {
   const engineRef = useRef<PedometerEngine | null>(null);
 
@@ -191,85 +276,231 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
   const distanceKm = (totalSteps * 0.00075).toFixed(2);
   const caloriesBurned = Math.round(totalSteps * 0.04);
   const dailyTargetProgress = Math.min(100, Math.round((totalSteps / 6000) * 100));
+  const markerPos = getMarkerPositionForSteps(totalSteps);
+  const markerLeftPct = (markerPos.x / 920) * 100;
+  const markerTopPct = (markerPos.y / 230) * 100;
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* 1. Main Pedometer Sensor Card */}
-      <div className="learnova-card p-6 border-[#E8DDCF] space-y-6">
+      {/* 1. Main Pedometer Route & Metrics Card */}
+      <div className="learnova-card p-6 border-[#E8DDCF] bg-white space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E8DDCF] pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
-              <Footprints className="w-6 h-6" />
+              <Footprints className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-heading font-extrabold text-base text-[#2F3A2E]">
-                Penghitung Langkah Otomatis (Sensor HP)
+              <h3 className="font-heading font-extrabold text-base sm:text-lg text-[#2F3A2E] leading-tight">
+                Penghitung Langkah Otomatis
               </h3>
-              <p className="text-xs text-[#636B60]">
-                Mendeteksi ayunan kaki mahasiswa secara real-time via accelerometer perangkat.
+              <p className="text-xs text-[#636B60] mt-0.5">
+                Berjalan di kampus, lihat seberapa jauh rutemu hari ini.
               </p>
             </div>
           </div>
 
-          {/* Quick Stats Pill */}
-          <div className="flex items-center gap-3 text-xs bg-[#FAF6F0] px-3.5 py-1.5 rounded-2xl border border-[#E8DDCF] self-start sm:self-auto">
-            <div>
-              <span className="text-[#636B60] font-semibold">Jarak: </span>
-              <strong className="text-[#2F3A2E] font-extrabold">{distanceKm} km</strong>
-            </div>
-            <span className="text-[#CBB6A2]">|</span>
-            <div>
-              <span className="text-[#636B60] font-semibold">Kalori: </span>
-              <strong className="text-[#2F3A2E] font-extrabold">{caloriesBurned} kkal</strong>
+          {/* Sensor Status Pill */}
+          <div className="inline-flex items-center gap-2 text-xs font-bold bg-[#FAF6F0] px-3.5 py-1.5 rounded-full border border-[#E8DDCF] text-[#2F3A2E] self-start sm:self-auto">
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${
+                isTracking ? "bg-[#4E8B57] animate-pulse" : "bg-[#B8AFA2]"
+              }`}
+            />
+            <span>{isTracking ? "Sensor aktif" : "Sensor mati"}</span>
+            {lastNetAcc > 0 && isTracking && (
+              <span className="text-[10px] font-mono text-[#636B60] pl-1 border-l border-[#E8DDCF]">
+                +{lastNetAcc.toFixed(1)} m/s²
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Interactive Campus Walking Route Map */}
+        <div className="relative rounded-[1.5rem] bg-gradient-to-b from-[#F1F5EC] via-[#F4F6EE] to-[#E6EEE0] border border-[#E2D9CB] overflow-hidden">
+          <div className="relative w-full h-[230px] sm:h-[250px] select-none">
+            <svg
+              viewBox="0 0 920 230"
+              preserveAspectRatio="none"
+              className="w-full h-full block"
+              aria-hidden="true"
+            >
+              {/* Soft Fluffy Sky Clouds */}
+              <g fill="#FCFBF7" opacity="0.95">
+                <path d="M136,52 C136,44 144,39 154,40 C159,32 173,30 183,36 C191,35 199,40 199,47 C199,54 191,58 182,58 L146,58 C140,58 136,55 136,52 Z" />
+                <path d="M478,42 C478,34 487,28 498,30 C505,21 522,19 534,26 C544,24 554,30 554,38 C554,46 544,50 533,50 L490,50 C483,50 478,47 478,42 Z" />
+              </g>
+
+              {/* Warm Sun & Soft Halo (Top-Right Sky) */}
+              <g>
+                <circle cx="776" cy="54" r="38" fill="#E8DDCF" fillOpacity="0.88" />
+                <circle cx="776" cy="54" r="22" fill="#E3A845" />
+              </g>
+
+              {/* 3 Layered Rolling Sage Campus Hills */}
+              <path
+                d="M0,148 C155,112 295,156 465,126 C620,98 765,126 920,144 L920,230 L0,230 Z"
+                fill="#D7E2D0"
+              />
+              <path
+                d="M0,176 C195,150 390,188 615,162 C740,148 838,158 920,168 L920,230 L0,230 Z"
+                fill="#C4D3BC"
+              />
+              <path
+                d="M0,202 C250,186 520,214 780,196 C842,192 886,195 920,199 L920,230 L0,230 Z"
+                fill="#B3C4AA"
+              />
+
+              {/* Minimal Round Campus Trees */}
+              <g>
+                {/* Left Tree */}
+                <rect x="82.5" y="164" width="3" height="16" rx="1.5" fill="#5D7057" />
+                <circle cx="84" cy="158" r="10.5" fill="#7D9473" />
+                {/* Right-Center Pair */}
+                <rect x="606.5" y="160" width="3" height="15" rx="1.5" fill="#5D7057" />
+                <circle cx="608" cy="154" r="10" fill="#7B9271" />
+                <rect x="630.5" y="166" width="2.6" height="11" rx="1.3" fill="#677A61" />
+                <circle cx="631.8" cy="161" r="7" fill="#8EA484" />
+                {/* Far-Right Tree */}
+                <rect x="824.5" y="160" width="3" height="15" rx="1.5" fill="#5D7057" />
+                <circle cx="826" cy="154" r="10" fill="#7D9473" />
+              </g>
+
+              {/* Winding Campus Route: Crisp Creamy White Track */}
+              <path
+                d={ROUTE_SVG_PATH}
+                fill="none"
+                stroke="#FCFBF7"
+                strokeWidth="12"
+                strokeLinecap="round"
+              />
+              {/* Completed Progress Overlay */}
+              {dailyTargetProgress > 0 && (
+                <path
+                  d={ROUTE_SVG_PATH}
+                  fill="none"
+                  stroke="#E8DDCF"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                  pathLength={100}
+                  strokeDasharray={100}
+                  strokeDashoffset={100 - dailyTargetProgress}
+                  className="transition-all duration-500"
+                />
+              )}
+              {/* Center Dotted Trail Stones */}
+              <path
+                d={ROUTE_SVG_PATH}
+                fill="none"
+                stroke="#C5B9A8"
+                strokeWidth="2.4"
+                strokeDasharray="1 11"
+                strokeLinecap="round"
+              />
+            </svg>
+
+            {/* Milestone Nodes & Labels */}
+            {CAMPUS_MILESTONES.map((milestone) => {
+              const isReached = totalSteps >= milestone.steps;
+              const leftPct = (milestone.x / 920) * 100;
+              const topPct = (milestone.y / 230) * 100;
+              return (
+                <div
+                  key={milestone.steps}
+                  style={{ left: `${leftPct}%`, top: `${topPct}%` }}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10"
+                >
+                  <div
+                    className={`w-10 h-10 rounded-full border-[2.5px] flex items-center justify-center transition-all shadow-xs ${
+                      isReached
+                        ? "bg-[#CFD8C4] border-[#2F3A2E] text-[#2F3A2E]"
+                        : "bg-[#FCFBF7] border-[#E0D5C5] text-[#4C5C4E]"
+                    }`}
+                  >
+                    {milestone.icon === "home" && <Home className="w-4 h-4" />}
+                    {milestone.icon === "book" && <BookOpen className="w-4 h-4" />}
+                    {milestone.icon === "waves" && <Waves className="w-4 h-4" />}
+                    {milestone.icon === "flag" && <Flag className="w-4 h-4" />}
+                  </div>
+                  <div
+                    className={`mt-1.5 px-3 py-1.5 rounded-2xl border text-center leading-tight shadow-xs whitespace-nowrap transition-colors ${
+                      isReached
+                        ? "bg-[#E8F0E3] border-[#BCC8AE]"
+                        : "bg-[#FCFBF7]/95 border-[#E5DACB]"
+                    }`}
+                  >
+                    <div className="text-[11px] font-heading font-extrabold text-[#2F3A2E] sensor-num">
+                      {milestone.steps.toLocaleString("id-ID")}
+                    </div>
+                    <div className="text-[10px] font-semibold text-[#5E675C]">
+                      {milestone.title}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Live Moving Footprints Marker with Speech Tooltip */}
+            <div
+              style={{ left: `${markerLeftPct}%`, top: `${markerTopPct}%` }}
+              className="absolute -translate-x-1/2 -translate-y-[74%] z-20 transition-all duration-500 flex flex-col items-center"
+            >
+              <div className="relative mb-2 px-3.5 py-1 rounded-full bg-[#243B2E] text-white text-[11px] font-bold shadow-md whitespace-nowrap">
+                <span>
+                  {totalSteps === 0
+                    ? "Mulai di sini"
+                    : `${totalSteps.toLocaleString("id-ID")} langkah`}
+                </span>
+                <span className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2.5 h-2.5 rotate-45 bg-[#243B2E]" />
+              </div>
+              <div className="w-10 h-10 rounded-full bg-[#E3A845] border-[3px] border-[#FCFBF7] text-[#243B2E] flex items-center justify-center shadow-md">
+                <Footprints className="w-4 h-4" />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Main 3 Metric Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Step Count Big Display (Sky Blue Card) */}
-          <div className="bg-[#E8DDCF] rounded-2xl p-5 flex flex-col items-center justify-center text-center relative overflow-hidden text-[#2F3A2E] shadow-xs">
-            <div className="text-xs text-[#2F3A2E]/80 font-bold mb-1 flex items-center gap-1.5">
-              <Footprints className="w-4 h-4 text-[#2F3A2E]" /> Total Langkah
+        {/* Bottom Summary Metrics Row */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          {/* Total Langkah Big Display */}
+          <div className="shrink-0 min-w-[165px]">
+            <p className="text-xs font-bold text-[#636B60]">Total langkah</p>
+            <div className="text-4xl sm:text-[2.75rem] font-heading font-extrabold text-[#2F3A2E] tracking-tight leading-none my-1.5 sensor-num">
+              {totalSteps.toLocaleString("id-ID")}
             </div>
-            <div className="text-3xl sm:text-4xl font-heading font-extrabold text-[#2F3A2E] tracking-tight my-1 sensor-num">
-              {totalSteps.toLocaleString()}
-            </div>
-            <div className="text-[11px] text-[#2F3A2E]/70 font-medium">
-              {isTracking ? "Sensor aktif membaca ayunan..." : "Pelacak tidak aktif"}
-            </div>
+            <p className="text-xs font-medium text-[#636B60]">
+              {dailyTargetProgress}% dari 6.000 langkah
+            </p>
+          </div>
 
-            {lastNetAcc > 0 && isTracking && (
-              <div className="absolute top-2 right-2 text-[10px] bg-white text-[#2F3A2E] px-2 py-0.5 rounded-full font-mono font-bold shadow-xs">
-                +{lastNetAcc.toFixed(1)} m/s²
+          {/* 4 Metric Mini-Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
+            <div className="bg-[#FAF6F0] border border-[#E8DDCF] rounded-2xl p-4 flex flex-col justify-between">
+              <div className="text-lg sm:text-xl font-heading font-extrabold text-[#2F3A2E] sensor-num">
+                {cadenceSpm}
               </div>
-            )}
-          </div>
+              <div className="text-xs font-medium text-[#636B60] mt-1">Langkah/menit</div>
+            </div>
 
-          {/* Cadence Display (Mint Green Card) */}
-          <div className="bg-[#E8DDCF] rounded-2xl p-5 flex flex-col items-center justify-center text-center text-[#2F3A2E] shadow-xs">
-            <div className="text-xs text-[#2F3A2E]/80 font-bold mb-1 flex items-center gap-1.5">
-              <Activity className="w-4 h-4 text-[#2F3A2E]" /> Kecepatan Langkah
+            <div className="bg-[#FAF6F0] border border-[#E8DDCF] rounded-2xl p-4 flex flex-col justify-between">
+              <div className="text-lg sm:text-xl font-heading font-extrabold text-[#2F3A2E] sensor-num">
+                {metMinutes.toFixed(1).replace(".", ",")}
+              </div>
+              <div className="text-xs font-medium text-[#636B60] mt-1">MET-menit</div>
             </div>
-            <div className="text-3xl sm:text-4xl font-heading font-extrabold text-[#2F3A2E] tracking-tight my-1 sensor-num">
-              {cadenceSpm}
-            </div>
-            <div className="text-[11px] text-[#2F3A2E]/70 font-medium">
-              Langkah per Menit (SPM)
-            </div>
-          </div>
 
-          {/* MET-Minutes (Butter Yellow Card) */}
-          <div className="bg-[#E8DDCF] rounded-2xl p-5 flex flex-col items-center justify-center text-center text-[#2F3A2E] shadow-xs">
-            <div className="text-xs text-[#2F3A2E]/80 font-bold mb-1 flex items-center gap-1.5">
-              <Flame className="w-4 h-4 text-[#2F3A2E] fill-[#2F3A2E]" /> Poin Energi Gerak
+            <div className="bg-[#FAF6F0] border border-[#E8DDCF] rounded-2xl p-4 flex flex-col justify-between">
+              <div className="text-lg sm:text-xl font-heading font-extrabold text-[#2F3A2E] sensor-num">
+                {distanceKm.replace(".", ",")} km
+              </div>
+              <div className="text-xs font-medium text-[#636B60] mt-1">Jarak</div>
             </div>
-            <div className="text-3xl sm:text-4xl font-heading font-extrabold text-[#2F3A2E] tracking-tight my-1 sensor-num">
-              {metMinutes.toFixed(1)}
-            </div>
-            <div className="text-[11px] text-[#2F3A2E]/70 font-medium">
-              MET-menit (+Poin Pemulihan)
+
+            <div className="bg-[#FAF6F0] border border-[#E8DDCF] rounded-2xl p-4 flex flex-col justify-between">
+              <div className="text-lg sm:text-xl font-heading font-extrabold text-[#2F3A2E] sensor-num">
+                {caloriesBurned} kkal
+              </div>
+              <div className="text-xs font-medium text-[#636B60] mt-1">Kalori</div>
             </div>
           </div>
         </div>
@@ -293,33 +524,33 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         )}
 
         {!sensorSupported && (
-          <div className="p-3 bg-[#E8DDCF]/50 text-[#2F3A2E] text-xs rounded-2xl flex items-center gap-2 border border-[#E8DDCF]">
-            <Smartphone className="w-4 h-4 shrink-0" />
+          <div className="p-3 bg-[#FAF6F0] text-[#2F3A2E] text-xs rounded-2xl flex items-center gap-2 border border-[#E8DDCF]">
+            <Smartphone className="w-4 h-4 shrink-0 text-[#636B60]" />
             <span>
-              Perangkat desktop tidak memiliki sensor accelerometer fisik. Anda dapat menggunakan tombol <strong>Catat Aktivitas Cepat</strong> di bawah untuk memasukkan aktivitas kampus secara manual.
+              Perangkat desktop tidak memiliki sensor accelerometer fisik. Gunakan tombol <strong>Pencatat Cepat Aktivitas Fisik Kampus</strong> di bawah untuk melihat progres rute langkah.
             </span>
           </div>
         )}
 
         {/* Sensor Control Buttons */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#E8DDCF]">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
               onClick={handleToggleTracking}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold flex items-center gap-2 transition-colors shadow-xs ${
+              className={`px-5 py-2.5 rounded-full text-xs font-extrabold flex items-center gap-2 transition-colors shadow-xs cursor-pointer ${
                 isTracking
-                  ? "bg-[#CFD8C4] text-[#636B60] hover:bg-[#CFD8C4]"
-                  : "bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-[#2F3A2E] border border-[#E8DDCF] shadow-softPill"
+                  ? "bg-[#CFD8C4] text-[#2F3A2E] border border-[#BCC8AE]"
+                  : "bg-[#E8DDCF] hover:bg-[#CFD8C4] text-[#2F3A2E] border border-[#DDD0BE]"
               }`}
             >
               {isTracking ? (
                 <>
-                  <Square className="w-4 h-4 fill-[#2F3A2E]" /> Hentikan Sensor Gerak
+                  <Square className="w-3.5 h-3.5 fill-[#2F3A2E]" /> Hentikan sensor HP
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 fill-[#2F3A2E]" /> Aktifkan Sensor HP
+                  <Play className="w-3.5 h-3.5 fill-[#2F3A2E]" /> Aktifkan sensor HP
                 </>
               )}
             </button>
@@ -327,19 +558,25 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
             <button
               type="button"
               onClick={handleReset}
-              className="px-3.5 py-2.5 rounded-2xl text-xs font-semibold border border-[#E8DDCF] hover:bg-[#FAF6F0] text-[#2F3A2E] flex items-center gap-1.5 transition-colors"
+              className="px-4 py-2.5 rounded-full text-xs font-bold border border-[#E8DDCF] bg-[#FAF6F0] hover:bg-white text-[#2F3A2E] flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" /> Reset
             </button>
+
+            <span className="text-xs text-[#636B60] pl-1">
+              {isTracking
+                ? "Sensor aktif membaca ayunan langkah."
+                : "Pratinjau memakai langkah simulasi atau sensor HP."}
+            </span>
           </div>
 
           {totalSteps > 0 && (
             <button
               type="button"
               onClick={handleSaveToActivity}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold flex items-center gap-1.5 transition-colors ${
+              className={`px-4 py-2.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer ${
                 savedSuccess
-                  ? "bg-[#CFD8C4] text-[#2F3A2E] border border-[#CFD8C4]"
+                  ? "bg-[#CFD8C4] text-[#2F3A2E] border border-[#BCC8AE]"
                   : "bg-[#CFD8C4] hover:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] shadow-softPill"
               }`}
             >
@@ -355,151 +592,148 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         </div>
       </div>
 
-      {/* 2. SUPPORTING FEATURE 1: MILESTONE RUTE KAMPUS */}
-      <div className="learnova-card p-6 border-[#E8DDCF] space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8DDCF] pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center font-bold">
-              <Compass className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="font-heading font-extrabold text-base text-[#2F3A2E]">
-                Milestone Rute Kampus
-              </h4>
-              <p className="text-[11px] text-[#636B60]">
-                Progres ekuivalen langkah Anda jika berjalan mengelilingi rute kampus hari ini.
-              </p>
-            </div>
-          </div>
-          <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#E8DDCF] text-[#2F3A2E] border border-[#E8DDCF] self-start sm:self-auto">
-            {dailyTargetProgress}% Target Harian (6.000 Langkah)
-          </span>
-        </div>
+      {afterMainCard}
 
-        {/* Landmark Progress Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-          {CAMPUS_MILESTONES.map((milestone) => {
-            const isReached = totalSteps >= milestone.steps;
-            const stepProgress = Math.min(100, Math.round((totalSteps / milestone.steps) * 100));
-            return (
-              <div
-                key={milestone.steps}
-                className={`p-3.5 rounded-2xl border transition-all ${
-                  isReached
-                    ? "bg-[#CFD8C4]/25 border-[#CFD8C4]"
-                    : "bg-[#FAF6F0] border-[#E8DDCF]"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1 mb-2">
-                  <span className="text-[10px] font-bold text-[#636B60]">
-                    {milestone.landmark}
-                  </span>
-                  {isReached && (
-                    <span className="w-5 h-5 rounded-full bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center text-[10px] font-extrabold">
-                      ✓
-                    </span>
-                  )}
-                </div>
-
-                <div className="font-heading font-extrabold text-sm text-[#2F3A2E]">
-                  {milestone.steps.toLocaleString()} Langkah
-                </div>
-                <p className="text-[11px] text-[#636B60] mt-0.5 truncate">
-                  {milestone.label}
-                </p>
-
-                {/* Progress Mini-Bar */}
-                <div className="mt-3 w-full bg-[#E8DDCF] h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full transition-all duration-500 ${
-                      isReached ? "bg-[#4A3B2C]" : "bg-[#CFD8C4]"
-                    }`}
-                    style={{ width: `${stepProgress}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 3. SUPPORTING FEATURE 2: PENCATAT OLAHRAGA CEPAT KAMPUS */}
-      <div className="learnova-card p-6 border-[#E8DDCF] space-y-4">
-        <div className="flex items-center gap-2.5 border-b border-[#E8DDCF] pb-3">
-          <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center font-bold">
-            <TrendingUp className="w-4 h-4" />
+      {/* 2. SUPPORTING FEATURE: PENCATAT OLAHRAGA CEPAT KAMPUS */}
+      <div className="learnova-card p-6 border-[#E8DDCF] bg-white space-y-5">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
+            <TrendingUp className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-heading font-extrabold text-base text-[#2F3A2E]">
-              Pencatat Cepat Aktivitas Fisik Kampus
+            <h4 className="font-heading font-extrabold text-base sm:text-lg text-[#1D3127] leading-tight">
+              Pencatat Cepat Aktivitas Fisik
             </h4>
-            <p className="text-[11px] text-[#636B60]">
-              Tidak membawa HP di saku saat bergerak? Tambahkan aktivitas non-jalan dengan satu klik.
+            <p className="text-xs text-[#636B60] mt-0.5">
+              HP tidak di saku? Catat aktivitas non-jalan dengan satu ketukan.
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Action 1: Naik Tangga */}
-          <button
-            type="button"
-            onClick={() => handleLogQuickActivity(450, 40, "Naik Tangga Kampus")}
-            className="p-4 rounded-2xl bg-[#FAF6F0] hover:bg-white border border-[#E8DDCF] hover:border-[#4A3B2C] transition-all text-left space-y-1.5 shadow-2xs group cursor-pointer"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xl">🪜</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#E8DDCF] text-[#2F3A2E]">
-                +40 MET-m
-              </span>
+          <div className="p-5 rounded-[1.5rem] bg-[#FAF6F0] border border-[#EBE3D6] flex flex-col justify-between space-y-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                    <path d="M4 18h4v-4h4v-4h4V6h4" />
+                  </svg>
+                </div>
+                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#E8DDCF] text-[#2F3A2E]">
+                  +40 MET-m
+                </span>
+              </div>
+
+              <div>
+                <div className="font-heading font-extrabold text-sm text-[#1D3127]">
+                  Naik tangga gedung kuliah
+                </div>
+                <p className="text-xs text-[#636B60] mt-0.5">
+                  5 menit &middot; setara &plusmn;450 langkah
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-0.5">
+                <div className="text-[11px] font-medium text-[#636B60]">Intensitas ringan</div>
+                <div className="w-full h-1.5 rounded-full bg-[#EAE2D6] overflow-hidden">
+                  <div className="h-full w-1/4 rounded-full bg-[#243B2E]" />
+                </div>
+              </div>
             </div>
-            <div className="font-heading font-extrabold text-xs text-[#2F3A2E] group-hover:text-black">
-              Naik Tangga Gedung Kuliah
-            </div>
-            <p className="text-[11px] text-[#636B60]">
-              5 menit • Setara ~450 langkah
-            </p>
-          </button>
+
+            <button
+              type="button"
+              onClick={() => handleLogQuickActivity(450, 40, "Naik Tangga Kampus")}
+              className="w-full py-2.5 px-4 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] text-[#2F3A2E] font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Catat</span>
+            </button>
+          </div>
 
           {/* Action 2: Bersepeda */}
-          <button
-            type="button"
-            onClick={() => handleLogQuickActivity(1200, 90, "Bersepeda ke Kampus")}
-            className="p-4 rounded-2xl bg-[#FAF6F0] hover:bg-white border border-[#E8DDCF] hover:border-[#4A3B2C] transition-all text-left space-y-1.5 shadow-2xs group cursor-pointer"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xl">🚲</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#E8DDCF] text-[#2F3A2E]">
-                +90 MET-m
-              </span>
-            </div>
-            <div className="font-heading font-extrabold text-xs text-[#2F3A2E] group-hover:text-black">
-              Bersepeda ke Kampus
-            </div>
-            <p className="text-[11px] text-[#636B60]">
-              15 menit • Setara ~1.200 langkah
-            </p>
-          </button>
+          <div className="p-5 rounded-[1.5rem] bg-[#FAF6F0] border border-[#EBE3D6] flex flex-col justify-between space-y-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0">
+                  <Bike className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#E8DDCF] text-[#2F3A2E]">
+                  +90 MET-m
+                </span>
+              </div>
 
-          {/* Action 3: Olahraga Sore / Futsal / Badminton */}
-          <button
-            type="button"
-            onClick={() => handleLogQuickActivity(2500, 180, "Olahraga Sore")}
-            className="p-4 rounded-2xl bg-[#FAF6F0] hover:bg-white border border-[#E8DDCF] hover:border-[#4A3B2C] transition-all text-left space-y-1.5 shadow-2xs group cursor-pointer"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xl">🏸</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#E8DDCF] text-[#2F3A2E]">
-                +180 MET-m
-              </span>
+              <div>
+                <div className="font-heading font-extrabold text-sm text-[#1D3127]">
+                  Bersepeda ke kampus
+                </div>
+                <p className="text-xs text-[#636B60] mt-0.5">
+                  15 menit &middot; setara &plusmn;1.200 langkah
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-0.5">
+                <div className="text-[11px] font-medium text-[#636B60]">Intensitas sedang</div>
+                <div className="w-full h-1.5 rounded-full bg-[#EAE2D6] overflow-hidden">
+                  <div className="h-full w-1/2 rounded-full bg-[#243B2E]" />
+                </div>
+              </div>
             </div>
-            <div className="font-heading font-extrabold text-xs text-[#2F3A2E] group-hover:text-black">
-              Futsal / Badminton / Jogging
+
+            <button
+              type="button"
+              onClick={() => handleLogQuickActivity(1200, 90, "Bersepeda ke Kampus")}
+              className="w-full py-2.5 px-4 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] text-[#2F3A2E] font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Catat</span>
+            </button>
+          </div>
+
+          {/* Action 3: Futsal, badminton, jogging */}
+          <div className="p-5 rounded-[1.5rem] bg-[#FAF6F0] border border-[#EBE3D6] flex flex-col justify-between space-y-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0">
+                  <Globe className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#E8DDCF] text-[#2F3A2E]">
+                  +180 MET-m
+                </span>
+              </div>
+
+              <div>
+                <div className="font-heading font-extrabold text-sm text-[#1D3127]">
+                  Futsal, badminton, jogging
+                </div>
+                <p className="text-xs text-[#636B60] mt-0.5">
+                  30 menit &middot; setara &plusmn;2.500 langkah
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-0.5">
+                <div className="text-[11px] font-medium text-[#636B60]">Intensitas berat</div>
+                <div className="w-full h-1.5 rounded-full bg-[#EAE2D6] overflow-hidden">
+                  <div className="h-full w-full rounded-full bg-[#243B2E]" />
+                </div>
+              </div>
             </div>
-            <p className="text-[11px] text-[#636B60]">
-              30 menit • Setara ~2.500 langkah
-            </p>
-          </button>
+
+            <button
+              type="button"
+              onClick={() => handleLogQuickActivity(2500, 180, "Olahraga Sore")}
+              className="w-full py-2.5 px-4 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] text-[#2F3A2E] font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Catat</span>
+            </button>
+          </div>
         </div>
+
+        <p className="text-xs text-[#636B60]">
+          Nilai MET-menit otomatis masuk ke poin energi di penghitung langkah.
+        </p>
       </div>
     </div>
   );

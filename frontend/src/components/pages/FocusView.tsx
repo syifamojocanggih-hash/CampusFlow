@@ -13,8 +13,11 @@ import {
   Eye,
   Clock,
   Check,
-  Target,
   ShieldCheck,
+  CloudRain,
+  Waves,
+  AudioLines,
+  Coffee,
 } from "lucide-react";
 import { VisionGuard } from "@/components/vision/VisionGuard";
 import { useOsScreenTime } from "@/utils/screenTimeTracker";
@@ -327,54 +330,116 @@ export const FocusView: React.FC = () => {
   const completedTaskCount = tasks.filter((t) => t.isCompleted).length;
   const activeTask = tasks.find((t) => t.id === activeTaskId);
 
-  const radius = 105;
+  const radius = 102;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - progressPct / 100);
+  const progressAngleRad = ((progressPct / 100) * 360 - 90) * (Math.PI / 180);
+  const knobX = 125 + radius * Math.cos(progressAngleRad);
+  const knobY = 125 + radius * Math.sin(progressAngleRad);
+  const dailySessionTarget = Math.max(6, completedBouts + 1);
 
   return (
     <div className="w-full space-y-6 pb-12 font-sans">
       {/* ========================================================
           1. TOP PAGE HEADER
           ======================================================== */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#2F3A2E] tracking-tight">
-            Workstation Belajar &amp; Jeda
-          </h1>
-          <p className="text-xs sm:text-sm text-[#636B60] mt-1">
-            Fokus menyelesaikan satu tugas dalam satu waktu, diselingi jeda restoratif ergonomis.
-          </p>
-        </div>
-
-        {/* Live Active Target Pill */}
-        {activeTask && (
-          <div className="inline-flex items-center gap-2 bg-[#E8DDCF] border border-[#E8DDCF] px-3.5 py-1.5 rounded-2xl shadow-2xs self-start sm:self-auto">
-            <Target className="w-3.5 h-3.5 text-[#2F3A2E]" />
-            <div className="text-xs">
-              <span className="text-[#636B60] font-semibold">Target Aktif: </span>
-              <strong className="text-[#2F3A2E] font-extrabold truncate max-w-[200px] sm:max-w-[260px] inline-block align-bottom">
-                {activeTask.text}
-              </strong>
-            </div>
-          </div>
-        )}
+      <div>
+        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1D3127] tracking-tight">
+          Workstation Belajar &amp; Jeda
+        </h1>
+        <p className="text-xs sm:text-sm text-[#636B60] mt-1">
+          Fokus menyelesaikan satu tugas dalam satu waktu, diselingi jeda restoratif ergonomis.
+        </p>
       </div>
 
       {/* ========================================================
           2. MAIN FOCUS WORKSTATION CARD
           ======================================================== */}
-      <div className="bg-white rounded-[1.75rem] p-6 sm:p-8 shadow-xs border border-[#E8DDCF] space-y-6">
-        {/* Top Control Bar of Card */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#E8DDCF] pb-4">
-          <div className="flex items-center gap-2">
-            <span className="font-heading text-sm font-bold tracking-wide text-[#2F3A2E] uppercase">
-              SESI FOKUS KE-{completedBouts + 1}
-            </span>
+      <div className="relative overflow-hidden rounded-[2rem] p-6 sm:p-8 border border-[#C9D6C0] bg-gradient-to-br from-[#DCE5D5] via-[#D6E1CE] to-[#CBD8C2] shadow-[0_10px_30px_-10px_rgba(47,58,46,0.12)] space-y-7">
+        {/* Decorative Soft Layered Waves (Bottom Background) */}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 900 220"
+          preserveAspectRatio="none"
+          className="pointer-events-none select-none absolute inset-x-0 bottom-0 w-full h-44 sm:h-52 z-0"
+        >
+          <path
+            d="M0,105 C210,55 420,145 660,95 C760,74 840,85 900,102 L900,220 L0,220 Z"
+            fill="#EFF4EB"
+            fillOpacity="0.45"
+          />
+          <path
+            d="M0,150 C240,115 470,180 720,138 C800,124 860,130 900,140 L900,220 L0,220 Z"
+            fill="#B7C9AD"
+            fillOpacity="0.32"
+          />
+        </svg>
+
+        {/* Upper Two-Column Hero Section: Circular Timer + Controls */}
+        <div className="relative z-10 flex flex-col lg:flex-row items-center gap-7 lg:gap-10">
+          {/* LEFT: Circular Countdown Progress Disc */}
+          <div className="relative w-64 h-64 sm:w-[272px] sm:h-[272px] shrink-0 rounded-full bg-[#FCFBF8] shadow-[0_14px_34px_-10px_rgba(47,58,46,0.16)] p-2 flex items-center justify-center">
+            <svg
+              className="w-full h-full select-none pointer-events-none"
+              viewBox="0 0 250 250"
+            >
+              <circle
+                cx="125"
+                cy="125"
+                r={radius}
+                fill="none"
+                stroke="#E7E2D8"
+                strokeWidth="12"
+              />
+              <circle
+                cx="125"
+                cy="125"
+                r={radius}
+                fill="none"
+                stroke="#243B2E"
+                strokeWidth="12"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                transform="rotate(-90 125 125)"
+                className="transition-all duration-500 ease-linear"
+              />
+              {/* Endpoint Amber Progress Knob */}
+              <circle
+                cx={knobX}
+                cy={knobY}
+                r="7.5"
+                fill="#E8A92B"
+                stroke="#FCFBF8"
+                strokeWidth="3.5"
+                className="transition-all duration-500 ease-linear"
+              />
+            </svg>
+
+            {/* Inner Center Display */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 select-none">
+              <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6B766A]">
+                Sisa Waktu
+              </span>
+              <span className="font-heading font-extrabold text-5xl sm:text-[3.35rem] text-[#1D3127] tracking-tight tabular-nums leading-none mt-2">
+                {formatTimer(secondsRemaining)}
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center flex-wrap gap-2">
+          {/* RIGHT: Session Header, Presets, Action Controls & Daily Dots */}
+          <div className="flex-1 min-w-0 w-full flex flex-col items-center lg:items-start text-center lg:text-left space-y-4">
+            <div className="space-y-1.5">
+              <span className="font-heading text-xs font-bold tracking-[0.1em] text-[#4C5C4E] uppercase block">
+                SESI FOKUS KE-{completedBouts + 1}
+              </span>
+              <h2 className="font-heading font-extrabold text-2xl sm:text-[1.75rem] text-[#1D3127] leading-snug tracking-tight max-w-xl">
+                {activeTask ? activeTask.text : "Tetap di sini, satu langkah lagi."}
+              </h2>
+            </div>
+
             {/* Preset Duration Switcher */}
-            <div className="bg-[#FAF6F0] p-1 rounded-2xl flex items-center gap-1 border border-[#E8DDCF]">
+            <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-1 bg-[#F9F7F3]/95 p-1.5 rounded-full border border-white/85 shadow-2xs">
               <button
                 type="button"
                 onClick={() => {
@@ -386,10 +451,10 @@ export const FocusView: React.FC = () => {
                     "Waktu Sesi Fokus (15 Detik Mode Uji) Habis — Wajib Peregangan Aktif"
                   );
                 }}
-                className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-1.5 rounded-full text-xs transition-all cursor-pointer ${
                   sessionDurationMins === 0.25
-                    ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold shadow-2xs border border-[#BCC8AE]"
-                    : "text-[#636B60] hover:text-[#2F3A2E]"
+                    ? "bg-[#CFDACA] text-[#1D3127] font-extrabold shadow-2xs"
+                    : "text-[#526053] hover:text-[#1D3127] font-semibold"
                 }`}
                 title="Klik lalu pindah ke tab/aplikasi lain. Dalam 15 detik layar otomatis ditarik kembali ke sini."
               >
@@ -398,10 +463,10 @@ export const FocusView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleSelectPreset(25)}
-                className={`px-3.5 py-1 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-1.5 rounded-full text-xs transition-all cursor-pointer ${
                   sessionDurationMins === 25
-                    ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold shadow-2xs border border-[#BCC8AE]"
-                    : "text-[#636B60] hover:text-[#2F3A2E]"
+                    ? "bg-[#CFDACA] text-[#1D3127] font-extrabold shadow-2xs"
+                    : "text-[#526053] hover:text-[#1D3127] font-semibold"
                 }`}
               >
                 25 menit
@@ -409,104 +474,86 @@ export const FocusView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleSelectPreset(50)}
-                className={`px-3.5 py-1 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-1.5 rounded-full text-xs transition-all cursor-pointer ${
                   sessionDurationMins === 50
-                    ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold shadow-2xs border border-[#BCC8AE]"
-                    : "text-[#636B60] hover:text-[#2F3A2E]"
+                    ? "bg-[#CFDACA] text-[#1D3127] font-extrabold shadow-2xs"
+                    : "text-[#526053] hover:text-[#1D3127] font-semibold"
                 }`}
               >
                 50 menit
               </button>
             </div>
 
-            {/* Privacy Camera Status Badge / Trigger Active Break */}
-            <button
-              type="button"
-              onClick={() =>
-                void osScreenLock.triggerLock(
-                  "Sesi Jeda Aktif Dimulai — Selesaikan 3 Repetisi Peregangan"
-                )
-              }
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-xs font-bold text-[#2F3A2E] transition-colors border border-[#CFD8C4]"
-              title="Kunci layar level OS sekarang dan mulai peregangan 2 menit dengan validasi MediaPipe on-device."
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Mulai Jeda &amp; Kunci Layar</span>
-            </button>
-          </div>
-        </div>
+            {/* Action Control Buttons */}
+            <div className="flex items-center justify-center lg:justify-start flex-wrap gap-2.5 pt-0.5">
+              <button
+                type="button"
+                onClick={() => setIsTimerRunning(!isTimerRunning)}
+                className="py-2.5 px-6 rounded-full bg-[#243B2E] hover:bg-[#1B2E23] text-white font-bold text-xs sm:text-sm transition-all shadow-sm active:scale-95 flex items-center gap-2 cursor-pointer"
+              >
+                {isTimerRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                <span>{isTimerRunning ? "Jeda Sesi" : "Lanjutkan Sesi"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleResetTimer}
+                className="py-2.5 px-5 rounded-full bg-[#FBF9F5] hover:bg-white text-[#1D3127] font-bold text-xs sm:text-sm transition-colors active:scale-95 flex items-center gap-2 border border-white/90 shadow-2xs cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4 text-[#4C5C4E]" />
+                <span>Reset</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  void osScreenLock.triggerLock(
+                    "Sesi Jeda Aktif Dimulai — Selesaikan 3 Repetisi Peregangan"
+                  )
+                }
+                className="py-2.5 px-5 rounded-full bg-[#E8DCD0] hover:bg-[#DFD0C0] text-[#2F3A2E] font-bold text-xs sm:text-sm transition-colors active:scale-95 flex items-center gap-2 border border-[#DDD0C1] shadow-2xs cursor-pointer"
+                title="Kunci layar level OS sekarang dan mulai peregangan 2 menit dengan validasi MediaPipe on-device."
+              >
+                <ShieldCheck className="w-4 h-4 text-[#2F3A2E]" />
+                <span>Mulai Jeda &amp; Kunci Layar</span>
+              </button>
+            </div>
 
-        {/* Circular Countdown Progress Timer (Centered) */}
-        <div className="flex flex-col items-center justify-center my-3 sm:my-6">
-          <div className="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center">
-            <svg
-              className="w-full h-full -rotate-90 select-none pointer-events-none"
-              viewBox="0 0 250 250"
-            >
-              <circle
-                cx="125"
-                cy="125"
-                r={radius}
-                fill="none"
-                stroke="#E8DDCF"
-                strokeWidth="11"
-              />
-              <circle
-                cx="125"
-                cy="125"
-                r={radius}
-                fill="none"
-                stroke="#2F3A2E"
-                strokeWidth="11"
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                className="transition-all duration-500 ease-linear"
-              />
-            </svg>
-
-            {/* Inner Center Display */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 select-none">
-              <span className="font-heading font-extrabold text-5xl sm:text-6xl text-[#2F3A2E] tracking-tight tabular-nums leading-none">
-                {formatTimer(secondsRemaining)}
-              </span>
-              <span className="text-xs sm:text-[13px] text-[#636B60] mt-3 font-medium max-w-[200px] truncate">
-                {activeTask ? activeTask.text : "Tetap di sini, satu langkah lagi."}
+            {/* Daily Session Progress Dots */}
+            <div className="flex items-center gap-2.5 pt-1">
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: dailySessionTarget }).map((_, idx) => {
+                  const isDone = idx < completedBouts;
+                  const isCurrent = idx === completedBouts;
+                  return (
+                    <span
+                      key={idx}
+                      className={`w-2.5 h-2.5 rounded-full transition-all ${
+                        isDone
+                          ? "bg-[#243B2E]"
+                          : isCurrent
+                          ? "border-[1.5px] border-dashed border-[#4C6352]"
+                          : "bg-[#B7C7AF]"
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+              <span className="text-xs font-semibold text-[#47594A]">
+                {completedBouts} dari {dailySessionTarget} sesi harian selesai
               </span>
             </div>
           </div>
         </div>
 
-        {/* Action Control Buttons */}
-        <div className="flex items-center justify-center gap-3 pt-1">
-          <button
-            type="button"
-            onClick={() => setIsTimerRunning(!isTimerRunning)}
-            className="py-3 px-8 rounded-2xl bg-[#CFD8C4] hover:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] font-extrabold text-xs sm:text-sm transition-all shadow-softPill active:scale-95 flex items-center gap-2"
-          >
-            {isTimerRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            <span>{isTimerRunning ? "Jeda Sesi" : "Lanjutkan Sesi"}</span>
-          </button>
-          <button
-            type="button"
-            onClick={handleResetTimer}
-            className="py-3 px-6 rounded-2xl bg-[#FAF6F0] hover:bg-[#CFD8C4] text-[#2F3A2E] font-bold text-xs sm:text-sm transition-colors active:scale-95 flex items-center gap-1.5 border border-[#E8DDCF]"
-          >
-            <RotateCcw className="w-4 h-4 text-[#636B60]" />
-            <span>Reset</span>
-          </button>
-        </div>
-
-        {/* Study Soundscapes Mini-Bar */}
-        <div className="bg-[#FAF6F0] rounded-2xl p-3.5 border border-[#E8DDCF] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5">
+        {/* Study Soundscapes Embedded Card */}
+        <div className="relative z-10 bg-[#FCFBF8]/95 backdrop-blur-xs rounded-[1.5rem] p-4 sm:p-5 border border-white/90 shadow-xs space-y-4">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={handleToggleAudio}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0 cursor-pointer ${
                 isAudioPlaying
-                  ? "bg-[#CFD8C4] text-[#2F3A2E] shadow-xs"
-                  : "bg-white border border-[#E8DDCF] text-[#636B60] hover:text-[#2F3A2E]"
+                  ? "bg-[#CFDACA] text-[#1D3127] shadow-2xs"
+                  : "bg-[#FAF6F0] border border-[#E6DFD4] text-[#526053] hover:text-[#1D3127]"
               }`}
               title={isAudioPlaying ? "Hentikan Suara Ambience" : "Putar Suara Ambience"}
             >
@@ -514,46 +561,49 @@ export const FocusView: React.FC = () => {
             </button>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-heading font-extrabold text-[#2F3A2E]">
+                <span className="font-heading font-extrabold text-sm text-[#1D3127]">
                   Suara Ambience Belajar
                 </span>
                 {isAudioPlaying && (
                   <span className="flex items-center gap-0.5">
-                    <span className="w-1 h-3 bg-[#CFD8C4] rounded-full animate-pulse" />
-                    <span className="w-1 h-4 bg-[#CFD8C4] rounded-full animate-pulse delay-75" />
-                    <span className="w-1 h-2 bg-[#CFD8C4] rounded-full animate-pulse delay-150" />
+                    <span className="w-1 h-3 bg-[#4E8B57] rounded-full animate-pulse" />
+                    <span className="w-1 h-4 bg-[#4E8B57] rounded-full animate-pulse delay-75" />
+                    <span className="w-1 h-2 bg-[#4E8B57] rounded-full animate-pulse delay-150" />
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-[#636B60]">
+              <p className="text-xs text-[#636B60]">
                 Audio sintesis lokal santai untuk meredam kebisingan sekitar.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            {[
-              { key: "rain", label: "🌧️ Hujan", desc: "Pink Noise" },
-              { key: "alpha", label: "🌊 Gelombang 432Hz", desc: "Binaural" },
-              { key: "white", label: "📻 White Noise", desc: "Fokus" },
-              { key: "cafe", label: "☕ Kafe Kampus", desc: "Brown Noise" },
-            ].map((snd) => (
-              <button
-                key={snd.key}
-                type="button"
-                onClick={() => handleChangeSoundType(snd.key as "rain" | "alpha" | "white" | "cafe")}
-                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
-                  soundscapeType === snd.key
-                    ? "bg-[#CFD8C4] text-[#2F3A2E] border border-[#BCC8AE] shadow-2xs font-extrabold"
-                    : "bg-white border border-[#E8DDCF] text-[#636B60] hover:text-[#2F3A2E]"
-                }`}
-              >
-                {snd.label}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              {[
+                { key: "rain", label: "Hujan", icon: <CloudRain className="w-3.5 h-3.5" /> },
+                { key: "alpha", label: "Gelombang 432Hz", icon: <Waves className="w-3.5 h-3.5" /> },
+                { key: "white", label: "White Noise", icon: <AudioLines className="w-3.5 h-3.5" /> },
+                { key: "cafe", label: "Kafe Kampus", icon: <Coffee className="w-3.5 h-3.5" /> },
+              ].map((snd) => (
+                <button
+                  key={snd.key}
+                  type="button"
+                  onClick={() => handleChangeSoundType(snd.key as "rain" | "alpha" | "white" | "cafe")}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs transition-all cursor-pointer ${
+                    soundscapeType === snd.key
+                      ? "bg-[#CFDACA] text-[#1D3127] border border-[#BDCBB7] shadow-2xs font-bold"
+                      : "bg-white border border-[#E6DFD4] text-[#3B4A3E] hover:bg-[#FAF6F0] font-semibold"
+                  }`}
+                >
+                  {snd.icon}
+                  <span>{snd.label}</span>
+                </button>
+              ))}
+            </div>
 
-            {/* Volume slider */}
-            <div className="flex items-center gap-1.5 pl-2">
+            {/* Volume slider + percentage */}
+            <div className="flex items-center gap-2.5 pl-1">
               <input
                 type="range"
                 min="0.05"
@@ -561,9 +611,12 @@ export const FocusView: React.FC = () => {
                 step="0.05"
                 value={audioVolume}
                 onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                className="w-16 accent-[#2F3A2E] h-1.5 bg-[#E8DDCF] rounded cursor-pointer"
+                className="w-24 sm:w-28 accent-[#243B2E] h-1.5 bg-[#E6E0D6] rounded-full cursor-pointer"
                 title={`Volume: ${Math.round(audioVolume * 100)}%`}
               />
+              <span className="text-xs font-bold text-[#2F3A2E] tabular-nums w-9 text-right">
+                {Math.round(audioVolume * 100)}%
+              </span>
             </div>
           </div>
         </div>

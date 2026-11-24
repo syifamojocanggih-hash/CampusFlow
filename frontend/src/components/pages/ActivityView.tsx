@@ -64,30 +64,86 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
     });
   }, [completedDates]);
 
+  const weeklyConsistencyCard = (
+    <div className="learnova-card p-5 sm:p-6 border-[#E8DDCF] space-y-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[#E8DDCF] pb-2.5">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-[#2F3A2E]" />
+          <h3 className="font-heading font-extrabold text-sm sm:text-base text-[#2F3A2E]">
+            Konsistensi Kebiasaan Sehat Pekan Ini
+          </h3>
+        </div>
+        <span className="text-[11px] text-[#636B60]">
+          Konsistensi Anda menjaga status maskot <strong>Mimi</strong> berkembang pesat.
+        </span>
+      </div>
+
+      {/* 7-Day Strip */}
+      <div className="grid grid-cols-7 gap-1.5 sm:gap-3">
+        {weekDays.map((item) => (
+          <div
+            key={item.day}
+            className={`p-2.5 rounded-2xl text-center border transition-all ${
+              item.isToday
+                ? "bg-[#CFD8C4]/30 border-[#BCC8AE] shadow-2xs scale-102"
+                : item.isCompleted
+                ? "bg-[#CFD8C4]/20 border-[#CFD8C4]"
+                : "bg-[#FAF6F0] border-[#E8DDCF]"
+            }`}
+          >
+            <div className="text-[10px] sm:text-xs font-bold text-[#636B60]">
+              {item.day}
+            </div>
+            <div className="text-[11px] sm:text-xs font-extrabold text-[#2F3A2E] my-0.5">
+              {item.date.split(" ")[0]}
+            </div>
+            <div className="flex justify-center mt-1">
+              {item.isCompleted ? (
+                <span className="w-5 h-5 rounded-full bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center text-[10px] font-extrabold">
+                  ✓
+                </span>
+              ) : (
+                <span className="w-5 h-5 rounded-full border border-dashed border-[#E8DDCF] text-[9px] text-[#636B60] flex items-center justify-center font-medium">
+                  &bull;
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6 w-full pb-10">
-      {/* Header Banner */}
-      <div className="learnova-card p-6 border-[#E8DDCF] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
-            {subTab === "pedometer" ? (
-              <Footprints className="w-6 h-6" />
-            ) : (
-              <ClipboardCheck className="w-6 h-6" />
-            )}
-          </div>
-          <div>
-            <h2 className="font-heading font-extrabold text-xl text-[#2F3A2E]">
-              {subTab === "pedometer"
-                ? "Aktivitas Fisik & Penghitung Langkah"
-                : "Kuis Kebugaran & Evaluasi Stres"}
-            </h2>
-            <p className="text-xs text-[#636B60] mt-0.5">
-              {subTab === "pedometer"
-                ? "Hitung langkah harian otomatis menggunakan sensor HP saat Anda berjalan di kampus."
-                : "Catat waktu tidur, waktu layar santai, dan tingkat stres untuk rekomendasi dari AI Coach."}
-            </p>
-          </div>
+      {/* Compact Top Bar: Sub-Tab Switcher & Streak Pill */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 p-1.5 bg-[#FAF6F0] rounded-2xl w-fit border border-[#E8DDCF]">
+          <button
+            type="button"
+            onClick={() => setSubTab("pedometer")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              subTab === "pedometer"
+                ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold shadow-sm border border-[#BCC8AE]"
+                : "text-[#636B60] hover:text-[#2F3A2E] hover:bg-white/60"
+            }`}
+          >
+            <Footprints className="w-4 h-4" />
+            <span>Aktivitas &amp; Pedometer</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubTab("checkin")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              subTab === "checkin"
+                ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold shadow-sm border border-[#BCC8AE]"
+                : "text-[#636B60] hover:text-[#2F3A2E] hover:bg-white/60"
+            }`}
+          >
+            <ClipboardCheck className="w-4 h-4" />
+            <span>Kuis Evaluasi Diri</span>
+          </button>
         </div>
 
         {/* Streak Pill */}
@@ -97,92 +153,15 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
         </div>
       </div>
 
-      {/* SUPPORTING FEATURE: KALENDER STRIP KONSISTENSI 7 HARI */}
-      <div className="learnova-card p-5 sm:p-6 border-[#E8DDCF] space-y-3.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[#E8DDCF] pb-2.5">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#2F3A2E]" />
-            <h3 className="font-heading font-extrabold text-sm sm:text-base text-[#2F3A2E]">
-              Konsistensi Kebiasaan Sehat Pekan Ini
-            </h3>
-          </div>
-          <span className="text-[11px] text-[#636B60]">
-            Konsistensi Anda menjaga status maskot <strong>Mimi</strong> berkembang pesat.
-          </span>
-        </div>
-
-        {/* 7-Day Strip */}
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-3">
-          {weekDays.map((item) => (
-            <div
-              key={item.day}
-              className={`p-2.5 rounded-2xl text-center border transition-all ${
-                item.isToday
-                  ? "bg-[#CFD8C4]/30 border-[#BCC8AE] shadow-2xs scale-102"
-                  : item.isCompleted
-                  ? "bg-[#CFD8C4]/20 border-[#CFD8C4]"
-                  : "bg-[#FAF6F0] border-[#E8DDCF]"
-              }`}
-            >
-              <div className="text-[10px] sm:text-xs font-bold text-[#636B60]">
-                {item.day}
-              </div>
-              <div className="text-[11px] sm:text-xs font-extrabold text-[#2F3A2E] my-0.5">
-                {item.date.split(" ")[0]}
-              </div>
-              <div className="flex justify-center mt-1">
-                {item.isCompleted ? (
-                  <span className="w-5 h-5 rounded-full bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center text-[10px] font-extrabold">
-                    ✓
-                  </span>
-                ) : (
-                  <span className="w-5 h-5 rounded-full border border-dashed border-[#E8DDCF] text-[9px] text-[#636B60] flex items-center justify-center font-medium">
-                    &bull;
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Segmented Sub-Tab Switcher (Keeps the page unified yet never crowded) */}
-      <div className="flex items-center gap-2 p-1.5 bg-[#FAF6F0] rounded-2xl w-fit border border-[#E8DDCF]">
-        <button
-          type="button"
-          onClick={() => setSubTab("pedometer")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-            subTab === "pedometer"
-              ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold shadow-sm border border-[#BCC8AE]"
-              : "text-[#636B60] hover:text-[#2F3A2E] hover:bg-white/60"
-          }`}
-        >
-          <Footprints className="w-4 h-4" />
-          <span>Aktivitas &amp; Pedometer</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setSubTab("checkin")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-            subTab === "checkin"
-              ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold shadow-sm border border-[#BCC8AE]"
-              : "text-[#636B60] hover:text-[#2F3A2E] hover:bg-white/60"
-          }`}
-        >
-          <ClipboardCheck className="w-4 h-4" />
-          <span>Kuis Evaluasi Diri</span>
-        </button>
-      </div>
-
-      {/* Active Module Content */}
+      {/* Primary Content at Top of Page */}
       <div className="transition-all duration-200">
         {subTab === "pedometer" ? (
-          <div>
-            <PedometerCard />
-          </div>
+          <PedometerCard afterMainCard={weeklyConsistencyCard} />
         ) : (
-          <CheckinView embedded={true} />
+          <div className="space-y-6">
+            <CheckinView embedded={true} />
+            {weeklyConsistencyCard}
+          </div>
         )}
       </div>
     </div>
