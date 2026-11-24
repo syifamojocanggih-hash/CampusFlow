@@ -367,11 +367,8 @@ export const FocusView: React.FC = () => {
         {/* Top Control Bar of Card */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#E8DDCF] pb-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold tracking-wider text-[#636B60] uppercase">
+            <span className="font-heading text-sm font-bold tracking-wide text-[#2F3A2E] uppercase">
               SESI FOKUS KE-{completedBouts + 1}
-            </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E8DDCF] text-[#2F3A2E]">
-              Pomodoro
             </span>
           </div>
 
@@ -564,7 +561,7 @@ export const FocusView: React.FC = () => {
                 step="0.05"
                 value={audioVolume}
                 onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                className="w-16 accent-[#4A3B2C] h-1.5 bg-[#E8DDCF] rounded cursor-pointer"
+                className="w-16 accent-[#2F3A2E] h-1.5 bg-[#E8DDCF] rounded cursor-pointer"
                 title={`Volume: ${Math.round(audioVolume * 100)}%`}
               />
             </div>
@@ -615,7 +612,7 @@ export const FocusView: React.FC = () => {
                     className={`w-5 h-5 rounded-lg flex items-center justify-center transition-colors border ${
                       task.isCompleted
                         ? "bg-[#CFD8C4] border-[#CFD8C4] text-[#2F3A2E]"
-                        : "border-[#E8DDCF] bg-white hover:border-[#4A3B2C]"
+                        : "border-[#E8DDCF] bg-white hover:border-[#2F3A2E]"
                     }`}
                   >
                     {task.isCompleted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -673,7 +670,7 @@ export const FocusView: React.FC = () => {
             value={newTaskInput}
             onChange={(e) => setNewTaskInput(e.target.value)}
             placeholder="Tambah tugas belajar baru..."
-            className="flex-1 px-3.5 py-2 rounded-xl text-xs sm:text-sm bg-[#FAF6F0] border border-[#E8DDCF] focus:outline-none focus:border-[#4A3B2C] text-[#2F3A2E]"
+            className="flex-1 px-3.5 py-2 rounded-xl text-xs sm:text-sm bg-[#FAF6F0] border border-[#E8DDCF] focus:outline-none focus:border-[#2F3A2E] text-[#2F3A2E]"
           />
           <select
             value={newTaskTag}

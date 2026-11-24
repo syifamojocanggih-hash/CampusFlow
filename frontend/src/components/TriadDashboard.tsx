@@ -923,19 +923,9 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
             <div className="w-9 h-9 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-xs">
               <Monitor className="w-4 h-4 text-[#2F3A2E]" />
             </div>
-            <div>
-              <p className="text-xs sm:text-sm font-bold text-[#2F3A2E] leading-tight">
-                Waktu Layar
-              </p>
-              <span className="text-[10px] font-bold text-[#636B60] flex items-center gap-1">
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    osScreenTime.isOsActive ? "bg-emerald-500 animate-pulse" : "bg-amber-400"
-                  }`}
-                />
-                Sensor Layar OS (Lintas App)
-              </span>
-            </div>
+            <p className="text-xs sm:text-sm font-bold text-[#2F3A2E] leading-tight">
+              Waktu Layar
+            </p>
           </div>
 
           <div className="flex items-baseline justify-between gap-2 flex-wrap">
@@ -968,15 +958,9 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               <div className="w-9 h-9 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-xs">
                 <Moon className="w-4 h-4 text-[#2F3A2E]" />
               </div>
-              <div>
-                <p className="text-xs sm:text-sm font-bold text-[#2F3A2E] leading-tight">
-                  Tidur Semalam
-                </p>
-                <span className="text-[10px] font-bold text-[#636B60] flex items-center gap-1">
-                  <Sparkles className="w-2.5 h-2.5 text-[#2F3A2E]" />
-                  {getSleepSourceLabel(autoSleep.source)}
-                </span>
-              </div>
+              <p className="text-xs sm:text-sm font-bold text-[#2F3A2E] leading-tight">
+                Tidur Semalam
+              </p>
             </div>
             <SlidersHorizontal className="w-3.5 h-3.5 text-[#636B60] group-hover:text-[#2F3A2E] transition-colors shrink-0" />
           </div>
@@ -1165,22 +1149,22 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                     <defs>
                       <linearGradient id="burnoutGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#F2D3D1" stopOpacity={0.7} />
-                        <stop offset="95%" stopColor="#F2D3D1" stopOpacity={0.05} />
+                        <stop offset="5%" stopColor="#2F3A2E" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#2F3A2E" stopOpacity={0.03} />
                       </linearGradient>
                       <linearGradient id="recoveryGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#CFD8C4" stopOpacity={0.7} />
+                        <stop offset="5%" stopColor="#7A946E" stopOpacity={0.48} />
                         <stop offset="95%" stopColor="#CFD8C4" stopOpacity={0.05} />
                       </linearGradient>
                     </defs>
                     <XAxis
                       dataKey="logDate"
-                      tick={{ fontSize: 10, fill: "#746252" }}
+                      tick={{ fontSize: 10, fill: "#636B60" }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fontSize: 10, fill: "#746252" }}
+                      tick={{ fontSize: 10, fill: "#636B60" }}
                       axisLine={false}
                       tickLine={false}
                       domain={[0, 100]}
@@ -1188,19 +1172,19 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "#FFFFFF",
-                        color: "#4A3B2C",
+                        color: "#2F3A2E",
                         borderRadius: "16px",
-                        border: "1px solid #CBB6A2",
+                        border: "1px solid #CFD8C4",
                         fontSize: "11px",
-                        boxShadow: "0 8px 20px -4px rgba(26,26,26,0.08)",
+                        boxShadow: "0 8px 20px -4px rgba(47,58,46,0.12)",
                       }}
                     />
                     <Area
                       type="monotone"
                       dataKey="burnoutIndex"
                       name="Burnout Index"
-                      stroke="#F2D3D1"
-                      strokeWidth={2}
+                      stroke="#2F3A2E"
+                      strokeWidth={2.5}
                       fillOpacity={1}
                       fill="url(#burnoutGradient)"
                     />
@@ -1208,8 +1192,8 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       type="monotone"
                       dataKey="recoveryScore"
                       name="Skor Pemulihan"
-                      stroke="#B0CCDA"
-                      strokeWidth={2}
+                      stroke="#7A946E"
+                      strokeWidth={2.5}
                       fillOpacity={1}
                       fill="url(#recoveryGradient)"
                     />
@@ -1218,13 +1202,13 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
               </div>
             </div>
 
-            <div className="pt-3 border-t border-[#E8DDCF] flex items-center justify-center gap-5 text-xs font-semibold text-[#2F3A2E] mt-4">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#E8DDCF]" />
+            <div className="pt-3 border-t border-[#E8DDCF] flex items-center justify-start gap-5 text-xs font-semibold text-[#2F3A2E] mt-4">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-[#2F3A2E] shrink-0" />
                 <span>Burnout Index</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#E8DDCF]" />
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-[#7A946E] shrink-0" />
                 <span>Skor Pemulihan</span>
               </div>
             </div>
@@ -1350,7 +1334,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                     }}
                     className={`p-7 border-2 border-dashed rounded-2xl text-center space-y-3 transition-all cursor-pointer ${
                       isDragOverKrs
-                        ? "border-[#4A3B2C] bg-[#CFD8C4]/30 scale-[1.01]"
+                        ? "border-[#2F3A2E] bg-[#CFD8C4]/30 scale-[1.01]"
                         : "border-[#CFD8C4] bg-[#FAF6F0] hover:border-[#CFD8C4]"
                     }`}
                   >
@@ -1628,7 +1612,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 divide-y divide-[#E7DCCF]">
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 divide-y divide-[#E8DDCF]">
                     {schedules.map((item, idx) => (
                       <div
                         key={item.id || `${item.subjectName}-${item.dayOfWeek}-${idx}`}

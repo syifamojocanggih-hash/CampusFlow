@@ -41,7 +41,7 @@ export const DesktopSidebar: React.FC<NavbarProps> = ({
       <div className="space-y-6">
         {/* Brand Header */}
         <div className="flex items-center gap-3 px-2">
-          <div className="w-10 h-10 rounded-2xl bg-[#CFD8C4] flex items-center justify-center text-[#2F3A2E] shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-[#CFD8C4] flex items-center justify-center text-[#2F3A2E] shadow-xs">
             <GraduationCap className="w-6 h-6" />
           </div>
           <div>
@@ -59,7 +59,7 @@ export const DesktopSidebar: React.FC<NavbarProps> = ({
               <button
                 key={item.key}
                 onClick={() => onSelectTab(item.key)}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-semibold transition-all duration-200 text-left ${
+                className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all duration-200 text-left ${
                   isActive
                     ? "bg-[#CFD8C4] text-[#2F3A2E] font-extrabold shadow-xs border border-[#BCC8AE]"
                     : "text-[#636B60] hover:text-[#2F3A2E] hover:bg-[#FAF6F0]"
