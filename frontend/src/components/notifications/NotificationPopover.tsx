@@ -11,6 +11,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { TabKey } from "@/types";
+import { api } from "@/lib/api";
 
 export interface NotificationItem {
   id: string;
@@ -23,48 +24,37 @@ export interface NotificationItem {
   actionTab?: TabKey;
 }
 
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: "notif-1",
-    title: "Saatnya Peregangan 2 Menit!",
-    message: "Kamu sudah fokus di depan layar cukup lama. Istirahatkan leher dan lakukan Overhead Reach.",
-    category: "break",
-    time: "5 menit lalu",
-    isRead: false,
-    actionLabel: "Mulai Jeda Aktif",
-    actionTab: "focus",
-  },
-  {
-    id: "notif-2",
-    title: "Pekan Ujian Akhir Semester (UAS)",
-    message: "Jadwal ujian Interaksi Manusia & Komputer dalam 3 hari ke depan. Pastikan tidur cukup min. 7 jam.",
-    category: "academic",
-    time: "1 jam lalu",
-    isRead: false,
-    actionLabel: "Cek Dashboard",
-    actionTab: "dashboard",
-  },
-  {
-    id: "notif-3",
-    title: "Catatan dari Wellbeing AI Coach",
-    message: "Tidur semalam 6.5 jam. Luangkan tidur 30 menit lebih awal malam ini untuk menjaga daya tahan tubuh.",
-    category: "coach",
-    time: "3 jam lalu",
-    isRead: false,
-    actionLabel: "Buka AI Coach",
-    actionTab: "coach",
-  },
-  {
-    id: "notif-4",
-    title: "Bonus Streak Harian (+50 XP)",
-    message: "Hebat! Kamu telah mempertahankan konsistensi 5 hari berturut-turut bersama Mimi Streak Pet.",
-    category: "streak",
-    time: "Kemarin",
-    isRead: true,
-    actionLabel: "Lihat Profil",
-    actionTab: "profile",
-  },
+const VALID_CATEGORIES: ReadonlyArray<NotificationItem["category"]> = [
+  "break",
+  "academic",
+  "coach",
+  "streak",
+  "info",
 ];
+
+const VALID_TABS: ReadonlyArray<TabKey> = [
+  "dashboard",
+  "focus",
+  "activity",
+  "coach",
+  "history",
+  "profile",
+  "settings",
+  "vision-lab",
+];
+
+function formatRelativeTimeId(isoDate: string): string {
+  const ts = new Date(isoDate).getTime();
+  if (Number.isNaN(ts)) return "Hari ini";
+  const diffMins = Math.max(0, Math.floor((Date.now() - ts) / 60_000));
+  if (diffMins < 1) return "Baru saja";
+  if (diffMins < 60) return `${diffMins} menit lalu`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours} jam lalu`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return "Kemarin";
+  return `${diffDays} hari lalu`;
+}
 
 interface NotificationPopoverProps {
   isOpen: boolean;
@@ -80,26 +70,59 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
   onSelectTab,
   onUnreadCountChange,
 }) => {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
-    const saved = localStorage.getItem("cf_notifications");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        // fallback
-      }
-    }
-    return INITIAL_NOTIFICATIONS;
-  });
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  // Sync unread count to parent
+  const fetchNotifications = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await api.getNotifications();
+      const rawItems = Array.isArray(res?.data?.items) ? res.data.items : [];
+      const mapped: NotificationItem[] = rawItems.map((item) => {
+        const cat = VALID_CATEGORIES.includes(item.category as NotificationItem["category"])
+          ? (item.category as NotificationItem["category"])
+          : "info";
+        const tab =
+          item.actionTab && VALID_TABS.includes(item.actionTab as TabKey)
+            ? (item.actionTab as TabKey)
+            : undefined;
+        return {
+          id: item.id,
+          title: item.title,
+          message: item.message,
+          category: cat,
+          time: formatRelativeTimeId(item.createdAt),
+          isRead: Boolean(item.isRead),
+          actionLabel: item.actionLabel || undefined,
+          actionTab: tab,
+        };
+      });
+      setNotifications(mapped);
+      const count =
+        typeof res?.data?.unreadCount === "number"
+          ? res.data.unreadCount
+          : mapped.filter((n) => !n.isRead).length;
+      onUnreadCountChange(count);
+    } catch {
+      setNotifications([]);
+      onUnreadCountChange(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [onUnreadCountChange]);
+
+  // Load initial notifications on mount and refresh whenever popover opens
   useEffect(() => {
-    const unread = notifications.filter((n) => !n.isRead).length;
-    onUnreadCountChange(unread);
-    localStorage.setItem("cf_notifications", JSON.stringify(notifications));
-  }, [notifications, onUnreadCountChange]);
+    void fetchNotifications();
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    if (isOpen) {
+      void fetchNotifications();
+    }
+  }, [isOpen, fetchNotifications]);
 
   // Click outside listener
   useEffect(() => {
@@ -120,14 +143,28 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
   if (!isOpen) return null;
 
   const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-    );
+    setNotifications((prev) => {
+      const next = prev.map((n) => (n.id === id ? { ...n, isRead: true } : n));
+      onUnreadCountChange(next.filter((n) => !n.isRead).length);
+      return next;
+    });
+    void api.markNotificationRead(id).catch(() => {});
+  };
+
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    onUnreadCountChange(0);
+    void api.markAllNotificationsRead().catch(() => {});
   };
 
   const deleteNotification = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifications((prev) => {
+      const next = prev.filter((n) => n.id !== id);
+      onUnreadCountChange(next.filter((n) => !n.isRead).length);
+      return next;
+    });
+    void api.deleteNotification(id).catch(() => {});
   };
 
   const filteredNotifs = notifications;
@@ -172,9 +209,30 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
       ref={popoverRef}
       className="absolute right-0 top-12 z-50 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-[#E8DDCF] overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]"
     >
+      {/* Popover Header */}
+      <div className="px-4 py-3 border-b border-[#E8DDCF] bg-[#FAF6F0] flex items-center justify-between gap-2">
+        <span className="font-heading font-extrabold text-xs text-[#2F3A2E]">
+          Notifikasi &amp; Pengingat
+        </span>
+        {filteredNotifs.some((n) => !n.isRead) && (
+          <button
+            type="button"
+            onClick={markAllAsRead}
+            className="text-[11px] font-bold text-[#2F3A2E] hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            <CheckCheck className="w-3.5 h-3.5" />
+            <span>Tandai semua dibaca</span>
+          </button>
+        )}
+      </div>
+
       {/* Notification List Body */}
       <div className="p-2 space-y-1.5 overflow-y-auto max-h-[360px] divide-y divide-[#E7DCCF]">
-        {filteredNotifs.length === 0 ? (
+        {isLoading && filteredNotifs.length === 0 ? (
+          <div className="p-8 text-center text-xs text-[#636B60]">
+            Memuat notifikasi...
+          </div>
+        ) : filteredNotifs.length === 0 ? (
           <div className="p-8 text-center space-y-2 select-none">
             <div className="w-12 h-12 rounded-2xl bg-[#FAF6F0] text-[#636B60] mx-auto flex items-center justify-center">
               <CheckCheck className="w-6 h-6 text-[#2F3A2E]" />
@@ -218,6 +276,12 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                     <span className="w-2 h-2 rounded-full bg-[#CFD8C4] shrink-0" />
                   )}
                 </div>
+
+                {notif.message && (
+                  <p className="text-[11px] text-[#636B60] mt-1 leading-relaxed line-clamp-2">
+                    {notif.message}
+                  </p>
+                )}
 
                 <div className="flex items-center justify-between pt-1.5 mt-0.5">
                   <span className="text-[10px] text-[#636B60] flex items-center gap-1">

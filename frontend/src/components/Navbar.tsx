@@ -99,7 +99,7 @@ export const DesktopTopHeader: React.FC<{
   onSelectTab?: (tab: TabKey) => void;
 }> = ({ userName, onBackToLanding: _onBackToLanding, activeTab, onSelectTab }) => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [unreadNotifCount, setUnreadNotifCount] = useState(3);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
   return (
     <header className={`hidden lg:flex items-center justify-between ${activeTab === "dashboard" ? "pb-6 mb-2" : "pb-4 mb-2"}`}>
@@ -204,7 +204,7 @@ export const MobileHeader: React.FC<{
 }> = ({ userName, onBackToLanding, activeTab, onSelectTab }) => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [unreadNotifCount, setUnreadNotifCount] = useState(3);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
   return (
     <div className={`lg:hidden flex items-center justify-between relative z-30 ${activeTab === "dashboard" ? "pb-4" : "pb-3"}`}>

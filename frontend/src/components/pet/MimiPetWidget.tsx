@@ -15,6 +15,7 @@ import {
   PET_CHATS,
   PetMood,
 } from "./mimiSvg";
+import { api } from "@/lib/api";
 
 interface Particle {
   id: number;
@@ -28,13 +29,15 @@ const STORAGE_KEY = "campusflow_mimi_pet_state";
 const POS_KEY = "campusflow_mimi_pos";
 
 export const MimiPetWidget: React.FC = () => {
-  // 1. Persistent Pet State
+  // 1. Persistent Pet State (Starts at 0 for fresh accounts, synced live from MySQL)
   const [streak, setStreak] = useState<number>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved).streak ?? 6;
+      if (saved && typeof JSON.parse(saved).streak === "number") {
+        return JSON.parse(saved).streak;
+      }
     } catch {}
-    return 6;
+    return 0;
   });
 
   const [questsDone, setQuestsDone] = useState<[boolean, boolean, boolean]>(() => {
@@ -44,6 +47,25 @@ export const MimiPetWidget: React.FC = () => {
     } catch {}
     return [false, false, false];
   });
+
+  // Sinkronkan streak & progres misi harian Mimi secara live dari database MySQL
+  useEffect(() => {
+    api
+      .getDailySummary()
+      .then((res) => {
+        const d = res?.data;
+        if (!d) return;
+        if (typeof d.user?.currentStreakDays === "number") {
+          setStreak(d.user.currentStreakDays);
+        }
+        setQuestsDone((prev) => [
+          prev[0] || Boolean(d.wellbeing?.checkedInToday),
+          prev[1] || (d.activeBreaks?.verifiedCount ?? 0) > 0,
+          prev[2] || (d.activity?.steps ?? 0) >= 1500 || (d.activity?.mvpaMinutes ?? 0) >= 15,
+        ]);
+      })
+      .catch(() => {});
+  }, []);
 
   const [freeze, setFreeze] = useState<number>(() => {
     try {

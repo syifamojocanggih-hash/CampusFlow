@@ -259,6 +259,101 @@ class ApiClient {
     return this.request<TriadDashboardResponse>(`/dashboard/triad?days=${days}`);
   }
 
+  async getDailySummary(): Promise<{
+    data: {
+      logDate: string;
+      dayOfWeek: number;
+      user: {
+        id: string;
+        name: string;
+        nim?: string | null;
+        email: string;
+        department?: string | null;
+        weeklyMetsTarget: number;
+        targetRecoveryScore: number;
+        currentStreakDays: number;
+        xpPoints: number;
+      };
+      burnout: {
+        totalScreenTimeMins: number;
+        sleepHours: number;
+        academicLoadScore: number;
+        screenFatigueScore: number;
+        recoveryScore: number;
+        verifiedBreakCount: number;
+        burnoutIndex: number;
+        status: "LOW" | "MODERATE" | "HIGH";
+      };
+      academic: {
+        courseCount: number;
+        totalSks: number;
+        hasExamWeek: boolean;
+        schedules: AcademicScheduleDTO[];
+      };
+      activity: {
+        steps: number;
+        totalMets: number;
+        mvpaMinutes: number;
+        sessionsCount: number;
+      };
+      activeBreaks: {
+        totalCount: number;
+        verifiedCount: number;
+        items: unknown[];
+      };
+      wellbeing: {
+        checkedInToday: boolean;
+        sleepHours: number;
+        sleepQualityScore: number | null;
+        pss4TotalScore: number | null;
+        stressRiskLevel: string;
+      };
+      unreadNotifications: number;
+    };
+    meta: unknown;
+  }> {
+    if (USE_MOCK) {
+      return {
+        data: {
+          logDate: new Date().toISOString().slice(0, 10),
+          dayOfWeek: new Date().getDay() === 0 ? 7 : new Date().getDay(),
+          user: {
+            id: MOCK_USER.data.id,
+            name: MOCK_USER.data.name,
+            email: MOCK_USER.data.email,
+            weeklyMetsTarget: 600,
+            targetRecoveryScore: 80,
+            currentStreakDays: 0,
+            xpPoints: 0,
+          },
+          burnout: {
+            totalScreenTimeMins: 0,
+            sleepHours: 0,
+            academicLoadScore: 0,
+            screenFatigueScore: 0,
+            recoveryScore: 0,
+            verifiedBreakCount: 0,
+            burnoutIndex: 0,
+            status: "LOW",
+          },
+          academic: { courseCount: 0, totalSks: 0, hasExamWeek: false, schedules: [] },
+          activity: { steps: 0, totalMets: 0, mvpaMinutes: 0, sessionsCount: 0 },
+          activeBreaks: { totalCount: 0, verifiedCount: 0, items: [] },
+          wellbeing: {
+            checkedInToday: false,
+            sleepHours: 0,
+            sleepQualityScore: null,
+            pss4TotalScore: null,
+            stressRiskLevel: "LOW",
+          },
+          unreadNotifications: 0,
+        },
+        meta: { timestamp: new Date().toISOString(), version: "4.0" },
+      };
+    }
+    return this.request("/dashboard/daily-summary");
+  }
+
   // --- AI Coach ---
   async getAiCoachInsight(): Promise<AiCoachInsightResponse> {
     if (USE_MOCK) {
@@ -669,6 +764,47 @@ class ApiClient {
       };
     }
     return this.request(`/active-break/history?days=${days}`);
+  }
+
+  // --- In-App Contextual Notifications (MySQL UserNotification) ---
+  async getNotifications(): Promise<{
+    data: {
+      unreadCount: number;
+      items: Array<{
+        id: string;
+        category: string;
+        title: string;
+        message: string;
+        actionTab?: string | null;
+        actionLabel?: string | null;
+        isRead: boolean;
+        createdAt: string;
+      }>;
+    };
+    meta: unknown;
+  }> {
+    if (USE_MOCK) {
+      return {
+        data: { unreadCount: 0, items: [] },
+        meta: { timestamp: new Date().toISOString(), version: "v1.0" },
+      };
+    }
+    return this.request("/notifications");
+  }
+
+  async markNotificationRead(id: string): Promise<void> {
+    if (USE_MOCK) return;
+    await this.request(`/notifications/${id}/read`, { method: "PATCH" });
+  }
+
+  async markAllNotificationsRead(): Promise<void> {
+    if (USE_MOCK) return;
+    await this.request("/notifications/read-all", { method: "PATCH" });
+  }
+
+  async deleteNotification(id: string): Promise<void> {
+    if (USE_MOCK) return;
+    await this.request(`/notifications/${id}`, { method: "DELETE" });
   }
 
   // --- Web Push Notifications & Privacy ---

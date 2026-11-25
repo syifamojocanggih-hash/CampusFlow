@@ -117,8 +117,17 @@ class ScreenTimeTracker {
     const currentLocalSeconds = this.getTodayScreenTimeSeconds();
 
     try {
+      const headers: Record<string, string> = {};
+      if (typeof localStorage !== "undefined") {
+        const token = localStorage.getItem("cf_auth_token");
+        if (token && !token.startsWith("mock-jwt-")) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+      }
+
       const res = await fetch(
-        `${BASE_URL}/os-lock/screentime?clientSeconds=${currentLocalSeconds}`
+        `${BASE_URL}/os-lock/screentime?clientSeconds=${currentLocalSeconds}`,
+        { headers }
       );
       if (res.ok) {
         const json = (await res.json()) as {

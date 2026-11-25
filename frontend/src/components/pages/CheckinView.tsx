@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ClipboardCheck, Moon, Check, Smartphone, Activity, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
+import { screenTimeTracker } from "@/utils/screenTimeTracker";
 import {
   autoSleepTracker,
   useAutoSleep,
@@ -15,7 +16,9 @@ interface CheckinViewProps {
 export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) => {
   const autoSleep = useAutoSleep();
   const [sleepHours, setSleepHours] = useState<number | string>(autoSleep.sleepHours);
-  const [screenHours, setScreenHours] = useState<number | string>(4);
+  const [screenHours, setScreenHours] = useState<number | string>(() =>
+    screenTimeTracker.getTodayScreenTimeHours()
+  );
   const [answers, setAnswers] = useState<[number, number, number, number]>([3, 3, 3, 3]);
   const [submitted, setSubmitted] = useState(false);
 

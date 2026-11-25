@@ -21,6 +21,7 @@ import {
 import { VisionGuard } from "@/components/vision/VisionGuard";
 import { useOsScreenTime } from "@/utils/screenTimeTracker";
 import { osScreenLock, useOsScreenLock } from "@/utils/osScreenLock";
+import { api } from "@/lib/api";
 
 interface FocusTask {
   id: string;
@@ -29,40 +30,69 @@ interface FocusTask {
   tag: string;
 }
 
-const INITIAL_TASKS: FocusTask[] = [
-  {
-    id: "task-1",
-    text: "Laporan Praktikum Basis Data Terdistribusi (Modul 3)",
-    isCompleted: true,
-    tag: "Praktikum",
-  },
-  {
-    id: "task-2",
-    text: "Review Slide Kecerdasan Buatan & Algoritma Heuristik",
-    isCompleted: false,
-    tag: "Teori",
-  },
-  {
-    id: "task-3",
-    text: "Latihan Soal Ujian Pemrograman Web Lanjut",
-    isCompleted: false,
-    tag: "Ujian",
-  },
-];
+function getFocusTasksStorageKey(): string {
+  try {
+    const raw = localStorage.getItem("cf_user_profile");
+    if (raw) {
+      const parsed = JSON.parse(raw) as { id?: string };
+      if (parsed?.id) return `cf_focus_tasks_${parsed.id}`;
+    }
+  } catch {
+    // ignore
+  }
+  return "cf_focus_tasks_default";
+}
+
+function loadSavedFocusTasks(): FocusTask[] {
+  try {
+    const raw = localStorage.getItem(getFocusTasksStorageKey());
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed as FocusTask[];
+    }
+  } catch {
+    // ignore
+  }
+  return [];
+}
 
 export const FocusView: React.FC = () => {
   const osLock = useOsScreenLock();
-  // Focus Timer States (Default: 25 mins Pomodoro, starting at 18:42 for session 6)
+  // Focus Timer States (Clean default: 25:00 paused, completedBouts synced from MySQL)
   const [sessionDurationMins, setSessionDurationMins] = useState<number>(25);
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(18 * 60 + 42); // 18:42
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(true);
-  const [completedBouts, setCompletedBouts] = useState<number>(5);
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(25 * 60);
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
+  const [completedBouts, setCompletedBouts] = useState<number>(0);
+  const sessionStartRef = useRef<Date | null>(null);
 
   useEffect(() => {
     if (osLock.isLocked) {
       setIsActiveBreakOpen(false);
     }
   }, [osLock.isLocked]);
+
+  // Load today's real completed focus/sedentary sessions from MySQL
+  useEffect(() => {
+    const todayIso = new Date().toISOString().slice(0, 10);
+    api
+      .getSedentarySessions(1)
+      .then((res) => {
+        const list = Array.isArray(res?.data) ? res.data : [];
+        const todayCount = list.filter((s) => {
+          const rec = s as { startTime?: string };
+          return String(rec.startTime || "").startsWith(todayIso);
+        }).length;
+        setCompletedBouts(todayCount);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Track start time when user starts timer
+  useEffect(() => {
+    if (isTimerRunning && !sessionStartRef.current) {
+      sessionStartRef.current = new Date();
+    }
+  }, [isTimerRunning]);
 
   // OS-Level Screen Time State
   const osScreenTime = useOsScreenTime();
@@ -72,11 +102,22 @@ export const FocusView: React.FC = () => {
   const [isActiveBreakOpen, setIsActiveBreakOpen] = useState<boolean>(false);
   const [activeBreakSuccess, setActiveBreakSuccess] = useState<boolean>(false);
 
-  // 1. Task Checklist States
-  const [tasks, setTasks] = useState<FocusTask[]>(INITIAL_TASKS);
+  // 1. Task Checklist States (Per-user local persistence, starts empty for new users)
+  const [tasks, setTasks] = useState<FocusTask[]>(() => loadSavedFocusTasks());
   const [newTaskInput, setNewTaskInput] = useState<string>("");
   const [newTaskTag, setNewTaskTag] = useState<string>("Tugas");
-  const [activeTaskId, setActiveTaskId] = useState<string>("task-2");
+  const [activeTaskId, setActiveTaskId] = useState<string>(() => {
+    const initial = loadSavedFocusTasks();
+    return initial.find((t) => !t.isCompleted)?.id ?? initial[0]?.id ?? "";
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(getFocusTasksStorageKey(), JSON.stringify(tasks));
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [tasks]);
 
   // 2. Study Soundscapes (Web Audio API Synthesizer)
   const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
@@ -100,6 +141,27 @@ export const FocusView: React.FC = () => {
         if (prev <= 1) {
           setIsTimerRunning(false);
           setCompletedBouts((c) => c + 1);
+
+          const endTime = new Date();
+          const startTime =
+            sessionStartRef.current ??
+            new Date(endTime.getTime() - Math.max(1, Math.round(sessionDurationMins)) * 60_000);
+          sessionStartRef.current = null;
+
+          void api
+            .logSedentarySession({
+              startTime: startTime.toISOString(),
+              endTime: endTime.toISOString(),
+              durationMinutes: Math.max(1, Math.round(sessionDurationMins)),
+              slouchCount: 0,
+              tooCloseCount: 0,
+              avgNeckRatio: 1.0,
+              breakCompleted: false,
+              breakDurationMins: 0,
+              verificationSource: "MANUAL_LOG",
+            })
+            .catch(() => {});
+
           void osScreenLock.triggerLock(
             "Waktu Sesi Fokus & Screen Time Habis — Wajib Peregangan Aktif"
           );
@@ -110,7 +172,7 @@ export const FocusView: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isTimerRunning]);
+  }, [isTimerRunning, sessionDurationMins]);
 
   // Eye Break 20-Second Countdown Loop
   useEffect(() => {
@@ -638,7 +700,15 @@ export const FocusView: React.FC = () => {
 
         {/* Task List */}
         <div className="space-y-2">
-          {tasks.map((task) => {
+          {tasks.length === 0 ? (
+            <div className="p-6 rounded-2xl bg-[#FAF6F0] border border-dashed border-[#E8DDCF] text-center space-y-1">
+              <p className="text-xs font-bold text-[#2F3A2E]">Belum ada target tugas sesi ini</p>
+              <p className="text-[11px] text-[#636B60]">
+                Tambahkan tugas yang ingin kamu kerjakan melalui kolom di bawah sebelum memulai timer.
+              </p>
+            </div>
+          ) : (
+            tasks.map((task) => {
             const isSelected = activeTaskId === task.id;
             return (
               <div
@@ -704,7 +774,7 @@ export const FocusView: React.FC = () => {
                 </div>
               </div>
             );
-          })}
+          }))}
         </div>
 
         {/* Add New Task Form */}

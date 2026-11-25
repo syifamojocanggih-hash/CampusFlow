@@ -77,6 +77,9 @@ export const CoachView: React.FC<CoachViewProps> = () => {
   const [totalSks, setTotalSks] = useState<number>(0);
   const [totalCourses, setTotalCourses] = useState<number>(0);
   const [hasExamWeek, setHasExamWeek] = useState<boolean>(false);
+  const [verifiedBreakCount, setVerifiedBreakCount] = useState<number>(0);
+  const [todayMvpaMinutes, setTodayMvpaMinutes] = useState<number>(0);
+  const [todaySteps, setTodaySteps] = useState<number>(0);
   const [screenHours, setScreenHours] = useState<number>(() =>
     screenTimeTracker.getTodayScreenTimeHours()
   );
@@ -128,16 +131,28 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
   useEffect(() => {
     api
-      .getCurrentUser()
+      .getDailySummary()
       .then((res) => {
-        if (res?.data?.name) {
-          const firstName = res.data.name.split(" ")[0];
-          setUserName(firstName);
+        const d = res?.data;
+        if (!d) return;
+        if (d.user?.name) {
+          setUserName(d.user.name.split(" ")[0]);
+        }
+        if (typeof d.activeBreaks?.verifiedCount === "number") {
+          setVerifiedBreakCount(d.activeBreaks.verifiedCount);
+        }
+        if (typeof d.activity?.mvpaMinutes === "number") {
+          setTodayMvpaMinutes(d.activity.mvpaMinutes);
+        }
+        if (typeof d.activity?.steps === "number") {
+          setTodaySteps(d.activity.steps);
+        }
+        if (typeof d.burnout?.totalScreenTimeMins === "number" && d.burnout.totalScreenTimeMins > 0) {
+          const dbHours = Number((d.burnout.totalScreenTimeMins / 60).toFixed(2));
+          setScreenHours((prev) => Math.max(prev, dbHours));
         }
       })
-      .catch((err) => {
-        console.warn("Gagal memuat profil pengguna:", err);
-      });
+      .catch(() => {});
 
     api
       .getAcademicSchedules()
@@ -317,41 +332,59 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             </h2>
 
             <div className="space-y-4">
-              {/* Step 01 */}
+              {/* Step 01: Active Break Recommendation (Dynamic) */}
               <div className="flex items-start gap-3.5">
                 <div className="w-9 h-9 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   01
                 </div>
                 <div className="min-w-0">
-                  <p className="font-bold text-sm text-[#2F3A2E] leading-tight">Ambil 2 jeda aktif</p>
+                  <p className="font-bold text-sm text-[#2F3A2E] leading-tight">
+                    {verifiedBreakCount >= 2
+                      ? "Ritme jeda aktif terjaga"
+                      : `Ambil ${2 - verifiedBreakCount} jeda aktif lagi`}
+                  </p>
                   <p className="text-xs text-[#636B60] mt-0.5 leading-relaxed">
-                    Peregangan singkat di sela tugas.
+                    {verifiedBreakCount >= 2
+                      ? `${verifiedBreakCount} sesi peregangan terverifikasi hari ini.`
+                      : "Peregangan singkat 2 menit di sela tugas kuliah."}
                   </p>
                 </div>
               </div>
 
-              {/* Step 02 */}
+              {/* Step 02: Movement / Screen Time Recommendation (Dynamic) */}
               <div className="flex items-start gap-3.5">
                 <div className="w-9 h-9 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   02
                 </div>
                 <div className="min-w-0">
-                  <p className="font-bold text-sm text-[#2F3A2E] leading-tight">Jalan santai 20 menit</p>
+                  <p className="font-bold text-sm text-[#2F3A2E] leading-tight">
+                    {todayMvpaMinutes >= 20 || todaySteps >= 3000
+                      ? "Target gerak harian tercapai"
+                      : screenHours > 6
+                      ? "Jauhkan layar & jalan 20 menit"
+                      : "Jalan santai 20 menit"}
+                  </p>
                   <p className="text-xs text-[#636B60] mt-0.5 leading-relaxed">
-                    Bergerak tanpa melihat layar.
+                    {todayMvpaMinutes >= 20 || todaySteps >= 3000
+                      ? `Tercatat ${todaySteps.toLocaleString("id-ID")} langkah (${todayMvpaMinutes} menit aktif).`
+                      : "Bergerak tanpa melihat layar untuk segarkan fokus."}
                   </p>
                 </div>
               </div>
 
-              {/* Step 03 */}
+              {/* Step 03: Sleep Recommendation (Dynamic) */}
               <div className="flex items-start gap-3.5">
                 <div className="w-9 h-9 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   03
                 </div>
                 <div className="min-w-0">
-                  <p className="font-bold text-sm text-[#2F3A2E] leading-tight">Tidur lebih awal</p>
+                  <p className="font-bold text-sm text-[#2F3A2E] leading-tight">
+                    {autoSleep.sleepHours >= 7.5 ? "Pertahankan jam tidurmu" : "Tidur lebih awal malam ini"}
+                  </p>
                   <p className="text-xs text-[#636B60] mt-0.5 leading-relaxed">
-                    Tambah 2 jam untuk capai target.
+                    {autoSleep.sleepHours >= 7.5
+                      ? `Durasi tidurmu ${autoSleep.sleepHours} jam — sudah di zona pemulihan ideal.`
+                      : `Tambah ${Math.max(0.5, Number((8 - autoSleep.sleepHours).toFixed(1)))} jam lagi untuk capai target 8 jam.`}
                   </p>
                 </div>
               </div>
