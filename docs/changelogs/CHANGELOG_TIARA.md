@@ -21,6 +21,25 @@
 
 ---
 
+## [2026-11-25] — Pembaharuan Warna Tombol & Badge Ikon Landing Page ke Palet Hijau Sage (`LandingPage.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.83`
+- **Ringkasan:**
+  1. **Penyelarasan Warna Tombol Fitur Hero & Badge Ikon ke Palet Hijau Sage (`#CFD8C4`):**
+     - Mengubah warna 3 pill tombol quick entry fitur di Hero Section (`Zero Continuous Camera`, `Strava Akademik (KRS)`, dan `Wellbeing AI Coach`) dari beige (`#E8DDCF`) menjadi hijau sage khas project (`bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE]`).
+     - Mengubah latar belakang badge ikon kartu modul/fitur (`coursesData`) untuk ikon `BookOpen`, `Eye`, `Footprints`, dan `Bot` menjadi `bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]`.
+     - Mengubah badge ikon pada 3 Pilar Grid (`Eye`, `BookOpen`, `Bot`) serta badge logo header dan info kontak ke palet hijau sage terpadu (`bg-[#CFD8C4] border border-[#BCC8AE]`).
+     - Memperbarui tombol kirim form kontak ke warna hijau sage (`bg-[#CFD8C4] hover:bg-[#BCC8AE]`) agar seluruh call-to-action dan elemen interaktif konsisten dengan panduan desain CampusFlow.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
 ## [2026-11-25] — Penghapusan Tab Switcher Masuk/Daftar pada Modal Autentikasi (`AuthModal.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.82`
 - **Ringkasan:**
