@@ -161,40 +161,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#FAF6F0] border border-[#E8DDCF] text-xs font-bold">
-          <button
-            type="button"
-            onClick={() => {
-              setTab("login");
-              setErrorMessage(null);
-            }}
-            className={`py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              tab === "login"
-                ? "bg-[#CFD8C4] text-[#2F3A2E] shadow-xs font-extrabold"
-                : "text-[#636B60] hover:text-[#2F3A2E]"
-            }`}
-          >
-            <LogIn className="w-3.5 h-3.5" />
-            <span>Masuk (Login)</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setTab("register");
-              setErrorMessage(null);
-            }}
-            className={`py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-              tab === "register"
-                ? "bg-[#CFD8C4] text-[#2F3A2E] shadow-xs font-extrabold"
-                : "text-[#636B60] hover:text-[#2F3A2E]"
-            }`}
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            <span>Daftar (Register)</span>
-          </button>
-        </div>
-
         {/* Error Alert */}
         {errorMessage && (
           <div className="p-3 rounded-2xl bg-[#E8DDCF] border border-[#CFD8C4] text-[#2F3A2E] text-xs font-medium leading-relaxed">

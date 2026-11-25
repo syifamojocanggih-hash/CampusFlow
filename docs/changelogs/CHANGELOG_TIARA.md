@@ -21,6 +21,23 @@
 
 ---
 
+## [2026-11-25] — Penghapusan Tab Switcher Masuk/Daftar pada Modal Autentikasi (`AuthModal.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.82`
+- **Ringkasan:**
+  1. **Penghapusan Tab Switcher Masuk/Daftar (`AuthModal.tsx`):**
+     - Menghapus pill toggle tab switcher ganda ("Masuk (Login)" dan "Daftar (Register)") di bagian atas formulir modal autentikasi agar tampilan modal lebih bersih, terarah, dan tidak redundan.
+     - Form yang tampil tetap terbuka secara otomatis dan presisi sesuai tombol yang ditekan pengguna di Landing Page (`initialTab`), serta tetap dapat berpindah form secara mulus melalui tautan di bagian bawah formulir ("Daftar di sini" / "Masuk di sini").
+- **Daftar File Diubah:**
+  - `frontend/src/components/auth/AuthModal.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
 ## [2026-11-25] — Penyempurnaan Navigasi Mobile Persis Referensi Foto 2 dengan Label Teks & Border Notch Mulus (`Navbar.tsx`, `index.css`, `App.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.81`
 - **Ringkasan:**
