@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   LayoutDashboard,
   Eye,
@@ -331,52 +331,141 @@ export const MobileHeader: React.FC<{
 
 export const MobileBottomNav: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
   const activeIndex = navItems.findIndex((item) => item.key === activeTab);
+  const safeIndex = activeIndex === -1 ? 0 : activeIndex;
+  const navRef = useRef<HTMLDivElement>(null);
+  const [navWidth, setNavWidth] = useState<number>(() =>
+    typeof window !== "undefined" ? Math.min(window.innerWidth, 448) : 390
+  );
+
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0) {
+          setNavWidth(entry.contentRect.width);
+        }
+      }
+    });
+    ro.observe(el);
+    setNavWidth(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
+  const tabWidth = navWidth > 0 ? navWidth / 5 : 0;
+  const activeX = navWidth > 0 ? (safeIndex + 0.5) * tabWidth : (safeIndex + 0.5) * 20;
+  const activeItem = navItems[safeIndex];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FAF6F0]/95 backdrop-blur-md border-t border-[#E8DDCF] px-2 py-2 shadow-lg safe-bottom">
-      <div className="relative grid grid-cols-5 items-center max-w-md mx-auto">
-        {/* Animated Sliding & Bouncing Water Lily Pill Indicator */}
-        {activeIndex !== -1 && (
-          <div
-            className="absolute top-0 bottom-0 left-0 pointer-events-none z-0 flex items-center justify-center transition-transform duration-500"
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 safe-bottom pointer-events-auto">
+      <div
+        ref={navRef}
+        className="relative max-w-md mx-auto h-[68px] select-none"
+      >
+        {/* 1. Curved Cutout Background SVG with Hardware-Accelerated Sliding Notch */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+          width="100%"
+          height="68"
+        >
+          <defs>
+            <mask id="cf-mobile-nav-mask">
+              {/* White fills the navbar background with rounded top corners */}
+              <rect x="0" y="0" width="100%" height="68" rx="22" ry="22" fill="white" />
+              {/* Black cuts out the smooth concave notch at the active tab position */}
+              <g
+                style={{
+                  transform: navWidth > 0 ? `translateX(${activeX}px)` : `translateX(${(safeIndex + 0.5) * 20}%)`,
+                  transition: "transform 400ms cubic-bezier(0.34, 1.45, 0.64, 1)",
+                }}
+              >
+                <path
+                  d="M -38 0 C -24 0, -20 24, 0 24 C 20 24, 24 0, 38 0 Z"
+                  fill="black"
+                />
+              </g>
+            </mask>
+          </defs>
+
+          {/* Masked White Navbar Surface with Top Edge Shadow */}
+          <rect
+            x="0"
+            y="0"
+            width="100%"
+            height="68"
+            rx="22"
+            ry="22"
+            fill="#FFFFFF"
+            mask="url(#cf-mobile-nav-mask)"
+            className="filter drop-shadow-[0_-4px_16px_rgba(47,58,46,0.06)]"
+          />
+
+          {/* Sliding Curved Notch Contour Border Stroke */}
+          <g
             style={{
-              width: "20%",
-              transform: `translateX(${activeIndex * 100}%)`,
-              transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+              transform: navWidth > 0 ? `translateX(${activeX}px)` : `translateX(${(safeIndex + 0.5) * 20}%)`,
+              transition: "transform 400ms cubic-bezier(0.34, 1.45, 0.64, 1)",
             }}
           >
-            <div
-              key={activeTab}
-              className="w-[84%] h-[92%] bg-[#CFD8C4] border border-[#BCC8AE] rounded-2xl shadow-xs animate-nav-bounce"
+            <path
+              d="M -38 0 C -24 0, -20 24, 0 24 C 20 24, 24 0, 38 0"
+              fill="none"
+              stroke="#E8DDCF"
+              strokeWidth="1.5"
             />
-          </div>
-        )}
+          </g>
+        </svg>
 
-        {navItems.map((item) => {
-          const isActive = activeTab === item.key;
-          return (
-            <button
-              key={item.key}
-              onClick={() => onSelectTab(item.key)}
-              className={`relative z-10 flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-300 ${
-                isActive
-                  ? "text-[#2F3A2E] font-extrabold"
-                  : "text-[#636B60] hover:text-[#2F3A2E] font-medium"
-              }`}
-            >
-              <span
-                className={`transition-all duration-300 ${
-                  isActive ? "text-[#2F3A2E] scale-110 -translate-y-0.5" : "text-[#636B60] scale-100"
-                }`}
+        {/* 2. Floating Action Bubble (Liquid Jumping Circle in Project Green) */}
+        <div
+          className="absolute top-0 left-0 pointer-events-none z-20"
+          style={{
+            transform: navWidth > 0 ? `translateX(${activeX}px)` : `translateX(${(safeIndex + 0.5) * 20}%)`,
+            transition: "transform 400ms cubic-bezier(0.34, 1.45, 0.64, 1)",
+          }}
+        >
+          {/* Inner circle with bounce & pop keyframe animation when activeTab changes */}
+          <div
+            key={activeTab}
+            className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#2F3A2E] via-[#3B4E38] to-[#4A6447] text-white flex items-center justify-center shadow-[0_6px_16px_rgba(47,58,46,0.30)] border-2 border-white animate-fluid-bubble"
+            style={{
+              marginLeft: "-24px", // Center horizontally on activeX
+            }}
+          >
+            <span className="scale-110 drop-shadow-xs text-white">
+              {activeItem?.icon}
+            </span>
+          </div>
+        </div>
+
+        {/* 3. Inactive & Interactive Navigation Items */}
+        <div className="relative z-10 grid grid-cols-5 h-full items-center pt-2">
+          {navItems.map((item) => {
+            const isActive = activeTab === item.key;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => onSelectTab(item.key)}
+                className="mobile-nav-btn relative flex items-center justify-center h-full w-full focus:outline-none transition-colors group cursor-pointer"
+                title={item.label}
+                aria-label={item.label}
+                aria-selected={isActive}
               >
-                {item.icon}
-              </span>
-              <span className={`text-[10px] mt-0.5 tracking-tight ${isActive ? "font-extrabold text-[#2F3A2E]" : ""}`}>
-                {item.label.split(" ")[0]}
-              </span>
-            </button>
-          );
-        })}
+                {/* Inactive Icon: smoothly fades out when active because icon is elevated in the bubble */}
+                <span
+                  className={`transition-all duration-300 transform ${
+                    isActive
+                      ? "opacity-0 scale-50 pointer-events-none -translate-y-2"
+                      : "opacity-100 scale-100 text-[#636B60] group-hover:text-[#2F3A2E] group-hover:scale-105"
+                  }`}
+                >
+                  {item.icon}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

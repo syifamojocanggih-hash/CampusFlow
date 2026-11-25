@@ -21,6 +21,29 @@
 
 ---
 
+## [2026-11-25] — Implementasi Animasi Curved Cutout & Fluid Green Bubble Bottom Navigation Mobile (`Navbar.tsx`, `index.css`, `App.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.81`
+- **Ringkasan:**
+  1. **Animasi Navigasi Mobile Curved Cutout & Floating Bubble Sesuai Referensi Video:**
+     - Mengimplementasikan kembali animasi curved notch menggunakan SVG mask hardware-accelerated (`#cf-mobile-nav-mask`) yang meluncur elastis (`cubic-bezier(0.34, 1.45, 0.64, 1)`) mengikuti tab aktif.
+     - Menyematkan keyframe animasi cairan loncat (`@keyframes fluidBubblePop`) di mana bola turun ke cekungan saat bergerak lalu melompat ke atas (*spring squash-and-stretch*) saat tiba di tab tujuan.
+  2. **Penyelarasan Warna Hijau Proyek & Proporsi Ketinggian Sejajar:**
+     - Mengubah warna bola circular bubble menjadi gradien hijau forest khas CampusFlow (`from-[#2F3A2E] via-[#3B4E38] to-[#4A6447]`) dengan ikon putih kontras tinggi dan border putih halus.
+     - Menyetel proporsi ketinggian notch yang lebih lembut (kedalaman 24px) dengan posisi resting bubble di `translateY(-14px)`, sehingga tetap anggun bertengger di cekungan tanpa menusuk tinggi ke area kartu di atasnya.
+     - Menambahkan padding bottom mobile `pb-28` pada container `<main>` di `App.tsx` untuk memastikan kartu konten selalu memiliki ruang bernapas lega di atas navbar.
+- **Daftar File Diubah:**
+  - `frontend/src/index.css`
+  - `frontend/src/components/Navbar.tsx`
+  - `frontend/src/App.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lolos).
+  - `npm run test:shared` (5/5 lolos).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
 ## [2026-11-24] — Penyelarasan Warna Tubuh Mascot Pet Tingkat Legenda ke Pastel Pink (`mimiSvg.ts`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.80`
 - **Ringkasan:**
