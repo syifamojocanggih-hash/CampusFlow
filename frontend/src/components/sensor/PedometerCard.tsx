@@ -128,7 +128,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
   const [cadenceSpm, setCadenceSpm] = useState(0);
   const [intensityType, setIntensityType] = useState<CadenceIntensity>("IDLE");
   const [metMinutes, setMetMinutes] = useState(0);
-  const [lastNetAcc, setLastNetAcc] = useState(0);
   const [permissionState, setPermissionState] = useState<"unknown" | "granted" | "denied">("unknown");
   const [sensorSupported, setSensorSupported] = useState(true);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -143,7 +142,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       setCadenceSpm(detail.cadenceSpm);
       setIntensityType(detail.intensityType);
       setMetMinutes(detail.metMinutes);
-      setLastNetAcc(detail.lastNetAcc);
       if (onStepsChange) {
         onStepsChange(detail.totalSteps, detail.metMinutes);
       }
@@ -220,7 +218,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       setCadenceSpm(0);
       setIntensityType("IDLE");
       setMetMinutes(0);
-      setLastNetAcc(0);
       if (onStepsChange) {
         onStepsChange(0, 0);
       }
@@ -298,21 +295,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
                 Berjalan di kampus, pantau langkah dan kalori yang terbakar hari ini.
               </p>
             </div>
-          </div>
-
-          {/* Sensor Status Pill */}
-          <div className="inline-flex items-center gap-2 text-xs font-bold bg-[#FAF6F0] px-3.5 py-1.5 rounded-full border border-[#E8DDCF] text-[#2F3A2E] self-start sm:self-auto">
-            <span
-              className={`w-2 h-2 rounded-full shrink-0 ${
-                isTracking ? "bg-[#4E8B57] animate-pulse" : "bg-[#B8AFA2]"
-              }`}
-            />
-            <span>{isTracking ? "Sensor aktif" : "Sensor mati"}</span>
-            {lastNetAcc > 0 && isTracking && (
-              <span className="text-[10px] font-mono text-[#636B60] pl-1 border-l border-[#E8DDCF]">
-                +{lastNetAcc.toFixed(1)} m/s²
-              </span>
-            )}
           </div>
         </div>
 
@@ -621,9 +603,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
                     <path d="M4 18h4v-4h4v-4h4V6h4" />
                   </svg>
                 </div>
-                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]">
-                  +40 MET-m
-                </span>
               </div>
 
               <div>
@@ -660,9 +639,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
                 <div className="w-11 h-11 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0">
                   <Bike className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]">
-                  +90 MET-m
-                </span>
               </div>
 
               <div>
@@ -699,9 +675,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
                 <div className="w-11 h-11 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0">
                   <Globe className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]">
-                  +180 MET-m
-                </span>
               </div>
 
               <div>
@@ -731,10 +704,6 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
             </button>
           </div>
         </div>
-
-        <p className="text-xs text-[#636B60]">
-          Nilai MET-menit otomatis masuk ke poin energi di penghitung langkah.
-        </p>
       </div>
     </div>
   );

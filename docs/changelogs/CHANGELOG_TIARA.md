@@ -21,6 +21,35 @@
 
 ---
 
+## [2026-11-25] — Penghapusan 15 Elemen UI Redundan & Status Pills Sesuai Permintaan Pengguna (`VisionGuard.tsx`, `FocusView.tsx`, `ActivityView.tsx`, `PedometerCard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.86`
+- **Ringkasan:**
+  1. **Pembersihan Overlay Active Break & VisionGuard (`VisionGuard.tsx`):**
+     - Menghapus badge corner HUD "Terdeteksi Aktif 16 FPS" saat mode istirahat aktif berlangsung.
+     - Menghapus pill "Wajib Peregangan Sebelum Melanjutkan (Mode 15 Detik)".
+     - Menghapus kotak peringatan "Proteksi Mutlak Level OS Aktif...".
+     - Menghapus pill "OS Focus Guard Aktif" pada header lock banner.
+     - Menghapus pill live overlay "Verifikasi Kamera AI: Angkat kedua tangan lurus di atas kepala" pada pemutar video.
+  2. **Pembersihan Garis Waktu Sesi Fokus (`FocusView.tsx`):**
+     - Menghapus kartu timeline "Garis Waktu Sesi Fokus Hari Ini" yang memuat pill "25 mnt", badge "Sesi #1..#5", dan teks "Total Akumulasi" agar tampilan fokus lebih ringkas dan terfokus pada timer serta daftar tugas.
+  3. **Pembersihan Elemen Aktivitas & Pedometer (`ActivityView.tsx`, `PedometerCard.tsx`):**
+     - Menghapus pill "7 Hari Streak Konsisten" dan teks catatan maskot Mimi pada `ActivityView.tsx`.
+     - Menghapus pill status sensor gerak ("Sensor aktif / Sensor mati") pada `PedometerCard.tsx`.
+     - Menghapus 3 badge energi MET-m (`+40 MET-m`, `+90 MET-m`, `+180 MET-m`) dan catatan kaki penjelasan MET-menit pada kartu pencatat cepat aktivitas kampus.
+- **Daftar File Diubah:**
+  - `frontend/src/components/vision/VisionGuard.tsx`
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `frontend/src/components/pages/ActivityView.tsx`
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
 ## [2026-11-25] — Harmonisasi Palet Hijau Sage pada AI Coach, Kartu Prestasi Riwayat & Kontrol VisionGuard (`CoachView.tsx`, `HistoryView.tsx`, `VisionGuard.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.85`
 - **Ringkasan:**
