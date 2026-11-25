@@ -21,6 +21,32 @@
 
 ---
 
+## [2026-11-25] — Harmonisasi Palet Hijau Sage pada AI Coach, Kartu Prestasi Riwayat & Kontrol VisionGuard (`CoachView.tsx`, `HistoryView.tsx`, `VisionGuard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.85`
+- **Ringkasan:**
+  1. **Wellbeing AI Coach (`CoachView.tsx`):**
+     - Mengubah seluruh badge squircle kartu ringkasan tubuh (Beban kuliah `BookOpen`, Paparan layar `Monitor`, Pemulihan tidur `Moon`) menjadi palet hijau sage (`bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]`).
+     - Mengubah lingkaran nomor panduan (`01`, `02`, `03`) dan kartu ruang aman menjadi palet hijau sage (`bg-[#CFD8C4] border border-[#BCC8AE]`).
+     - Mengubah latar 5 badge ikon tombol rekomendasi obrolan (`BookOpen`, `Clock`, `Monitor`, `Moon`, `Sparkles`) menjadi `bg-[#CFD8C4] group-hover:bg-[#BCC8AE] border border-[#BCC8AE]`.
+     - Menyelaraskan header panel obrolan AI Coach ke `bg-[#CFD8C4] border-b border-[#BCC8AE]`.
+  2. **Kartu Prestasi Riwayat (`HistoryView.tsx`):**
+     - Mengubah 4 kartu lencana pencapaian (`Early Bird`, `Streak Master`, `Active Stretcher`, `Sleep Protector`) dari warna krem/beige menjadi hijau sage proyek (`bg-[#CFD8C4] text-[#2F3A2E] border-[#BCC8AE]`).
+     - Menyelaraskan seluruh badge ikon ringkasan statistik (History, Flame, Award) ke hijau sage (`bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]`).
+  3. **Kontrol Tombol VisionGuard (`VisionGuard.tsx`):**
+     - Mengubah tombol "Mulai Timer Lock OS", tombol "Trigger Lock Break Sekarang", dan tombol status timer aktif/idle ke palet hijau sage (`bg-[#CFD8C4] hover:bg-[#BCC8AE] border border-[#BCC8AE]`).
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `frontend/src/components/pages/HistoryView.tsx`
+  - `frontend/src/components/vision/VisionGuard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
 ## [2026-11-25] — Standardisasi Seluruh Tombol Aksi, Badge Ikon & Pill Aktivitas ke Palet Hijau Sage (`PedometerCard.tsx`, `ActivityView.tsx`, `PanicReliefMode.tsx`, `NotificationPopover.tsx`, `Navbar.tsx`, `TriadDashboard.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.84`
 - **Ringkasan:**

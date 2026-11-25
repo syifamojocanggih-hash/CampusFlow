@@ -953,7 +953,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
         }`}
       >
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-11 h-11 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
             <Shield className="w-6 h-6" />
           </div>
           <div>
@@ -972,7 +972,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
               isMuted
                 ? "bg-[#FAF6F0] text-[#636B60] border-[#E8DDCF] hover:bg-[#CFD8C4]"
-                : "bg-[#E8DDCF] text-[#2F3A2E] border-[#E8DDCF] shadow-xs"
+                : "bg-[#CFD8C4] text-[#2F3A2E] border-[#BCC8AE] shadow-xs"
             }`}
             title={isMuted ? "Aktifkan Audio Synthesizer" : "Bisukan Audio Feedback"}
           >
@@ -1609,7 +1609,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 `Batas Screen Time (${demoMode ? "15 Detik" : "50 Menit"}) Tercapai — Wajib Peregangan Aktif`
               );
             }}
-            className="px-3.5 py-2 bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-[#2F3A2E] rounded-xl font-extrabold transition-colors border border-[#CFD8C4] flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] rounded-xl font-extrabold transition-colors border border-[#BCC8AE] flex items-center gap-1.5 cursor-pointer"
             title="Mulai hitung mundur dan coba pindah ke tab/aplikasi lain"
           >
             <Play className="w-3.5 h-3.5 fill-[#2F3A2E]" />
@@ -1618,7 +1618,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
           <button
             onClick={() => triggerBreakLockNow("Kunci Layar Istirahat Aktif (Level OS)")}
-            className="px-3.5 py-2 bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-[#2F3A2E] rounded-xl font-extrabold transition-colors border border-[#CFD8C4] flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] rounded-xl font-extrabold transition-colors border border-[#BCC8AE] flex items-center gap-1.5 cursor-pointer"
             title="Kunci layar level OS sekarang untuk tes Active Break"
           >
             <Lock className="w-3.5 h-3.5" />
@@ -1635,10 +1635,10 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 void osScreenLock.disarmTimer();
               }
             }}
-            className={`px-3.5 py-2 rounded-xl font-extrabold flex items-center gap-1 ${
+            className={`px-3.5 py-2 rounded-xl font-extrabold flex items-center gap-1 cursor-pointer ${
               sessionActive
-                ? "bg-[#CFD8C4] text-[#2F3A2E]"
-                : "bg-[#E8DDCF] text-[#2F3A2E] border border-[#E8DDCF] shadow-softPill"
+                ? "bg-[#BCC8AE] text-[#2F3A2E] border border-[#ADC09E]"
+                : "bg-[#CFD8C4] hover:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] shadow-softPill"
             }`}
           >
             {sessionActive ? (
