@@ -329,6 +329,14 @@ export const MobileHeader: React.FC<{
   );
 };
 
+const mobileNavLabels: Record<string, string> = {
+  dashboard: "Dashboard",
+  focus: "Workstation",
+  activity: "Aktivitas",
+  coach: "AI Coach",
+  history: "Riwayat",
+};
+
 export const MobileBottomNav: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
   const activeIndex = navItems.findIndex((item) => item.key === activeTab);
   const safeIndex = activeIndex === -1 ? 0 : activeIndex;
@@ -360,107 +368,131 @@ export const MobileBottomNav: React.FC<NavbarProps> = ({ activeTab, onSelectTab 
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 safe-bottom pointer-events-auto">
       <div
         ref={navRef}
-        className="relative max-w-md mx-auto h-[68px] select-none"
+        className="relative max-w-md mx-auto h-[70px] select-none"
       >
-        {/* 1. Curved Cutout Background SVG with Hardware-Accelerated Sliding Notch */}
+        {/* 1. Clean White Background with Continuous Hairline Border & Seamless Curved Notch (Persis Foto 2) */}
         <svg
           className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
           width="100%"
-          height="68"
+          height="70"
         >
           <defs>
             <mask id="cf-mobile-nav-mask">
-              {/* White fills the navbar background with rounded top corners */}
-              <rect x="0" y="0" width="100%" height="68" rx="22" ry="22" fill="white" />
-              {/* Black cuts out the smooth concave notch at the active tab position */}
+              {/* White fills the navbar background */}
+              <rect x="0" y="0" width="100%" height="70" fill="white" />
+              {/* Black cuts out the smooth concave notch at active tab */}
               <g
                 style={{
                   transform: navWidth > 0 ? `translateX(${activeX}px)` : `translateX(${(safeIndex + 0.5) * 20}%)`,
-                  transition: "transform 400ms cubic-bezier(0.34, 1.45, 0.64, 1)",
+                  transition: "transform 360ms cubic-bezier(0.25, 1, 0.5, 1)",
                 }}
               >
                 <path
-                  d="M -38 0 C -24 0, -20 24, 0 24 C 20 24, 24 0, 38 0 Z"
+                  d="M -37 0 C -24 0, -20 22, 0 22 C 20 22, 24 0, 37 0 Z"
                   fill="black"
                 />
               </g>
             </mask>
           </defs>
 
-          {/* Masked White Navbar Surface with Top Edge Shadow */}
+          {/* Masked White Surface */}
           <rect
             x="0"
             y="0"
             width="100%"
-            height="68"
-            rx="22"
-            ry="22"
+            height="70"
             fill="#FFFFFF"
             mask="url(#cf-mobile-nav-mask)"
             className="filter drop-shadow-[0_-4px_16px_rgba(47,58,46,0.06)]"
           />
 
-          {/* Sliding Curved Notch Contour Border Stroke */}
+          {/* Continuous Top Hairline Border: flat segments cut by mask */}
+          <line
+            x1="0"
+            y1="0.5"
+            x2="100%"
+            y2="0.5"
+            stroke="#E8DDCF"
+            strokeWidth="1"
+            mask="url(#cf-mobile-nav-mask)"
+          />
+
+          {/* Sliding Curved Notch Hairline Stroke (meets flat line seamlessly with 0 whiskers) */}
           <g
             style={{
               transform: navWidth > 0 ? `translateX(${activeX}px)` : `translateX(${(safeIndex + 0.5) * 20}%)`,
-              transition: "transform 400ms cubic-bezier(0.34, 1.45, 0.64, 1)",
+              transition: "transform 360ms cubic-bezier(0.25, 1, 0.5, 1)",
             }}
           >
             <path
-              d="M -38 0 C -24 0, -20 24, 0 24 C 20 24, 24 0, 38 0"
+              d="M -37 0.5 C -24 0.5, -20 22.5, 0 22.5 C 20 22.5, 24 0.5, 37 0.5"
               fill="none"
               stroke="#E8DDCF"
-              strokeWidth="1.5"
+              strokeWidth="1"
             />
           </g>
         </svg>
 
-        {/* 2. Floating Action Bubble (Liquid Jumping Circle in Project Green) */}
+        {/* 2. Floating Action Bubble (Smooth Gliding Circle in Project Forest Green - Geser Mulus Tanpa Loncat) */}
         <div
           className="absolute top-0 left-0 pointer-events-none z-20"
           style={{
             transform: navWidth > 0 ? `translateX(${activeX}px)` : `translateX(${(safeIndex + 0.5) * 20}%)`,
-            transition: "transform 400ms cubic-bezier(0.34, 1.45, 0.64, 1)",
+            transition: "transform 360ms cubic-bezier(0.25, 1, 0.5, 1)",
           }}
         >
-          {/* Inner circle with bounce & pop keyframe animation when activeTab changes */}
+          {/* Circular bubble with constant elevation (tidak loncat, hanya geser mulus) */}
           <div
-            key={activeTab}
-            className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#2F3A2E] via-[#3B4E38] to-[#4A6447] text-white flex items-center justify-center shadow-[0_6px_16px_rgba(47,58,46,0.30)] border-2 border-white animate-fluid-bubble"
+            className="w-[48px] h-[48px] rounded-full bg-gradient-to-tr from-[#253324] via-[#2F3A2E] to-[#3B4E38] text-white flex items-center justify-center shadow-[0_6px_16px_rgba(47,58,46,0.28)] border-[2.5px] border-white ring-1 ring-[#E8DDCF]/50 -translate-y-[18px]"
             style={{
               marginLeft: "-24px", // Center horizontally on activeX
             }}
           >
-            <span className="scale-110 drop-shadow-xs text-white">
+            <span
+              key={activeTab}
+              className="scale-105 drop-shadow-xs text-white transition-opacity duration-200 animate-in fade-in"
+            >
               {activeItem?.icon}
             </span>
           </div>
         </div>
 
-        {/* 3. Inactive & Interactive Navigation Items */}
-        <div className="relative z-10 grid grid-cols-5 h-full items-center pt-2">
+        {/* 3. Interactive Navigation Items with Labels (Persis Foto 2) */}
+        <div className="relative z-10 grid grid-cols-5 h-full items-end pb-2">
           {navItems.map((item) => {
             const isActive = activeTab === item.key;
+            const labelText = mobileNavLabels[item.key] || item.label.split(" ")[0];
+
             return (
               <button
                 key={item.key}
                 type="button"
                 onClick={() => onSelectTab(item.key)}
-                className="mobile-nav-btn relative flex items-center justify-center h-full w-full focus:outline-none transition-colors group cursor-pointer"
+                className="mobile-nav-btn relative flex flex-col items-center justify-end h-full w-full focus:outline-none transition-colors group cursor-pointer"
                 title={item.label}
                 aria-label={item.label}
                 aria-selected={isActive}
               >
-                {/* Inactive Icon: smoothly fades out when active because icon is elevated in the bubble */}
+                {/* Icon: hidden when active because elevated in the green floating bubble */}
                 <span
-                  className={`transition-all duration-300 transform ${
+                  className={`h-5 flex items-center justify-center transition-all duration-300 transform ${
                     isActive
                       ? "opacity-0 scale-50 pointer-events-none -translate-y-2"
                       : "opacity-100 scale-100 text-[#636B60] group-hover:text-[#2F3A2E] group-hover:scale-105"
                   }`}
                 >
                   {item.icon}
+                </span>
+
+                {/* Description Label: shared horizontal baseline across all 5 buttons */}
+                <span
+                  className={`text-[11px] tracking-tight mt-1 transition-colors duration-200 ${
+                    isActive
+                      ? "font-extrabold text-[#2F3A2E]"
+                      : "font-semibold text-[#636B60] group-hover:text-[#2F3A2E]"
+                  }`}
+                >
+                  {labelText}
                 </span>
               </button>
             );

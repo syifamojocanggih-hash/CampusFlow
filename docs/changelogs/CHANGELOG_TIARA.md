@@ -21,16 +21,18 @@
 
 ---
 
-## [2026-11-25] — Implementasi Animasi Curved Cutout & Fluid Green Bubble Bottom Navigation Mobile (`Navbar.tsx`, `index.css`, `App.tsx`) (Branch: `frontend`)
+## [2026-11-25] — Penyempurnaan Navigasi Mobile Persis Referensi Foto 2 dengan Label Teks & Border Notch Mulus (`Navbar.tsx`, `index.css`, `App.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.81`
 - **Ringkasan:**
-  1. **Animasi Navigasi Mobile Curved Cutout & Floating Bubble Sesuai Referensi Video:**
-     - Mengimplementasikan kembali animasi curved notch menggunakan SVG mask hardware-accelerated (`#cf-mobile-nav-mask`) yang meluncur elastis (`cubic-bezier(0.34, 1.45, 0.64, 1)`) mengikuti tab aktif.
-     - Menyematkan keyframe animasi cairan loncat (`@keyframes fluidBubblePop`) di mana bola turun ke cekungan saat bergerak lalu melompat ke atas (*spring squash-and-stretch*) saat tiba di tab tujuan.
-  2. **Penyelarasan Warna Hijau Proyek & Proporsi Ketinggian Sejajar:**
-     - Mengubah warna bola circular bubble menjadi gradien hijau forest khas CampusFlow (`from-[#2F3A2E] via-[#3B4E38] to-[#4A6447]`) dengan ikon putih kontras tinggi dan border putih halus.
-     - Menyetel proporsi ketinggian notch yang lebih lembut (kedalaman 24px) dengan posisi resting bubble di `translateY(-14px)`, sehingga tetap anggun bertengger di cekungan tanpa menusuk tinggi ke area kartu di atasnya.
-     - Menambahkan padding bottom mobile `pb-28` pada container `<main>` di `App.tsx` untuk memastikan kartu konten selalu memiliki ruang bernapas lega di atas navbar.
+  1. **Pemberian Keterangan Label Teks di Bawah Seluruh Tombol Navigasi (Persis Foto 2):**
+     - Menambahkan teks keterangan di bawah setiap ikon: `Dashboard`, `Workstation`, `Aktivitas`, `AI Coach`, dan `Riwayat`.
+     - Seluruh 5 label berbagi garis dasar (*horizontal baseline*) yang sejajar di bagian bawah navbar, dengan teks tab aktif tercetak tebal kontras tinggi (`font-extrabold text-[#2F3A2E]`).
+  2. **Kerapian Garis Kontur Notch Mulus Tanpa Garis Sisa (Whiskers):**
+     - Menggabungkan garis horizontal flat atas dengan lengkungan notch bergerak via SVG mask, sehingga border atas navbar menyatu 100% mulus tanpa ada garis yang keluar atau terputus.
+  3. **Floating Circular Action Button Bertengger Rapi di Cekungan:**
+     - Mengatur diameter dan elevasi bola hijau forest (`w-[48px] h-[48px]`) dengan ring putih presisi (`border-[2.5px] border-white`) bertengger di atas cekungan notch tanpa menabrak label teks di bawahnya maupun kartu di atasnya.
+  4. **Transisi Luncuran Horizontal Murni (Geser Mulus Tanpa Loncat):**
+     - Mengubah transisi navigasi mobile dari efek loncatan (*bounce/pop*) menjadi luncuran horizontal murni (*pure smooth slide*) menggunakan kurva deselerasi halus `cubic-bezier(0.25, 1, 0.5, 1)` (360ms) dengan elevasi konstan tanpa loncat vertikal, sehingga perpindahan antar tab terasa tenang, elegan, dan mulus.
 - **Daftar File Diubah:**
   - `frontend/src/index.css`
   - `frontend/src/components/Navbar.tsx`

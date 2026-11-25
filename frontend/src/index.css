@@ -124,23 +124,23 @@
   animation: navPillBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* Mobile Curved Cutout Floating Navigation Bubble Animation (persis seperti video) */
+/* Mobile Curved Cutout Floating Navigation Bubble Animation (persis seperti video & foto 2) */
 @keyframes fluidBubblePop {
   0% {
-    transform: translateY(8px) scale(0.86, 1.18);
+    transform: translateY(6px) scale(0.88, 1.15);
     opacity: 0.9;
   }
   38% {
-    transform: translateY(-20px) scale(1.12, 0.90);
+    transform: translateY(-24px) scale(1.12, 0.90);
   }
   70% {
-    transform: translateY(-12px) scale(0.96, 1.04);
+    transform: translateY(-16px) scale(0.96, 1.04);
   }
   85% {
-    transform: translateY(-16px) scale(1.02, 0.98);
+    transform: translateY(-20px) scale(1.02, 0.98);
   }
   100% {
-    transform: translateY(-14px) scale(1, 1);
+    transform: translateY(-18px) scale(1, 1);
     opacity: 1;
   }
 }
