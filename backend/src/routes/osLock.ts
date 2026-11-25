@@ -74,13 +74,24 @@ const unlockPayloadSchema = z.object({
   verificationSource: z.string().min(1).max(100).default("POSE_CAMERA_AI"),
 });
 
+function isMobileUserAgent(req: Request): boolean {
+  const ua = (req.headers["user-agent"] || "").toLowerCase();
+  return /android|iphone|ipad|ipod|mobile|iemobile|blackberry|opera mini/.test(ua);
+}
+
 function inferBrowserFromRequest(req: Request, explicit?: string): string | undefined {
   if (explicit) return explicit;
   const ua = req.headers["user-agent"] || "";
-  if (ua.includes("Edg/")) return "Microsoft Edge";
+  if (ua.includes("SamsungBrowser/")) return "Samsung Internet";
+  if (ua.includes("Edg/") || ua.includes("EdgiOS/") || ua.includes("EdgA/")) return "Microsoft Edge";
+  if (ua.includes("OPR/") || ua.includes("Opera/")) return "Opera";
+  if (ua.includes("Firefox/") || ua.includes("FxiOS/")) return "Firefox";
+  if (ua.includes("CriOS/")) return "Google Chrome (iOS)";
+  if (ua.includes("Vivaldi/")) return "Vivaldi";
   if (ua.includes("Safari/") && !ua.includes("Chrome/") && !ua.includes("Chromium/")) {
     return "Safari";
   }
+  if (ua.includes("Chrome/")) return "Google Chrome";
   return undefined;
 }
 
@@ -145,13 +156,15 @@ osLockRouter.post("/screentime/sync", optionalAuth, async (req: AuthenticatedReq
 osLockRouter.post("/arm", (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = armPayloadSchema.parse(req.body ?? {});
+    const isMobile = isMobileUserAgent(req);
     const state = osLockService.armTimer({
       durationSeconds: parsed.durationSeconds,
       reason: parsed.reason,
       targetUrl: parsed.targetUrl || req.headers.origin,
       preferredBrowser: inferBrowserFromRequest(req, parsed.preferredBrowser),
+      isMobileClient: isMobile,
     });
-    sendSuccess(res, state);
+    sendSuccess(res, { ...state, clientPlatform: isMobile ? "mobile" : "desktop" });
   } catch (err) {
     next(err);
   }
@@ -164,12 +177,14 @@ osLockRouter.post("/disarm", (_req: Request, res: Response) => {
 osLockRouter.post("/lock", (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = lockPayloadSchema.parse(req.body ?? {});
+    const isMobile = isMobileUserAgent(req);
     const state = osLockService.lockScreen({
       reason: parsed.reason,
       targetUrl: parsed.targetUrl || req.headers.origin,
       preferredBrowser: inferBrowserFromRequest(req, parsed.preferredBrowser),
+      isMobileClient: isMobile,
     });
-    sendSuccess(res, state);
+    sendSuccess(res, { ...state, clientPlatform: isMobile ? "mobile" : "desktop" });
   } catch (err) {
     next(err);
   }

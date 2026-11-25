@@ -16,7 +16,7 @@ export function ensureVapidConfigured(): boolean {
 export async function sendInterventionPush(
   subscription: webpush.PushSubscription,
   payload: { title: string; body: string; url?: string }
-): Promise<{ sent: boolean; reason?: string }> {
+): Promise<{ sent: boolean; expired?: boolean; reason?: string }> {
   if (!ensureVapidConfigured()) {
     return {
       sent: false,
@@ -24,14 +24,29 @@ export async function sendInterventionPush(
     };
   }
 
-  await webpush.sendNotification(
-    subscription,
-    JSON.stringify({
-      title: payload.title,
-      body: payload.body,
-      url: payload.url ?? "/focus",
-    })
-  );
-  return { sent: true };
+  try {
+    await webpush.sendNotification(
+      subscription,
+      JSON.stringify({
+        title: payload.title,
+        body: payload.body,
+        url: payload.url ?? "/focus",
+      })
+    );
+    return { sent: true };
+  } catch (err: unknown) {
+    const statusCode =
+      typeof err === "object" && err !== null && "statusCode" in err
+        ? Number((err as { statusCode?: number }).statusCode)
+        : 0;
+    const isExpired = statusCode === 410 || statusCode === 404;
+    return {
+      sent: false,
+      expired: isExpired,
+      reason: isExpired
+        ? "Langganan Web Push pengguna sudah kedaluwarsa dan perlu didaftarkan ulang."
+        : "Gagal mengirim Web Push ke layanan browser.",
+    };
+  }
 }
 

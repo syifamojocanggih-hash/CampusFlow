@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { Router, type Response } from "express";
 import { z } from "zod";
@@ -56,8 +57,37 @@ async function handleUpdateProfile(req: AuthenticatedRequest, res: Response) {
   sendSuccess(res, updated);
 }
 
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(4).max(100),
+});
+
 usersRouter.patch("/me", requireAuth, handleUpdateProfile);
 usersRouter.patch("/me/settings", requireAuth, handleUpdateProfile);
+
+usersRouter.patch("/me/password", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const body = changePasswordSchema.parse(req.body);
+  const userId = req.user!.sub;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, passwordHash: true },
+  });
+  if (!user) throw new AppError(404, "NOT_FOUND", "Pengguna tidak ditemukan.");
+
+  const valid = await bcrypt.compare(body.currentPassword, user.passwordHash);
+  if (!valid) {
+    throw new AppError(401, "UNAUTHORIZED", "Kata sandi saat ini tidak sesuai.");
+  }
+
+  const newHash = await bcrypt.hash(body.newPassword, 10);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash: newHash },
+  });
+
+  sendSuccess(res, { updated: true });
+});
 
 usersRouter.delete("/me/data", requireAuth, async (req: AuthenticatedRequest, res) => {
   const userId = req.user!.sub;

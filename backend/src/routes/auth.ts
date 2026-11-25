@@ -93,41 +93,17 @@ authRouter.post("/register", async (req, res) => {
 authRouter.post("/login", async (req, res) => {
   const body = loginSchema.parse(req.body);
   const normalizedEmail = body.email.trim().toLowerCase();
-  let user = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { email: normalizedEmail },
   });
 
-  // Jika akun dibuat saat frontend masih dalam mode mock (belum tercatat di MySQL),
-  // migrasikan otomatis akun tersebut ke database MySQL saat login pertama kali
   if (!user) {
-    const passwordHash = await bcrypt.hash(body.password, 10);
-    const derivedName =
-      body.name?.trim() ||
-      normalizedEmail
-        .split("@")[0]
-        .replace(/[._-]+/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase()) ||
-      "Mahasiswa CampusFlow";
-    let candidateNim = body.nim?.trim() || `NIM-${Date.now().toString().slice(-6)}`;
-    const nimConflict = await prisma.user.findUnique({ where: { nim: candidateNim } });
-    if (nimConflict) {
-      candidateNim = `${candidateNim}-${Math.floor(100 + Math.random() * 900)}`;
-    }
+    throw new AppError(401, "UNAUTHORIZED", "Email atau kata sandi salah.");
+  }
 
-    user = await prisma.user.create({
-      data: {
-        name: derivedName,
-        nim: candidateNim,
-        email: normalizedEmail,
-        passwordHash,
-        department: body.department?.trim() || "Teknik Informatika",
-      },
-    });
-  } else {
-    const isPasswordValid = await bcrypt.compare(body.password, user.passwordHash);
-    if (!isPasswordValid) {
-      throw new AppError(401, "UNAUTHORIZED", "Email atau kata sandi salah.");
-    }
+  const isPasswordValid = await bcrypt.compare(body.password, user.passwordHash);
+  if (!isPasswordValid) {
+    throw new AppError(401, "UNAUTHORIZED", "Email atau kata sandi salah.");
   }
 
   const token = signAuthToken({ sub: user.id, email: user.email });

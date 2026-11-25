@@ -33,17 +33,69 @@ export function createApp() {
       : 1
   );
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      // Izinkan akses API lintas-origin dari LAN HP, Cloudflare Tunnel, Safari, dan Firefox
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      crossOriginOpenerPolicy: false,
+    })
+  );
+
+  const isAllowedOrigin = (origin: string): boolean => {
+    if (allowedCorsOrigins.includes(origin)) return true;
+    try {
+      const parsed = new URL(origin);
+      const host = parsed.hostname.toLowerCase();
+      // Localhost IPv4, IPv6 ([::1]), dan domain .local (mDNS macOS/Linux/Windows)
+      if (
+        host === "localhost" ||
+        host === "127.0.0.1" ||
+        host === "::1" ||
+        host === "[::1]" ||
+        host.endsWith(".local")
+      ) {
+        return true;
+      }
+      // IP Private LAN (Wi-Fi lokal untuk akses dari HP Android/iOS & PC lain)
+      if (
+        /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host) ||
+        /^192\.168\.\d{1,3}\.\d{1,3}$/.test(host) ||
+        /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(host)
+      ) {
+        return true;
+      }
+      // Domain HTTPS tunnel (Cloudflare Tunnel / Ngrok) untuk uji coba mobile
+      if (
+        host.endsWith(".trycloudflare.com") ||
+        host.endsWith(".ngrok-free.app") ||
+        host.endsWith(".ngrok.io")
+      ) {
+        return true;
+      }
+    } catch {
+      return false;
+    }
+    return false;
+  };
+
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || allowedCorsOrigins.includes(origin)) {
+        if (!origin || isAllowedOrigin(origin)) {
           callback(null, true);
           return;
         }
         callback(null, false);
       },
       credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "x-gemini-api-key",
+        "X-Requested-With",
+      ],
+      optionsSuccessStatus: 204,
     })
   );
   app.use(express.json({ limit: "1mb" }));

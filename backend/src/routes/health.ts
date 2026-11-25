@@ -16,6 +16,8 @@ healthRouter.get("/", async (_req, res) => {
     status: database === "connected" ? "healthy" : "degraded",
     service: "campusflow-backend",
     database,
+    platform: process.platform,
+    nodeVersion: process.version,
     uptimeSec: Math.round(process.uptime()),
   });
 });

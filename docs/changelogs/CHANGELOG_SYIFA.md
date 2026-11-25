@@ -21,6 +21,40 @@
 
 ---
 
+## [2026-11-24] — Audit Backend, Koneksi Penuh Data Harian ke MySQL, & Perbaikan Keamanan Auth (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-DB-SYNC-4.1`, `BE-AUTH-HARDENING`
+- **Ringkasan:** Menyinkronkan seluruh data harian user secara dinamis ke MySQL (`DailyFussionLog`, `DailyWellbeingLog`, `UserNotification`), memperbaiki bug pergeseran tanggal timezone WIB/UTC di `activeBreak.ts` & `wellbeing.ts`, memperbaiki stale cache di `GET /api/v1/burnout/today` & `burnoutSync.ts`, menambahkan endpoint `GET /api/v1/dashboard/daily-summary`, CRUD notifikasi harian dinamis (`GET/PATCH/DELETE /api/v1/notifications`) beserta tabel & migrasi SQL `UserNotification`, menambahkan sinkronisasi screen time per-user ke MySQL lewat `optionalAuth`, menutup celah *account takeover* di `POST /auth/register` (409) & auto-create akun typo di `POST /auth/login` (401), menambahkan endpoint `PATCH /api/v1/users/me/password`, penanganan Web Push kedaluwarsa (`410`/`404`) di `pushNotifier.ts`, pengecekan koneksi MySQL nyata di `GET /api/v1/health`, serta penyesuaian prioritas model fallback Gemini (`gemini-3.6-flash`).
+- **Daftar File Diubah:**
+  - `backend/prisma/schema.prisma`
+  - `backend/prisma/migrations/20261124153000_add_user_notifications/migration.sql`
+  - `backend/src/config/env.ts`
+  - `backend/src/middleware/auth.ts`
+  - `backend/src/routes/academicSchedule.ts`
+  - `backend/src/routes/activeBreak.ts`
+  - `backend/src/routes/activities.ts`
+  - `backend/src/routes/auth.ts`
+  - `backend/src/routes/burnout.ts`
+  - `backend/src/routes/dashboard.ts`
+  - `backend/src/routes/health.ts`
+  - `backend/src/routes/notifications.ts`
+  - `backend/src/routes/osLock.ts`
+  - `backend/src/routes/sedentary.ts`
+  - `backend/src/routes/users.ts`
+  - `backend/src/routes/wellbeing.ts`
+  - `backend/src/routes/endpointsCompletion.test.ts`
+  - `backend/src/services/burnoutSync.ts`
+  - `backend/src/services/pushNotifier.ts`
+  - `backend/src/services/scheduleParser.ts`
+  - `backend/src/app.ts`
+  - `backend/src/index.ts`
+  - `backend/src/services/osLockService.ts`
+  - `frontend/vite.config.ts`
+  - `scripts/dev.mjs`
+- **Catatan Cross-Scope:**
+  - `[CROSS-SCOPE] frontend/vite.config.ts` — menambahkan Vite proxy `/api` ke `http://localhost:4000` dan `allowedHosts: true` agar request API backend tidak 404 saat diakses dari HP maupun Cloudflare Tunnel.
+  - `[CROSS-SCOPE] scripts/dev.mjs` — memperbaiki cleanup `Ctrl+C` lintas OS (`taskkill /T /F` di Windows, `SIGTERM` di macOS/Linux) dan menghindari warning shell di macOS/Linux.
+- **Verifikasi:** `npx prisma db push && npx prisma generate`, `npm run build:backend` (0 error), `npm run test:backend` (133/133 lulus), `npm run test:frontend` (23/23 lulus), `npm run test:shared` (5/5 lulus), dan `npm run guard` lulus.
+
 ## [2026-11-23] — Perbaikan Penuh Upload & Ekstraksi Dokumen KRS Tanpa Mode Demo (Branch: `backend`)
 - **ID Tugas / Referensi:** `BE-KRS-UPLOAD-4.0`, `FE-KRS-UPLOAD-4.0`
 - **Ringkasan:** Menghapus tombol dan template demo KRS (`KRS_Semester_Ganjil_Tiara.pdf` & `handleSimulatePdfParse`) pada `TriadDashboard.tsx` dan menghubungkan dropzone upload file langsung ke `<input type="file" />` serta drag-and-drop yang memanggil endpoint asli `POST /api/v1/schedule/upload` (Preview & Edit) dan `POST /api/v1/schedule/confirm` (Commit ke MySQL & Auto-Recalculate Burnout Index); memperluas `scheduleParser.ts` agar mendukung ekstraksi tabel SIAKAD (baik dengan jam, tanpa kolom hari/jam, maupun sel tabel multi-baris `pdf-parse`) serta dokumen PDF, PNG, JPG, dan TXT hingga 10 MB; serta menambahkan filter hari (`Hari Ini`, `Semua`, `Sen`–`Sab`) pada kartu Jadwal Kuliah di dashboard.

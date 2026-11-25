@@ -208,5 +208,11 @@ notificationsRouter.post("/test", requireAuth, async (req: AuthenticatedRequest,
       body: "Anda sudah duduk cukup lama. Lakukan peregangan 5 menit untuk menjaga fokus dan menekan stres.",
     }
   );
+  if (result.expired) {
+    await prisma.user.update({
+      where: { id: req.user!.sub },
+      data: { pushSubscription: Prisma.DbNull },
+    });
+  }
   sendSuccess(res, result);
 });

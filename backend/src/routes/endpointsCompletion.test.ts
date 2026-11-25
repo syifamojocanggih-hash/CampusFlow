@@ -455,5 +455,73 @@ describe("Kelengkapan Endpoint Backend & Integrasi PRD v4.0", () => {
       }),
     });
     assert.equal(dupRes.status, 409);
+
+    // 5. Login dengan email yang belum terdaftar ditolak 401 (tidak auto-create akun typo)
+    const typoRes = await fetch(`${baseUrl}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "typo-nonexistent-user@campusflow.id",
+        password: "password123",
+      }),
+    });
+    assert.equal(typoRes.status, 401);
+
+    // 6. Ganti password ditolak 401 jika currentPassword salah
+    const badPwRes = await fetch(`${baseUrl}/users/me/password`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        currentPassword: "wrong-password",
+        newPassword: "new-password-123",
+      }),
+    });
+    assert.equal(badPwRes.status, 401);
+  });
+
+  test("Kompatibilitas Cross-OS & Cross-Browser: CORS LAN/Tunnel/IPv6 + Mobile UA OS-Lock", async () => {
+    // 1. CORS Preflight dari LAN IP (HP Android/iOS) & Cloudflare Tunnel
+    for (const origin of [
+      "https://192.168.1.25:5174",
+      "https://campusflow-test.trycloudflare.com",
+      "http://[::1]:5174",
+    ]) {
+      const preflight = await fetch(`${baseUrl}/health`, {
+        method: "OPTIONS",
+        headers: {
+          Origin: origin,
+          "Access-Control-Request-Method": "POST",
+          "Access-Control-Request-Headers": "Content-Type, Authorization, x-gemini-api-key",
+        },
+      });
+      assert.equal(preflight.status, 204);
+      assert.equal(preflight.headers.get("access-control-allow-origin"), origin);
+      assert.equal(preflight.headers.get("cross-origin-resource-policy"), "cross-origin");
+    }
+
+    // 2. Request OS-Lock dari iPhone Safari tidak membajak desktop & terdeteksi sebagai mobile Safari
+    const iosLockRes = await fetch(`${baseUrl}/os-lock/lock`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent":
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
+      },
+      body: JSON.stringify({ reason: "Uji Mobile iOS Lock" }),
+    });
+    assert.equal(iosLockRes.status, 200);
+    const iosBody: any = await iosLockRes.json();
+    assert.equal(iosBody.data.clientPlatform, "mobile");
+    assert.equal(iosBody.data.activeBrowser, "Safari");
+
+    // Buka kembali lock agar state bersih
+    await fetch(`${baseUrl}/os-lock/unlock`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ verificationSource: "POSE_CAMERA_AI" }),
+    });
   });
 });
