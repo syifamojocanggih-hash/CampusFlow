@@ -145,7 +145,7 @@ export const DesktopTopHeader: React.FC<{
           >
             <Bell className="w-4 h-4" />
             {unreadNotifCount > 0 && (
-              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#E8DDCF] text-[#636B60] font-extrabold text-[10px] flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white shadow-xs animate-in zoom-in-75">
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#CFD8C4] text-[#2F3A2E] font-extrabold text-[10px] flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white shadow-xs animate-in zoom-in-75">
                 {unreadNotifCount}
               </span>
             )}
@@ -257,7 +257,7 @@ export const MobileHeader: React.FC<{
         <div className="relative">
           <button
             onClick={() => setUserMenuOpen((prev) => !prev)}
-            className="w-9 h-9 rounded-full bg-[#E8DDCF] text-[#636B60] font-bold flex items-center justify-center text-xs shadow-xs ring-2 ring-[#E8DDCF] focus:outline-none cursor-pointer"
+            className="w-9 h-9 rounded-full bg-[#CFD8C4] text-[#2F3A2E] font-bold flex items-center justify-center text-xs shadow-xs ring-2 ring-[#BCC8AE] focus:outline-none cursor-pointer"
             aria-label="Buka menu user"
             aria-expanded={userMenuOpen}
           >

@@ -21,6 +21,34 @@
 
 ---
 
+## [2026-11-25] — Standardisasi Seluruh Tombol Aksi, Badge Ikon & Pill Aktivitas ke Palet Hijau Sage (`PedometerCard.tsx`, `ActivityView.tsx`, `PanicReliefMode.tsx`, `NotificationPopover.tsx`, `Navbar.tsx`, `TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.84`
+- **Ringkasan:**
+  1. **Penyelarasan Warna Kartu Pencatat Cepat Aktivitas Fisik (`PedometerCard.tsx`):**
+     - Mengubah warna 3 tombol aksi cepat "Catat" (Naik Tangga, Bersepeda, Olahraga Sore) menjadi hijau sage proyek (`bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE]`).
+     - Mengubah badge MET-m (`+40 MET-m`, `+90 MET-m`, `+180 MET-m`) dan squircle ikon (`TrendingUp`, tangga, `Bike`, `Globe`, `Footprints`) ke palet hijau sage (`bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]`).
+     - Menyesuaikan tombol toggle sensor gerak HP menjadi hijau sage saat idle dan sage aktif saat tracking.
+  2. **Harmonisasi Elemen Badge & Tombol Lintas Komponen:**
+     - `ActivityView.tsx`: Menyelaraskan pill streak hari konsisten dan badge centang hari ke palet hijau sage (`#CFD8C4` & `#BCC8AE`).
+     - `PanicReliefMode.tsx`: Mengubah tombol kontrol "Mulai Protokol", tombol selesaikan sesi +50 XP, dan badge protokol ke palet hijau sage.
+     - `NotificationPopover.tsx`: Memperbarui badge kategori notifikasi dan dot indikator pesan baru ke hijau sage.
+     - `Navbar.tsx` & `TriadDashboard.tsx`: Memperbarui badge counter notifikasi, avatar ring mobile, dan badge deteksi jam tidur.
+- **Daftar File Diubah:**
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `frontend/src/components/pages/ActivityView.tsx`
+  - `frontend/src/components/PanicReliefMode.tsx`
+  - `frontend/src/components/notifications/NotificationPopover.tsx`
+  - `frontend/src/components/Navbar.tsx`
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
 ## [2026-11-25] — Pembaharuan Warna Tombol & Badge Ikon Landing Page ke Palet Hijau Sage (`LandingPage.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.83`
 - **Ringkasan:**

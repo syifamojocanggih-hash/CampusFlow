@@ -99,7 +99,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
             </div>
             <div className="flex justify-center mt-1">
               {item.isCompleted ? (
-                <span className="w-5 h-5 rounded-full bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center text-[10px] font-extrabold">
+                <span className="w-5 h-5 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center text-[10px] font-extrabold">
                   ✓
                 </span>
               ) : (
@@ -147,7 +147,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
         </div>
 
         {/* Streak Pill */}
-        <div className="flex items-center gap-2 bg-[#E8DDCF] text-[#2F3A2E] px-3.5 py-1.5 rounded-full border border-[#E8DDCF] shadow-2xs text-xs font-extrabold shrink-0">
+        <div className="flex items-center gap-2 bg-[#CFD8C4] text-[#2F3A2E] px-3.5 py-1.5 rounded-full border border-[#BCC8AE] shadow-2xs text-xs font-extrabold shrink-0">
           <Flame className="w-4 h-4 fill-[#2F3A2E]" />
           <span>{streakDays} Hari Streak Konsisten</span>
         </div>

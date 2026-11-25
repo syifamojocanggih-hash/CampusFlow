@@ -287,7 +287,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-11 h-11 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
               <Footprints className="w-5 h-5" />
             </div>
             <div>
@@ -508,7 +508,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
 
         {/* Feedback Alert if quick activity logged */}
         {quickActivityFeedback && (
-          <div className="p-3 bg-[#E8DDCF] text-[#2F3A2E] text-xs font-bold rounded-2xl flex items-center gap-2 animate-in zoom-in-95 border border-[#CFD8C4]">
+          <div className="p-3 bg-[#CFD8C4] text-[#2F3A2E] text-xs font-bold rounded-2xl flex items-center gap-2 animate-in zoom-in-95 border border-[#BCC8AE]">
             <Sparkles className="w-4 h-4 shrink-0" />
             <span>{quickActivityFeedback}</span>
           </div>
@@ -516,7 +516,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
 
         {/* Permission Warning if Denied */}
         {permissionState === "denied" && (
-          <div className="p-3 bg-[#E8DDCF] text-[#2F3A2E] text-xs rounded-2xl flex items-center gap-2 border border-[#CFD8C4]">
+          <div className="p-3 bg-[#CFD8C4] text-[#2F3A2E] text-xs rounded-2xl flex items-center gap-2 border border-[#BCC8AE]">
             <AlertTriangle className="w-4 h-4 shrink-0 text-[#2F3A2E]" />
             <span>
               Izin sensor gerak ditolak oleh peramban. Di iOS Safari, silakan izinkan akses sensor gerak di pengaturan situs.
@@ -541,8 +541,8 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
               onClick={handleToggleTracking}
               className={`px-5 py-2.5 rounded-full text-xs font-extrabold flex items-center gap-2 transition-colors shadow-xs cursor-pointer ${
                 isTracking
-                  ? "bg-[#CFD8C4] text-[#2F3A2E] border border-[#BCC8AE]"
-                  : "bg-[#E8DDCF] hover:bg-[#CFD8C4] text-[#2F3A2E] border border-[#DDD0BE]"
+                  ? "bg-[#BCC8AE] text-[#2F3A2E] border border-[#ADC09E]"
+                  : "bg-[#CFD8C4] hover:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE]"
               }`}
             >
               {isTracking ? (
@@ -598,7 +598,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
       {/* 2. SUPPORTING FEATURE: PENCATAT OLAHRAGA CEPAT KAMPUS */}
       <div className="learnova-card p-6 border-[#E8DDCF] bg-white space-y-5">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-11 h-11 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
@@ -616,12 +616,12 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
           <div className="p-5 rounded-[1.5rem] bg-[#FAF6F0] border border-[#EBE3D6] flex flex-col justify-between space-y-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2">
-                <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                     <path d="M4 18h4v-4h4v-4h4V6h4" />
                   </svg>
                 </div>
-                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#E8DDCF] text-[#2F3A2E]">
+                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]">
                   +40 MET-m
                 </span>
               </div>
@@ -646,7 +646,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
             <button
               type="button"
               onClick={() => handleLogQuickActivity(450, 40, "Naik Tangga Kampus")}
-              className="w-full py-2.5 px-4 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] text-[#2F3A2E] font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-full bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Catat</span>
@@ -657,10 +657,10 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
           <div className="p-5 rounded-[1.5rem] bg-[#FAF6F0] border border-[#EBE3D6] flex flex-col justify-between space-y-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2">
-                <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0">
                   <Bike className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#E8DDCF] text-[#2F3A2E]">
+                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]">
                   +90 MET-m
                 </span>
               </div>
@@ -685,7 +685,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
             <button
               type="button"
               onClick={() => handleLogQuickActivity(1200, 90, "Bersepeda ke Kampus")}
-              className="w-full py-2.5 px-4 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] text-[#2F3A2E] font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-full bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Catat</span>
@@ -696,10 +696,10 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
           <div className="p-5 rounded-[1.5rem] bg-[#FAF6F0] border border-[#EBE3D6] flex flex-col justify-between space-y-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2">
-                <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0">
                   <Globe className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#E8DDCF] text-[#2F3A2E]">
+                <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]">
                   +180 MET-m
                 </span>
               </div>
@@ -724,7 +724,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
             <button
               type="button"
               onClick={() => handleLogQuickActivity(2500, 180, "Olahraga Sore")}
-              className="w-full py-2.5 px-4 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] text-[#2F3A2E] font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-full bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Catat</span>

@@ -54,7 +54,7 @@ export const PanicReliefMode: React.FC<PanicReliefModeProps> = ({ onClose, onCom
         >
           <ArrowLeft className="w-4 h-4" /> Kembali
         </button>
-        <span className="bg-[#E8DDCF] text-[#2F3A2E] border border-[#E8DDCF] text-[11px] px-3 py-1 rounded-full font-extrabold flex items-center gap-1 shadow-xs">
+        <span className="bg-[#CFD8C4] text-[#2F3A2E] border border-[#BCC8AE] text-[11px] px-3 py-1 rounded-full font-extrabold flex items-center gap-1 shadow-xs">
           <Award className="w-3.5 h-3.5" /> Protokol 15 Menit
         </span>
       </div>
@@ -90,7 +90,7 @@ export const PanicReliefMode: React.FC<PanicReliefModeProps> = ({ onClose, onCom
         {/* Progress Bar */}
         <div className="w-full bg-[#FAF6F0] rounded-full h-3 mt-6 overflow-hidden border border-[#E8DDCF] p-0.5">
           <div
-            className="bg-[#E8DDCF] h-full rounded-full transition-all duration-500 shadow-xs"
+            className="bg-[#CFD8C4] h-full rounded-full transition-all duration-500 shadow-xs"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -100,10 +100,10 @@ export const PanicReliefMode: React.FC<PanicReliefModeProps> = ({ onClose, onCom
       <div className="flex items-center justify-center gap-3 relative z-10">
         <button
           onClick={() => setIsRunning(!isRunning)}
-          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-extrabold transition-all shadow-sm ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-extrabold transition-all shadow-sm cursor-pointer ${
             isRunning
               ? "bg-[#CFD8C4] text-[#2F3A2E] hover:bg-[#BCC8AE]"
-              : "bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-[#2F3A2E] border border-[#E8DDCF] shadow-softPill"
+              : "bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] shadow-softPill"
           }`}
         >
           {isRunning ? (
@@ -131,7 +131,7 @@ export const PanicReliefMode: React.FC<PanicReliefModeProps> = ({ onClose, onCom
         {remainingSec === 0 && (
           <button
             onClick={onComplete}
-            className="flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] text-xs font-extrabold hover:bg-[#BCC8AE] shadow-softMint"
+            className="flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-[#CFD8C4] text-[#2F3A2E] text-xs font-extrabold hover:bg-[#BCC8AE] border border-[#BCC8AE] shadow-softMint cursor-pointer"
           >
             <CheckCircle className="w-4 h-4" /> Selesaikan &amp; Klaim +50 XP
           </button>

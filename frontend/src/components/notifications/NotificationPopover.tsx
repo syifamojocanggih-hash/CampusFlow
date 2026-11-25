@@ -136,25 +136,25 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
     switch (category) {
       case "break":
         return (
-          <div className="w-9 h-9 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-9 h-9 rounded-xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
             <Eye className="w-4 h-4" />
           </div>
         );
       case "academic":
         return (
-          <div className="w-9 h-9 rounded-xl bg-[#E8DDCF] text-[#636B60] flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-9 h-9 rounded-xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
             <BookOpen className="w-4 h-4" />
           </div>
         );
       case "coach":
         return (
-          <div className="w-9 h-9 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-9 h-9 rounded-xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
             <Bot className="w-4 h-4" />
           </div>
         );
       case "streak":
         return (
-          <div className="w-9 h-9 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-9 h-9 rounded-xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
             <Sparkles className="w-4 h-4" />
           </div>
         );
@@ -215,7 +215,7 @@ export const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                     {notif.title}
                   </h4>
                   {!notif.isRead && (
-                    <span className="w-2 h-2 rounded-full bg-[#E8DDCF] shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-[#CFD8C4] shrink-0" />
                   )}
                 </div>
 
