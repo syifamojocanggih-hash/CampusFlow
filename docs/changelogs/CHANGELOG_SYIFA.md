@@ -50,9 +50,11 @@
   - `backend/src/services/osLockService.ts`
   - `frontend/vite.config.ts`
   - `scripts/dev.mjs`
+  - `docs/changelogs/CHANGELOG_IBRA.md`
 - **Catatan Cross-Scope:**
   - `[CROSS-SCOPE] frontend/vite.config.ts` — menambahkan Vite proxy `/api` ke `http://localhost:4000` dan `allowedHosts: true` agar request API backend tidak 404 saat diakses dari HP maupun Cloudflare Tunnel.
   - `[CROSS-SCOPE] scripts/dev.mjs` — memperbaiki cleanup `Ctrl+C` lintas OS (`taskkill /T /F` di Windows, `SIGTERM` di macOS/Linux) dan menghindari warning shell di macOS/Linux.
+  - `[CROSS-SCOPE] docs/changelogs/CHANGELOG_IBRA.md` — menambahkan rangkuman fitur backend dengan bahasa sederhana untuk dokumentasi Project Leader.
 - **Verifikasi:** `npx prisma db push && npx prisma generate`, `npm run build:backend` (0 error), `npm run test:backend` (133/133 lulus), `npm run test:frontend` (23/23 lulus), `npm run test:shared` (5/5 lulus), dan `npm run guard` lulus.
 
 ## [2026-11-23] — Perbaikan Penuh Upload & Ekstraksi Dokumen KRS Tanpa Mode Demo (Branch: `backend`)
