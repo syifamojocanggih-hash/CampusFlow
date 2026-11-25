@@ -11,6 +11,7 @@ import { authRouter } from "./routes/auth.ts";
 import { dashboardRouter } from "./routes/dashboard.ts";
 import { healthRouter } from "./routes/health.ts";
 import { notificationsRouter } from "./routes/notifications.ts";
+import { focusTasksRouter } from "./routes/focusTasks.ts";
 import { sedentaryRouter } from "./routes/sedentary.ts";
 import { usersRouter, visionRouter } from "./routes/users.ts";
 import { assessmentsRouter, wellbeingRouter } from "./routes/wellbeing.ts";
@@ -119,6 +120,7 @@ export function createApp() {
   app.use("/api/v1/dashboard", dashboardRouter);
   app.use("/api/v1/ai-coach", aiCoachRouter);
   app.use("/api/v1/notifications", notificationsRouter);
+  app.use("/api/v1/focus-tasks", focusTasksRouter);
   app.use("/api/v1/schedule", scheduleRouter);
   app.use("/api/academic-schedule", scheduleRouter);
   app.use("/api/v1/academic-schedule", scheduleRouter);

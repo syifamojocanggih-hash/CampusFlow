@@ -549,7 +549,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
             <span className="text-xs text-[#636B60] pl-1">
               {isTracking
                 ? "Sensor aktif membaca ayunan langkah."
-                : "Pratinjau memakai langkah simulasi atau sensor HP."}
+                : "Aktifkan sensor HP saat berjalan atau gunakan Pencatat Cepat di bawah."}
             </span>
           </div>
 

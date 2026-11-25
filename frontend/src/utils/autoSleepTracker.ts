@@ -63,17 +63,41 @@ class AutoSleepTracker {
     return `${AUTO_SLEEP_RECORD_PREFIX}${dateStr}`;
   }
 
+  private createUnrecordedRecord(dateStr: string): AutoSleepRecordDTO {
+    return {
+      logDate: dateStr,
+      sleepHours: 0,
+      sleepQualityScore: 0,
+      bedTime: "--:--",
+      wakeTime: "--:--",
+      lastActiveTimestamp: 0,
+      firstWakeTimestamp: 0,
+      rawInactiveHours: 0,
+      sleepLatencyMins: 15,
+      source: "OVERNIGHT_INACTIVITY",
+      confidence: "MEDIUM",
+      isConfirmed: false,
+      recoveryPoints: 0,
+      clinicalStatus: "CRITICAL_DEFICIT",
+    };
+  }
+
   private loadOrDetectInitialRecord(): AutoSleepRecordDTO {
     const todayStr = getLocalTodayDateString();
     if (typeof window === "undefined" || typeof localStorage === "undefined") {
-      return computeAutoSleepFromWindow({ logDate: todayStr });
+      return this.createUnrecordedRecord(todayStr);
     }
 
     const savedJson = localStorage.getItem(this.getTodayStorageKey(todayStr));
     if (savedJson) {
       try {
         const parsed = JSON.parse(savedJson) as AutoSleepRecordDTO;
-        if (parsed && typeof parsed.sleepHours === "number" && parsed.logDate === todayStr) {
+        if (
+          parsed &&
+          typeof parsed.sleepHours === "number" &&
+          parsed.sleepHours > 0 &&
+          parsed.logDate === todayStr
+        ) {
           return parsed;
         }
       } catch {
@@ -98,15 +122,8 @@ class AutoSleepTracker {
       }
     }
 
-    const initialDetected = computeAutoSleepFromWindow({
-      logDate: todayStr,
-      bedTime: "23:15",
-      wakeTime: "06:45",
-      sleepLatencyMins: 15,
-      source: "OVERNIGHT_INACTIVITY",
-    });
-    this.persistRecordLocally(initialDetected);
-    return initialDetected;
+    // Tidak ada data tidur dummy/fallback untuk akun baru — menunggu deteksi nyata atau input user
+    return this.createUnrecordedRecord(todayStr);
   }
 
   private persistRecordLocally(rec: AutoSleepRecordDTO) {
@@ -125,7 +142,27 @@ class AutoSleepTracker {
     this.isStarted = true;
 
     this.evaluateOvernightGap(Date.now());
-    void this.syncWithBackend(this.record);
+    if (this.record.sleepHours > 0) {
+      void this.syncWithBackend(this.record);
+    } else {
+      // Muat dari MySQL jika user sudah check-in/mencatat tidur hari ini di perangkat lain
+      void api
+        .getTodayWellbeing()
+        .then((res) => {
+          const log = res?.data?.log as { sleepHours?: number } | null | undefined;
+          if (log && typeof log.sleepHours === "number" && log.sleepHours > 0 && this.record.sleepHours === 0) {
+            const hydrated = computeAutoSleepFromWindow({
+              logDate: getLocalTodayDateString(),
+              sleepHours: log.sleepHours,
+              sleepLatencyMins: 0,
+              source: "MANUAL_OVERRIDE",
+              isConfirmed: true,
+            });
+            this.setRecord(hydrated, false);
+          }
+        })
+        .catch(() => {});
+    }
 
     window.addEventListener("pointerdown", this.handleUserActivity, { passive: true });
     window.addEventListener("keydown", this.handleUserActivity, { passive: true });
@@ -246,6 +283,7 @@ class AutoSleepTracker {
   }
 
   private async syncWithBackend(rec: AutoSleepRecordDTO) {
+    if (rec.sleepHours <= 0) return;
     try {
       await api.syncAutoSleep({
         logDate: rec.logDate,
@@ -262,7 +300,7 @@ class AutoSleepTracker {
       const screenMins = screenTimeTracker.getTodayScreenTimeMinutes();
       await api.calculateBurnout({
         logDate: rec.logDate,
-        totalScreenTimeMins: screenMins > 0 ? screenMins : 324,
+        totalScreenTimeMins: Math.max(0, Math.round(screenMins)),
         sleepHours: rec.sleepHours,
       });
     } catch {

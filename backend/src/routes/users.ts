@@ -101,6 +101,7 @@ usersRouter.delete("/me/data", requireAuth, async (req: AuthenticatedRequest, re
     prisma.dailyFussionLog.deleteMany({ where: { userId } }),
     prisma.activeBreakSession.deleteMany({ where: { userId } }),
     prisma.userNotification.deleteMany({ where: { userId } }),
+    prisma.focusTask.deleteMany({ where: { userId } }),
     prisma.user.update({
       where: { id: userId },
       data: {

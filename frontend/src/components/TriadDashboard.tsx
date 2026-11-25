@@ -96,14 +96,19 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   const [selectedDayFilter, setSelectedDayFilter] = useState<number | "ALL">(realTodayDayOfWeek);
 
   // Auto-Sleep Inspector & Simulator Modal States
+  const isValidHHMM = (v?: string) => Boolean(v && /^\d{1,2}:\d{2}$/.test(v));
   const [isSleepModalOpen, setIsSleepModalOpen] = useState<boolean>(false);
-  const [customBedTime, setCustomBedTime] = useState<string>(autoSleep.bedTime || "23:15");
-  const [customWakeTime, setCustomWakeTime] = useState<string>(autoSleep.wakeTime || "06:45");
+  const [customBedTime, setCustomBedTime] = useState<string>(
+    isValidHHMM(autoSleep.bedTime) ? autoSleep.bedTime : "23:00"
+  );
+  const [customWakeTime, setCustomWakeTime] = useState<string>(
+    isValidHHMM(autoSleep.wakeTime) ? autoSleep.wakeTime : "06:30"
+  );
   const [customLatencyMins, setCustomLatencyMins] = useState<number>(autoSleep.sleepLatencyMins ?? 15);
 
   useEffect(() => {
-    setCustomBedTime(autoSleep.bedTime);
-    setCustomWakeTime(autoSleep.wakeTime);
+    if (isValidHHMM(autoSleep.bedTime)) setCustomBedTime(autoSleep.bedTime);
+    if (isValidHHMM(autoSleep.wakeTime)) setCustomWakeTime(autoSleep.wakeTime);
     setCustomLatencyMins(autoSleep.sleepLatencyMins);
   }, [autoSleep.bedTime, autoSleep.wakeTime, autoSleep.sleepLatencyMins]);
 
@@ -262,7 +267,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
     const timer = setTimeout(() => {
       void api
         .calculateBurnout({
-          totalScreenTimeMins: Math.max(1, Math.round(screenTimeHours * 60)),
+          totalScreenTimeMins: Math.max(0, Math.round(screenTimeHours * 60)),
           sleepHours,
         })
         .catch(() => {});

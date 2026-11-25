@@ -807,6 +807,63 @@ class ApiClient {
     await this.request(`/notifications/${id}`, { method: "DELETE" });
   }
 
+  // --- Focus Workstation Tasks (MySQL FocusTask) ---
+  async getFocusTasks(): Promise<{
+    data: Array<{
+      id: string;
+      text: string;
+      tag: string;
+      isCompleted: boolean;
+      createdAt?: string;
+    }>;
+    meta: unknown;
+  }> {
+    if (USE_MOCK) {
+      return { data: [], meta: { timestamp: new Date().toISOString(), version: "v1.0" } };
+    }
+    return this.request("/focus-tasks");
+  }
+
+  async createFocusTask(payload: { text: string; tag: string }): Promise<{
+    data: { id: string; text: string; tag: string; isCompleted: boolean; createdAt?: string };
+    meta: unknown;
+  }> {
+    if (USE_MOCK) {
+      return {
+        data: { id: `task-${Date.now()}`, text: payload.text, tag: payload.tag, isCompleted: false },
+        meta: { timestamp: new Date().toISOString(), version: "v1.0" },
+      };
+    }
+    return this.request("/focus-tasks", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateFocusTask(
+    id: string,
+    payload: { text?: string; tag?: string; isCompleted?: boolean }
+  ): Promise<{
+    data: { id: string; text: string; tag: string; isCompleted: boolean };
+    meta: unknown;
+  }> {
+    if (USE_MOCK) {
+      return {
+        data: { id, text: payload.text ?? "", tag: payload.tag ?? "Tugas", isCompleted: Boolean(payload.isCompleted) },
+        meta: { timestamp: new Date().toISOString(), version: "v1.0" },
+      };
+    }
+    return this.request(`/focus-tasks/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteFocusTask(id: string): Promise<void> {
+    if (USE_MOCK) return;
+    await this.request(`/focus-tasks/${id}`, { method: "DELETE" });
+  }
+
   // --- Web Push Notifications & Privacy ---
   async getVapidPublicKey(): Promise<{ data: { configured: boolean; publicKey: string | null }; meta: unknown }> {
     if (USE_MOCK) {

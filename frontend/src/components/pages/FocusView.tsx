@@ -102,7 +102,7 @@ export const FocusView: React.FC = () => {
   const [isActiveBreakOpen, setIsActiveBreakOpen] = useState<boolean>(false);
   const [activeBreakSuccess, setActiveBreakSuccess] = useState<boolean>(false);
 
-  // 1. Task Checklist States (Per-user local persistence, starts empty for new users)
+  // 1. Task Checklist States (Synced with MySQL /api/v1/focus-tasks, localStorage cache as offline fallback)
   const [tasks, setTasks] = useState<FocusTask[]>(() => loadSavedFocusTasks());
   const [newTaskInput, setNewTaskInput] = useState<string>("");
   const [newTaskTag, setNewTaskTag] = useState<string>("Tugas");
@@ -110,6 +110,28 @@ export const FocusView: React.FC = () => {
     const initial = loadSavedFocusTasks();
     return initial.find((t) => !t.isCompleted)?.id ?? initial[0]?.id ?? "";
   });
+
+  // Load FocusTasks from MySQL database on mount
+  useEffect(() => {
+    api
+      .getFocusTasks()
+      .then((res) => {
+        if (Array.isArray(res?.data)) {
+          const loaded: FocusTask[] = res.data.map((t) => ({
+            id: t.id,
+            text: t.text,
+            isCompleted: Boolean(t.isCompleted),
+            tag: t.tag || "Tugas",
+          }));
+          setTasks(loaded);
+          setActiveTaskId((prev) => {
+            if (prev && loaded.some((t) => t.id === prev)) return prev;
+            return loaded.find((t) => !t.isCompleted)?.id ?? loaded[0]?.id ?? "";
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     try {
@@ -334,34 +356,61 @@ export const FocusView: React.FC = () => {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  // Task actions
+  // Task actions (Optimistic UI + Synced to MySQL /api/v1/focus-tasks)
   const handleToggleTask = (id: string) => {
+    const target = tasks.find((t) => t.id === id);
+    if (!target) return;
+    const nextCompleted = !target.isCompleted;
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, isCompleted: !t.isCompleted } : t))
+      prev.map((t) => (t.id === id ? { ...t, isCompleted: nextCompleted } : t))
     );
+    if (!id.startsWith("task-")) {
+      void api.updateFocusTask(id, { isCompleted: nextCompleted }).catch(() => {});
+    }
   };
 
-  const handleAddTask = (e: React.FormEvent) => {
+  const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTaskInput.trim()) return;
-    const newTask: FocusTask = {
-      id: `task-${Date.now()}`,
-      text: newTaskInput.trim(),
+    const trimmed = newTaskInput.trim();
+    if (!trimmed) return;
+    const tempId = `task-${Date.now()}`;
+    const optimisticTask: FocusTask = {
+      id: tempId,
+      text: trimmed,
       isCompleted: false,
       tag: newTaskTag,
     };
-    setTasks((prev) => [...prev, newTask]);
+    setTasks((prev) => [...prev, optimisticTask]);
     setNewTaskInput("");
     if (!activeTaskId) {
-      setActiveTaskId(newTask.id);
+      setActiveTaskId(tempId);
+    }
+
+    try {
+      const res = await api.createFocusTask({ text: trimmed, tag: newTaskTag });
+      if (res?.data?.id) {
+        const persisted: FocusTask = {
+          id: res.data.id,
+          text: res.data.text,
+          isCompleted: Boolean(res.data.isCompleted),
+          tag: res.data.tag || newTaskTag,
+        };
+        setTasks((prev) => prev.map((t) => (t.id === tempId ? persisted : t)));
+        setActiveTaskId((prev) => (prev === tempId ? persisted.id : prev));
+      }
+    } catch {
+      // Keep optimistic local cache if backend is temporarily unreachable
     }
   };
 
   const handleDeleteTask = (id: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    const remaining = tasks.filter((t) => t.id !== id);
+    setTasks(remaining);
     if (activeTaskId === id) {
-      const remaining = tasks.filter((t) => t.id !== id);
       setActiveTaskId(remaining.length > 0 ? remaining[0].id : "");
+    }
+    if (!id.startsWith("task-")) {
+      void api.deleteFocusTask(id).catch(() => {});
     }
   };
 
@@ -541,11 +590,22 @@ export const FocusView: React.FC = () => {
             <div className="flex items-center justify-center lg:justify-start flex-wrap gap-2.5 pt-0.5">
               <button
                 type="button"
-                onClick={() => setIsTimerRunning(!isTimerRunning)}
+                onClick={() => {
+                  if (!isTimerRunning && secondsRemaining <= 0) {
+                    setSecondsRemaining(Math.max(1, Math.round(sessionDurationMins * 60)));
+                  }
+                  setIsTimerRunning(!isTimerRunning);
+                }}
                 className="py-2.5 px-6 rounded-full bg-[#243B2E] hover:bg-[#1B2E23] text-white font-bold text-xs sm:text-sm transition-all shadow-sm active:scale-95 flex items-center gap-2 cursor-pointer"
               >
                 {isTimerRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                <span>{isTimerRunning ? "Jeda Sesi" : "Lanjutkan Sesi"}</span>
+                <span>
+                  {isTimerRunning
+                    ? "Jeda Sesi"
+                    : secondsRemaining > 0 && secondsRemaining < totalSessionSeconds
+                    ? "Lanjutkan Sesi"
+                    : "Mulai Sesi"}
+                </span>
               </button>
               <button
                 type="button"

@@ -54,6 +54,7 @@ model User {
   dailyFussionLogs    DailyFussionLog[]
   activeBreakSessions ActiveBreakSession[]
   notifications       UserNotification[]
+  focusTasks          FocusTask[]
 }
 
 model SedentarySession {
@@ -217,6 +218,20 @@ model UserNotification {
 
   @@index([userId, createdAt])
   @@index([userId, logDate])
+}
+
+model FocusTask {
+  id          String   @id @default(uuid())
+  userId      String
+  text        String   @db.VarChar(255)
+  tag         String   @default("Tugas") @db.VarChar(40)
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 
