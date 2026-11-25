@@ -270,7 +270,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             <div className="space-y-4">
               {/* Item 1: Beban kuliah */}
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#FAF6F0] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-12 h-12 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
@@ -284,7 +284,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
               {/* Item 2: Paparan layar */}
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-12 h-12 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
                   <Monitor className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
@@ -297,7 +297,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
               {/* Item 3: Pemulihan tidur */}
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-12 h-12 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs">
                   <Moon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
@@ -319,7 +319,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             <div className="space-y-4">
               {/* Step 01 */}
               <div className="flex items-start gap-3.5">
-                <div className="w-9 h-9 rounded-full bg-[#E8DDCF] text-[#2F3A2E] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <div className="w-9 h-9 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   01
                 </div>
                 <div className="min-w-0">
@@ -332,7 +332,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
               {/* Step 02 */}
               <div className="flex items-start gap-3.5">
-                <div className="w-9 h-9 rounded-full bg-[#E8DDCF] text-[#2F3A2E] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <div className="w-9 h-9 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   02
                 </div>
                 <div className="min-w-0">
@@ -345,7 +345,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
 
               {/* Step 03 */}
               <div className="flex items-start gap-3.5">
-                <div className="w-9 h-9 rounded-full bg-[#E8DDCF] text-[#2F3A2E] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <div className="w-9 h-9 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   03
                 </div>
                 <div className="min-w-0">
@@ -359,7 +359,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
           </div>
 
           {/* CARD 3: Ruang aman untuk bercerita */}
-          <div className="bg-[#E8DDCF] rounded-[1.75rem] p-6 border border-[#CFD8C4] space-y-2">
+          <div className="bg-[#CFD8C4] rounded-[1.75rem] p-6 border border-[#BCC8AE] space-y-2">
             <div className="w-7 h-7 flex items-center justify-center text-[#2F3A2E]">
               <ShieldCheck className="w-6 h-6 stroke-[2]" />
             </div>
@@ -383,7 +383,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
           } w-full bg-white rounded-[1.75rem] shadow-xs border border-[#E8DDCF] overflow-hidden flex flex-col transition-all duration-300`}
         >
           {/* Header Chat Panel */}
-          <div className="bg-[#E8DDCF] px-6 py-4 flex items-center justify-between border-b border-[#CFD8C4]">
+          <div className="bg-[#CFD8C4] px-6 py-4 flex items-center justify-between border-b border-[#BCC8AE]">
             <div className="flex items-center gap-3">
               {isChatting && (
                 <button
@@ -459,10 +459,10 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                       type="button"
                       onClick={() => handleSendQuickPrompt(rec.prompt)}
                       disabled={isTyping}
-                      className="w-full bg-white hover:bg-[#FAF6F0] border border-[#E8DDCF] hover:border-[#CFD8C4] rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition-all shadow-2xs group active:scale-[0.99] disabled:opacity-50"
+                      className="w-full bg-white hover:bg-[#FAF6F0] border border-[#E8DDCF] hover:border-[#BCC8AE] rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition-all shadow-2xs group active:scale-[0.99] disabled:opacity-50 cursor-pointer"
                     >
                       <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-[#FAF6F0] group-hover:bg-white text-[#2F3A2E] flex items-center justify-center shrink-0 border border-transparent group-hover:border-[#E8DDCF] shadow-2xs transition-colors">
+                        <div className="w-9 h-9 rounded-xl bg-[#CFD8C4] group-hover:bg-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 border border-[#BCC8AE] shadow-2xs transition-colors">
                           {rec.icon}
                         </div>
                         <span className="text-xs sm:text-sm font-semibold text-[#2F3A2E] group-hover:text-black">

@@ -10,21 +10,18 @@ import {
   Shield,
   AlertTriangle,
   CheckCircle2,
-  Sparkles,
   RefreshCw,
   Sliders,
   Play,
   Square,
   Activity,
   Check,
-  Flame,
   UserCheck,
   Volume2,
   VolumeX,
   Ruler,
   Award,
   Users,
-  Globe,
 } from "lucide-react";
 import { sound } from "@/utils/audioFeedback";
 import {
@@ -86,7 +83,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   onActiveBreakCompleted,
   forceBreakLock = false,
   lockReason,
-  isStrictOsLock = false,
+  isStrictOsLock: _isStrictOsLock = false,
 }) => {
   const osLockState = useOsScreenLock();
   // DOM References
@@ -867,16 +864,6 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
           postureState.isLeaningAsymmetric)
     );
 
-  const formatBrowserName = (raw: string | null): string => {
-    if (!raw) return "OS Focus Guard Aktif";
-    const lower = raw.toLowerCase();
-    if (lower.includes("msedge") || lower.includes("edge")) return "Enforcer: Microsoft Edge";
-    if (lower.includes("chrome")) return "Enforcer: Google Chrome";
-    if (lower.includes("brave")) return "Enforcer: Brave Browser";
-    if (lower.includes("firefox")) return "Enforcer: Firefox";
-    return `Enforcer: ${raw}`;
-  };
-
   const holdRadius = 32;
   const holdCircumference = 2 * Math.PI * holdRadius;
   const holdProgressRatio = Math.min(1, currentRepHoldSeconds / Math.max(0.1, targetHoldSeconds));
@@ -923,10 +910,6 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 <span className="font-heading text-xs font-extrabold uppercase tracking-[0.06em] text-[#1D3127]">
                   Kunci Layar Level OS Aktif
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-0.5 rounded-full bg-[#FCFBF8] border border-[#E6DAC8] text-[#2F3A2E]">
-                  <Globe className="w-3 h-3 text-[#4C5C4E]" />
-                  {formatBrowserName(osLockState.activeBrowser)}
-                </span>
               </div>
               <p className="text-xs text-[#5A5043] mt-0.5">
                 {lockReason || osLockState.reason} &bull; Navigasi tab dan aplikasi lain dikunci sampai prosedur peregangan selesai.
@@ -953,7 +936,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
         }`}
       >
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-11 h-11 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
             <Shield className="w-6 h-6" />
           </div>
           <div>
@@ -972,7 +955,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
               isMuted
                 ? "bg-[#FAF6F0] text-[#636B60] border-[#E8DDCF] hover:bg-[#CFD8C4]"
-                : "bg-[#E8DDCF] text-[#2F3A2E] border-[#E8DDCF] shadow-xs"
+                : "bg-[#CFD8C4] text-[#2F3A2E] border-[#BCC8AE] shadow-xs"
             }`}
             title={isMuted ? "Aktifkan Audio Synthesizer" : "Bisukan Audio Feedback"}
           >
@@ -1049,19 +1032,6 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 <span className="pointer-events-none absolute bottom-14 left-5 w-7 h-7 border-b-2 border-l-2 border-white/75 rounded-bl-xl z-20" />
                 <span className="pointer-events-none absolute bottom-14 right-5 w-7 h-7 border-b-2 border-r-2 border-white/75 rounded-br-xl z-20" />
               </>
-            )}
-
-            {/* Anti-Cheat Break Live Overlay inside Video */}
-            {isBreakLocked && (
-              <div className="absolute inset-x-0 top-4 z-30 flex flex-col items-center text-center px-4 pointer-events-none">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FCFBF8]/95 backdrop-blur-md border border-white text-xs shadow-lg">
-                  <Sparkles className="w-3.5 h-3.5 text-[#243B2E] shrink-0" />
-                  <span className="font-bold text-[#1D3127]">Verifikasi Kamera AI:</span>
-                  <span className={isHoldingStretch ? "text-[#367A44] font-extrabold" : "text-[#A36918] font-bold"}>
-                    {isHoldingStretch ? "✓ Pose Peregangan Valid (Tahan)!" : "Angkat kedua tangan lurus di atas kepala"}
-                  </span>
-                </div>
-              </div>
             )}
 
             {/* Loading Spinner */}
@@ -1175,7 +1145,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             )}
 
             {/* Corner HUD Metrics Badge */}
-            {(baseline || isBreakLocked) && !isCalibrating && (
+            {baseline && !isBreakLocked && !isCalibrating && (
               <div
                 className={
                   isBreakLocked
@@ -1342,11 +1312,6 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
             </svg>
 
             <div className="relative z-10 space-y-4">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#F5EBD8] border border-[#EADBC2] text-[#7D5524] text-[11px] font-bold">
-                <Flame className="w-3.5 h-3.5 text-[#A86D24]" />
-                <span>Wajib Peregangan Sebelum Melanjutkan ({demoMode ? "Mode 15 Detik" : "Mode 50 Menit"})</span>
-              </div>
-
               <div className="space-y-2">
                 <h2 className="text-2xl sm:text-[1.65rem] font-extrabold font-heading text-[#1D3127] leading-tight tracking-tight">
                   Istirahat Aktif: Buka Kunci Layar!
@@ -1454,18 +1419,6 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
             {/* Box 3: OS Lock Info Footer */}
             <div className="relative z-10 space-y-2.5">
-              <div className="bg-[#E8F0E3] rounded-2xl p-4 border border-[#D4E1CC] flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#243B2E] text-white flex items-center justify-center shrink-0">
-                  <Shield className="w-4 h-4" />
-                </div>
-                <p className="text-[11px] text-[#3C4E3F] leading-relaxed">
-                  <strong className="text-[#1D3127]">
-                    {isStrictOsLock ? "Proteksi Mutlak Level OS Aktif:" : "Proteksi OS Aktif:"}
-                  </strong>{" "}
-                  Jika Anda berpindah ke tab lain atau aplikasi lain, sistem operasi akan otomatis mengembalikan layar ke halaman ini sampai prosedur peregangan selesai.
-                </p>
-              </div>
-
               {/* Emergency Fallback ONLY if camera hardware fails */}
               {cameraPermissionError && (
                 <div className="pt-1 flex justify-center">
@@ -1609,7 +1562,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 `Batas Screen Time (${demoMode ? "15 Detik" : "50 Menit"}) Tercapai — Wajib Peregangan Aktif`
               );
             }}
-            className="px-3.5 py-2 bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-[#2F3A2E] rounded-xl font-extrabold transition-colors border border-[#CFD8C4] flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] rounded-xl font-extrabold transition-colors border border-[#BCC8AE] flex items-center gap-1.5 cursor-pointer"
             title="Mulai hitung mundur dan coba pindah ke tab/aplikasi lain"
           >
             <Play className="w-3.5 h-3.5 fill-[#2F3A2E]" />
@@ -1618,7 +1571,7 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
           <button
             onClick={() => triggerBreakLockNow("Kunci Layar Istirahat Aktif (Level OS)")}
-            className="px-3.5 py-2 bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-[#2F3A2E] rounded-xl font-extrabold transition-colors border border-[#CFD8C4] flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] rounded-xl font-extrabold transition-colors border border-[#BCC8AE] flex items-center gap-1.5 cursor-pointer"
             title="Kunci layar level OS sekarang untuk tes Active Break"
           >
             <Lock className="w-3.5 h-3.5" />
@@ -1635,10 +1588,10 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 void osScreenLock.disarmTimer();
               }
             }}
-            className={`px-3.5 py-2 rounded-xl font-extrabold flex items-center gap-1 ${
+            className={`px-3.5 py-2 rounded-xl font-extrabold flex items-center gap-1 cursor-pointer ${
               sessionActive
-                ? "bg-[#CFD8C4] text-[#2F3A2E]"
-                : "bg-[#E8DDCF] text-[#2F3A2E] border border-[#E8DDCF] shadow-softPill"
+                ? "bg-[#BCC8AE] text-[#2F3A2E] border border-[#ADC09E]"
+                : "bg-[#CFD8C4] hover:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] shadow-softPill"
             }`}
           >
             {sessionActive ? (

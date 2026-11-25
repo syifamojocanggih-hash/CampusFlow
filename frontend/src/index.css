@@ -39,7 +39,7 @@
   }
 
   /* Global active/clicked button feedback: turns Soft Sage Green (#CFD8C4) */
-  button:not(:disabled):active {
+  button:not(:disabled):not(.mobile-nav-btn):active {
     background-color: #CFD8C4 !important;
     border-color: #BCC8AE !important;
     color: #2F3A2E !important;
@@ -122,6 +122,31 @@
 
 .animate-nav-bounce {
   animation: navPillBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Mobile Curved Cutout Floating Navigation Bubble Animation (persis seperti video & foto 2) */
+@keyframes fluidBubblePop {
+  0% {
+    transform: translateY(6px) scale(0.88, 1.15);
+    opacity: 0.9;
+  }
+  38% {
+    transform: translateY(-24px) scale(1.12, 0.90);
+  }
+  70% {
+    transform: translateY(-16px) scale(0.96, 1.04);
+  }
+  85% {
+    transform: translateY(-20px) scale(1.02, 0.98);
+  }
+  100% {
+    transform: translateY(-18px) scale(1, 1);
+    opacity: 1;
+  }
+}
+
+.animate-fluid-bubble {
+  animation: fluidBubblePop 0.44s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* Mimi Pet Mascot Animations */

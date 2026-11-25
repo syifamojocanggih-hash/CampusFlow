@@ -164,7 +164,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
       id: "c1",
       category: "akademik",
       cardBg: "bg-[#FAF6F0] border-[#CFD8C4] hover:border-[#CFD8C4]",
-      iconBg: "bg-[#E8DDCF] text-[#2F3A2E]",
+      iconBg: "bg-[#CFD8C4] text-[#2F3A2E] border border-[#BCC8AE]",
       icon: <BookOpen className="w-5 h-5" />,
       title: "Smart Academic Planner (PDF KRS Parser)",
       description:
@@ -174,7 +174,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
       id: "c2",
       category: "layar",
       cardBg: "bg-[#FAF6F0] border-[#CFD8C4] hover:border-[#CFD8C4]",
-      iconBg: "bg-[#E8DDCF] text-[#2F3A2E]",
+      iconBg: "bg-[#CFD8C4] text-[#2F3A2E] border border-[#BCC8AE]",
       icon: <Eye className="w-5 h-5" />,
       title: "Cross-Device Screen Time & Zero Continuous Camera",
       description:
@@ -184,7 +184,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
       id: "c3",
       category: "jeda",
       cardBg: "bg-[#FAF6F0] border-[#E8DDCF] hover:border-[#E8DDCF]",
-      iconBg: "bg-[#E8DDCF] text-[#2F3A2E]",
+      iconBg: "bg-[#CFD8C4] text-[#2F3A2E] border border-[#BCC8AE]",
       icon: <Footprints className="w-5 h-5" />,
       title: "On-Demand Active Break Validator (MediaPipe 2 Menit)",
       description:
@@ -194,7 +194,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
       id: "c4",
       category: "ai",
       cardBg: "bg-[#FAF6F0] border-[#CFD8C4] hover:border-[#E8DDCF]",
-      iconBg: "bg-[#E8DDCF] text-[#636B60]",
+      iconBg: "bg-[#CFD8C4] text-[#2F3A2E] border border-[#BCC8AE]",
       icon: <Bot className="w-5 h-5" />,
       title: "Wellbeing AI Coach & Konsultasi Stres Proaktif",
       description:
@@ -243,7 +243,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
               onClick={() => scrollToSection("home")}
               className="flex items-center gap-2.5 cursor-pointer select-none"
             >
-              <div className="w-9 h-9 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shadow-xs">
+              <div className="w-9 h-9 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] flex items-center justify-center text-[#2F3A2E] shadow-xs">
                 <GraduationCap className="w-5 h-5" />
               </div>
               <span className="font-heading font-extrabold text-lg text-[#2F3A2E] tracking-tight">
@@ -401,19 +401,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
             <div className="flex flex-wrap items-center gap-2 pt-2 text-[11px] font-bold text-[#2F3A2E]">
               <button
                 onClick={() => scrollToSection("about")}
-                className="px-3.5 py-2 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
+                className="px-3.5 py-2 rounded-full bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <Eye className="w-3.5 h-3.5" /> Zero Continuous Camera
               </button>
               <button
                 onClick={() => scrollToSection("courses")}
-                className="px-3.5 py-2 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
+                className="px-3.5 py-2 rounded-full bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <BookOpen className="w-3.5 h-3.5" /> Strava Akademik (KRS)
               </button>
               <button
                 onClick={() => scrollToSection("courses")}
-                className="px-3.5 py-2 rounded-full bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs"
+                className="px-3.5 py-2 rounded-full bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] transition-colors active:scale-95 flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <Bot className="w-3.5 h-3.5" /> Wellbeing AI Coach
               </button>
@@ -515,7 +515,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
           {/* 3 Pillars Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
             <div className="p-6 rounded-3xl bg-[#FAF6F0] border border-[#E8DDCF] space-y-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] flex items-center justify-center text-[#2F3A2E] shadow-xs">
                 <Eye className="w-5 h-5" />
               </div>
               <h3 className="font-heading font-extrabold text-sm text-[#2F3A2E]">
@@ -527,7 +527,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
             </div>
 
             <div className="p-6 rounded-3xl bg-[#FAF6F0] border border-[#E8DDCF] space-y-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] flex items-center justify-center text-[#2F3A2E] shadow-xs">
                 <BookOpen className="w-5 h-5" />
               </div>
               <h3 className="font-heading font-extrabold text-sm text-[#2F3A2E]">
@@ -539,7 +539,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
             </div>
 
             <div className="p-6 rounded-3xl bg-[#FAF6F0] border border-[#E8DDCF] space-y-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] flex items-center justify-center text-[#2F3A2E] shadow-xs">
                 <Bot className="w-5 h-5" />
               </div>
               <h3 className="font-heading font-extrabold text-sm text-[#2F3A2E]">
@@ -584,7 +584,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
 
               {contactSubmitted ? (
                 <div className="p-6 rounded-2xl bg-[#FAF6F0] border border-[#CFD8C4] text-center space-y-2 animate-in zoom-in-95 my-auto">
-                  <div className="w-12 h-12 rounded-full bg-[#E8DDCF] text-emerald-800 flex items-center justify-center mx-auto">
+                  <div className="w-12 h-12 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center mx-auto">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
                   <h4 className="font-heading font-extrabold text-sm text-[#2F3A2E]">
@@ -666,7 +666,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
 
                   <button
                     type="submit"
-                    className="w-full py-2.5 rounded-xl bg-[#E8DDCF] hover:bg-[#CFD8C4] active:bg-[#CFD8C4] text-[#2F3A2E] font-bold text-xs transition-transform active:scale-95 shadow-xs border border-[#E8DDCF] flex items-center justify-center gap-1.5 mt-2"
+                    className="w-full py-2.5 rounded-xl bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#ADC09E] text-[#2F3A2E] font-bold text-xs transition-transform active:scale-95 shadow-xs border border-[#BCC8AE] flex items-center justify-center gap-1.5 mt-2 cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>Kirim Pesan Sekarang</span>
@@ -690,8 +690,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
 
                 <div className="grid grid-cols-1 gap-2.5 text-xs pt-1">
                   <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#FAF6F0] border border-[#E8DDCF]">
-                    <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-2xs">
-                      <Mail className="w-4 h-4" />
+                    <div className="w-8 h-8 rounded-xl bg-[#CFD8C4] border border-[#BCC8AE] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-2xs">
+                      <Mail className="w-4 h-4 text-[#2F3A2E]" />
                     </div>
                     <div>
                       <span className="font-bold text-[#2F3A2E] block text-[11px]">Email Dukungan</span>
@@ -700,8 +700,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                   </div>
 
                   <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#FAF6F0] border border-[#E8DDCF]">
-                    <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-2xs">
-                      <Phone className="w-4 h-4" />
+                    <div className="w-8 h-8 rounded-xl bg-[#CFD8C4] border border-[#BCC8AE] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-2xs">
+                      <Phone className="w-4 h-4 text-[#2F3A2E]" />
                     </div>
                     <div>
                       <span className="font-bold text-[#2F3A2E] block text-[11px]">Hotline Mahasiswa</span>
@@ -710,8 +710,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
                   </div>
 
                   <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#FAF6F0] border border-[#E8DDCF]">
-                    <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-2xs">
-                      <MapPin className="w-4 h-4" />
+                    <div className="w-8 h-8 rounded-xl bg-[#CFD8C4] border border-[#BCC8AE] flex items-center justify-center text-[#2F3A2E] shrink-0 shadow-2xs">
+                      <MapPin className="w-4 h-4 text-[#2F3A2E]" />
                     </div>
                     <div>
                       <span className="font-bold text-[#2F3A2E] block text-[11px]">Laboratorium Riset</span>

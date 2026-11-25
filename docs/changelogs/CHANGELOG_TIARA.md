@@ -21,6 +21,150 @@
 
 ---
 
+## [2026-11-25] — Penghapusan 15 Elemen UI Redundan & Status Pills Sesuai Permintaan Pengguna (`VisionGuard.tsx`, `FocusView.tsx`, `ActivityView.tsx`, `PedometerCard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.86`
+- **Ringkasan:**
+  1. **Pembersihan Overlay Active Break & VisionGuard (`VisionGuard.tsx`):**
+     - Menghapus badge corner HUD "Terdeteksi Aktif 16 FPS" saat mode istirahat aktif berlangsung.
+     - Menghapus pill "Wajib Peregangan Sebelum Melanjutkan (Mode 15 Detik)".
+     - Menghapus kotak peringatan "Proteksi Mutlak Level OS Aktif...".
+     - Menghapus pill "OS Focus Guard Aktif" pada header lock banner.
+     - Menghapus pill live overlay "Verifikasi Kamera AI: Angkat kedua tangan lurus di atas kepala" pada pemutar video.
+  2. **Pembersihan Garis Waktu Sesi Fokus (`FocusView.tsx`):**
+     - Menghapus kartu timeline "Garis Waktu Sesi Fokus Hari Ini" yang memuat pill "25 mnt", badge "Sesi #1..#5", dan teks "Total Akumulasi" agar tampilan fokus lebih ringkas dan terfokus pada timer serta daftar tugas.
+  3. **Pembersihan Elemen Aktivitas & Pedometer (`ActivityView.tsx`, `PedometerCard.tsx`):**
+     - Menghapus pill "7 Hari Streak Konsisten" dan teks catatan maskot Mimi pada `ActivityView.tsx`.
+     - Menghapus pill status sensor gerak ("Sensor aktif / Sensor mati") pada `PedometerCard.tsx`.
+     - Menghapus 3 badge energi MET-m (`+40 MET-m`, `+90 MET-m`, `+180 MET-m`) dan catatan kaki penjelasan MET-menit pada kartu pencatat cepat aktivitas kampus.
+- **Daftar File Diubah:**
+  - `frontend/src/components/vision/VisionGuard.tsx`
+  - `frontend/src/components/pages/FocusView.tsx`
+  - `frontend/src/components/pages/ActivityView.tsx`
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
+## [2026-11-25] — Harmonisasi Palet Hijau Sage pada AI Coach, Kartu Prestasi Riwayat & Kontrol VisionGuard (`CoachView.tsx`, `HistoryView.tsx`, `VisionGuard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.85`
+- **Ringkasan:**
+  1. **Wellbeing AI Coach (`CoachView.tsx`):**
+     - Mengubah seluruh badge squircle kartu ringkasan tubuh (Beban kuliah `BookOpen`, Paparan layar `Monitor`, Pemulihan tidur `Moon`) menjadi palet hijau sage (`bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]`).
+     - Mengubah lingkaran nomor panduan (`01`, `02`, `03`) dan kartu ruang aman menjadi palet hijau sage (`bg-[#CFD8C4] border border-[#BCC8AE]`).
+     - Mengubah latar 5 badge ikon tombol rekomendasi obrolan (`BookOpen`, `Clock`, `Monitor`, `Moon`, `Sparkles`) menjadi `bg-[#CFD8C4] group-hover:bg-[#BCC8AE] border border-[#BCC8AE]`.
+     - Menyelaraskan header panel obrolan AI Coach ke `bg-[#CFD8C4] border-b border-[#BCC8AE]`.
+  2. **Kartu Prestasi Riwayat (`HistoryView.tsx`):**
+     - Mengubah 4 kartu lencana pencapaian (`Early Bird`, `Streak Master`, `Active Stretcher`, `Sleep Protector`) dari warna krem/beige menjadi hijau sage proyek (`bg-[#CFD8C4] text-[#2F3A2E] border-[#BCC8AE]`).
+     - Menyelaraskan seluruh badge ikon ringkasan statistik (History, Flame, Award) ke hijau sage (`bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]`).
+  3. **Kontrol Tombol VisionGuard (`VisionGuard.tsx`):**
+     - Mengubah tombol "Mulai Timer Lock OS", tombol "Trigger Lock Break Sekarang", dan tombol status timer aktif/idle ke palet hijau sage (`bg-[#CFD8C4] hover:bg-[#BCC8AE] border border-[#BCC8AE]`).
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/CoachView.tsx`
+  - `frontend/src/components/pages/HistoryView.tsx`
+  - `frontend/src/components/vision/VisionGuard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
+## [2026-11-25] — Standardisasi Seluruh Tombol Aksi, Badge Ikon & Pill Aktivitas ke Palet Hijau Sage (`PedometerCard.tsx`, `ActivityView.tsx`, `PanicReliefMode.tsx`, `NotificationPopover.tsx`, `Navbar.tsx`, `TriadDashboard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.84`
+- **Ringkasan:**
+  1. **Penyelarasan Warna Kartu Pencatat Cepat Aktivitas Fisik (`PedometerCard.tsx`):**
+     - Mengubah warna 3 tombol aksi cepat "Catat" (Naik Tangga, Bersepeda, Olahraga Sore) menjadi hijau sage proyek (`bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE]`).
+     - Mengubah badge MET-m (`+40 MET-m`, `+90 MET-m`, `+180 MET-m`) dan squircle ikon (`TrendingUp`, tangga, `Bike`, `Globe`, `Footprints`) ke palet hijau sage (`bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]`).
+     - Menyesuaikan tombol toggle sensor gerak HP menjadi hijau sage saat idle dan sage aktif saat tracking.
+  2. **Harmonisasi Elemen Badge & Tombol Lintas Komponen:**
+     - `ActivityView.tsx`: Menyelaraskan pill streak hari konsisten dan badge centang hari ke palet hijau sage (`#CFD8C4` & `#BCC8AE`).
+     - `PanicReliefMode.tsx`: Mengubah tombol kontrol "Mulai Protokol", tombol selesaikan sesi +50 XP, dan badge protokol ke palet hijau sage.
+     - `NotificationPopover.tsx`: Memperbarui badge kategori notifikasi dan dot indikator pesan baru ke hijau sage.
+     - `Navbar.tsx` & `TriadDashboard.tsx`: Memperbarui badge counter notifikasi, avatar ring mobile, dan badge deteksi jam tidur.
+- **Daftar File Diubah:**
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `frontend/src/components/pages/ActivityView.tsx`
+  - `frontend/src/components/PanicReliefMode.tsx`
+  - `frontend/src/components/notifications/NotificationPopover.tsx`
+  - `frontend/src/components/Navbar.tsx`
+  - `frontend/src/components/TriadDashboard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
+## [2026-11-25] — Pembaharuan Warna Tombol & Badge Ikon Landing Page ke Palet Hijau Sage (`LandingPage.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.83`
+- **Ringkasan:**
+  1. **Penyelarasan Warna Tombol Fitur Hero & Badge Ikon ke Palet Hijau Sage (`#CFD8C4`):**
+     - Mengubah warna 3 pill tombol quick entry fitur di Hero Section (`Zero Continuous Camera`, `Strava Akademik (KRS)`, dan `Wellbeing AI Coach`) dari beige (`#E8DDCF`) menjadi hijau sage khas project (`bg-[#CFD8C4] hover:bg-[#BCC8AE] active:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE]`).
+     - Mengubah latar belakang badge ikon kartu modul/fitur (`coursesData`) untuk ikon `BookOpen`, `Eye`, `Footprints`, dan `Bot` menjadi `bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E]`.
+     - Mengubah badge ikon pada 3 Pilar Grid (`Eye`, `BookOpen`, `Bot`) serta badge logo header dan info kontak ke palet hijau sage terpadu (`bg-[#CFD8C4] border border-[#BCC8AE]`).
+     - Memperbarui tombol kirim form kontak ke warna hijau sage (`bg-[#CFD8C4] hover:bg-[#BCC8AE]`) agar seluruh call-to-action dan elemen interaktif konsisten dengan panduan desain CampusFlow.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pages/LandingPage.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
+## [2026-11-25] — Penghapusan Tab Switcher Masuk/Daftar pada Modal Autentikasi (`AuthModal.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.82`
+- **Ringkasan:**
+  1. **Penghapusan Tab Switcher Masuk/Daftar (`AuthModal.tsx`):**
+     - Menghapus pill toggle tab switcher ganda ("Masuk (Login)" dan "Daftar (Register)") di bagian atas formulir modal autentikasi agar tampilan modal lebih bersih, terarah, dan tidak redundan.
+     - Form yang tampil tetap terbuka secara otomatis dan presisi sesuai tombol yang ditekan pengguna di Landing Page (`initialTab`), serta tetap dapat berpindah form secara mulus melalui tautan di bagian bawah formulir ("Daftar di sini" / "Masuk di sini").
+- **Daftar File Diubah:**
+  - `frontend/src/components/auth/AuthModal.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
+## [2026-11-25] — Penyempurnaan Navigasi Mobile Persis Referensi Foto 2 dengan Label Teks & Border Notch Mulus (`Navbar.tsx`, `index.css`, `App.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.81`
+- **Ringkasan:**
+  1. **Pemberian Keterangan Label Teks di Bawah Seluruh Tombol Navigasi (Persis Foto 2):**
+     - Menambahkan teks keterangan di bawah setiap ikon: `Dashboard`, `Workstation`, `Aktivitas`, `AI Coach`, dan `Riwayat`.
+     - Seluruh 5 label berbagi garis dasar (*horizontal baseline*) yang sejajar di bagian bawah navbar, dengan teks tab aktif tercetak tebal kontras tinggi (`font-extrabold text-[#2F3A2E]`).
+  2. **Kerapian Garis Kontur Notch Mulus Tanpa Garis Sisa (Whiskers):**
+     - Menggabungkan garis horizontal flat atas dengan lengkungan notch bergerak via SVG mask, sehingga border atas navbar menyatu 100% mulus tanpa ada garis yang keluar atau terputus.
+  3. **Floating Circular Action Button Bertengger Rapi di Cekungan:**
+     - Mengatur diameter dan elevasi bola hijau forest (`w-[48px] h-[48px]`) dengan ring putih presisi (`border-[2.5px] border-white`) bertengger di atas cekungan notch tanpa menabrak label teks di bawahnya maupun kartu di atasnya.
+  4. **Transisi Luncuran Horizontal Murni (Geser Mulus Tanpa Loncat):**
+     - Mengubah transisi navigasi mobile dari efek loncatan (*bounce/pop*) menjadi luncuran horizontal murni (*pure smooth slide*) menggunakan kurva deselerasi halus `cubic-bezier(0.25, 1, 0.5, 1)` (360ms) dengan elevasi konstan tanpa loncat vertikal, sehingga perpindahan antar tab terasa tenang, elegan, dan mulus.
+- **Daftar File Diubah:**
+  - `frontend/src/index.css`
+  - `frontend/src/components/Navbar.tsx`
+  - `frontend/src/App.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error TypeScript/Vite.
+  - `npm run test:frontend` (23/23 lolos).
+  - `npm run test:shared` (5/5 lolos).
+  - `npm run guard` lolos validasi zona branch `frontend`.
+
+---
+
 ## [2026-11-24] — Penyelarasan Warna Tubuh Mascot Pet Tingkat Legenda ke Pastel Pink (`mimiSvg.ts`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.80`
 - **Ringkasan:**

@@ -1701,7 +1701,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#E8DDCF] space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-[#E8DDCF]">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-[#E8DDCF] flex items-center justify-center text-[#2F3A2E] shadow-2xs">
+                <div className="w-10 h-10 rounded-xl bg-[#CFD8C4] border border-[#BCC8AE] flex items-center justify-center text-[#2F3A2E] shadow-2xs">
                   <Moon className="w-5 h-5" />
                 </div>
                 <div>

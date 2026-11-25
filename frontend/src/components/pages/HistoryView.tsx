@@ -52,10 +52,10 @@ export const HistoryView: React.FC = () => {
 
   // Calorie app style pastel badges
   const achievements = [
-    { title: "Early Bird", desc: "Selesai stretching pagi", color: "bg-[#E8DDCF] text-[#2F3A2E] border-[#CFD8C4]" },
-    { title: "Streak Master", desc: "7 hari berturut-turut", color: "bg-[#E8DDCF] text-[#2F3A2E] border-[#CFD8C4]" },
-    { title: "Active Stretcher", desc: "100% anti-cheat lulus", color: "bg-[#E8DDCF] text-[#2F3A2E] border-[#E8DDCF]" },
-    { title: "Sleep Protector", desc: "Tidur rata-rata 7.5 jam", color: "bg-[#E8DDCF] text-[#636B60] border-[#E8DDCF]" },
+    { title: "Early Bird", desc: "Selesai stretching pagi", color: "bg-[#CFD8C4] text-[#2F3A2E] border-[#BCC8AE]" },
+    { title: "Streak Master", desc: "7 hari berturut-turut", color: "bg-[#CFD8C4] text-[#2F3A2E] border-[#BCC8AE]" },
+    { title: "Active Stretcher", desc: "100% anti-cheat lulus", color: "bg-[#CFD8C4] text-[#2F3A2E] border-[#BCC8AE]" },
+    { title: "Sleep Protector", desc: "Tidur rata-rata 7.5 jam", color: "bg-[#CFD8C4] text-[#2F3A2E] border-[#BCC8AE]" },
   ];
 
   return (
@@ -63,7 +63,7 @@ export const HistoryView: React.FC = () => {
       {/* Header Banner */}
       <div className="learnova-card p-6 border-[#E8DDCF] flex items-center justify-between">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
             <History className="w-6 h-6" />
           </div>
           <div>
@@ -80,7 +80,7 @@ export const HistoryView: React.FC = () => {
       {/* Stats Summary Cards */}
       <div className="grid grid-cols-2 gap-4">
         <div className="learnova-card p-5 flex items-center gap-4 border-[#E8DDCF]">
-          <div className="w-12 h-12 rounded-2xl bg-[#E8DDCF] text-[#636B60] flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
             <Flame className="w-6 h-6 fill-[#2F3A2E]" />
           </div>
           <div>
@@ -92,7 +92,7 @@ export const HistoryView: React.FC = () => {
         </div>
 
         <div className="learnova-card p-5 flex items-center gap-4 border-[#E8DDCF]">
-          <div className="w-12 h-12 rounded-2xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-xs">
             <Award className="w-6 h-6" />
           </div>
           <div>

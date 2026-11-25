@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { PedometerCard } from "@/components/sensor/PedometerCard";
 import { CheckinView } from "@/components/pages/CheckinView";
-import { Footprints, ClipboardCheck, Flame, Calendar } from "lucide-react";
+import { Footprints, ClipboardCheck, Calendar } from "lucide-react";
 import { api } from "@/lib/api";
 
 interface ActivityViewProps {
@@ -16,7 +16,6 @@ const SHORT_MONTHS = [
 
 export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "pedometer" }) => {
   const [subTab, setSubTab] = useState<"pedometer" | "checkin">(defaultSubTab);
-  const [streakDays, setStreakDays] = useState<number>(1);
   const [completedDates, setCompletedDates] = useState<Set<string>>(() => {
     const todayIso = new Date().toISOString().slice(0, 10);
     return new Set([todayIso]);
@@ -26,9 +25,6 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
     api
       .getTriadDashboard(7)
       .then((res) => {
-        if (typeof res.data?.weeklySummary?.currentStreakDays === "number") {
-          setStreakDays(res.data.weeklySummary.currentStreakDays);
-        }
         if (Array.isArray(res.data?.history)) {
           const dates = new Set<string>();
           for (const item of res.data.history) {
@@ -73,9 +69,6 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
             Konsistensi Kebiasaan Sehat Pekan Ini
           </h3>
         </div>
-        <span className="text-[11px] text-[#636B60]">
-          Konsistensi Anda menjaga status maskot <strong>Mimi</strong> berkembang pesat.
-        </span>
       </div>
 
       {/* 7-Day Strip */}
@@ -99,7 +92,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
             </div>
             <div className="flex justify-center mt-1">
               {item.isCompleted ? (
-                <span className="w-5 h-5 rounded-full bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center text-[10px] font-extrabold">
+                <span className="w-5 h-5 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center text-[10px] font-extrabold">
                   ✓
                 </span>
               ) : (
@@ -144,12 +137,6 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
             <ClipboardCheck className="w-4 h-4" />
             <span>Kuis Evaluasi Diri</span>
           </button>
-        </div>
-
-        {/* Streak Pill */}
-        <div className="flex items-center gap-2 bg-[#E8DDCF] text-[#2F3A2E] px-3.5 py-1.5 rounded-full border border-[#E8DDCF] shadow-2xs text-xs font-extrabold shrink-0">
-          <Flame className="w-4 h-4 fill-[#2F3A2E]" />
-          <span>{streakDays} Hari Streak Konsisten</span>
         </div>
       </div>
 

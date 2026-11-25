@@ -11,7 +11,6 @@ import {
   Trash2,
   ListTodo,
   Eye,
-  Clock,
   Check,
   ShieldCheck,
   CloudRain,
@@ -49,14 +48,6 @@ const INITIAL_TASKS: FocusTask[] = [
     isCompleted: false,
     tag: "Ujian",
   },
-];
-
-const COMPLETED_SESSIONS = [
-  { id: "s-1", time: "08:30 – 08:55", duration: "25 mnt", topic: "Basis Data", status: "Selesai" },
-  { id: "s-2", time: "09:10 – 09:35", duration: "25 mnt", topic: "Praktikum Lab", status: "Selesai" },
-  { id: "s-3", time: "10:00 – 10:50", duration: "50 mnt", topic: "Kecerdasan Buatan", status: "Selesai" },
-  { id: "s-4", time: "11:15 – 11:40", duration: "25 mnt", topic: "Latihan Soal", status: "Selesai" },
-  { id: "s-5", time: "13:30 – 13:55", duration: "25 mnt", topic: "Pemrograman Web", status: "Selesai" },
 ];
 
 export const FocusView: React.FC = () => {
@@ -827,44 +818,6 @@ export const FocusView: React.FC = () => {
               Uji Active Break 2 Menit
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* ========================================================
-          5. SUPPORTING FEATURE 3: TIMELINE SESI FOKUS HARI INI
-          ======================================================== */}
-      <div className="bg-white rounded-3xl p-6 border border-[#E8DDCF] shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-[#E8DDCF] pb-3">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#2F3A2E]" />
-            <h3 className="font-heading font-extrabold text-sm sm:text-base text-[#2F3A2E]">
-              Garis Waktu Sesi Fokus Hari Ini
-            </h3>
-          </div>
-          <span className="text-[11px] font-bold text-[#636B60]">
-            Total Akumulasi: {formattedFocusHours}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
-          {COMPLETED_SESSIONS.map((session, index) => (
-            <div
-              key={session.id}
-              className="p-3 rounded-2xl bg-[#FAF6F0] border border-[#E8DDCF] space-y-1.5 text-center"
-            >
-              <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-[#2F3A2E]">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#2F3A2E]" />
-                <span>Sesi #{index + 1}</span>
-              </div>
-              <p className="font-heading font-extrabold text-xs text-[#2F3A2E] truncate">
-                {session.topic}
-              </p>
-              <div className="text-[10px] text-[#636B60]">{session.time}</div>
-              <span className="inline-block text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-[#E8DDCF] text-[#2F3A2E]">
-                {session.duration}
-              </span>
-            </div>
-          ))}
         </div>
       </div>
 

@@ -114,7 +114,7 @@ export function App() {
 
       {/* 2. Main Content Wrapper */}
       <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">
-        <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-24 lg:pb-12">
+        <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-28 lg:pb-12">
           {/* Top Header: Desktop Greeting & Search / Mobile Greeting */}
           <DesktopTopHeader
             userName={userName}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   LayoutDashboard,
   Eye,
@@ -145,7 +145,7 @@ export const DesktopTopHeader: React.FC<{
           >
             <Bell className="w-4 h-4" />
             {unreadNotifCount > 0 && (
-              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#E8DDCF] text-[#636B60] font-extrabold text-[10px] flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white shadow-xs animate-in zoom-in-75">
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#CFD8C4] text-[#2F3A2E] font-extrabold text-[10px] flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white shadow-xs animate-in zoom-in-75">
                 {unreadNotifCount}
               </span>
             )}
@@ -257,7 +257,7 @@ export const MobileHeader: React.FC<{
         <div className="relative">
           <button
             onClick={() => setUserMenuOpen((prev) => !prev)}
-            className="w-9 h-9 rounded-full bg-[#E8DDCF] text-[#636B60] font-bold flex items-center justify-center text-xs shadow-xs ring-2 ring-[#E8DDCF] focus:outline-none cursor-pointer"
+            className="w-9 h-9 rounded-full bg-[#CFD8C4] text-[#2F3A2E] font-bold flex items-center justify-center text-xs shadow-xs ring-2 ring-[#BCC8AE] focus:outline-none cursor-pointer"
             aria-label="Buka menu user"
             aria-expanded={userMenuOpen}
           >
@@ -329,54 +329,175 @@ export const MobileHeader: React.FC<{
   );
 };
 
+const mobileNavLabels: Record<string, string> = {
+  dashboard: "Dashboard",
+  focus: "Workstation",
+  activity: "Aktivitas",
+  coach: "AI Coach",
+  history: "Riwayat",
+};
+
 export const MobileBottomNav: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
   const activeIndex = navItems.findIndex((item) => item.key === activeTab);
+  const safeIndex = activeIndex === -1 ? 0 : activeIndex;
+  const navRef = useRef<HTMLDivElement>(null);
+  const [navWidth, setNavWidth] = useState<number>(() =>
+    typeof window !== "undefined" ? Math.min(window.innerWidth, 448) : 390
+  );
+
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0) {
+          setNavWidth(entry.contentRect.width);
+        }
+      }
+    });
+    ro.observe(el);
+    setNavWidth(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
+  const tabWidth = navWidth > 0 ? navWidth / 5 : 0;
+  const activeX = navWidth > 0 ? (safeIndex + 0.5) * tabWidth : (safeIndex + 0.5) * 20;
+  const activeItem = navItems[safeIndex];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FAF6F0]/95 backdrop-blur-md border-t border-[#E8DDCF] px-2 py-2 shadow-lg safe-bottom">
-      <div className="relative grid grid-cols-5 items-center max-w-md mx-auto">
-        {/* Animated Sliding & Bouncing Water Lily Pill Indicator */}
-        {activeIndex !== -1 && (
-          <div
-            className="absolute top-0 bottom-0 left-0 pointer-events-none z-0 flex items-center justify-center transition-transform duration-500"
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 safe-bottom pointer-events-auto">
+      <div
+        ref={navRef}
+        className="relative max-w-md mx-auto h-[70px] select-none"
+      >
+        {/* 1. Clean White Background with Continuous Hairline Border & Seamless Curved Notch (Persis Foto 2) */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+          width="100%"
+          height="70"
+        >
+          <defs>
+            <mask id="cf-mobile-nav-mask">
+              {/* White fills the navbar background */}
+              <rect x="0" y="0" width="100%" height="70" fill="white" />
+              {/* Black cuts out the smooth concave notch at active tab */}
+              <g
+                style={{
+                  transform: navWidth > 0 ? `translateX(${activeX}px)` : `translateX(${(safeIndex + 0.5) * 20}%)`,
+                  transition: "transform 360ms cubic-bezier(0.25, 1, 0.5, 1)",
+                }}
+              >
+                <path
+                  d="M -37 0 C -24 0, -20 22, 0 22 C 20 22, 24 0, 37 0 Z"
+                  fill="black"
+                />
+              </g>
+            </mask>
+          </defs>
+
+          {/* Masked White Surface */}
+          <rect
+            x="0"
+            y="0"
+            width="100%"
+            height="70"
+            fill="#FFFFFF"
+            mask="url(#cf-mobile-nav-mask)"
+            className="filter drop-shadow-[0_-4px_16px_rgba(47,58,46,0.06)]"
+          />
+
+          {/* Continuous Top Hairline Border: flat segments cut by mask */}
+          <line
+            x1="0"
+            y1="0.5"
+            x2="100%"
+            y2="0.5"
+            stroke="#E8DDCF"
+            strokeWidth="1"
+            mask="url(#cf-mobile-nav-mask)"
+          />
+
+          {/* Sliding Curved Notch Hairline Stroke (meets flat line seamlessly with 0 whiskers) */}
+          <g
             style={{
-              width: "20%",
-              transform: `translateX(${activeIndex * 100}%)`,
-              transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+              transform: navWidth > 0 ? `translateX(${activeX}px)` : `translateX(${(safeIndex + 0.5) * 20}%)`,
+              transition: "transform 360ms cubic-bezier(0.25, 1, 0.5, 1)",
             }}
           >
-            <div
-              key={activeTab}
-              className="w-[84%] h-[92%] bg-[#CFD8C4] border border-[#BCC8AE] rounded-2xl shadow-xs animate-nav-bounce"
+            <path
+              d="M -37 0.5 C -24 0.5, -20 22.5, 0 22.5 C 20 22.5, 24 0.5, 37 0.5"
+              fill="none"
+              stroke="#E8DDCF"
+              strokeWidth="1"
             />
-          </div>
-        )}
+          </g>
+        </svg>
 
-        {navItems.map((item) => {
-          const isActive = activeTab === item.key;
-          return (
-            <button
-              key={item.key}
-              onClick={() => onSelectTab(item.key)}
-              className={`relative z-10 flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-300 ${
-                isActive
-                  ? "text-[#2F3A2E] font-extrabold"
-                  : "text-[#636B60] hover:text-[#2F3A2E] font-medium"
-              }`}
+        {/* 2. Floating Action Bubble (Smooth Gliding Circle in Project Forest Green - Geser Mulus Tanpa Loncat) */}
+        <div
+          className="absolute top-0 left-0 pointer-events-none z-20"
+          style={{
+            transform: navWidth > 0 ? `translateX(${activeX}px)` : `translateX(${(safeIndex + 0.5) * 20}%)`,
+            transition: "transform 360ms cubic-bezier(0.25, 1, 0.5, 1)",
+          }}
+        >
+          {/* Circular bubble with constant elevation (tidak loncat, hanya geser mulus) */}
+          <div
+            className="w-[48px] h-[48px] rounded-full bg-gradient-to-tr from-[#253324] via-[#2F3A2E] to-[#3B4E38] text-white flex items-center justify-center shadow-[0_6px_16px_rgba(47,58,46,0.28)] border-[2.5px] border-white ring-1 ring-[#E8DDCF]/50 -translate-y-[18px]"
+            style={{
+              marginLeft: "-24px", // Center horizontally on activeX
+            }}
+          >
+            <span
+              key={activeTab}
+              className="scale-105 drop-shadow-xs text-white transition-opacity duration-200 animate-in fade-in"
             >
-              <span
-                className={`transition-all duration-300 ${
-                  isActive ? "text-[#2F3A2E] scale-110 -translate-y-0.5" : "text-[#636B60] scale-100"
-                }`}
+              {activeItem?.icon}
+            </span>
+          </div>
+        </div>
+
+        {/* 3. Interactive Navigation Items with Labels (Persis Foto 2) */}
+        <div className="relative z-10 grid grid-cols-5 h-full items-end pb-2">
+          {navItems.map((item) => {
+            const isActive = activeTab === item.key;
+            const labelText = mobileNavLabels[item.key] || item.label.split(" ")[0];
+
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => onSelectTab(item.key)}
+                className="mobile-nav-btn relative flex flex-col items-center justify-end h-full w-full focus:outline-none transition-colors group cursor-pointer"
+                title={item.label}
+                aria-label={item.label}
+                aria-selected={isActive}
               >
-                {item.icon}
-              </span>
-              <span className={`text-[10px] mt-0.5 tracking-tight ${isActive ? "font-extrabold text-[#2F3A2E]" : ""}`}>
-                {item.label.split(" ")[0]}
-              </span>
-            </button>
-          );
-        })}
+                {/* Icon: hidden when active because elevated in the green floating bubble */}
+                <span
+                  className={`h-5 flex items-center justify-center transition-all duration-300 transform ${
+                    isActive
+                      ? "opacity-0 scale-50 pointer-events-none -translate-y-2"
+                      : "opacity-100 scale-100 text-[#636B60] group-hover:text-[#2F3A2E] group-hover:scale-105"
+                  }`}
+                >
+                  {item.icon}
+                </span>
+
+                {/* Description Label: shared horizontal baseline across all 5 buttons */}
+                <span
+                  className={`text-[11px] tracking-tight mt-1 transition-colors duration-200 ${
+                    isActive
+                      ? "font-extrabold text-[#2F3A2E]"
+                      : "font-semibold text-[#636B60] group-hover:text-[#2F3A2E]"
+                  }`}
+                >
+                  {labelText}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );
