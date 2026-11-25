@@ -95,7 +95,21 @@ export function calculateBurnoutRiskIndex(
   const screenFatigueScore = calculateScreenTimeFatigue(totalScreenTimeHours);
   const recoveryScore = calculateRecoveryScore(sleepHours, verifiedBreakCount);
 
-  const raw = academicLoadScore + screenFatigueScore - recoveryScore;
+  const safeScreenHours = Math.max(0, totalScreenTimeHours);
+  const safeSleepHours = Math.max(0, sleepHours);
+
+  const academicStrain = Math.min(40, academicLoadScore * 3.0);
+  const screenStrain = Math.min(
+    35,
+    Math.min(safeScreenHours, BURNOUT_CONSTANTS.MAX_SAFE_SCREEN_HOURS) * 2.0 +
+      screenFatigueScore * 1.5
+  );
+  const sleepDeficitStrain = Math.min(35, Math.max(0, 8.0 - safeSleepHours) * 6.0);
+  const breakRelief = Math.min(32, Math.max(0, verifiedBreakCount) * 8.0);
+  const optimalSleepBonus = safeSleepHours >= 7.5 ? 5.0 : 0;
+
+  const raw =
+    academicStrain + screenStrain + sleepDeficitStrain - breakRelief - optimalSleepBonus;
   const burnoutIndex = Number(Math.max(0, Math.min(100, raw)).toFixed(2));
 
   let status: BurnoutRiskStatus = "LOW";

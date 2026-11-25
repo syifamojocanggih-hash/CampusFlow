@@ -91,37 +91,58 @@ describe("Burnout Scoring Service (PRD v4.0)", () => {
   });
 
   it("menghitung Burnout Risk Index secara terpadu dan mengklasifikasikan status LOW/MODERATE/HIGH", () => {
-    // Kasus 1: Mahasiswa seimbang (Load 10 + Fatigue 0) - Recovery 60 = -50 -> Index 0 (LOW)
+    // Kasus 1: Mahasiswa seimbang (3 SKS, layar 4 jam, tidur 8 jam, 2 active break)
+    // Academic 9 + Screen 8 + SleepDeficit 0 - Break 16 - SleepBonus 5 = -4 -> 0 (LOW)
     const resBalanced = calculateBurnoutRiskIndex(
-      [{ creditHours: 10, isPracticum: false }],
-      6.0,
+      [{ creditHours: 3, isPracticum: false }],
+      4.0,
       8.0,
       2
     );
     assert.equal(resBalanced.burnoutIndex, 0);
     assert.equal(resBalanced.status, "LOW");
 
-    // Kasus 2: Mahasiswa beban tinggi (Load 40 + Fatigue 15) - Recovery 10 = 45 (MODERATE)
-    const resModerate = calculateBurnoutRiskIndex(
-      [{ creditHours: 40, isPracticum: false }],
-      14.0,
-      2.0,
+    // Kasus 2: Mahasiswa hari normal tapi kurang tidur (3.5 AL, layar 5.4 jam, tidur 6.3 jam, 0 break)
+    // Academic 10.5 + Screen 10.8 + SleepDeficit 10.2 = 31.5 (LOW, responsif & tidak 0)
+    const resNormal = calculateBurnoutRiskIndex(
+      [
+        { creditHours: 2, isPracticum: false },
+        { creditHours: 1, isPracticum: true },
+      ],
+      5.4,
+      6.3,
       0
     );
-    assert.equal(resModerate.burnoutIndex, 45);
+    assert.equal(resNormal.burnoutIndex, 31.5);
+    assert.equal(resNormal.status, "LOW");
+
+    // Kasus 3: Mahasiswa sibuk & kurang tidur (8 AL, layar 10 jam, tidur 5 jam, 0 break)
+    // Academic 24 + Screen (16 + 7.5 = 23.5) + SleepDeficit 18 = 65.5 (MODERATE)
+    const resModerate = calculateBurnoutRiskIndex(
+      [
+        { creditHours: 4, isPracticum: false },
+        { creditHours: 2, isPracticum: true, isExamWeek: false },
+        { creditHours: 1, isPracticum: false },
+      ],
+      10.0,
+      5.0,
+      0
+    );
+    assert.equal(resModerate.burnoutIndex, 65.5);
     assert.equal(resModerate.status, "MODERATE");
 
-    // Kasus 3: Mahasiswa overload ekstrem di hari ujian H-0 (Load 79 + Fatigue 25) - Recovery 20 = 84 (HIGH)
+    // Kasus 4: Mahasiswa overload ekstrem di hari ujian H-0 (13 AL, layar 12 jam, tidur 3.5 jam, 0 break)
+    // Academic 39 + Screen (16 + 15 = 31) + SleepDeficit 27 = 97 (HIGH)
     const examToday = new Date("2026-12-15T00:00:00.000Z");
     const resHigh = calculateBurnoutRiskIndex(
-      [{ creditHours: 50, isPracticum: true, isExamWeek: true, examDate: examToday }], // 50*1.5 + 4.0 = 79
-      18.0, // (18-8)*2.5 = 25
-      4.0, // (4/8)*40 = 20
+      [{ creditHours: 6, isPracticum: true, isExamWeek: true, examDate: examToday }], // 6*1.5 + 4 = 13
+      12.0, // (12-8)*2.5 = 10 -> screenStrain = 16 + 15 = 31
+      3.5, // (8-3.5)*6 = 27
       0,
       examToday
     );
-    assert.equal(resHigh.academicLoadScore, 79);
-    assert.equal(resHigh.burnoutIndex, 84);
+    assert.equal(resHigh.academicLoadScore, 13);
+    assert.equal(resHigh.burnoutIndex, 97);
     assert.equal(resHigh.status, "HIGH");
   });
 });

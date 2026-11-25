@@ -32,50 +32,42 @@ test("calculateRecoveryScore combines sleep duration (max 40) and verified activ
 });
 
 test("calculateBurnoutRiskIndex produces bounded 0-100 index and correct risk status", () => {
-  // Heavy load with low recovery -> High burnout
-  const heavy = calculateBurnoutRiskIndex(
+  // Sibuk + kurang tidur -> MODERATE
+  const moderate = calculateBurnoutRiskIndex(
     [
-      { creditHours: 4, isPracticum: true, isExamWeek: true }, // 4*1.5 + 3 = 9
-      { creditHours: 4, isPracticum: true, isExamWeek: true }, // 9
-      { creditHours: 4, isPracticum: true, isExamWeek: true }, // 9
-      { creditHours: 4, isPracticum: true, isExamWeek: true }, // 9
-      { creditHours: 4, isPracticum: true, isExamWeek: true }, // 9
-      { creditHours: 4, isPracticum: true, isExamWeek: true }, // 9
-      { creditHours: 4, isPracticum: true, isExamWeek: true }, // 9 -> AL = 63
+      { creditHours: 4, isPracticum: false }, // 4
+      { creditHours: 2, isPracticum: true },  // 3
+      { creditHours: 1, isPracticum: false }, // 1 -> AL = 8
     ],
-    16.0, // ST = (16-8)*2.5 = 20 -> Total load = 83
-    4.0,  // RS = (4/8)*40 = 20 -> Burnout = 83 - 20 = 63 (MODERATE)
+    10.0, // ST = 5 -> ScreenStrain = 16 + 7.5 = 23.5
+    5.0,  // SleepDeficit = 18 -> Burnout = 24 + 23.5 + 18 = 65.5 (MODERATE)
     0
   );
-  assert.equal(heavy.academicLoadScore, 63);
-  assert.equal(heavy.screenFatigueScore, 20);
-  assert.equal(heavy.recoveryScore, 20);
-  assert.equal(heavy.burnoutIndex, 63);
-  assert.equal(heavy.status, "MODERATE");
+  assert.equal(moderate.academicLoadScore, 8);
+  assert.equal(moderate.screenFatigueScore, 5);
+  assert.equal(moderate.recoveryScore, 25);
+  assert.equal(moderate.burnoutIndex, 65.5);
+  assert.equal(moderate.status, "MODERATE");
 
   // Extreme load -> HIGH
   const extreme = calculateBurnoutRiskIndex(
     [
-      { creditHours: 6, isPracticum: true, isExamWeek: true }, // 12
-      { creditHours: 6, isPracticum: true, isExamWeek: true }, // 12
-      { creditHours: 6, isPracticum: true, isExamWeek: true }, // 12
-      { creditHours: 6, isPracticum: true, isExamWeek: true }, // 12
-      { creditHours: 6, isPracticum: true, isExamWeek: true }, // 12
-      { creditHours: 6, isPracticum: true, isExamWeek: true }, // 12
-      { creditHours: 6, isPracticum: true, isExamWeek: true }, // 12 -> 84
+      { creditHours: 4, isPracticum: true, isExamWeek: true }, // 9
+      { creditHours: 3, isPracticum: false }, // 3 -> AL = 12
     ],
-    14.0, // (14-8)*2.5 = 15 -> Total load = 99
-    4.0,  // RS = 20 -> Burnout = 79 (> 75)
+    12.0, // ST = 10 -> ScreenStrain = 31
+    3.5,  // SleepDeficit = 27 -> Burnout = 36 + 31 + 27 = 94 (> 75)
     0
   );
+  assert.equal(extreme.burnoutIndex, 94);
   assert.equal(extreme.status, "HIGH");
 
   // Well rested student -> LOW
   const light = calculateBurnoutRiskIndex(
-    [{ creditHours: 3, isPracticum: false }], // 3.0
-    6.0, // 0.0 fatigue
-    8.0, // 40 recovery
-    2    // +20 break = 60 recovery -> 3 - 60 = -57 clamped to 0
+    [{ creditHours: 3, isPracticum: false }], // AL = 3 -> AcademicStrain = 9
+    4.0, // ScreenStrain = 8
+    8.0, // SleepDeficit = 0, OptimalBonus = -5
+    2    // BreakRelief = -16 -> 9 + 8 - 21 = -4 clamped to 0
   );
   assert.equal(light.burnoutIndex, 0);
   assert.equal(light.status, "LOW");

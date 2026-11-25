@@ -19,6 +19,29 @@
 
 <!-- Tambahkan entri baru Ibra di bawah garis ini (urutan terbaru di atas) -->
 
+## [2026-11-25] — Rangkuman Fitur Backend, Sinkronisasi Penuh MySQL, & Kompatibilitas Lintas OS/Browser (Branch: `backend`)
+- **ID Tugas / Referensi:** `BE-DB-SYNC-4.1`, `BE-CROSS-OS-100`
+- **Ringkasan (Bahasa Sederhana):**
+  Seluruh fitur backend CampusFlow kini berjalan penuh, dinamis, terhubung langsung ke database MySQL, dan siap dipakai di semua OS (Windows, Linux, macOS, Android, iOS) serta semua browser:
+  1. **Login, Register, & Profil User:** Daftar akun (tolak email duplikat), login JWT aman (tidak bikin akun baru saat salah ketik email), edit profil, ganti password, simpan kalibrasi postur kamera, dan hapus data pribadi.
+  2. **Upload & Baca KRS Otomatis:** Upload jadwal kuliah (PDF, gambar, atau teks), dibaca otomatis oleh Gemini AI (dengan cadangan pembaca lokal jika offline), bisa di-preview dulu sebelum disimpan ke MySQL, dan langsung menghitung ulang skor stres harian.
+  3. **Hitung Burnout Otomatis (0–100):** Menghitung tingkat kelelahan dari beban SKS + jadwal ujian + waktu layar dikurangi pemulihan tidur & jeda istirahat, lalu otomatis tersimpan di database setiap hari.
+  4. **Dashboard & Ringkasan Harian:** Menggabungkan seluruh data harian user (jadwal kuliah hari ini, tidur, langkah, waktu layar, active break, burnout, streak, XP, dan notifikasi) dalam satu endpoint dinamis dari MySQL.
+  5. **Deteksi Tidur & Check-in Stres:** Menghitung jam tidur otomatis dari waktu istirahat perangkat (bisa dikoreksi manual), plus form check-in stres harian (PSS-4 & PSS-10) yang langsung memperbarui streak user.
+  6. **Aktivitas Fisik, Duduk, & Istirahat Aktif:** Mencatat langkah/kalori (METs), durasi duduk, serta verifikasi peregangan kamera (+15 XP & +10 Recovery Score) yang otomatis membuka kunci layar.
+  7. **Sensor Waktu Layar & Kunci Layar Lintas OS:** Menghitung waktu layar dari kernel OS (macOS, Windows, Linux) dan menyimpannya ke MySQL per user. Saat dibuka dari HP (Android/iOS), kunci layar tetap berjalan di HP tanpa mengganggu layar laptop.
+  8. **Wellbeing AI Coach:** Chatbot pendamping dengan Ollama lokal, jalur darurat krisis (`healing119.id`), klarifikasi cepat, dan fallback otomatis jika AI offline.
+  9. **Notifikasi Harian & Web Push:** Pengingat harian dibuat otomatis dari kondisi nyata user di MySQL (jadwal kuliah/ujian, kurang tidur, belum check-in, target istirahat, streak) lengkap dengan dukungan Web Push VAPID.
+  10. **Akses Lintas OS & Browser:** Backend bind ke `0.0.0.0`, CORS & Helmet ramah semua browser (Chrome, Safari, Firefox, Edge, Brave, Opera, Samsung Internet) serta LAN/Cloudflare Tunnel, plus cek koneksi MySQL nyata di `/api/v1/health`.
+- **Daftar File Diubah:**
+  - `backend/prisma/schema.prisma`, `backend/prisma/migrations/20261124153000_add_user_notifications/migration.sql`
+  - `backend/src/app.ts`, `backend/src/index.ts`, `backend/src/config/env.ts`, `backend/src/middleware/auth.ts`
+  - `backend/src/routes/*` (`auth`, `users`, `academicSchedule`, `burnout`, `dashboard`, `wellbeing`, `activities`, `sedentary`, `activeBreak`, `osLock`, `notifications`, `health`)
+  - `backend/src/services/*` (`burnoutSync`, `osLockService`, `pushNotifier`, `scheduleParser`)
+  - `[CROSS-SCOPE] frontend/vite.config.ts` — proxy `/api` & `allowedHosts: true` untuk akses HP dan tunnel.
+  - `[CROSS-SCOPE] scripts/dev.mjs` — perbaikan `Ctrl+C` bersih di Windows, macOS, dan Linux.
+- **Verifikasi:** `npm run build:backend` (0 error) dan `npm run test:backend` (133/133 test lulus).
+
 ## [2026-11-16] — Penyelarasan Menyeluruh Dokumen Arsitektur & README Sub-Direktori ke PRD v4.0 (Branch: `main`)
 - **ID Tugas / Referensi:** `LEAD-4.0` (Penyelarasan PRD v4.0 Monorepo)
 - **Ringkasan:** Menyelaraskan seluruh dokumen arsitektur, master design, dan README per direktori domain ke paradigma PRD Versi 4.0 (*Academic Strava, Zero Continuous Camera, Burnout Risk Index 0–100, & Proactive AI Coach*).

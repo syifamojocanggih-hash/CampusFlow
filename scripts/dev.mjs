@@ -1,24 +1,43 @@
 #!/usr/bin/env node
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
+
+const isWindows = process.platform === "win32";
+const npmCmd = isWindows ? "npm.cmd" : "npm";
 
 console.log("\n=======================================================");
-console.log("🚀 Menjalankan CampusFlow Fullstack (Backend & Frontend)");
+console.log(`🚀 Menjalankan CampusFlow Fullstack (Backend & Frontend) [${process.platform}]`);
 console.log("=======================================================\n");
 
-const backend = spawn("npm", ["--prefix", "backend", "run", "dev"], {
+const backend = spawn(npmCmd, ["--prefix", "backend", "run", "dev"], {
   stdio: "inherit",
-  shell: true,
+  shell: isWindows,
 });
 
-const frontend = spawn("npm", ["--prefix", "frontend", "run", "dev"], {
+const frontend = spawn(npmCmd, ["--prefix", "frontend", "run", "dev"], {
   stdio: "inherit",
-  shell: true,
+  shell: isWindows,
 });
 
+function killChildTree(child) {
+  if (!child || child.killed || !child.pid) return;
+  try {
+    if (isWindows) {
+      execFileSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+    } else {
+      child.kill("SIGTERM");
+    }
+  } catch {
+    // Abaikan jika proses sudah berhenti
+  }
+}
+
+let shuttingDown = false;
 function cleanup() {
+  if (shuttingDown) return;
+  shuttingDown = true;
   console.log("\n🛑 Menghentikan server CampusFlow...");
-  backend.kill("SIGTERM");
-  frontend.kill("SIGTERM");
+  killChildTree(backend);
+  killChildTree(frontend);
   process.exit(0);
 }
 

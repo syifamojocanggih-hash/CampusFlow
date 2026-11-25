@@ -30,7 +30,7 @@ const envSchema = z.object({
   OLLAMA_MODEL: z.string().min(1).default("campusflow-coach"),
   OLLAMA_TIMEOUT_MS: z.coerce.number().int().positive().default(60000),
   GEMINI_API_KEY: z.string().optional().default(""),
-  GEMINI_MODEL: z.string().default("gemini-3-flash-preview"),
+  GEMINI_MODEL: z.string().default("gemini-3.6-flash"),
   VAPID_PUBLIC_KEY: z.string().optional().default(""),
   VAPID_PRIVATE_KEY: z.string().optional().default(""),
   VAPID_SUBJECT: z.string().default("mailto:admin@campusflow.id"),

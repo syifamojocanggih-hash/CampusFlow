@@ -192,21 +192,19 @@ export function calculateRecoveryScore(
   verifiedBreakCount: number
 ): number {
   const safeSleep = Math.max(0, sleepHours);
-  const sleepScore = (safeSleep / 8.0) * BURNOUT_CONSTANTS.SLEEP_RECOVERY_MAX_SCORE;
+  const sleepScore = Math.min(
+    BURNOUT_CONSTANTS.SLEEP_RECOVERY_MAX_SCORE,
+    (safeSleep / 8.0) * BURNOUT_CONSTANTS.SLEEP_RECOVERY_MAX_SCORE
+  );
   const breakScore =
     Math.max(0, verifiedBreakCount) * BURNOUT_CONSTANTS.ACTIVE_BREAK_SCORE_PER_SESSION;
   return Number((sleepScore + breakScore).toFixed(2));
 }
 
 /**
- * Menghitung Burnout Risk Index (0 - 100) dan klasifikasi status risiko.
- * Burnout Risk Index = (Academic Load + Screen Fatigue) - Recovery Score
- *
- * Landasan Teori:
- * - Akar Teori: Effort-Recovery Model (Meijman & Mulder, 1998)
- * - Rujukan Modern: Sonnentag, Venz, & Casper (2021, Ann. Rev. Organ. Psychol. Organ. Behav., DOI 10.1146/annurev-orgpsych-012420-091355)
- *   (Catatan: Sonnentag et al. menjustifikasi logika struktur Beban - Pemulihan, bukan sumber rumus matematis)
- * - Quantified Self / Academic Strava: Gauthier et al. (2022, Comput. Hum. Behav., DOI 10.1016/j.chb.2022.107314)
+ * Menghitung Burnout Risk Index (0 - 100) terkalibrasi dan klasifikasi status risiko.
+ * Mengikuti Effort-Recovery Model:
+ *   Burnout Index = clamp(0, 100, AcademicStrain + ScreenStrain + SleepDeficitStrain - RecoveryRelief)
  *
  * Kategori:
  * - Hijau (Aman / LOW): < 40
@@ -224,7 +222,21 @@ export function calculateBurnoutRiskIndex(
   const screenFatigueScore = calculateScreenTimeFatigue(totalScreenTimeHours);
   const recoveryScore = calculateRecoveryScore(sleepHours, verifiedBreakCount);
 
-  const raw = academicLoadScore + screenFatigueScore - recoveryScore;
+  const safeScreenHours = Math.max(0, totalScreenTimeHours);
+  const safeSleepHours = Math.max(0, sleepHours);
+
+  const academicStrain = Math.min(40, academicLoadScore * 3.0);
+  const screenStrain = Math.min(
+    35,
+    Math.min(safeScreenHours, BURNOUT_CONSTANTS.MAX_SAFE_SCREEN_HOURS) * 2.0 +
+      screenFatigueScore * 1.5
+  );
+  const sleepDeficitStrain = Math.min(35, Math.max(0, 8.0 - safeSleepHours) * 6.0);
+  const breakRelief = Math.min(32, Math.max(0, verifiedBreakCount) * 8.0);
+  const optimalSleepBonus = safeSleepHours >= 7.5 ? 5.0 : 0;
+
+  const raw =
+    academicStrain + screenStrain + sleepDeficitStrain - breakRelief - optimalSleepBonus;
   const burnoutIndex = Number(Math.max(0, Math.min(100, raw)).toFixed(2));
 
   let status: BurnoutRiskStatus = "LOW";

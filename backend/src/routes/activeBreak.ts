@@ -4,7 +4,7 @@ import { BURNOUT_CONSTANTS } from "../../../shared/contracts/index.ts";
 import { prisma } from "../lib/prisma.ts";
 import { sendSuccess } from "../lib/response.ts";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.ts";
-import { recalculateTodayBurnoutLog } from "../services/burnoutSync.ts";
+import { recalculateTodayBurnoutLog, toUtcDateOnly } from "../services/burnoutSync.ts";
 import { osLockService } from "../services/osLockService.ts";
 
 export const activeBreakRouter = Router();
@@ -100,8 +100,10 @@ activeBreakRouter.get(
         sessions.reduce((sum, s) => sum + s.durationMins, 0).toFixed(2)
       );
 
+      const localDateKey = toUtcDateOnly(new Date()).toISOString().slice(0, 10);
+
       sendSuccess(res, {
-        logDate: today.toISOString().split("T")[0],
+        logDate: localDateKey,
         totalSessions: sessions.length,
         verifiedCount,
         totalDurationMins,

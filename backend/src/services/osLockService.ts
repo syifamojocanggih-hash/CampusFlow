@@ -52,12 +52,31 @@ const CHROMIUM_BROWSERS: Array<{ name: string; appPaths: string[] }> = [
     name: "Vivaldi",
     appPaths: ["/Applications/Vivaldi.app"],
   },
+  {
+    name: "Opera",
+    appPaths: ["/Applications/Opera.app"],
+  },
+];
+
+const FIREFOX_PATHS = [
+  "/Applications/Firefox.app",
+  "/Applications/Firefox Developer Edition.app",
 ];
 
 const SAFARI_PATHS = [
   "/Applications/Safari.app",
   "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app",
 ];
+
+function isFirefoxInstalled(): boolean {
+  return FIREFOX_PATHS.some((p) => {
+    try {
+      return fs.existsSync(p);
+    } catch {
+      return false;
+    }
+  });
+}
 
 function detectInstalledChromiumBrowsers(): string[] {
   return CHROMIUM_BROWSERS.filter((b) =>
@@ -127,6 +146,8 @@ class OsLockService {
 
   private installedChromiumBrowsers: string[] = detectInstalledChromiumBrowsers();
   private safariAvailable: boolean = isSafariInstalled();
+  private firefoxAvailable: boolean = isFirefoxInstalled();
+  private skipHostEnforcer = false;
 
   // OS-Level Screen Time Tracking State
   private screenTimeDateKey: string = getLocalTodayDateKey();
@@ -186,9 +207,11 @@ class OsLockService {
     if (this.screenTimeInterval) return;
 
     this.lastScreenTimeTickMs = Date.now();
+    // Di Windows, PowerShell startup sedikit lebih berat sehingga interval 6 detik menjaga CPU tetap ringan
+    const intervalMs = process.platform === "win32" ? 6000 : 3000;
     this.screenTimeInterval = setInterval(() => {
       void this.tickOsScreenTime();
-    }, 3000);
+    }, intervalMs);
   }
 
   private async queryOsIdleSeconds(): Promise<number> {
@@ -228,9 +251,30 @@ public class IdleTime {
         const parsed = parseInt(out, 10);
         if (!isNaN(parsed) && parsed >= 0) return parsed;
       } else if (process.platform === "linux") {
+        // Coba X11 xprintidle terlebih dahulu
         const out = await runCommandAsync("xprintidle", [], 1000);
         const parsed = parseInt(out, 10);
         if (!isNaN(parsed) && parsed >= 0) return Math.floor(parsed / 1000);
+
+        // Fallback Wayland / GNOME Mutter IdleMonitor
+        const gdbusOut = await runCommandAsync(
+          "gdbus",
+          [
+            "call",
+            "--session",
+            "--dest",
+            "org.gnome.Mutter.IdleMonitor",
+            "--object-path",
+            "/org/gnome/Mutter/IdleMonitor/Core",
+            "--method",
+            "org.gnome.Mutter.IdleMonitor.GetIdletime",
+          ],
+          1000
+        );
+        const match = gdbusOut.match(/(\d+)/);
+        if (match && match[1]) {
+          return Math.max(0, Math.floor(Number(match[1]) / 1000));
+        }
       }
     } catch {
       // Fallback to 0 (active)
@@ -331,6 +375,7 @@ public class IdleTime {
     reason?: string;
     targetUrl?: string;
     preferredBrowser?: string;
+    isMobileClient?: boolean;
   }): OsLockState {
     this.clearArmedTimer();
 
@@ -338,6 +383,7 @@ public class IdleTime {
     this.isArmed = true;
     this.armedDurationSeconds = duration;
     this.armedAt = Date.now();
+    this.skipHostEnforcer = Boolean(options.isMobileClient);
     if (options.reason) {
       this.reason = options.reason;
     }
@@ -355,6 +401,7 @@ public class IdleTime {
           reason: this.reason,
           targetUrl: this.targetUrl,
           preferredBrowser: this.activeBrowser || undefined,
+          isMobileClient: this.skipHostEnforcer,
         });
       }
     }, duration * 1000);
@@ -367,6 +414,7 @@ public class IdleTime {
     this.isArmed = false;
     this.armedDurationSeconds = null;
     this.armedAt = null;
+    this.skipHostEnforcer = false;
     return this.getStatus();
   }
 
@@ -374,11 +422,13 @@ public class IdleTime {
     reason?: string;
     targetUrl?: string;
     preferredBrowser?: string;
+    isMobileClient?: boolean;
   }): OsLockState {
     this.clearArmedTimer();
     this.isArmed = false;
     this.armedDurationSeconds = null;
     this.armedAt = null;
+    this.skipHostEnforcer = Boolean(options?.isMobileClient);
 
     if (options?.reason) {
       this.reason = options.reason;
@@ -396,8 +446,11 @@ public class IdleTime {
       this.enforcerTickCount = 0;
     }
 
-    this.startEnforcerLoop();
-    void this.enforceOsFocus();
+    // Jika request berasal dari browser HP (Android/iOS), jangan bajak fokus layar laptop host
+    if (!this.skipHostEnforcer) {
+      this.startEnforcerLoop();
+      void this.enforceOsFocus();
+    }
 
     return this.getStatus();
   }
@@ -663,6 +716,16 @@ end tell
       }
     }
 
+    // Pass 2.5: Check Firefox if installed and running on macOS
+    if (this.firefoxAvailable) {
+      const ffPid = await runCommandAsync("pgrep", ["-x", "firefox"], 800);
+      if (ffPid) {
+        await runCommandAsync("osascript", ["-e", 'tell application "Firefox" to activate'], 1500);
+        this.activeBrowser = "Firefox";
+        return;
+      }
+    }
+
     // Pass 3: Reopen tab in primary candidate browser if user closed the tab
     if (candidates.length > 0) {
       const primary = candidates[0];
@@ -711,7 +774,14 @@ if ($target) {
   }
 
   private async enforceLinuxFocus(): Promise<void> {
-    await runCommandAsync("wmctrl", ["-a", "CampusFlow"], 1200);
+    const res = await runCommandAsync("wmctrl", ["-a", "CampusFlow"], 1200);
+    if (!res) {
+      await runCommandAsync(
+        "xdotool",
+        ["search", "--name", "CampusFlow", "windowactivate"],
+        1200
+      );
+    }
   }
 }
 
