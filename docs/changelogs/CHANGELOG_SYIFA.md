@@ -48,11 +48,15 @@
   - `backend/src/app.ts`
   - `backend/src/index.ts`
   - `backend/src/services/osLockService.ts`
+  - `docs/backend/FRONTEND_DYNAMIC_SYNC_GUIDE.md`
   - `frontend/vite.config.ts`
+  - `frontend/src/utils/burnoutCalculator.ts`
+  - `frontend/src/utils/burnoutCalculator.test.ts`
   - `scripts/dev.mjs`
   - `docs/changelogs/CHANGELOG_IBRA.md`
 - **Catatan Cross-Scope:**
   - `[CROSS-SCOPE] frontend/vite.config.ts` — menambahkan Vite proxy `/api` ke `http://localhost:4000` dan `allowedHosts: true` agar request API backend tidak 404 saat diakses dari HP maupun Cloudflare Tunnel.
+  - `[CROSS-SCOPE] frontend/src/utils/burnoutCalculator.ts` & `frontend/src/utils/burnoutCalculator.test.ts` — menyelaraskan kalibrasi skala 0–100 Burnout Risk Index dengan `backend/src/services/burnoutScoring.ts` agar skor harian tampil sinkron dan realistis.
   - `[CROSS-SCOPE] scripts/dev.mjs` — memperbaiki cleanup `Ctrl+C` lintas OS (`taskkill /T /F` di Windows, `SIGTERM` di macOS/Linux) dan menghindari warning shell di macOS/Linux.
   - `[CROSS-SCOPE] docs/changelogs/CHANGELOG_IBRA.md` — menambahkan rangkuman fitur backend dengan bahasa sederhana untuk dokumentasi Project Leader.
 - **Verifikasi:** `npx prisma db push && npx prisma generate`, `npm run build:backend` (0 error), `npm run test:backend` (133/133 lulus), `npm run test:frontend` (23/23 lulus), `npm run test:shared` (5/5 lulus), dan `npm run guard` lulus.
