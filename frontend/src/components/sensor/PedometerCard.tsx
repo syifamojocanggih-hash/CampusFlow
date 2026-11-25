@@ -110,10 +110,10 @@ function getMarkerPositionForSteps(steps: number): RoutePoint {
 }
 
 const CAMPUS_MILESTONES = [
-  { steps: 500, title: "Gerbang Utama", icon: "home" as const, x: 170, y: 108 },
-  { steps: 1500, title: "Koridor Akademik", icon: "book" as const, x: 325, y: 132 },
-  { steps: 3000, title: "Lingkar Luar", icon: "waves" as const, x: 515, y: 98 },
-  { steps: 6000, title: "Target Sehat", icon: "flag" as const, x: 832, y: 102 },
+  { steps: 500, title: "20 kkal", calories: 20, icon: "home" as const, x: 170, y: 108 },
+  { steps: 1500, title: "60 kkal", calories: 60, icon: "book" as const, x: 325, y: 132 },
+  { steps: 3000, title: "120 kkal", calories: 120, icon: "waves" as const, x: 515, y: 98 },
+  { steps: 6000, title: "240 kkal", calories: 240, icon: "flag" as const, x: 832, y: 102 },
 ];
 
 export const PedometerCard: React.FC<PedometerCardProps> = ({
@@ -295,7 +295,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
                 Penghitung Langkah Otomatis
               </h3>
               <p className="text-xs text-[#636B60] mt-0.5">
-                Berjalan di kampus, lihat seberapa jauh rutemu hari ini.
+                Berjalan di kampus, pantau langkah dan kalori yang terbakar hari ini.
               </p>
             </div>
           </div>
@@ -428,6 +428,7 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
                         ? "bg-[#E8F0E3] border-[#BCC8AE]"
                         : "bg-[#FCFBF7]/95 border-[#E5DACB]"
                     }`}
+                    title={`Target ${milestone.steps.toLocaleString("id-ID")} langkah • Estimasi ${milestone.title} terbakar`}
                   >
                     <div className="text-[11px] font-heading font-extrabold text-[#2F3A2E] sensor-num">
                       {milestone.steps.toLocaleString("id-ID")}

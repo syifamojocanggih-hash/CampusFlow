@@ -45,7 +45,7 @@ export function getMimiSvg(st: number, m: PetMood = "happy", crack: boolean = fa
 
   const up = m === "excited";
   const sc = [0, 0.62, 0.72, 0.82, 0.9, 0.95, 1][st] || 0.72;
-  const BODY = ["", "#F2D3D1", "#F2D3D1", "#F2D3D1", "#F2D3D1", "#C9DCE6", "#E7DCCF"][st] || "#F2D3D1";
+  const BODY = "#F2D3D1";
 
   s += `<g transform="translate(100 190) scale(${sc}) translate(-100 -190)">`;
   if (st === 6) {

@@ -21,6 +21,45 @@
 
 ---
 
+## [2026-11-24] — Penyelarasan Warna Tubuh Mascot Pet Tingkat Legenda ke Pastel Pink (`mimiSvg.ts`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.80`
+- **Ringkasan:**
+  1. **Penyelarasan Warna Tubuh Mascot Mimi Edisi Legenda (`mimiSvg.ts`):**
+     - Mengubah warna tubuh (`BODY`) mascot Mimi pada tingkat evolusi tertinggi (Level 5 Legenda, 100 hari streak) dari nuansa krem/beige pucat (`#E7DCCF`) menjadi pastel pink konsisten (`#F2D3D1`), persis seperti pada tingkat Tunas/Kuncup/Mekar.
+     - Memastikan seluruh aksesoris khusus Legenda (mahkota emas, pelangi/halo aura, bintang-bintang, dan bunga mekar di kepala) tetap utuh dan kontras berpadu dengan tubuh pastel pink.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pet/mimiSvg.ts`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos dengan 0 error.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
+## [2026-11-24] — Penyesuaian Label Milestone Peta Rute Pedometer Menjadi Estimasi Kalori Terbakar (`PedometerCard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.79`
+- **Ringkasan:**
+  1. **Pengubahan Label Milestone Rute Langkah Menjadi Estimasi Kalori Terbakar:**
+     - Mengubah teks di bawah angka target langkah pada peta rute ilustrasi kampus (`PedometerCard.tsx`) dari label nama tempat kampus (`Gerbang Utama`, `Koridor Akademik`, `Lingkar Luar`, `Target Sehat`) menjadi nilai estimasi kalori yang terbakar:
+       - `500` langkah &rarr; `20 kkal`
+       - `1.500` langkah &rarr; `60 kkal`
+       - `3.000` langkah &rarr; `120 kkal`
+       - `6.000` langkah &rarr; `240 kkal`
+     - Menambahkan atribut tooltip penjelas pada setiap badge milestone (`${milestone.steps} langkah • Estimasi ${milestone.calories} kkal terbakar`).
+     - Memperbarui sub-judul kartu menjadi "Berjalan di kampus, pantau langkah dan kalori yang terbakar hari ini." agar lebih selaras dengan metrik kalori.
+- **Daftar File Diubah:**
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:**
+  - `npm --prefix frontend run build` lolos tanpa error.
+  - `npm run test:frontend` (23/23 lulus).
+  - `npm run test:shared` (5/5 lulus).
+  - `npm run guard` lolos validasi zona branch.
+
+---
+
 ## [2026-11-24] — Penyempurnaan UI Dashboard, Workstation, Vision Guard, Pedometer Rute Kampus & Perbaikan MediaPipe/OS Lock Windows (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.78`
 - **Ringkasan:**
