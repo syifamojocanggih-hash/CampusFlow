@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { PedometerCard } from "@/components/sensor/PedometerCard";
 import { CheckinView } from "@/components/pages/CheckinView";
-import { Footprints, ClipboardCheck, Calendar } from "lucide-react";
+import { Footprints, ClipboardCheck, Check } from "lucide-react";
 import { api } from "@/lib/api";
 
 interface ActivityViewProps {
@@ -9,17 +9,16 @@ interface ActivityViewProps {
 }
 
 const SHORT_DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
-const SHORT_MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
-];
+
+function toLocalIsoDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+}
 
 export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "pedometer" }) => {
   const [subTab, setSubTab] = useState<"pedometer" | "checkin">(defaultSubTab);
-  const [completedDates, setCompletedDates] = useState<Set<string>>(() => {
-    const todayIso = new Date().toISOString().slice(0, 10);
-    return new Set([todayIso]);
-  });
+  const [completedDates, setCompletedDates] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     api
@@ -36,73 +35,116 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ defaultSubTab = "ped
       .catch(() => {});
   }, [subTab]);
 
-  // Hitung 7 hari pekan berjalan secara dinamis berdasarkan tanggal hari ini
+  // Hitung 7 hari pekan berjalan (Senin–Minggu) secara dinamis berdasarkan tanggal lokal hari ini
   const weekDays = useMemo(() => {
     const now = new Date();
     const currentDay = now.getDay(); // 0=Min, 1=Sen, ...
     const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
     const monday = new Date(now);
     monday.setDate(now.getDate() + mondayOffset);
-    const todayIso = now.toISOString().slice(0, 10);
+    const todayIso = toLocalIsoDate(now);
 
     return Array.from({ length: 7 }).map((_, idx) => {
       const d = new Date(monday);
       d.setDate(monday.getDate() + idx);
-      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-        d.getDate()
-      ).padStart(2, "0")}`;
+      const iso = toLocalIsoDate(d);
       return {
+        iso,
         day: SHORT_DAYS[d.getDay()],
-        date: `${d.getDate()} ${SHORT_MONTHS[d.getMonth()]}`,
+        dayNumber: d.getDate(),
         isCompleted: completedDates.has(iso),
         isToday: iso === todayIso,
       };
     });
   }, [completedDates]);
 
-  const weeklyConsistencyCard = (
-    <div className="learnova-card p-5 sm:p-6 border-[#E8DDCF] space-y-3.5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[#E8DDCF] pb-2.5">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-[#2F3A2E]" />
-          <h3 className="font-heading font-extrabold text-sm sm:text-base text-[#2F3A2E]">
-            Konsistensi Kebiasaan Sehat Pekan Ini
-          </h3>
-        </div>
-      </div>
+  const completedWeekCount = weekDays.filter((item) => item.isCompleted).length;
+  const remainingWeekDays = Math.max(0, 7 - completedWeekCount);
 
-      {/* 7-Day Strip */}
-      <div className="grid grid-cols-7 gap-1.5 sm:gap-3">
-        {weekDays.map((item) => (
-          <div
-            key={item.day}
-            className={`p-2.5 rounded-2xl text-center border transition-all ${
-              item.isToday
-                ? "bg-[#CFD8C4]/30 border-[#BCC8AE] shadow-2xs scale-102"
-                : item.isCompleted
-                ? "bg-[#CFD8C4]/20 border-[#CFD8C4]"
-                : "bg-[#FAF6F0] border-[#E8DDCF]"
-            }`}
-          >
-            <div className="text-[10px] sm:text-xs font-bold text-[#636B60]">
-              {item.day}
-            </div>
-            <div className="text-[11px] sm:text-xs font-extrabold text-[#2F3A2E] my-0.5">
-              {item.date.split(" ")[0]}
-            </div>
-            <div className="flex justify-center mt-1">
-              {item.isCompleted ? (
-                <span className="w-5 h-5 rounded-full bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center text-[10px] font-extrabold">
-                  ✓
-                </span>
-              ) : (
-                <span className="w-5 h-5 rounded-full border border-dashed border-[#E8DDCF] text-[9px] text-[#636B60] flex items-center justify-center font-medium">
-                  &bull;
-                </span>
-              )}
-            </div>
+  const weeklyConsistencyCard = (
+    <div className="learnova-card p-6 sm:p-7 border-[#E8DDCF] bg-white">
+      <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
+        {/* Left Summary Column */}
+        <div className="shrink-0 min-w-[185px]">
+          <h3 className="font-heading font-extrabold text-sm sm:text-[15px] text-[#1D3127] tracking-tight">
+            Kebiasaan Sehat Pekan Ini
+          </h3>
+          <div className="flex items-baseline gap-2 mt-1.5">
+            <span className="font-heading font-extrabold text-4xl sm:text-[2.75rem] leading-none tracking-tight text-[#367546] sensor-num">
+              {completedWeekCount}/7
+            </span>
+            <span className="text-xs sm:text-sm font-medium text-[#636B60]">hari</span>
           </div>
-        ))}
+          <p className="text-xs text-[#636B60] mt-2">
+            {remainingWeekDays > 0
+              ? `${remainingWeekDays} hari lagi pekan ini`
+              : "Target pekan ini tercapai!"}
+          </p>
+        </div>
+
+        {/* Right Connected 7-Day Timeline Stepper */}
+        <div className="flex-1 w-full overflow-x-auto pb-1 md:pb-0">
+          <div className="flex items-start justify-between min-w-[440px]">
+            {weekDays.map((item, idx) => {
+              const prevCompleted = idx > 0 && weekDays[idx - 1].isCompleted;
+              const nextCompleted = idx < weekDays.length - 1 && weekDays[idx + 1].isCompleted;
+              const leftLineActive = prevCompleted && item.isCompleted;
+              const rightLineActive = item.isCompleted && nextCompleted;
+
+              return (
+                <div key={item.iso} className="relative flex-1 flex flex-col items-center">
+                  {/* Left Connector Line */}
+                  {idx > 0 && (
+                    <span
+                      aria-hidden="true"
+                      className={`absolute top-5 sm:top-[22px] right-1/2 w-1/2 h-[3px] -translate-y-1/2 transition-colors ${
+                        leftLineActive ? "bg-[#3D7A4D]" : "bg-[#E6E6E1]"
+                      }`}
+                    />
+                  )}
+
+                  {/* Right Connector Line */}
+                  {idx < weekDays.length - 1 && (
+                    <span
+                      aria-hidden="true"
+                      className={`absolute top-5 sm:top-[22px] left-1/2 w-1/2 h-[3px] -translate-y-1/2 transition-colors ${
+                        rightLineActive ? "bg-[#3D7A4D]" : "bg-[#E6E6E1]"
+                      }`}
+                    />
+                  )}
+
+                  {/* Day Circle Node */}
+                  <div
+                    className={`relative z-10 w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all ${
+                      item.isCompleted
+                        ? item.isToday
+                          ? "bg-[#3D7A4D] text-white ring-[5px] ring-[#CFE2CE]"
+                          : "bg-[#3D7A4D] text-white"
+                        : item.isToday
+                        ? "bg-white border-2 border-[#A7BEA4] ring-[4px] ring-[#E8EFE6]"
+                        : "bg-white border-2 border-[#E2E2DC]"
+                    }`}
+                  >
+                    {item.isCompleted && (
+                      <Check className="w-4 h-4 sm:w-[18px] sm:h-[18px] stroke-[2.75]" />
+                    )}
+                  </div>
+
+                  {/* Day + Date Label */}
+                  <span
+                    className={`mt-2.5 text-[11px] sm:text-xs whitespace-nowrap transition-colors ${
+                      item.isToday
+                        ? "font-extrabold text-[#1D3127]"
+                        : "font-medium text-[#636B60]"
+                    }`}
+                  >
+                    {item.day} {item.dayNumber}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
