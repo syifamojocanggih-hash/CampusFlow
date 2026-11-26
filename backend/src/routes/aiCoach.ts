@@ -16,6 +16,7 @@ import {
 import {
   ALL_OFFICIAL_MOVEMENT_OPTIONS,
   detectClarificationChoice,
+  detectConversationalGreeting,
   detectDistressKeywords,
   detectMovementChoice,
   getAlternativeMovementOptions,
@@ -93,6 +94,27 @@ aiCoachRouter.post(
 
   // 1. Jalur krisis tetap dicek paling awal
   const isCrisis = detectDistressKeywords(userNotes);
+
+  // 1b. Sapaan ringan atau ucapan terima kasih tanpa keluhan -> balas ramah tanpa resep klinis
+  if (!isCrisis && userNotes && !clarificationChoice && !movementChoice) {
+    const conversational = detectConversationalGreeting(userNotes);
+    if (conversational) {
+      const replyText =
+        conversational.type === "greeting"
+          ? "Hai! Aku CampusFlow AI Coach. Gimana kabarmu dan kondisimu hari ini?\n\nKamu bisa cerita soal tugas yang menumpuk, badan pegal, mata lelah, kurang tidur, atau pilih topik cepat kalau ingin panduan langsung."
+          : "Sama-sama! Senang bisa menemani ritme belajarmu hari ini. Kalau nanti butuh rekomendasi jeda aktif, peregangan, atau teman cerita soal kuliah, tinggal kabari aku ya.";
+      sendSuccess(
+        res,
+        {
+          diagnosisSummary: replyText,
+          generationSource: "CONVERSATIONAL_GREETING",
+          escalationFlag: false,
+        },
+        200
+      );
+      return;
+    }
+  }
 
   // 2. Klarifikasi proaktif: jika input hanya keluhan umum tanpa penanda konteks, JANGAN panggil model
   if (!isCrisis && userNotes && !clarificationChoice && isBareGeneralComplaint(userNotes)) {

@@ -197,7 +197,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
         reply = `${data.clarification.question}\n${opts}`;
       } else if (data?.diagnosisSummary || data?.isotemporalActionPlan) {
         const parts = [data.diagnosisSummary, data.isotemporalActionPlan].filter(Boolean);
-        reply = parts.join(" ");
+        reply = parts.join("\n\n");
         if (Array.isArray(data.guidance) && data.guidance.length > 0) {
           reply += `\n\nLangkah Panduan:\n${data.guidance.map((g, i) => `${i + 1}. ${g}`).join("\n")}`;
         }

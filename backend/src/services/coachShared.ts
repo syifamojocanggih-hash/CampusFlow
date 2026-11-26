@@ -331,6 +331,45 @@ export function isBareGeneralComplaint(text: string): boolean {
   return true;
 }
 
+/**
+ * Mendeteksi sapaan ringan atau ucapan terima kasih/konfirmasi murni tanpa keluhan klinis,
+ * agar AI Coach membalas secara natural daripada langsung memberi resep olahraga/kelelahan.
+ */
+export function detectConversationalGreeting(
+  text?: string | null
+): { type: "greeting" | "thanks" } | null {
+  if (!text) return null;
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.length > 80) return null;
+  if (detectDistressKeywords(trimmed) || IN_SCOPE_WELLBEING_PATTERN.test(trimmed)) {
+    return null;
+  }
+
+  const normalized = trimmed
+    .toLowerCase()
+    .replace(/[!.,?~]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (
+    /^(?:hai+|halo+|hello+|hi+|hey+|hei+|yo+|p|tes+|test+|permisi|assalam\w*|selamat (?:pagi|siang|sore|malam)|pagi|siang|sore|malam|apa kabar|gimana kabarnya|halo coach|hai coach|coach)(?:\s+(?:coach|kak|min|bot|ai))?$/.test(
+      normalized
+    )
+  ) {
+    return { type: "greeting" };
+  }
+
+  if (
+    /^(?:makasih+|terima kasih+|thanks+|thank you|tq|thx|oke+|ok+|okey|okay|siap+|baik+|noted|sip+|mantap+|sama-sama)(?:\s+(?:coach|kak|ya|banyak|banget))?$/.test(
+      normalized
+    )
+  ) {
+    return { type: "thanks" };
+  }
+
+  return null;
+}
+
 /** Mendeteksi respon klarifikasi opsi 1-4 (atau kata kunci/lewati) dari user saat pendingPrompt === 'clarification' */
 export function detectClarificationChoice(
   text: string

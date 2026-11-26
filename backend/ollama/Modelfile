@@ -7,16 +7,21 @@ PARAMETER num_predict 320
 PARAMETER stop "<end_of_turn>"
 PARAMETER stop "<eos>"
 
-TEMPLATE """{{- range $i, $_ := .Messages }}
-{{- $last := eq (len (slice $.Messages $i)) 1 }}
-{{- if or (eq .Role "user") (eq .Role "system") }}<start_of_turn>user
-{{ .Content }}<end_of_turn>
+TEMPLATE """{{- $sys := $.System -}}
+{{- range $i, $_ := .Messages -}}
+{{- $last := eq (len (slice $.Messages $i)) 1 -}}
+{{- if eq .Role "system" -}}
+{{- $sys = .Content -}}
+{{- else if eq .Role "user" -}}<start_of_turn>user
+{{- if $sys }}{{ $sys }}
+
+{{ $sys = "" }}{{ end }}{{ .Content }}<end_of_turn>
 {{ if $last }}<start_of_turn>model
-{{ end }}
-{{- else if eq .Role "assistant" }}<start_of_turn>model
+{{ end -}}
+{{- else if eq .Role "assistant" -}}<start_of_turn>model
 {{ .Content }}{{ if not $last }}<end_of_turn>
-{{ end }}
-{{- end }}
-{{- end }}"""
+{{ end -}}
+{{- end -}}
+{{- end -}}"""
 
 SYSTEM """Kamu adalah CampusFlow AI Coach: asisten kesehatan mental-fisik mahasiswa Indonesia berbasis Martín-Rodríguez & González-Prieto (2026). Tugasmu HANYA menyusun narasi empatik non-diagnostik dan rencana aksi dari data input, bukan mengambil keputusan klinis. Salin dominantMediator persis dari clinicalRuleEvaluation, jaga recommendedMetsToday dan durasi menit di dalam allowedRanges, patuhi activeDirectives (eskalasi menyebut konselor kampus dengan aksi ringan; missingDailyCheckIn mengajak check-in harian tanpa menebak tidur/stres; skipAdaptation menurunkan target secara wajar), pilih sitasi tervalidasi tanpa mengarang angka baru, dan tolak input non-wellbeing dengan template out-of-scope baku."""

@@ -311,6 +311,30 @@ export function removeCheckInSentences(text: string): string {
   return filtered.join(" ");
 }
 
+function cleanIndonesianCoachTypos(text: string): string {
+  return text
+    .replace(/\bperlahragaan\b/gi, "aktivitas olahraga")
+    .replace(/\bperolahragaan\b/gi, "aktivitas olahraga")
+    .replace(/\bbelakaipun\b/gi, "belakangan")
+    .replace(/\bberolah\s+raga\b/gi, "berolahraga")
+    .replace(/\bminit\b/gi, "menit")
+    .replace(/\bselama\s+sekarang\b/gi, "sekarang")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function clampPlanDurationMinutes(
+  plan: string,
+  [minDur, maxDur]: [number, number]
+): string {
+  return plan.replace(/\b(\d+)\s*menit\b/gi, (_match, rawNum) => {
+    const num = Number(rawNum);
+    if (!Number.isFinite(num)) return _match;
+    const clamped = Math.max(minDur, Math.min(maxDur, num));
+    return `${clamped} menit`;
+  });
+}
+
 /** Menjamin hasil LLM memenuhi batas aturan klinis 1.1, rentang allowedRanges, & eskalasi keamanan.
  *  CATATAN: scientificCitationNote TIDAK lagi dipercayakan ke LLM -- dipilih deterministik dari
  *  CITATION_BANK berdasarkan dominantMediator (hasil rule engine), supaya selalu relevan & akurat
@@ -320,8 +344,11 @@ function enforceClinicalGuardrails(
   evaluation: ClinicalRuleFlags,
   allowedRanges: AllowedRanges
 ): GeneratedInsight {
-  let summary = insight.diagnosisSummary.trim();
-  let plan = insight.isotemporalActionPlan.trim();
+  let summary = cleanIndonesianCoachTypos(insight.diagnosisSummary.trim());
+  let plan = clampPlanDurationMinutes(
+    cleanIndonesianCoachTypos(insight.isotemporalActionPlan.trim()),
+    allowedRanges.durationMinutesRange
+  );
 
   // Hapus kalimat check-in buatan model bila ada agar tidak dobel
   summary = removeCheckInSentences(summary);

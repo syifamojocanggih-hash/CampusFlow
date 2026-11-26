@@ -1,7 +1,7 @@
 # CampusFlow
 
 > **Academic Strava & Predictive Burnout Management**  
-> Progressive Web Application (PWA) lintas perangkat berbasis Fusi Prediktif Beban Akademik & Waktu Layar, *Zero Continuous Camera* (Kamera Insidental 2 Menit), Parser Jadwal KRS PDF (Google Gemini API), dan *Wellbeing AI Coach* Lokal.  
+> Progressive Web Application (PWA) lintas perangkat berbasis Fusi Prediktif Beban Akbademik & Waktu Layar, *Zero Continuous Camera* (Kamera Insidental 2 Menit), Parser Jadwal KRS PDF (Google Gemini API), dan *Wellbeing AI Coach* Lokal.  
 > Topik Riset: **Kelola Stres & Keseimbangan Hidup Mahasiswa Berbasis Fusi Parameter dan Jeda Aktif Terverifikasi** · **Techcomfest 2027** · Sub-Tema 3: *Smart Lifestyle & Digital Wellbeing* (SDG 3).
 
 [![Architecture: 3-Branch Monorepo](https://img.shields.io/badge/Architecture-3--Branch%20Monorepo-2563EB.svg)](#8-struktur-monorepo--pembagian-kerja)

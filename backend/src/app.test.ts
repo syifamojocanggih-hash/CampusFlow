@@ -453,6 +453,24 @@ test("POST /ai-coach/generate pada input krisis darurat tidak memanggil Ollama (
   }
 });
 
+test("POST /ai-coach/generate pada sapaan ringan ('hai') membalas sapaan ramah tanpa memanggil Ollama atau meresepkan olahraga", async () => {
+  const token = signAuthToken({ sub: DEMO_USER_ID, email: "demo@campusflow.id" });
+  const greetRes = await fetch(`${baseUrl}/ai-coach/generate`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ notes: "hai" }),
+  });
+  const json = (await greetRes.json()) as {
+    data: { diagnosisSummary: string; generationSource: string };
+  };
+  assert.equal(greetRes.status, 200);
+  assert.equal(json.data.generationSource, "CONVERSATIONAL_GREETING");
+  assert.match(json.data.diagnosisSummary, /CampusFlow AI Coach/i);
+});
+
 test("POST /ai-coach/generate pada input keluhan umum tanpa konteks mengembalikan clarification {question, options} tanpa memanggil Ollama", async () => {
   const demoUser = {
     id: DEMO_USER_ID,
