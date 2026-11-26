@@ -65,11 +65,15 @@ export function createApp() {
       ) {
         return true;
       }
-      // Domain HTTPS tunnel (Cloudflare Tunnel / Ngrok) untuk uji coba mobile
+      // Domain HTTPS tunnel & platform hosting gratis (Cloudflare, Vercel, Netlify, HF Spaces)
       if (
         host.endsWith(".trycloudflare.com") ||
         host.endsWith(".ngrok-free.app") ||
-        host.endsWith(".ngrok.io")
+        host.endsWith(".ngrok.io") ||
+        host.endsWith(".vercel.app") ||
+        host.endsWith(".pages.dev") ||
+        host.endsWith(".netlify.app") ||
+        host.endsWith(".hf.space")
       ) {
         return true;
       }
@@ -106,6 +110,15 @@ export function createApp() {
     maxRequests: 30,
     keyPrefix: "auth",
     message: "Terlalu banyak percobaan autentikasi. Coba lagi dalam 1 menit.",
+  });
+
+  // Root health probe (wajib HTTP 200 untuk Hugging Face Spaces / Render / Koyeb)
+  app.get("/", (_req, res) => {
+    res.status(200).json({
+      status: "ok",
+      service: "campusflow-backend",
+      health: "/api/v1/health",
+    });
   });
 
   app.use("/api/v1/health", healthRouter);
