@@ -744,3 +744,151 @@ export async function checkOllamaStatus(
     };
   }
 }
+
+export interface ConversationalAcademicInput {
+  userNotes: string;
+  chatHistory?: Array<{ role: "user" | "assistant"; text: string }>;
+  todayTotals: {
+    totalSedentaryHours: number;
+    totalMvpaMinutes: number;
+    sleepHours: number | null;
+    pss4TotalScore: number | null;
+  };
+  schedules?: Array<{
+    dayOfWeek: number;
+    subjectName: string;
+    creditHours: number;
+    isPracticum?: boolean;
+    isExamWeek?: boolean;
+    startTime?: string | null;
+    endTime?: string | null;
+  }>;
+  userName?: string;
+}
+
+const DAY_LABELS_ID = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+
+/**
+ * Fallback deterministik hangat & terstruktur untuk pertanyaan strategi belajar, jadwal KRS,
+ * atau obrolan lanjutan saat Ollama lokal tidak aktif.
+ */
+export function buildAcademicConversationalFallback(
+  input: ConversationalAcademicInput
+): string {
+  const schedules = input.schedules ?? [];
+  const totalSks = schedules.reduce((s, c) => s + (Number(c.creditHours) || 0), 0);
+  const nowDay = new Date().getDay() === 0 ? 7 : new Date().getDay();
+  const todayClasses = schedules.filter((s) => s.dayOfWeek === nowDay);
+  const hasExam = schedules.some((s) => s.isExamWeek);
+  const lower = input.userNotes.toLowerCase();
+
+  const krsLine =
+    schedules.length > 0
+      ? todayClasses.length > 0
+        ? `Hari ini (${DAY_LABELS_ID[nowDay - 1]}) kamu punya ${todayClasses.length} mata kuliah (${todayClasses
+            .map((c) => `${c.subjectName}${c.startTime ? ` (${c.startTime})` : ""}`)
+            .join(", ")}) dari total ${totalSks} SKS.`
+        : `Total beban KRS aktifmu saat ini ${totalSks} SKS (${schedules.length} mata kuliah), dan hari ini jadwal kuliahmu relatif lebih longgar.`
+      : "Kamu belum mengisi jadwal KRS di dashboard, jadi aku belum melihat jam kuliah spesifikmu.";
+
+  if (/\b(skripsi|tesis|menunda|prokrastinasi)\b/i.test(lower)) {
+    return `${krsLine}\n\nUntuk memutus rasa berat saat mengerjakan tugas besar/skripsi:\n1. Pecah jadi target mikro 15 menit (cukup buka dokumen dan tulis 1 sub-bagian atau 3 poin kerangka dulu).\n2. Pakai pola 25 menit fokus + 5 menit berdiri/jeda mata tanpa buka media sosial.\n3. Setelah 2 sesi, ambil jeda aktif 2 menit supaya pikiran tetap jernih${
+      hasExam ? " apalagi menjelang pekan ujian" : ""
+    }.`;
+  }
+
+  if (/\b(jadwal|atur waktu|belajar dan istirahat|pomodoro|kapan)\b/i.test(lower)) {
+    return `${krsLine}\n\nPola ritme belajar-istirahat yang seimbang untuk kondisi dudukmu saat ini (${input.todayTotals.totalSedentaryHours.toFixed(
+      1
+    )} jam duduk, ${input.todayTotals.totalMvpaMinutes} menit gerak aktif):\n1. Belajar dalam blok 45–50 menit fokus, lalu wajib berdiri atau jalan santai 5–10 menit.\n2. Gunakan aturan 20-20-20 untuk mata (tiap 20 menit, tatap jarak jauh 20 detik).\n3. Sisipkan 1 sesi gerak ringan 15–20 menit sore hari agar malamnya tidur lebih mudah pulas.`;
+  }
+
+  return `${krsLine}\n\nAgar tugas dan beban kuliah tetap terkendali tanpa memicu burnout:\n1. Urutkan 1–2 tugas prioritas utama hari ini lewat daftar Target Tugas di menu Fokus.\n2. Jalankan sesi belajar terukur 25–50 menit diikuti jeda peregangan singkat di antara pergantian tugas.\n3. Kalau mau dibuatkan pembagian jam belajar spesifik hari ini, sebutkan saja tugas paling mendesak yang sedang kamu kejar sekarang!`;
+}
+
+/**
+ * Menjawab pertanyaan strategi belajar, jadwal kuliah/KRS, dan tindak lanjut multi-turn
+ * dengan Ollama Gemma secara natural (mengingat riwayat obrolan & jadwal kuliah asli mahasiswa).
+ */
+export async function generateFreeformAcademicCoachReply(
+  input: ConversationalAcademicInput,
+  fetchFn: typeof fetch = fetch
+): Promise<{ text: string; source: "OLLAMA_CONVERSATIONAL" | "ACADEMIC_FALLBACK"; model: string }> {
+  const targetModel = env.OLLAMA_MODEL;
+  const endpoint = `${env.OLLAMA_BASE_URL.replace(/\/+$/, "")}/api/chat`;
+  const schedules = input.schedules ?? [];
+  const totalSks = schedules.reduce((s, c) => s + (Number(c.creditHours) || 0), 0);
+  const nowDay = new Date().getDay() === 0 ? 7 : new Date().getDay();
+  const todayClasses = schedules
+    .filter((s) => s.dayOfWeek === nowDay)
+    .map((s) => `${s.subjectName} (${s.creditHours} SKS${s.startTime ? `, ${s.startTime}-${s.endTime || ""}` : ""})`);
+
+  const systemGuide = `Kamu adalah CampusFlow AI Coach: pendamping belajar dan kesehatan mahasiswa Indonesia yang hangat, praktis, terstruktur, dan empatik.
+Jawablah dalam Bahasa Indonesia yang luwes dan mendalam (boleh 2-3 paragraf singkat atau poin bernomor yang jelas).
+Gunakan konteks nyata mahasiswa berikut jika relevan:
+- Nama: ${input.userName || "Mahasiswa"}
+- Hari ini: ${DAY_LABELS_ID[nowDay - 1]} | Total KRS: ${schedules.length} matkul (${totalSks} SKS)
+- Jadwal hari ini: ${todayClasses.length > 0 ? todayClasses.join("; ") : "Tidak ada kelas terjadwal / belum diisi"}
+- Telemetri hari ini: duduk ${input.todayTotals.totalSedentaryHours.toFixed(1)} jam, gerak aktif ${input.todayTotals.totalMvpaMinutes} menit, tidur ${
+    input.todayTotals.sleepHours !== null ? `${input.todayTotals.sleepHours} jam` : "belum diisi"
+  }.
+Aturan penting:
+1. Jawab langsung kebutuhan mahasiswa (atur jadwal belajar, strategi tugas/skripsi, manajemen stres/fokus, atau penjelasan lanjutan). Jangan selalu memaksa resep olahraga jika mahasiswa bertanya strategi belajar/skripsi.
+2. Tetap selipkan pengingat jeda aktif/ergonomi secara alami bila relevan.
+3. Jangan mengarang diagnosis medis atau angka riset fiktif.
+4. Jika pertanyaan benar-benar di luar dunia kuliah/kesejahteraan mahasiswa (misal coding aplikasi, resep masakan, skor bola), tolak dengan sopan.`;
+
+  const historyMessages: OllamaChatMessage[] = (input.chatHistory ?? [])
+    .slice(-6)
+    .filter((m) => m.text && m.text.trim())
+    .map((m) => ({
+      role: m.role === "assistant" ? "assistant" : "user",
+      content: m.text.trim().slice(0, 600),
+    }));
+
+  const messages: OllamaChatMessage[] = [
+    { role: "system", content: systemGuide },
+    ...historyMessages,
+    { role: "user", content: input.userNotes.trim() },
+  ];
+
+  try {
+    const response = await fetchFn(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(env.OLLAMA_TIMEOUT_MS),
+      body: JSON.stringify({
+        model: targetModel,
+        stream: false,
+        options: { temperature: 0.35, top_p: 0.9, num_predict: 512 },
+        messages,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama HTTP ${response.status}`);
+    }
+
+    const rawBody = (await response.json()) as {
+      message?: { content?: string };
+      response?: string;
+    };
+    const rawText = (rawBody.message?.content ?? rawBody.response ?? "").trim();
+    if (!rawText) {
+      throw new Error("Empty Ollama conversational response");
+    }
+
+    return {
+      text: cleanIndonesianCoachTypos(rawText),
+      source: "OLLAMA_CONVERSATIONAL",
+      model: targetModel,
+    };
+  } catch (err) {
+    console.warn("[Ollama Conversational Fallback]", err instanceof Error ? err.message : err);
+    return {
+      text: buildAcademicConversationalFallback(input),
+      source: "ACADEMIC_FALLBACK",
+      model: targetModel,
+    };
+  }
+}
