@@ -471,6 +471,137 @@ test("POST /ai-coach/generate pada sapaan ringan ('hai') membalas sapaan ramah t
   assert.match(json.data.diagnosisSummary, /CampusFlow AI Coach/i);
 });
 
+test("POST /ai-coach/generate pada pertanyaan jadwal/strategi kuliah memakai konteks KRS asli & chatHistory multi-turn", async () => {
+  const demoUser = {
+    id: DEMO_USER_ID,
+    name: "Tiara Mahasiswa",
+    nim: "4.33.24.0.01",
+    email: "demo@campusflow.id",
+    passwordHash: "hashed",
+    department: "Teknik Informatika",
+    weeklyMetsTarget: 1500,
+    postureBaselineJson: null,
+    pushSubscription: null,
+    currentStreakDays: 2,
+    xpPoints: 100,
+    createdAt: new Date(),
+  };
+  const todayDay = new Date().getDay() === 0 ? 7 : new Date().getDay();
+
+  await withStubbedPrisma(
+    {
+      user: { findUnique: async () => demoUser },
+      dailyWellbeingLog: { findMany: async () => [] },
+      clinicalAssessment: { findFirst: async () => null },
+      sedentarySession: { aggregate: async () => ({ _sum: { durationMinutes: 180 } }) },
+      physicalActivity: { aggregate: async () => ({ _sum: { durationMinutes: 15 } }) },
+      aiCoachingInsight: { findMany: async () => [] },
+      academicSchedule: {
+        findMany: async () => [
+          {
+            id: "sch-1",
+            userId: DEMO_USER_ID,
+            dayOfWeek: todayDay,
+            subjectName: "Pemrograman Web Lanjut",
+            creditHours: 3,
+            isPracticum: true,
+            isExamWeek: false,
+            startTime: "13:00",
+            endTime: "15:30",
+          },
+        ],
+      },
+    },
+    async () => {
+      const token = signAuthToken({
+        sub: DEMO_USER_ID,
+        email: "demo@campusflow.id",
+      });
+      const res = await fetch(`${baseUrl}/ai-coach/generate`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notes: "Saya ingin mengatur jadwal belajar dan istirahat seimbang",
+          chatHistory: [{ role: "user", text: "hai" }],
+        }),
+      });
+      const json = (await res.json()) as {
+        data: { diagnosisSummary: string; generationSource: string };
+      };
+      assert.equal(res.status, 200);
+      assert.equal(json.data.generationSource, "ACADEMIC_FALLBACK");
+      assert.match(json.data.diagnosisSummary, /Pemrograman Web Lanjut|3 SKS/i);
+    }
+  );
+});
+
+test("POST /ai-coach/generate pada topik akademik & jadwal KRS memakai mode percakapan kontekstual tanpa dipaksa resep METs", async () => {
+  const demoUser = {
+    id: DEMO_USER_ID,
+    name: "Mahasiswa Demo",
+    nim: "4.33.24.0.01",
+    email: "demo@campusflow.id",
+    passwordHash: "hashed",
+    department: "Teknik Informatika",
+    weeklyMetsTarget: 1500,
+    postureBaselineJson: null,
+    pushSubscription: null,
+    currentStreakDays: 0,
+    xpPoints: 0,
+    createdAt: new Date(),
+  };
+
+  await withStubbedPrisma(
+    {
+      user: { findUnique: async () => demoUser },
+      dailyWellbeingLog: { findMany: async () => [] },
+      clinicalAssessment: { findFirst: async () => null },
+      sedentarySession: { aggregate: async () => ({ _sum: { durationMinutes: 180 } }) },
+      physicalActivity: { aggregate: async () => ({ _sum: { durationMinutes: 20 } }) },
+      aiCoachingInsight: { findMany: async () => [] },
+      academicSchedule: {
+        findMany: async () => [
+          {
+            dayOfWeek: new Date().getDay() === 0 ? 7 : new Date().getDay(),
+            subjectName: "Pemrograman Web",
+            creditHours: 3,
+            isPracticum: true,
+            isExamWeek: false,
+            startTime: "13:00",
+            endTime: "15:30",
+          },
+        ],
+      },
+    },
+    async () => {
+      const token = signAuthToken({ sub: DEMO_USER_ID, email: "demo@campusflow.id" });
+      const res = await fetch(`${baseUrl}/ai-coach/generate`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notes: "Bagaimana strategi mengatur jadwal belajar dan istirahat seimbang?",
+          chatHistory: [{ role: "user", text: "hai" }],
+        }),
+      });
+      const json = (await res.json()) as {
+        data: { diagnosisSummary: string; generationSource: string };
+      };
+      assert.equal(res.status, 200);
+      assert.ok(
+        json.data.generationSource === "ACADEMIC_FALLBACK" ||
+          json.data.generationSource === "OLLAMA_CONVERSATIONAL"
+      );
+      assert.match(json.data.diagnosisSummary, /Pemrograman Web|SKS|fokus/i);
+    }
+  );
+});
+
 test("POST /ai-coach/generate pada input keluhan umum tanpa konteks mengembalikan clarification {question, options} tanpa memanggil Ollama", async () => {
   const demoUser = {
     id: DEMO_USER_ID,

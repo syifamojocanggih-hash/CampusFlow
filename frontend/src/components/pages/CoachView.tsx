@@ -25,6 +25,12 @@ interface ChatMessage {
   id: string;
   sender: "coach" | "user";
   text: string;
+  recommendedMetsToday?: number;
+  scientificCitationNote?: string;
+  movementOptions?: string[];
+  clarificationOptions?: Array<{ id: string; label: string }>;
+  guidance?: string[];
+  escalationFlag?: boolean;
 }
 
 interface RecommendationItem {
@@ -171,9 +177,17 @@ export const CoachView: React.FC<CoachViewProps> = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const sendMessageToBackendCoach = async (promptText: string) => {
+  const sendMessageToBackendCoach = async (
+    promptText: string,
+    extraOptions?: { clarificationChoice?: string; movementChoice?: string }
+  ) => {
     if (isTyping) return;
     setInputText("");
+
+    const recentHistory = messages.slice(-6).map((m) => ({
+      role: m.sender === "coach" ? ("assistant" as const) : ("user" as const),
+      text: m.text,
+    }));
 
     const newMsg: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -186,21 +200,23 @@ export const CoachView: React.FC<CoachViewProps> = () => {
     setIsTyping(true);
 
     try {
-      const res = await api.generateAiCoachInsight(promptText);
+      const payload = extraOptions?.movementChoice
+        ? { movementChoice: extraOptions.movementChoice }
+        : extraOptions?.clarificationChoice
+        ? { clarificationChoice: extraOptions.clarificationChoice }
+        : { notes: promptText, chatHistory: recentHistory };
+
+      const res = await api.generateAiCoachInsight(payload);
       const data = res?.data;
       let reply = "";
+      let clarificationOptions: Array<{ id: string; label: string }> | undefined;
 
       if (data?.clarification?.question) {
-        const opts = (data.clarification.options || [])
-          .map((o) => `${o.id}. ${o.label}`)
-          .join("\n");
-        reply = `${data.clarification.question}\n${opts}`;
+        reply = data.clarification.question;
+        clarificationOptions = data.clarification.options;
       } else if (data?.diagnosisSummary || data?.isotemporalActionPlan) {
         const parts = [data.diagnosisSummary, data.isotemporalActionPlan].filter(Boolean);
         reply = parts.join("\n\n");
-        if (Array.isArray(data.guidance) && data.guidance.length > 0) {
-          reply += `\n\nLangkah Panduan:\n${data.guidance.map((g, i) => `${i + 1}. ${g}`).join("\n")}`;
-        }
       }
 
       if (!reply.trim()) {
@@ -213,6 +229,24 @@ export const CoachView: React.FC<CoachViewProps> = () => {
           id: data?.id || `coach-${Date.now()}`,
           sender: "coach",
           text: reply,
+          recommendedMetsToday:
+            typeof data?.recommendedMetsToday === "number" && data.recommendedMetsToday > 0
+              ? data.recommendedMetsToday
+              : undefined,
+          scientificCitationNote:
+            data?.scientificCitationNote &&
+            !/di luar cakupan/i.test(data.scientificCitationNote) &&
+            !/protokol keselamatan/i.test(data.scientificCitationNote)
+              ? data.scientificCitationNote
+              : undefined,
+          movementOptions:
+            Array.isArray(data?.movementOptions) && data.movementOptions.length > 0
+              ? data.movementOptions
+              : undefined,
+          clarificationOptions,
+          guidance:
+            Array.isArray(data?.guidance) && data.guidance.length > 0 ? data.guidance : undefined,
+          escalationFlag: Boolean(data?.escalationFlag),
         },
       ]);
     } catch {
@@ -517,20 +551,99 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                 </div>
 
                 {/* Render Messages */}
-                {messages.map((msg) => {
+                {messages.map((msg, msgIdx) => {
                   const isUser = msg.sender === "user";
+                  const isLatestCoachMsg = !isUser && msgIdx === messages.length - 1;
                   return (
                     <div
                       key={msg.id}
                       className={`flex ${isUser ? "justify-end" : "justify-start"} animate-in fade-in duration-200`}
                     >
                       <div
-                        className={`text-sm leading-relaxed whitespace-pre-line text-left ${isUser
-                          ? "bg-[#CFD8C4]/65 border border-[#BCC8AE] text-[#2F3A2E] rounded-2xl sm:rounded-3xl p-4 max-w-xl shadow-2xs"
-                          : "bg-[#FAF6F0] border border-[#E8DDCF] text-[#2F3A2E] rounded-2xl sm:rounded-3xl p-5 max-w-3xl shadow-2xs"
+                        className={`text-sm leading-relaxed text-left ${isUser
+                          ? "bg-[#CFD8C4]/65 border border-[#BCC8AE] text-[#2F3A2E] rounded-2xl sm:rounded-3xl p-4 max-w-xl shadow-2xs whitespace-pre-line"
+                          : "bg-[#FAF6F0] border border-[#E8DDCF] text-[#2F3A2E] rounded-2xl sm:rounded-3xl p-5 max-w-3xl shadow-2xs space-y-3"
                           }`}
                       >
-                        {msg.text.replace("Tiara", userName)}
+                        <div className="whitespace-pre-line">
+                          {msg.text.replace("Tiara", userName)}
+                        </div>
+
+                        {!isUser && msg.guidance && msg.guidance.length > 0 && (
+                          <div className="rounded-2xl bg-white/90 border border-[#E8DDCF] p-3.5 space-y-1.5">
+                            <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#4C5C4E]">
+                              Langkah Panduan Terstruktur
+                            </p>
+                            <ol className="list-decimal list-inside space-y-1 text-xs sm:text-[13px] text-[#2F3A2E]">
+                              {msg.guidance.map((step, idx) => (
+                                <li key={idx}>{step}</li>
+                              ))}
+                            </ol>
+                          </div>
+                        )}
+
+                        {!isUser && isLatestCoachMsg && msg.clarificationOptions && msg.clarificationOptions.length > 0 && (
+                          <div className="pt-1 flex flex-wrap gap-2">
+                            {msg.clarificationOptions.map((opt) => (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                disabled={isTyping}
+                                onClick={() =>
+                                  void sendMessageToBackendCoach(`${opt.id}. ${opt.label}`, {
+                                    clarificationChoice: opt.id,
+                                  })
+                                }
+                                className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#CFD8C4]/60 border border-[#DDD0C1] hover:border-[#BCC8AE] text-xs font-bold text-[#2F3A2E] transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                {opt.id}. {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {!isUser && isLatestCoachMsg && msg.movementOptions && msg.movementOptions.length > 0 && (
+                          <div className="pt-1 space-y-1.5">
+                            <p className="text-[11px] font-bold text-[#636B60]">
+                              Pilih alternatif gerakan untuk lihat panduan langkahnya:
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {msg.movementOptions.map((opt, idx) => {
+                                const letter = String.fromCharCode(65 + idx);
+                                return (
+                                  <button
+                                    key={opt}
+                                    type="button"
+                                    disabled={isTyping}
+                                    onClick={() =>
+                                      void sendMessageToBackendCoach(opt, {
+                                        movementChoice: letter,
+                                      })
+                                    }
+                                    className="px-3 py-1.5 rounded-full bg-white hover:bg-[#CFD8C4] border border-[#DDD0C1] hover:border-[#BCC8AE] text-xs font-bold text-[#2F3A2E] transition-all cursor-pointer disabled:opacity-50"
+                                  >
+                                    {letter}. {opt}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {!isUser && (msg.recommendedMetsToday || msg.scientificCitationNote) && (
+                          <div className="pt-2 border-t border-[#E8DDCF]/80 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#636B60]">
+                            {msg.recommendedMetsToday ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#E5EDE0] text-[#2F3A2E] font-extrabold border border-[#C9D6C0]">
+                                Target Gerak: +{msg.recommendedMetsToday} MET-menit
+                              </span>
+                            ) : <span />}
+                            {msg.scientificCitationNote && (
+                              <span className="italic text-[#636B60] flex-1 min-w-[200px]">
+                                Referensi: {msg.scientificCitationNote}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

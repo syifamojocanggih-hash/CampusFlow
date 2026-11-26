@@ -11,10 +11,12 @@ import {
 import {
   checkOllamaStatus,
   generateClinicalWellbeingInsight,
+  generateFreeformAcademicCoachReply,
   pickCitation,
 } from "../services/ollamaCoach.ts";
 import {
   ALL_OFFICIAL_MOVEMENT_OPTIONS,
+  detectAcademicOrFollowupQuery,
   detectClarificationChoice,
   detectConversationalGreeting,
   detectDistressKeywords,
@@ -45,6 +47,15 @@ const generateCoachBodySchema = z.object({
   notes: z.string().trim().max(500).optional(),
   clarificationChoice: z.string().trim().max(100).optional(),
   movementChoice: z.string().trim().max(100).optional(),
+  chatHistory: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        text: z.string().max(1000),
+      })
+    )
+    .max(10)
+    .optional(),
 });
 
 export const aiGenerateLimiter = createRateLimiter({
@@ -80,6 +91,7 @@ aiCoachRouter.post(
   let userNotes: string | null = null;
   let clarificationChoice: string | null = null;
   let movementChoice: string | null = null;
+  let chatHistory: Array<{ role: "user" | "assistant"; text: string }> = [];
   if (req.body && typeof req.body === "object" && Object.keys(req.body).length > 0) {
     const parsedBody = generateCoachBodySchema.safeParse(req.body);
     if (!parsedBody.success) {
@@ -90,6 +102,7 @@ aiCoachRouter.post(
     userNotes = parsedBody.data.notes ?? null;
     clarificationChoice = parsedBody.data.clarificationChoice ?? null;
     movementChoice = parsedBody.data.movementChoice ?? null;
+    chatHistory = parsedBody.data.chatHistory ?? [];
   }
 
   // 1. Jalur krisis tetap dicek paling awal
@@ -154,7 +167,7 @@ aiCoachRouter.post(
   const since7Days = new Date(todayStart);
   since7Days.setUTCDate(since7Days.getUTCDate() - 6);
 
-  const [logs, latestAssessment, recentInsights, todayTotals] = await Promise.all([
+  const [logs, latestAssessment, recentInsights, todayTotals, schedules, userProfile] = await Promise.all([
     prisma.dailyWellbeingLog.findMany({
       where: { userId, logDate: { gte: since7Days } },
       orderBy: { logDate: "asc" },
@@ -169,6 +182,22 @@ aiCoachRouter.post(
       take: 5,
     }),
     getDailyActivityAndSedentaryTotals(userId, todayStart),
+    typeof prisma.academicSchedule?.findMany === "function"
+      ? prisma.academicSchedule
+          .findMany({
+            where: { userId },
+            orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
+    typeof prisma.user?.findUnique === "function"
+      ? prisma.user
+          .findUnique({
+            where: { id: userId },
+            select: { name: true },
+          })
+          .catch(() => null)
+      : Promise.resolve(null),
   ]);
 
   const todayLog = logs.find((log) => log.logDate.toISOString().slice(0, 10) === todayIso);
@@ -318,6 +347,39 @@ aiCoachRouter.post(
         guidance: guidance.steps,
       },
       201
+    );
+    return;
+  }
+
+  // 2b. Mode percakapan akademik & multi-turn follow-up (tugas/KRS/skripsi/jadwal belajar/penjelasan lanjutan)
+  if (
+    !isCrisis &&
+    userNotes &&
+    !clarificationChoice &&
+    !movementChoice &&
+    detectAcademicOrFollowupQuery(userNotes, chatHistory)
+  ) {
+    const convReply = await generateFreeformAcademicCoachReply({
+      userNotes,
+      chatHistory,
+      todayTotals: {
+        totalSedentaryHours,
+        totalMvpaMinutes,
+        sleepHours: todayLog ? todayLog.sleepHours : null,
+        pss4TotalScore: todayLog ? todayLog.pss4TotalScore : null,
+      },
+      schedules,
+      userName: userProfile?.name,
+    });
+    sendSuccess(
+      res,
+      {
+        diagnosisSummary: convReply.text,
+        generationSource: convReply.source,
+        model: convReply.model,
+        escalationFlag: false,
+      },
+      200
     );
     return;
   }

@@ -519,7 +519,7 @@ export async function callOllamaChatJson(
       model: targetModel,
       stream: false,
       format: OLLAMA_RESPONSE_FORMAT,
-      options: { temperature: 0 },
+      options: { temperature: 0.25, top_p: 0.9, num_predict: 512 },
       messages,
     }),
   });

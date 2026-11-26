@@ -390,13 +390,28 @@ class ApiClient {
     return this.request(`/ai-coach/history?limit=${limit}`);
   }
 
-  async generateAiCoachInsight(notes?: string): Promise<AiCoachInsightResponse> {
+  async generateAiCoachInsight(
+    notesOrOptions?:
+      | string
+      | {
+          notes?: string;
+          clarificationChoice?: string;
+          movementChoice?: string;
+          chatHistory?: Array<{ role: "user" | "assistant"; text: string }>;
+        }
+  ): Promise<AiCoachInsightResponse> {
     if (USE_MOCK) {
       return MOCK_AI_COACH;
     }
+    const payload =
+      typeof notesOrOptions === "string"
+        ? notesOrOptions
+          ? { notes: notesOrOptions }
+          : {}
+        : notesOrOptions ?? {};
     return this.request<AiCoachInsightResponse>("/ai-coach/generate", {
       method: "POST",
-      body: JSON.stringify(notes ? { notes } : {}),
+      body: JSON.stringify(payload),
     });
   }
 

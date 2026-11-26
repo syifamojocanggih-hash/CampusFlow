@@ -370,6 +370,56 @@ export function detectConversationalGreeting(
   return null;
 }
 
+/**
+ * Mendeteksi apakah pesan user adalah diskusi/pertanyaan manajemen kuliah, strategi belajar,
+ * pengaturan jadwal KRS/istirahat, atau pertanyaan lanjutan multi-turn dari obrolan sebelumnya
+ * (selama bukan keluhan fisik/klinis atau krisis darurat).
+ */
+export function detectAcademicOrFollowupQuery(
+  text?: string | null,
+  chatHistory?: Array<{ role: "user" | "assistant"; text: string }>
+): boolean {
+  if (!text) return false;
+  const trimmed = text.trim();
+  const lower = trimmed.toLowerCase();
+  if (!trimmed) return false;
+
+  if (detectDistressKeywords(trimmed) || isBareGeneralComplaint(trimmed)) {
+    return false;
+  }
+
+  // Jangan belokkan keluhan fisik/tidur/nyeri ke mode akademik — biarkan tetap ditangani jalur klinis
+  const hasPhysicalOrSleepComplaint =
+    /\b(pegal|pegel|kaku|nyeri|sakit|perih|mata lelah|leher|bahu|punggung|pinggang|ngantuk|kantuk|kurang tidur|begadang|insomnia|lemas|lemes|cemas berlebihan|panik)\b/i.test(
+      lower
+    );
+  if (hasPhysicalOrSleepComplaint) {
+    return false;
+  }
+
+  // Kata kunci topik akademik, manajemen waktu, fokus, skripsi, jadwal kuliah
+  const hasAcademicTopic =
+    /\b(jadwal|krs|sks|mata kuliah|matkul|tugas|skripsi|tesis|makalah|laporan|presentasi|pomodoro|prokrastinasi|menunda|fokus belajar|manajemen waktu|atur waktu|belajar dan istirahat|beban kuliah|strategi belajar|persiapan ujian|uas|uts|kuis)\b/i.test(
+      lower
+    );
+  if (hasAcademicTopic) {
+    return true;
+  }
+
+  // Pertanyaan lanjutan multi-turn yang jelas merujuk obrolan sebelumnya
+  const hasHistory = Array.isArray(chatHistory) && chatHistory.length > 0;
+  const looksLikeFollowUp =
+    /\b(kenapa|mengapa|gimana|bagaimana|caranya|cara nya|jelasin|jelaskan|detail|maksudnya|jam berapa|kapan|selain itu|alternatif|contohnya|kalau gitu|terus|lalu|ulang)\b/i.test(
+      lower
+    );
+  const looksOutOfScope =
+    /\b(python|javascript|express|mysql|docker|resep|masak|nasi goreng|liga champions|piala dunia|saham|crypto|zodiak|mobile legends|catur|puisi|pantun|tiket pesawat|fotosintesis)\b/i.test(
+      lower
+    );
+
+  return hasHistory && looksLikeFollowUp && !looksOutOfScope;
+}
+
 /** Mendeteksi respon klarifikasi opsi 1-4 (atau kata kunci/lewati) dari user saat pendingPrompt === 'clarification' */
 export function detectClarificationChoice(
   text: string
