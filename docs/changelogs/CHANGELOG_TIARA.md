@@ -21,6 +21,18 @@
 
 ---
 
+## [2026-11-26] — Penambahan Kartu Tip Fisiologis & Manfaat Peregangan pada Panel Istirahat Aktif (`VisionGuard.tsx`) (Branch: `frontend`)
+- **ID Tugas / Referensi:** `FE-1.87`
+- **Ringkasan:**
+  - Menambahkan kartu tip fisiologis dan manfaat peregangan tubuh (Opsi 2) di bawah kotak prosedur pada panel kanan modal penguncian istirahat aktif (`VisionGuard.tsx`).
+  - Mengisi ruang kosong pada panel kanan dengan card edukatif berpalet warna Sage Green lembut (`bg-[#FAF6F0]`, border `#E8DDCF`, dan badge ikon `Heart` `#CFD8C4`) yang menjelaskan manfaat gerakan overhead arm stretch untuk melancarkan aliran oksigen ke otak dan melemaskan ketegangan otot leher & bahu setelah duduk belajar.
+- **Daftar File Diubah:**
+  - `frontend/src/components/vision/VisionGuard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** `npm --prefix frontend run build`, `npm run test:frontend`, `npm run test:shared`, dan `npm run guard` berhasil tanpa error.
+
+---
+
 ## [2026-11-25] — Penghapusan 15 Elemen UI Redundan & Status Pills Sesuai Permintaan Pengguna (`VisionGuard.tsx`, `FocusView.tsx`, `ActivityView.tsx`, `PedometerCard.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.86`
 - **Ringkasan:**

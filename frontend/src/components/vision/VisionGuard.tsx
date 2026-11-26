@@ -22,6 +22,7 @@ import {
   Ruler,
   Award,
   Users,
+  Heart,
 } from "lucide-react";
 import { sound } from "@/utils/audioFeedback";
 import {
@@ -1414,6 +1415,21 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
                 <span className="font-mono text-[#526053] font-bold shrink-0">
                   {standAwayDurationSecs.toFixed(0)}s / {targetStandAwaySeconds}s
                 </span>
+              </div>
+
+              {/* Box 3: Tip Fisiologis & Manfaat Peregangan (Opsi 2) */}
+              <div className="bg-[#FAF6F0] rounded-2xl p-3.5 sm:p-4 border border-[#E8DDCF] flex items-start gap-3">
+                <div className="w-8 h-8 rounded-xl bg-[#CFD8C4] border border-[#BCC8AE] text-[#2F3A2E] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                  <Heart className="w-4 h-4 stroke-[2.2]" />
+                </div>
+                <div className="space-y-0.5 min-w-0">
+                  <h4 className="font-heading font-extrabold text-xs text-[#1D3127]">
+                    Manfaat Peregangan Tubuh
+                  </h4>
+                  <p className="text-[11px] text-[#526053] leading-relaxed">
+                    Gerakan overhead reach melancarkan aliran oksigen ke otak, membuka rongga dada, dan melemaskan ketegangan otot leher &amp; bahu setelah duduk belajar.
+                  </p>
+                </div>
               </div>
             </div>
 
