@@ -122,6 +122,48 @@ function formatSessionDate(iso: string): string {
   return `${d.getDate()} ${months[d.getMonth()]} · ${hh}.${mm}`;
 }
 
+function renderInlineBold(text: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      return (
+        <strong key={i} className="font-bold text-[#1D251C]">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return <React.Fragment key={i}>{part.replace(/\*\*/g, "")}</React.Fragment>;
+  });
+}
+
+function renderCoachFormattedText(rawText: string): React.ReactNode {
+  // Rapikan item bernomor yang menempel di satu baris (mis. "... hari ini: 1. **Judul:** ... 2. **Judul:** ...")
+  const normalized = rawText
+    .replace(/\r\n/g, "\n")
+    .replace(/([:.!?])\s+(\d+\.\s+)/g, "$1\n$2")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  const blocks = normalized.split(/\n+/);
+  return (
+    <div className="space-y-2 leading-relaxed">
+      {blocks.map((block, idx) => {
+        const trimmed = block.trim();
+        if (!trimmed) return null;
+        const isNumberedItem = /^\d+\.\s+/.test(trimmed);
+        return (
+          <p
+            key={idx}
+            className={isNumberedItem ? "pl-3 border-l-2 border-[#CFD8C4] py-0.5" : ""}
+          >
+            {renderInlineBold(trimmed)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 // In-memory cache + localStorage persistence so chat history survives tab switches & page reloads.
 let cachedCoachMessages: ChatMessage[] = [];
 let cachedIsFullChatMode = false;
@@ -816,9 +858,13 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                           : "bg-[#FAF6F0] border border-[#E8DDCF] text-[#2F3A2E] rounded-2xl sm:rounded-3xl p-5 max-w-3xl shadow-2xs space-y-3"
                           }`}
                       >
-                        <div className="whitespace-pre-line">
-                          {msg.text.replace("Tiara", userName)}
-                        </div>
+                        {isUser ? (
+                          <div className="whitespace-pre-line">
+                            {msg.text.replace("Tiara", userName)}
+                          </div>
+                        ) : (
+                          renderCoachFormattedText(msg.text.replace("Tiara", userName))
+                        )}
 
                         {!isUser && msg.guidance && msg.guidance.length > 0 && (
                           <div className="rounded-2xl bg-white/90 border border-[#E8DDCF] p-3.5 space-y-1.5">
