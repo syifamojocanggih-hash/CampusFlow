@@ -1,12 +1,13 @@
+import glob
 import json
 import os
+import sys
 import threading
 import time
 from typing import Any, Dict, List, Optional
 
 import gradio as gr
 from huggingface_hub import hf_hub_download
-from llama_cpp import Llama
 from pydantic import BaseModel
 
 try:
@@ -41,15 +42,36 @@ model_path = hf_hub_download(
 )
 print(f"[CampusFlow AI] GGUF siap di {model_path}")
 
-_llm: Optional[Llama] = None
+_llm: Any = None
 _llm_lock = threading.Lock()
 
 
-def get_gpu_llm() -> Llama:
+def _preload_nvidia_libs() -> None:
+    import ctypes
+    site_pkgs = next((p for p in sys.path if p.endswith("site-packages")), None)
+    if not site_pkgs:
+        return
+    lib_dirs = glob.glob(os.path.join(site_pkgs, "nvidia", "*", "lib"))
+    if lib_dirs:
+        cur_ld = os.environ.get("LD_LIBRARY_PATH", "")
+        os.environ["LD_LIBRARY_PATH"] = ":".join(lib_dirs + ([cur_ld] if cur_ld else []))
+        for name in ("libcudart.so.13", "libcublasLt.so.13", "libcublas.so.13"):
+            for d in lib_dirs:
+                candidate = os.path.join(d, name)
+                if os.path.exists(candidate):
+                    try:
+                        ctypes.CDLL(candidate, mode=ctypes.RTLD_GLOBAL)
+                    except OSError:
+                        pass
+
+
+def get_gpu_llm():
     global _llm
     if _llm is None:
         with _llm_lock:
             if _llm is None:
+                _preload_nvidia_libs()
+                from llama_cpp import Llama
                 print("[CampusFlow AI] Memuat GGUF ke GPU A10G (n_gpu_layers=-1)...")
                 _llm = Llama(
                     model_path=model_path,
