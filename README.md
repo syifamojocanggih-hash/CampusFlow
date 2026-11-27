@@ -1,14 +1,14 @@
 # CampusFlow
 
 > **Academic Strava & Predictive Burnout Management**  
-> Progressive Web Application (PWA) lintas perangkat berbasis Fusi Prediktif Beban Akbademik & Waktu Layar, *Zero Continuous Camera* (Kamera Insidental 2 Menit), Parser Jadwal KRS PDF (Google Gemini API), dan *Wellbeing AI Coach* Lokal.  
+> Progressive Web Application (PWA) lintas perangkat berbasis Fusi Prediktif Beban Akademik & Waktu Layar, *Zero Continuous Camera* (Kamera Insidental 2 Menit), Parser Jadwal KRS PDF (Google Gemini API), dan *Wellbeing AI Coach* (Gemma 3 4B Fine-Tuned via Ollama Lokal / Hugging Face ZeroGPU Space).  
 > Topik Riset: **Kelola Stres & Keseimbangan Hidup Mahasiswa Berbasis Fusi Parameter dan Jeda Aktif Terverifikasi** · **Techcomfest 2027** · Sub-Tema 3: *Smart Lifestyle & Digital Wellbeing* (SDG 3).
 
 [![Architecture: 3-Branch Monorepo](https://img.shields.io/badge/Architecture-3--Branch%20Monorepo-2563EB.svg)](#8-struktur-monorepo--pembagian-kerja)
 [![Privacy: Zero Continuous Camera](https://img.shields.io/badge/Privacy-Zero%20Continuous%20Camera-0EA5A4.svg)](#4-arsitektur-privasi--keamanan-data)
 [![Burnout Metric: Unified Fussion Index](https://img.shields.io/badge/Burnout%20Metric-Unified%20Index%200--100-F59E0B.svg)](#2-arsitektur-fusi-parameter--algoritma-burnout-index)
-[![AI Coach: Ollama Qwen2.5 Local](https://img.shields.io/badge/AI%20Coach-Ollama%20Qwen2.5%20Local-22C55E.svg)](#35-wellbeing-ai-coach--konsultasi-stres-proaktif)
-[![Tests: 143 Passing](https://img.shields.io/badge/Tests-125%20BE%20%7C%2018%20FE%20Passing-10B981.svg)](#7-pengujian--skrip-verifikasi-live)
+[![AI Coach: Gemma 3 4B Fine-Tuned](https://img.shields.io/badge/AI%20Coach-Gemma%203%204B%20Fine--Tuned-22C55E.svg)](#35-wellbeing-ai-coach--konsultasi-stres-proaktif)
+[![Tests: 136 Backend Passing](https://img.shields.io/badge/Tests-136%20BE%20Passing-10B981.svg)](#7-pengujian--skrip-verifikasi-live)
 
 ---
 
@@ -135,7 +135,7 @@ Alih-alih penalti biner flat yang baru muncul mendadak di satu titik waktu, `cal
 - Menampilkan ritme mingguan **Beban Akademik + Layar vs. Pemulihan**, kartu hero Burnout Risk Index, tren 14 hari (`GET /api/v1/burnout/history?days=14`), kepatuhan *24-Hour Movement Triad*, dan metrik sensor gerak (`PedometerCard`).
 
 ### 3.5. Wellbeing AI Coach & Konsultasi Stres Proaktif
-- **Mesin Inferensi Lokal (Ollama — Qwen2.5-7B):** Saat ini berjalan pada model terkondisi **`campusflow-coach:latest`** berbasis **`Qwen2.5-7B-Instruct.Q4_K_M`** via Ollama lokal (`http://localhost:11434`), menghasilkan kontrak JSON 5 field tanpa kebocoran data ke cloud. Arsitektur dirancang *model-agnostic* sehingga pergantian atau perbandingan ke **Gemma** cukup dilakukan dengan mengubah `OLLAMA_MODEL` di `backend/.env` tanpa ubah kode TypeScript.
+- **Mesin Inferensi Fleksibel (Gemma 3 4B Fine-Tuned):** Berjalan pada model **`campusflow-coach`** berbasis **`gemma-3-4b-it.Q4_K_M.gguf`** (*fine-tuned* khusus CampusFlow di `KinkSipak/campusflow-gemma3-4b-gguf`). Dapat dijalankan **lokal via Ollama** (`http://localhost:11434`) maupun **cloud gratis via Hugging Face ZeroGPU A10G Space** (`https://kinksipak-campusflow-api.hf.space` dengan dukungan opsional `HF_TOKEN`), dilengkapi **sidebar riwayat obrolan** dan fallback klinis bervariasi.
 - **Lapisan Keamanan (Multi-Layer Safety Guardrails):**
   1. **Crisis Gateway Bypass (~15 ms):** Mendeteksi ungkapan distres berat / *self-harm*, langsung memutus pemanggilan LLM, dan mengembalikan rujukan darurat **Hotline 119 (ekstensi 8)**, **healing119.id**, dan **112**.
   2. **Klarifikasi Proaktif (~6 ms):** Keluhan singkat ambigu (misal *"capek banget"*) tidak langsung ditebak AI, melainkan menampilkan 4 opsi klarifikasi terstruktur.
@@ -389,7 +389,7 @@ Secara ringkas, **Lapis Teori** menjustifikasi mengapa model fusi dirumuskan seb
 | **Screen Time Monitoring** | Browser Page Visibility API (`document.hidden`) | Pelacakan durasi aktif layar laptop tanpa webcam |
 | **Backend & Database** | Node.js, Express 5, TypeScript, Prisma ORM, MySQL 8 | API REST `/api/v1/*`, Burnout Engine & UTC Date Sync, port `4000` |
 | **Document Parsing AI** | Google Gemini API (`gemini-1.5-flash`), `multer` (RAM), `pdf-parse` | Ekstraksi jadwal KRS PDF 2-tahap (Preview → Confirm) + fallback lokal |
-| **Local LLM Engine** | Ollama Lokal (`campusflow-coach` berbasis Qwen2.5-7B; siap swap Gemma) | AI Coach terstruktur JSON, Klarifikasi Proaktif & Crisis Gateway 119 |
+| **LLM Engine** | Gemma 3 4B Fine-Tuned (`campusflow-coach` via Ollama Lokal / HF ZeroGPU Space) | AI Coach terstruktur JSON, Sidebar Riwayat, Klarifikasi Proaktif & Crisis Gateway 119 |
 | **Keamanan & Notifikasi** | JWT, `bcryptjs`, Rate Limiting per-akun, Helmet, Web Push VAPID | Autentikasi, proteksi endpoint, & *push nudge* latar belakang |
 
 ---

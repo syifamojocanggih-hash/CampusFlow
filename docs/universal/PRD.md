@@ -8,7 +8,7 @@
 | **Landasan Literatur Utama** | 1) Martín-Rodríguez, A., & González-Prieto, N. (2026). *Influence of physical activity on perceived stress and mental health in university students: a systematic review*. Frontiers in Sports and Active Living, 7:1710832.<br>2) Meijman & Mulder. *Effort-Recovery Model*.<br>3) Albulescu et al. (2022). *Micro-breaks & energy recovery*. PLOS ONE. |
 | **Target Kompetisi** | Techcomfest 2027 Politeknik Negeri Semarang — Sub-Tema 3: *Smart Lifestyle & Digital Wellbeing* (SDG 3) |
 | **Arsitektur Repositori** | Monorepo (`frontend/` React 18 + Vite PWA, `backend/` Node.js + Express + Prisma ORM, `shared/`) |
-| **Mesin AI & Sensor** | 1) MediaPipe Pose Landmarker WASM (*On-Demand*, HANYA 2 menit saat *Active Break*)<br>2) Browser Page Visibility API (`document.hidden`) untuk pelacakan *Screen Time* tanpa kamera<br>3) Ollama Lokal (`campusflow-coach` via Qwen2.5 JSON Schema + Fallback Klinis) |
+| **Mesin AI & Sensor** | 1) MediaPipe Pose Landmarker WASM (*On-Demand*, HANYA 2 menit saat *Active Break*)<br>2) Browser Page Visibility API (`document.hidden`) untuk pelacakan *Screen Time* tanpa kamera<br>3) LLM Wellbeing Coach (`campusflow-coach` berbasis **Gemma 3 4B Fine-Tuned** GGUF via Ollama lokal atau Hugging Face ZeroGPU Space + Fallback Klinis) |
 | **Versi Dokumen** | Versi 4.0 — *Engineering Blueprint & Strategic Pivot Release* |
 
 ---
@@ -89,7 +89,7 @@ $$\text{Burnout Risk Index} = (\text{Academic Load Score} + \text{Screen Time Fa
 - Menampilkan grafik ritme mingguan beban kuliah vs pemulihan serta riwayat tren 14 hari skor Burnout Risk Index.
 
 ### 3.5 Wellbeing AI Coach & Konsultasi Stres Proaktif
-- **Mesin Inferensi Lokal (Ollama):** Menggunakan model lokal `campusflow-coach` via format JSON terstruktur.
+- **Mesin Inferensi Fleksibel (Gemma 3 4B Fine-Tuned):** Menggunakan model terkondisi `campusflow-coach` berbasis **Gemma 3 4B Fine-Tuned** (format JSON terstruktur + *clinical guardrails*), yang dapat dijalankan secara lokal via Ollama maupun *cloud* gratis via **Hugging Face ZeroGPU Space** (`KinkSipak/campusflow-api`), dilengkapi **sidebar riwayat obrolan** dan fallback klinis bervariasi.
 - **Crisis Gateway:** Otomatis mendeteksi distres berat dan memberikan rujukan nomor darurat (Hotline 119 / healing119.id).
 - **Rekomendasi Preventif:** Membaca beban kuliah esok hari untuk menyarankan jam tidur dan waktu jeda malam ini.
 
