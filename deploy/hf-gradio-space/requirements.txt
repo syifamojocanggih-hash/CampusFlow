@@ -1,5 +1,4 @@
---extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu124
-llama-cpp-python>=0.3.2
+https://github.com/abetlen/llama-cpp-python/releases/download/v0.3.37-cu124/llama_cpp_python-0.3.37-py3-none-manylinux_2_35_x86_64.whl
 huggingface_hub>=0.26.0
 fastapi>=0.115.0
 uvicorn>=0.32.0
