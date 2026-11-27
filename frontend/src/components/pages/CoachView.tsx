@@ -10,6 +10,9 @@ import {
   Clock,
   Sparkles,
   RotateCcw,
+  History,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { screenTimeTracker } from "@/utils/screenTimeTracker";
@@ -67,14 +70,70 @@ const CHAT_RECOMMENDATIONS: RecommendationItem[] = [
   },
 ];
 
-// In-memory session store: survives tab/page switches within the SPA,
-// but naturally resets on browser refresh/close or explicit logout.
+interface CoachChatSession {
+  id: string;
+  title: string;
+  updatedAt: string;
+  messages: ChatMessage[];
+}
+
+const COACH_SESSIONS_STORAGE_KEY = "campusflow_coach_chat_history_v1";
+const COACH_ACTIVE_SESSION_KEY = "campusflow_coach_active_session_v1";
+const MAX_SAVED_SESSIONS = 20;
+
+function loadStoredSessions(): CoachChatSession[] {
+  try {
+    const raw = localStorage.getItem(COACH_SESSIONS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as CoachChatSession[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredSessions(sessions: CoachChatSession[]): void {
+  try {
+    localStorage.setItem(
+      COACH_SESSIONS_STORAGE_KEY,
+      JSON.stringify(sessions.slice(0, MAX_SAVED_SESSIONS))
+    );
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+function createSessionId(): string {
+  return `session-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function deriveSessionTitle(msgs: ChatMessage[]): string {
+  const firstUser = msgs.find((m) => m.sender === "user")?.text.trim();
+  if (!firstUser) return "Obrolan AI Coach";
+  return firstUser.length > 48 ? `${firstUser.slice(0, 48)}...` : firstUser;
+}
+
+function formatSessionDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${d.getDate()} ${months[d.getMonth()]} · ${hh}.${mm}`;
+}
+
+// In-memory cache + localStorage persistence so chat history survives tab switches & page reloads.
 let cachedCoachMessages: ChatMessage[] = [];
 let cachedIsFullChatMode = false;
 
 export function resetCoachChatSession(): void {
   cachedCoachMessages = [];
   cachedIsFullChatMode = false;
+  try {
+    localStorage.removeItem(COACH_ACTIVE_SESSION_KEY);
+  } catch {
+    // Ignore
+  }
 }
 
 export const CoachView: React.FC<CoachViewProps> = () => {
@@ -91,14 +150,70 @@ export const CoachView: React.FC<CoachViewProps> = () => {
   );
   const [inputText, setInputText] = useState<string>("");
   const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [messages, setMessages] = useState<ChatMessage[]>(() => cachedCoachMessages);
-  const [isFullChatMode, setIsFullChatMode] = useState<boolean>(() => cachedIsFullChatMode);
+  const [sessions, setSessions] = useState<CoachChatSession[]>(() => loadStoredSessions());
+  const [activeSessionId, setActiveSessionId] = useState<string>(() => {
+    try {
+      const savedId = localStorage.getItem(COACH_ACTIVE_SESSION_KEY);
+      if (savedId) return savedId;
+    } catch {
+      // Ignore
+    }
+    return createSessionId();
+  });
+  const [showHistoryPanel, setShowHistoryPanel] = useState<boolean>(false);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (cachedCoachMessages.length > 0) return cachedCoachMessages;
+    try {
+      const savedId = localStorage.getItem(COACH_ACTIVE_SESSION_KEY);
+      if (savedId) {
+        const found = loadStoredSessions().find((s) => s.id === savedId);
+        if (found && found.messages.length > 0) return found.messages;
+      }
+    } catch {
+      // Ignore
+    }
+    return [];
+  });
+  const [isFullChatMode, setIsFullChatMode] = useState<boolean>(() => {
+    if (cachedIsFullChatMode) return true;
+    try {
+      const savedId = localStorage.getItem(COACH_ACTIVE_SESSION_KEY);
+      if (savedId) {
+        const found = loadStoredSessions().find((s) => s.id === savedId);
+        if (found && found.messages.length > 0) return true;
+      }
+    } catch {
+      // Ignore
+    }
+    return false;
+  });
   const chatEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     cachedCoachMessages = messages;
-  }, [messages]);
+    if (messages.length === 0) return;
+
+    try {
+      localStorage.setItem(COACH_ACTIVE_SESSION_KEY, activeSessionId);
+    } catch {
+      // Ignore
+    }
+
+    setSessions((prev) => {
+      const nowIso = new Date().toISOString();
+      const updatedSession: CoachChatSession = {
+        id: activeSessionId,
+        title: deriveSessionTitle(messages),
+        updatedAt: nowIso,
+        messages,
+      };
+      const others = prev.filter((s) => s.id !== activeSessionId);
+      const next = [updatedSession, ...others].slice(0, MAX_SAVED_SESSIONS);
+      saveStoredSessions(next);
+      return next;
+    });
+  }, [messages, activeSessionId]);
 
   useEffect(() => {
     cachedIsFullChatMode = isFullChatMode;
@@ -121,10 +236,36 @@ export const CoachView: React.FC<CoachViewProps> = () => {
       typingTimeoutRef.current = null;
     }
     resetCoachChatSession();
+    setActiveSessionId(createSessionId());
     setMessages([]);
     setIsFullChatMode(false);
+    setShowHistoryPanel(false);
     setInputText("");
     setIsTyping(false);
+  };
+
+  const handleSelectHistorySession = (session: CoachChatSession) => {
+    setActiveSessionId(session.id);
+    setMessages(session.messages);
+    setIsFullChatMode(true);
+    setShowHistoryPanel(false);
+    try {
+      localStorage.setItem(COACH_ACTIVE_SESSION_KEY, session.id);
+    } catch {
+      // Ignore
+    }
+  };
+
+  const handleDeleteHistorySession = (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSessions((prev) => {
+      const next = prev.filter((s) => s.id !== sessionId);
+      saveStoredSessions(next);
+      return next;
+    });
+    if (sessionId === activeSessionId) {
+      handleResetSession();
+    }
   };
 
   useEffect(() => {
@@ -486,9 +627,23 @@ export const CoachView: React.FC<CoachViewProps> = () => {
               )}
               <button
                 type="button"
+                onClick={() => setShowHistoryPanel((v) => !v)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer ${
+                  showHistoryPanel
+                    ? "bg-[#2F3A2E] text-white"
+                    : "bg-white/90 hover:bg-white text-[#2F3A2E]"
+                }`}
+                title="Lihat riwayat obrolan"
+              >
+                <History className="w-3.5 h-3.5" />
+                <span>Riwayat{sessions.length > 0 ? ` (${sessions.length})` : ""}</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={handleResetSession}
                 className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white text-xs font-bold text-[#2F3A2E] transition-colors flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
-                title="Reset sesi obrolan"
+                title="Mulai obrolan baru"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-[#636B60]" />
                 <span>Reset</span>
@@ -499,6 +654,68 @@ export const CoachView: React.FC<CoachViewProps> = () => {
               </span>
             </div>
           </div>
+
+          {/* Collapsible Riwayat Obrolan Drawer */}
+          {showHistoryPanel && (
+            <div className="bg-[#F6F8F3] border-b border-[#E8DDCF] px-5 py-4 space-y-3 animate-in fade-in duration-150">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <History className="w-4 h-4 text-[#2F3A2E]" />
+                  <span className="text-xs font-bold text-[#2F3A2E]">
+                    Riwayat Obrolan ({sessions.length})
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetSession}
+                  className="px-2.5 py-1 rounded-full bg-[#CFD8C4] hover:bg-[#BCC8AE] text-[11px] font-bold text-[#2F3A2E] flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Obrolan Baru</span>
+                </button>
+              </div>
+
+              {sessions.length === 0 ? (
+                <p className="text-xs text-[#636B60] py-2">
+                  Belum ada riwayat obrolan tersimpan. Mulai chat untuk menyimpannya otomatis.
+                </p>
+              ) : (
+                <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
+                  {sessions.map((session) => {
+                    const isActive = session.id === activeSessionId && messages.length > 0;
+                    return (
+                      <div
+                        key={session.id}
+                        onClick={() => handleSelectHistorySession(session)}
+                        className={`w-full rounded-xl px-3 py-2.5 flex items-center justify-between gap-2 border transition-all cursor-pointer ${
+                          isActive
+                            ? "bg-[#E7ECE0] border-[#8FA17D]"
+                            : "bg-white hover:bg-[#FAF6F0] border-[#E8DDCF]"
+                        }`}
+                      >
+                        <div className="min-w-0 text-left">
+                          <p className="text-xs font-bold text-[#2F3A2E] truncate">
+                            {session.title}
+                          </p>
+                          <p className="text-[11px] text-[#636B60] mt-0.5">
+                            {formatSessionDate(session.updatedAt)} · {session.messages.length} pesan
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteHistorySession(session.id, e)}
+                          className="p-1.5 rounded-lg text-[#636B60] hover:text-red-600 hover:bg-red-50 transition-colors shrink-0 cursor-pointer"
+                          title="Hapus riwayat ini"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Chat Messages Body */}
           <div
@@ -540,6 +757,40 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                     </button>
                   ))}
                 </div>
+
+                {sessions.length > 0 && (
+                  <div className="w-full max-w-lg text-left pt-2 space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#636B60]">
+                        Obrolan Terakhir
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowHistoryPanel(true)}
+                        className="text-[11px] font-bold text-[#2F3A2E] hover:underline cursor-pointer"
+                      >
+                        Lihat semua ({sessions.length})
+                      </button>
+                    </div>
+                    <div className="space-y-1.5">
+                      {sessions.slice(0, 3).map((session) => (
+                        <button
+                          key={session.id}
+                          type="button"
+                          onClick={() => handleSelectHistorySession(session)}
+                          className="w-full bg-[#F6F8F3] hover:bg-[#E7ECE0] border border-[#DDE4D4] rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-left transition-colors cursor-pointer"
+                        >
+                          <span className="text-xs font-semibold text-[#2F3A2E] truncate">
+                            {session.title}
+                          </span>
+                          <span className="text-[11px] text-[#636B60] shrink-0">
+                            {formatSessionDate(session.updatedAt)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <>
