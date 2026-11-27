@@ -630,20 +630,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                           </div>
                         )}
 
-                        {!isUser && (msg.recommendedMetsToday || msg.scientificCitationNote) && (
-                          <div className="pt-2 border-t border-[#E8DDCF]/80 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#636B60]">
-                            {msg.recommendedMetsToday ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#E5EDE0] text-[#2F3A2E] font-extrabold border border-[#C9D6C0]">
-                                Target Gerak: +{msg.recommendedMetsToday} MET-menit
-                              </span>
-                            ) : <span />}
-                            {msg.scientificCitationNote && (
-                              <span className="italic text-[#636B60] flex-1 min-w-[200px]">
-                                Referensi: {msg.scientificCitationNote}
-                              </span>
-                            )}
-                          </div>
-                        )}
                       </div>
                     </div>
                   );

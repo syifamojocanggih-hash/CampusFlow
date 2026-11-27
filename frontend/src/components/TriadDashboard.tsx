@@ -104,7 +104,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   const [customWakeTime, setCustomWakeTime] = useState<string>(
     isValidHHMM(autoSleep.wakeTime) ? autoSleep.wakeTime : "06:30"
   );
-  const [customLatencyMins, setCustomLatencyMins] = useState<number>(autoSleep.sleepLatencyMins ?? 15);
+  const [customLatencyMins, setCustomLatencyMins] = useState<number | "">(autoSleep.sleepLatencyMins ?? 15);
 
   useEffect(() => {
     if (isValidHHMM(autoSleep.bedTime)) setCustomBedTime(autoSleep.bedTime);
@@ -166,7 +166,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
   // New Course Form State
   const [newDayOfWeek, setNewDayOfWeek] = useState<number>(1);
   const [newSubjectName, setNewSubjectName] = useState<string>("");
-  const [newCreditHours, setNewCreditHours] = useState<number>(3);
+  const [newCreditHours, setNewCreditHours] = useState<number | "">(3);
   const [newIsPracticum, setNewIsPracticum] = useState<boolean>(false);
   const [newIsExamWeek, setNewIsExamWeek] = useState<boolean>(false);
 
@@ -342,7 +342,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
       id: `sch-${Date.now()}`,
       dayOfWeek: newDayOfWeek,
       subjectName: newSubjectName.trim(),
-      creditHours: newCreditHours,
+      creditHours: Math.min(6, Math.max(1, Number(newCreditHours) || 1)),
       isPracticum: newIsPracticum,
       isExamWeek: newIsExamWeek,
     };
@@ -1598,7 +1598,22 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                       min={1}
                       max={6}
                       value={newCreditHours}
-                      onChange={(e) => setNewCreditHours(Number(e.target.value))}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        if (raw === "") {
+                          setNewCreditHours("");
+                          return;
+                        }
+                        const parsed = Number(raw.replace(/^0+(?=\d)/, ""));
+                        if (Number.isFinite(parsed)) {
+                          setNewCreditHours(Math.min(6, Math.max(0, parsed)));
+                        }
+                      }}
+                      onBlur={() => {
+                        if (newCreditHours === "" || newCreditHours < 1) {
+                          setNewCreditHours(1);
+                        }
+                      }}
                       className="w-full px-3.5 py-2 text-xs bg-[#FAF6F0] border border-[#E8DDCF] rounded-xl text-[#2F3A2E] focus:outline-none focus:border-[#CFD8C4] focus:bg-white transition-all"
                     />
                   </div>
@@ -1854,7 +1869,7 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                   customBedTime,
                   customWakeTime,
                   "OVERNIGHT_INACTIVITY",
-                  customLatencyMins
+                  Number(customLatencyMins) || 0
                 );
                 setIsSleepModalOpen(false);
               }}
@@ -1895,7 +1910,20 @@ export const TriadDashboard: React.FC<TriadDashboardProps> = ({
                     min={0}
                     max={120}
                     value={customLatencyMins}
-                    onChange={(e) => setCustomLatencyMins(Math.max(0, Number(e.target.value) || 0))}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw === "") {
+                        setCustomLatencyMins("");
+                        return;
+                      }
+                      const parsed = Number(raw.replace(/^0+(?=\d)/, ""));
+                      if (Number.isFinite(parsed)) {
+                        setCustomLatencyMins(Math.min(120, Math.max(0, parsed)));
+                      }
+                    }}
+                    onBlur={() => {
+                      if (customLatencyMins === "") setCustomLatencyMins(0);
+                    }}
                     className="w-full px-2.5 py-1.5 text-xs font-mono font-bold bg-[#FAF6F0] border border-[#E8DDCF] rounded-xl text-[#2F3A2E]"
                   />
                 </div>
