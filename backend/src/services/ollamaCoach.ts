@@ -498,6 +498,80 @@ export function setOllamaCallerForTest(fn: typeof callOllamaChatJson | null): vo
   customOllamaCaller = fn;
 }
 
+interface OllamaChatRawResponse {
+  message?: { content?: string };
+  response?: string;
+}
+
+/**
+ * Memanggil endpoint chat LLM: menggunakan Gradio ZeroGPU API (`/gradio_api/call/chat_api`)
+ * saat diarahkan ke Hugging Face Space (`.hf.space`), atau `/api/chat` untuk Ollama standar.
+ */
+async function postOllamaChat(
+  baseUrl: string,
+  payload: Record<string, unknown>,
+  timeoutMs: number,
+  fetchFn: typeof fetch
+): Promise<OllamaChatRawResponse> {
+  const cleanBase = baseUrl.replace(/\/+$/, "");
+
+  if (cleanBase.includes(".hf.space")) {
+    const signal = AbortSignal.timeout(timeoutMs);
+    const submitRes = await fetchFn(`${cleanBase}/gradio_api/call/chat_api`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal,
+      body: JSON.stringify({ data: [JSON.stringify(payload)] }),
+    });
+    if (!submitRes.ok) {
+      throw new Error(`HF Gradio submit HTTP ${submitRes.status}`);
+    }
+    const { event_id: eventId } = (await submitRes.json()) as { event_id?: string };
+    if (!eventId) {
+      throw new Error("HF Gradio missing event_id");
+    }
+
+    const sseRes = await fetchFn(`${cleanBase}/gradio_api/call/chat_api/${eventId}`, {
+      method: "GET",
+      signal,
+    });
+    if (!sseRes.ok) {
+      throw new Error(`HF Gradio result HTTP ${sseRes.status}`);
+    }
+
+    const sseText = await sseRes.text();
+    const lines = sseText.split(/\r?\n/);
+    let currentEvent = "";
+    for (const line of lines) {
+      if (line.startsWith("event:")) {
+        currentEvent = line.slice(6).trim();
+      } else if (line.startsWith("data:") && currentEvent === "complete") {
+        const parsedArr = JSON.parse(line.slice(5).trim()) as unknown[];
+        const first = parsedArr[0];
+        if (typeof first === "string") {
+          return JSON.parse(first) as OllamaChatRawResponse;
+        }
+      } else if (line.startsWith("data:") && currentEvent === "error") {
+        throw new Error(`HF Gradio error: ${line.slice(5).trim()}`);
+      }
+    }
+    throw new Error("HF Gradio SSE ended without complete event");
+  }
+
+  const response = await fetchFn(`${cleanBase}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(timeoutMs),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Ollama HTTP ${response.status}`);
+  }
+
+  return (await response.json()) as OllamaChatRawResponse;
+}
+
 /** Mengirim permintaan chat terstruktur ke `/api/chat` Ollama dan memvalidasi JSON output 5 field resmi. */
 export async function callOllamaChatJson(
   messages: OllamaChatMessage[],
@@ -509,29 +583,19 @@ export async function callOllamaChatJson(
 ): Promise<{ insight: GeneratedInsight; model: string }> {
   const fetchFn = options.fetchFn ?? fetch;
   const targetModel = options.model ?? env.OLLAMA_MODEL;
-  const endpoint = `${env.OLLAMA_BASE_URL.replace(/\/+$/, "")}/api/chat`;
 
-  const response = await fetchFn(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    signal: AbortSignal.timeout(options.timeoutMs ?? env.OLLAMA_TIMEOUT_MS),
-    body: JSON.stringify({
+  const rawBody = await postOllamaChat(
+    env.OLLAMA_BASE_URL,
+    {
       model: targetModel,
       stream: false,
       format: OLLAMA_RESPONSE_FORMAT,
       options: { temperature: 0.25, top_p: 0.9, num_predict: 512 },
       messages,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Ollama HTTP ${response.status}`);
-  }
-
-  const rawBody = (await response.json()) as {
-    message?: { content?: string };
-    response?: string;
-  };
+    },
+    options.timeoutMs ?? env.OLLAMA_TIMEOUT_MS,
+    fetchFn
+  );
   const rawJsonText = rawBody.message?.content ?? rawBody.response ?? "";
   const insight = insightOutputSchema.parse(JSON.parse(rawJsonText));
   return { insight, model: targetModel };
@@ -815,7 +879,6 @@ export async function generateFreeformAcademicCoachReply(
   fetchFn: typeof fetch = fetch
 ): Promise<{ text: string; source: "OLLAMA_CONVERSATIONAL" | "ACADEMIC_FALLBACK"; model: string }> {
   const targetModel = env.OLLAMA_MODEL;
-  const endpoint = `${env.OLLAMA_BASE_URL.replace(/\/+$/, "")}/api/chat`;
   const schedules = input.schedules ?? [];
   const totalSks = schedules.reduce((s, c) => s + (Number(c.creditHours) || 0), 0);
   const nowDay = new Date().getDay() === 0 ? 7 : new Date().getDay();
@@ -853,26 +916,17 @@ Aturan penting:
   ];
 
   try {
-    const response = await fetchFn(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal: AbortSignal.timeout(env.OLLAMA_TIMEOUT_MS),
-      body: JSON.stringify({
+    const rawBody = await postOllamaChat(
+      env.OLLAMA_BASE_URL,
+      {
         model: targetModel,
         stream: false,
         options: { temperature: 0.35, top_p: 0.9, num_predict: 512 },
         messages,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Ollama HTTP ${response.status}`);
-    }
-
-    const rawBody = (await response.json()) as {
-      message?: { content?: string };
-      response?: string;
-    };
+      },
+      env.OLLAMA_TIMEOUT_MS,
+      fetchFn
+    );
     const rawText = (rawBody.message?.content ?? rawBody.response ?? "").trim();
     if (!rawText) {
       throw new Error("Empty Ollama conversational response");

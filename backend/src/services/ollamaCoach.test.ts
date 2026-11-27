@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { env } from "../config/env.ts";
 import {
   buildDeterministicFallbackInsight,
   checkOllamaStatus,
@@ -86,11 +87,17 @@ test("generateClinicalWellbeingInsight memanggil endpoint /api/chat Ollama lokal
     );
   }) as typeof fetch;
 
-  const result = await generateClinicalWellbeingInsight(sampleSleepDeficitTelemetry, mockFetch);
-  assert.match(calledUrl, /\/api\/chat$/);
-  assert.equal(calledBody.stream, false);
-  assert.equal(result.source, "OLLAMA_LOCAL");
-  assert.equal(result.insight.dominantMediator, "SLEEP_MEDIATION_DEFICIT");
+  const prevOllamaBaseUrl = env.OLLAMA_BASE_URL;
+  env.OLLAMA_BASE_URL = "http://localhost:11434";
+  try {
+    const result = await generateClinicalWellbeingInsight(sampleSleepDeficitTelemetry, mockFetch);
+    assert.match(calledUrl, /\/api\/chat$/);
+    assert.equal(calledBody.stream, false);
+    assert.equal(result.source, "OLLAMA_LOCAL");
+    assert.equal(result.insight.dominantMediator, "SLEEP_MEDIATION_DEFICIT");
+  } finally {
+    env.OLLAMA_BASE_URL = prevOllamaBaseUrl;
+  }
 });
 
 test("generateClinicalWellbeingInsight jatuh ke CLINICAL_FALLBACK saat Ollama lokal offline", async () => {

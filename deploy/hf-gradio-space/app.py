@@ -1,3 +1,4 @@
+import json
 import os
 import threading
 import time
@@ -10,7 +11,9 @@ from pydantic import BaseModel
 
 try:
     import spaces
-    gpu_decorator = spaces.GPU
+
+    def gpu_decorator(fn):
+        return spaces.GPU(duration=60)(fn)
 except ImportError:
     def gpu_decorator(fn):
         return fn
@@ -36,30 +39,30 @@ model_path = hf_hub_download(
     filename=MODEL_FILENAME,
     token=os.environ.get("HF_TOKEN") or None,
 )
+print(f"[CampusFlow AI] GGUF siap di {model_path}")
 
-n_threads = max(2, min(8, (os.cpu_count() or 4)))
-print(f"[CampusFlow AI] Memuat GGUF dengan {n_threads} threads...")
-llm = Llama(
-    model_path=model_path,
-    n_ctx=2048,
-    n_threads=n_threads,
-    verbose=False,
-)
-llm_lock = threading.Lock()
-print("[CampusFlow AI] Model Gemma 3 4B siap melayani /api/chat!")
+_llm: Optional[Llama] = None
+_llm_lock = threading.Lock()
+
+
+def get_gpu_llm() -> Llama:
+    global _llm
+    if _llm is None:
+        with _llm_lock:
+            if _llm is None:
+                print("[CampusFlow AI] Memuat GGUF ke GPU A10G (n_gpu_layers=-1)...")
+                _llm = Llama(
+                    model_path=model_path,
+                    n_ctx=2048,
+                    n_gpu_layers=-1,
+                    verbose=False,
+                )
+    return _llm
 
 
 class ChatMessage(BaseModel):
     role: str
     content: str
-
-
-class OllamaChatRequest(BaseModel):
-    model: Optional[str] = MODEL_ALIAS
-    messages: List[ChatMessage]
-    stream: Optional[bool] = False
-    format: Optional[Any] = None
-    options: Optional[Dict[str, Any]] = None
 
 
 def build_gemma_prompt(messages: List[ChatMessage]) -> str:
@@ -101,34 +104,19 @@ def run_completion(
     max_tokens = int(opts.get("num_predict", 512))
     repeat_penalty = float(opts.get("repeat_penalty", 1.1))
 
-    prompt = build_gemma_prompt(messages)
+    llm = get_gpu_llm()
 
-    kwargs: Dict[str, Any] = {
-        "prompt": prompt,
-        "max_tokens": max_tokens,
-        "temperature": temperature,
-        "top_p": top_p,
-        "repeat_penalty": repeat_penalty,
-        "stop": ["<end_of_turn>", "<eos>"],
-    }
-
-    if isinstance(json_schema, dict):
-        # Grammar JSON sederhana jika backend meminta structured JSON output
-        kwargs["grammar"] = None
-
-    with llm_lock:
+    with _llm_lock:
         if isinstance(json_schema, dict):
-            # Gunakan create_chat_completion dengan response_format JSON agar valid JSON
             norm_msgs: List[Dict[str, str]] = []
             sys_txt = ""
             for m in messages:
                 if m.role == "system":
                     sys_txt = m.content
                 elif m.role == "user":
-                    txt = f"{sys_txt or CAMPUSFLOW_SYSTEM_PROMPT}\n\n{m.content}" if not norm_msgs else m.content
-                    sys_txt = ""
+                    txt = f"{sys_txt}\n\n{m.content}" if sys_txt and not norm_msgs else m.content
                     norm_msgs.append({"role": "user", "content": txt})
-                else:
+                elif m.role == "assistant":
                     norm_msgs.append({"role": "assistant", "content": m.content})
             try:
                 res = llm.create_chat_completion(
@@ -150,7 +138,15 @@ def run_completion(
                 )
             return (res["choices"][0]["message"]["content"] or "").strip()
 
-        out = llm(**{k: v for k, v in kwargs.items() if v is not None})
+        prompt = build_gemma_prompt(messages)
+        out = llm(
+            prompt=prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            repeat_penalty=repeat_penalty,
+            stop=["<end_of_turn>", "<eos>"],
+        )
         return (out["choices"][0]["text"] or "").strip()
 
 
@@ -162,13 +158,23 @@ def list_tags():
     }
 
 
-def ollama_chat(req: OllamaChatRequest):
-    content = run_completion(req.messages, json_schema=req.format, options=req.options)
-    return {
-        "model": req.model or MODEL_ALIAS,
-        "message": {"role": "assistant", "content": content},
-        "done": True,
-    }
+@gpu_decorator
+def gpu_chat_api(payload_json: str) -> str:
+    data = json.loads(payload_json)
+    msgs = [ChatMessage(**m) for m in data.get("messages", [])]
+    content = run_completion(
+        msgs,
+        json_schema=data.get("format"),
+        options=data.get("options"),
+    )
+    return json.dumps(
+        {
+            "model": data.get("model") or MODEL_ALIAS,
+            "message": {"role": "assistant", "content": content},
+            "done": True,
+        },
+        ensure_ascii=False,
+    )
 
 
 @gpu_decorator
@@ -178,13 +184,26 @@ def test_gradio_ui(prompt: str) -> str:
     return run_completion([ChatMessage(role="user", content=prompt.strip())])
 
 
-demo = gr.Interface(
-    fn=test_gradio_ui,
-    inputs=gr.Textbox(label="Uji CampusFlow AI Coach (Gemma 3 4B)", placeholder="Contoh: Leher pegal habis nugas 6 jam"),
-    outputs=gr.Textbox(label="Respons Model"),
-    title="CampusFlow AI Coach — Gemma 3 4B Fine-Tuned",
-    description=f"Model aktif: `{MODEL_REPO_ID}/{MODEL_FILENAME}` | Endpoint API: `/api/chat` & `/api/tags`",
-)
+with gr.Blocks(title="CampusFlow AI Coach — Gemma 3 4B Fine-Tuned") as demo:
+    gr.Markdown(
+        f"# CampusFlow AI Coach — Gemma 3 4B Fine-Tuned\n"
+        f"Model aktif: `{MODEL_REPO_ID}/{MODEL_FILENAME}` (ZeroGPU A10G) | "
+        f"API: `/gradio_api/call/chat_api` & `/api/tags`"
+    )
+    with gr.Row():
+        ui_in = gr.Textbox(
+            label="Uji CampusFlow AI Coach (Gemma 3 4B)",
+            placeholder="Contoh: Leher pegal habis nugas 6 jam",
+        )
+        ui_out = gr.Textbox(label="Respons Model")
+    ui_btn = gr.Button("Kirim")
+    ui_btn.click(fn=test_gradio_ui, inputs=ui_in, outputs=ui_out)
+
+    api_in = gr.Textbox(visible=False)
+    api_out = gr.Textbox(visible=False)
+    api_btn = gr.Button(visible=False)
+    api_btn.click(fn=gpu_chat_api, inputs=api_in, outputs=api_out, api_name="chat_api")
+
 
 if __name__ == "__main__":
     try:
@@ -195,8 +214,7 @@ if __name__ == "__main__":
     server_app = getattr(demo, "server_app", None) or getattr(demo, "app", None)
     if server_app is not None:
         server_app.add_api_route("/api/tags", list_tags, methods=["GET"])
-        server_app.add_api_route("/api/chat", ollama_chat, methods=["POST"])
-        print("[CampusFlow AI] Route /api/tags & /api/chat aktif di Gradio server!")
+        print("[CampusFlow AI] Route /api/tags & Gradio GPU /gradio_api/call/chat_api aktif!")
 
     while True:
         time.sleep(3600)
