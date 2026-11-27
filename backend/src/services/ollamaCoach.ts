@@ -401,6 +401,8 @@ export function buildDeterministicFallbackInsight(
     (allowedRanges.durationMinutesRange[0] + allowedRanges.durationMinutesRange[1]) / 2
   );
 
+  const pickVariant = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)];
+
   const checkInSuffix = evaluation.missingDailyCheckIn
     ? ` ${CHECK_IN_CLOSING_SENTENCE}`
     : "";
@@ -408,13 +410,20 @@ export function buildDeterministicFallbackInsight(
     ? " Kalau rasanya terus menumpuk, nggak apa-apa banget cerita ke konselor kampus atau layanan kesehatan mental mahasiswa."
     : "";
   const skipPrefix = skipAdaptation.applied
-    ? "Nggak masalah kalau target beberapa hari terakhir sempat terlewat, kita mulai pelan dari langkah yang lebih ringan hari ini. "
+    ? pickVariant([
+        "Nggak masalah kalau target beberapa hari terakhir sempat terlewat, kita mulai pelan dari langkah yang lebih ringan hari ini. ",
+        "Pelan-pelan saja nggak apa-apa, kita sesuaikan target hari ini biar lebih mudah dijalani dulu. ",
+        "Hari yang berat wajar bikin target tertunda—yuk mulai lagi dari porsi paling ringan hari ini. ",
+      ])
     : "";
 
   if (evaluation.escalationFlag && evaluation.dominantMediator === "EXAM_ACUTE_STRESS") {
     return {
       dominantMediator: "EXAM_ACUTE_STRESS",
-      diagnosisSummary: `${skipPrefix}Beban harianmu sepertinya cukup terasa berat hari ini. Yuk ambil jeda pelan sebentar dulu untuk menenangkan napas.${counselorSuffix}`,
+      diagnosisSummary: `${skipPrefix}${pickVariant([
+        "Beban harianmu sepertinya cukup terasa berat hari ini. Yuk ambil jeda pelan sebentar dulu untuk menenangkan napas.",
+        "Tekanan kuliah hari ini kelihatan lumayan padat. Ambil jeda sebentar buat tarik napas pelan dulu, ya.",
+      ])}${counselorSuffix}`,
       isotemporalActionPlan: `Duduk nyaman dan lakukan latihan napas 4-7-8 atau peregangan bahu lembut selama ${gentleDuration} menit sekarang.`,
       recommendedMetsToday: clampMets(lowMets, allowedRanges.metsRange),
       scientificCitationNote: pickCitation("EXAM_ACUTE_STRESS"),
@@ -424,10 +433,17 @@ export function buildDeterministicFallbackInsight(
   const baseByMediator: Record<DominantMediator, GeneratedInsight> = {
     SLEEP_MEDIATION_DEFICIT: {
       dominantMediator: "SLEEP_MEDIATION_DEFICIT",
-      diagnosisSummary: `${skipPrefix}Tidurmu terasa kurang pulih saat aktivitas sedang padat, jadi wajar kalau energi dan ketahanan stresmu menurun hari ini.${counselorSuffix}`,
+      diagnosisSummary: `${skipPrefix}${pickVariant([
+        "Tidurmu terasa kurang pulih saat aktivitas sedang padat, jadi wajar kalau energi dan ketahanan stresmu menurun hari ini.",
+        "Waktu istirahatmu belum cukup mengganti lelahnya aktivitas, jadi tubuh memang butuh ritme yang lebih lembut hari ini.",
+        "Kurangnya pemulihan tidur bikin energi lebih cepat habis saat dihadapkan dengan tugas hari ini.",
+      ])}${counselorSuffix}`,
       isotemporalActionPlan: evaluation.escalationFlag
         ? `Lakukan jalan santai ringan atau peregangan rileks selama ${gentleDuration} menit sore ini untuk bantu menenangkan tubuh.`
-        : `Coba luangkan ${stdDuration} menit sore ini untuk jalan santai di area kampus atau kos supaya tubuh lebih rileks sebelum tidur malam.`,
+        : pickVariant([
+            `Coba luangkan ${stdDuration} menit sore ini untuk jalan santai di area kampus atau kos supaya tubuh lebih rileks sebelum tidur malam.`,
+            `Ambil ${stdDuration} menit untuk peregangan ringan atau jalan santai sore nanti agar ketegangan berkurang dan tidur malam lebih nyenyak.`,
+          ]),
       recommendedMetsToday: clampMets(
         evaluation.escalationFlag ? lowMets : midMets,
         allowedRanges.metsRange
@@ -436,8 +452,16 @@ export function buildDeterministicFallbackInsight(
     },
     SEDENTARY_OVERLOAD: {
       dominantMediator: "SEDENTARY_OVERLOAD",
-      diagnosisSummary: `${skipPrefix}Kamu sudah duduk cukup lama hari ini sekitar ${today.totalSedentaryHours.toFixed(1)} jam, wajar kalau tubuh mulai terasa kaku.${counselorSuffix}${checkInSuffix}`,
-      isotemporalActionPlan: `Yuk berdiri sebentar dan jalan santai di sekitar meja atau koridor selama ${stdDuration} menit sekarang.${skipAdaptation.applied ? "" : " Usahakan jeda singkat tiap 50 menit belajar."}`,
+      diagnosisSummary: `${skipPrefix}${pickVariant([
+        `Kamu sudah duduk cukup lama hari ini sekitar ${today.totalSedentaryHours.toFixed(1)} jam, wajar kalau tubuh mulai terasa kaku.`,
+        `Durasi dudukmu hari ini sudah mencapai sekitar ${today.totalSedentaryHours.toFixed(1)} jam, otot leher dan punggung memang rentan tegang.`,
+        `Setelah duduk sekitar ${today.totalSedentaryHours.toFixed(1)} jam, tubuh perlu jeda gerak singkat supaya nggak makin pegal.`,
+      ])}${counselorSuffix}${checkInSuffix}`,
+      isotemporalActionPlan: pickVariant([
+        `Yuk berdiri sebentar dan jalan santai di sekitar meja atau koridor selama ${stdDuration} menit sekarang.${skipAdaptation.applied ? "" : " Usahakan jeda singkat tiap 50 menit belajar."}`,
+        `Coba regangkan bahu, leher, lalu jalan kaki santai selama ${stdDuration} menit dulu untuk mengendurkan otot yang kaku.`,
+        `Berdiri sebentar dari kursi dan lakukan gerak ringan atau jalan keliling ruangan selama ${stdDuration} menit sekarang.`,
+      ]),
       recommendedMetsToday: clampMets(
         skipAdaptation.applied || evaluation.escalationFlag ? lowMets : midMets,
         allowedRanges.metsRange
@@ -446,8 +470,16 @@ export function buildDeterministicFallbackInsight(
     },
     LOW_MVPA_VOLUME: {
       dominantMediator: "LOW_MVPA_VOLUME",
-      diagnosisSummary: `${skipPrefix}Hari ini total gerak aktifmu masih ${today.totalMvpaMinutes} menit, tubuhmu akan terbantu jika mendapat sedikit ruang bergerak.${counselorSuffix}${checkInSuffix}`,
-      isotemporalActionPlan: `Mulai pelan saja dengan berjalan santai menuju kantin atau sekitar halaman kos selama ${stdDuration} menit sekarang.`,
+      diagnosisSummary: `${skipPrefix}${pickVariant([
+        `Hari ini total gerak aktifmu masih ${today.totalMvpaMinutes} menit, tubuhmu akan terbantu jika mendapat sedikit ruang bergerak.`,
+        `Gerak aktifmu baru tercatat ${today.totalMvpaMinutes} menit hari ini—sedikit aktivitas ringan bisa bantu menyegarkan badan dan pikiran.`,
+        `Dengan gerak aktif ${today.totalMvpaMinutes} menit sejauh ini, tubuhmu butuh dorongan kecil agar energi nggak terasa mandek.`,
+      ])}${counselorSuffix}${checkInSuffix}`,
+      isotemporalActionPlan: pickVariant([
+        `Mulai pelan saja dengan berjalan santai menuju kantin atau sekitar halaman kos selama ${stdDuration} menit sekarang.`,
+        `Coba keluar sebentar dan jalan kaki santai selama ${stdDuration} menit di sekitar kos atau koridor kampus.`,
+        `Lakukan peregangan dinamis ringan atau jalan santai selama ${stdDuration} menit agar aliran energi kembali terasa.`,
+      ]),
       recommendedMetsToday: clampMets(
         skipAdaptation.applied || evaluation.escalationFlag ? lowMets : midMets,
         allowedRanges.metsRange
@@ -456,15 +488,27 @@ export function buildDeterministicFallbackInsight(
     },
     EXAM_ACUTE_STRESS: {
       dominantMediator: "EXAM_ACUTE_STRESS",
-      diagnosisSummary: `${skipPrefix}Gerak dan tidurmu sudah cukup terjaga, namun beban tekanan kuliah hari ini terasa meningkat.${counselorSuffix}`,
-      isotemporalActionPlan: `Coba aktifkan Exam Panic Button atau jalan ringan selama ${stdDuration} menit sekarang sebelum melanjutkan belajar.`,
+      diagnosisSummary: `${skipPrefix}${pickVariant([
+        "Gerak dan tidurmu sudah cukup terjaga, namun beban tekanan kuliah hari ini terasa meningkat.",
+        "Fisikmu sebenarnya cukup terjaga, tapi tekanan pikiran dari tugas atau ujian hari ini sedang cukup terasa.",
+      ])}${counselorSuffix}`,
+      isotemporalActionPlan: pickVariant([
+        `Coba aktifkan Exam Panic Button atau jalan ringan selama ${stdDuration} menit sekarang sebelum melanjutkan belajar.`,
+        `Luangkan ${stdDuration} menit untuk jalan pelan atau latihan pernapasan sebelum lanjut ke materi berikutnya.`,
+      ]),
       recommendedMetsToday: clampMets(midMets, allowedRanges.metsRange),
       scientificCitationNote: pickCitation("EXAM_ACUTE_STRESS"),
     },
     OPTIMAL_BALANCE: {
       dominantMediator: "OPTIMAL_BALANCE",
-      diagnosisSummary: `${skipPrefix}Ritme duduk dan gerakmu hari ini terjaga dengan baik.${checkInSuffix || " Kerja bagus sudah memberi tubuh ruang bernapas di tengah kuliah."}`,
-      isotemporalActionPlan: `Pertahankan kebiasaan baik ini dengan peregangan santai ${stdDuration} menit sebelum tidur agar pemulihan tetap optimal.`,
+      diagnosisSummary: `${skipPrefix}${pickVariant([
+        "Ritme duduk dan gerakmu hari ini terjaga dengan baik.",
+        "Keseimbangan aktivitas dan istirahatmu hari ini sudah cukup solid.",
+      ])}${checkInSuffix || " Kerja bagus sudah memberi tubuh ruang bernapas di tengah kuliah."}`,
+      isotemporalActionPlan: pickVariant([
+        `Pertahankan kebiasaan baik ini dengan peregangan santai ${stdDuration} menit sebelum tidur agar pemulihan tetap optimal.`,
+        `Jaga ritme positif ini dengan jeda peregangan ringan ${stdDuration} menit di sela atau akhir aktivitas hari ini.`,
+      ]),
       recommendedMetsToday: clampMets(midMets, allowedRanges.metsRange),
       scientificCitationNote: pickCitation("OPTIMAL_BALANCE"),
     },
@@ -517,9 +561,13 @@ async function postOllamaChat(
 
   if (cleanBase.includes(".hf.space")) {
     const signal = AbortSignal.timeout(timeoutMs);
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (env.HF_TOKEN) {
+      headers.Authorization = `Bearer ${env.HF_TOKEN}`;
+    }
     const submitRes = await fetchFn(`${cleanBase}/gradio_api/call/chat_api`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       signal,
       body: JSON.stringify({ data: [JSON.stringify(payload)] }),
     });
@@ -533,6 +581,7 @@ async function postOllamaChat(
 
     const sseRes = await fetchFn(`${cleanBase}/gradio_api/call/chat_api/${eventId}`, {
       method: "GET",
+      headers: env.HF_TOKEN ? { Authorization: `Bearer ${env.HF_TOKEN}` } : undefined,
       signal,
     });
     if (!sseRes.ok) {
