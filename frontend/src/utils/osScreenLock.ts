@@ -48,6 +48,8 @@ class OsScreenLockController {
   private localTickInterval: number | null = null;
   private statusPollInterval: number | null = null;
   private isInitialized = false;
+  private stateVersion = 0;
+  private lastUnlockedAt = 0;
 
   init() {
     if (this.isInitialized || typeof window === "undefined") return;
@@ -91,6 +93,7 @@ class OsScreenLockController {
 
   async armTimer(durationSeconds: number, reason?: string): Promise<void> {
     this.init();
+    this.stateVersion += 1;
     const cleanDuration = Math.max(1, Math.round(durationSeconds));
     const lockReason =
       reason ||
@@ -131,6 +134,7 @@ class OsScreenLockController {
   }
 
   async disarmTimer(): Promise<void> {
+    this.stateVersion += 1;
     this.armedUntilTimestamp = null;
     this.updateState({
       isArmed: false,
@@ -150,6 +154,7 @@ class OsScreenLockController {
 
   async triggerLock(reason?: string): Promise<void> {
     this.init();
+    this.stateVersion += 1;
     const lockReason = reason || this.state.reason;
     this.activateLocalLockState(lockReason);
 
@@ -185,6 +190,8 @@ class OsScreenLockController {
   }
 
   async unlock(verificationSource = "POSE_CAMERA_AI"): Promise<void> {
+    this.stateVersion += 1;
+    this.lastUnlockedAt = Date.now();
     this.armedUntilTimestamp = null;
     localStorage.removeItem(STORAGE_KEY);
 
@@ -269,12 +276,13 @@ class OsScreenLockController {
   }
 
   private async syncWithBackend(): Promise<void> {
+    const versionAtStart = this.stateVersion;
     try {
       const res = await fetch(`${API_BASE_URL}/os-lock/status`);
       if (!res.ok) return;
       const json = await res.json();
       const data = json?.data;
-      if (!data) return;
+      if (!data || this.stateVersion !== versionAtStart) return;
 
       const patch: Partial<OsScreenLockState> = {
         isBackendConnected: true,
@@ -282,7 +290,8 @@ class OsScreenLockController {
         enforcerTickCount: data.enforcerTickCount ?? this.state.enforcerTickCount,
       };
 
-      if (data.isLocked && !this.state.isLocked) {
+      const recentlyUnlocked = Date.now() - this.lastUnlockedAt < 2500;
+      if (data.isLocked && !this.state.isLocked && !recentlyUnlocked) {
         this.activateLocalLockState(data.reason || this.state.reason);
         sound.playSlouchWarning();
         void this.requestFullscreenAndKeyboardLock();

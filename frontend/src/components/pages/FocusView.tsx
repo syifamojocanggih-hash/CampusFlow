@@ -159,42 +159,45 @@ export const FocusView: React.FC = () => {
     if (!isTimerRunning) return;
 
     const timer = setInterval(() => {
-      setSecondsRemaining((prev) => {
-        if (prev <= 1) {
-          setIsTimerRunning(false);
-          setCompletedBouts((c) => c + 1);
-
-          const endTime = new Date();
-          const startTime =
-            sessionStartRef.current ??
-            new Date(endTime.getTime() - Math.max(1, Math.round(sessionDurationMins)) * 60_000);
-          sessionStartRef.current = null;
-
-          void api
-            .logSedentarySession({
-              startTime: startTime.toISOString(),
-              endTime: endTime.toISOString(),
-              durationMinutes: Math.max(1, Math.round(sessionDurationMins)),
-              slouchCount: 0,
-              tooCloseCount: 0,
-              avgNeckRatio: 1.0,
-              breakCompleted: false,
-              breakDurationMins: 0,
-              verificationSource: "MANUAL_LOG",
-            })
-            .catch(() => {});
-
-          void osScreenLock.triggerLock(
-            "Waktu Sesi Fokus & Screen Time Habis — Wajib Peregangan Aktif"
-          );
-          return 0;
-        }
-        return prev - 1;
-      });
+      setSecondsRemaining((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isTimerRunning, sessionDurationMins]);
+  }, [isTimerRunning]);
+
+  // Handle timer completion outside state updater to prevent React StrictMode double-firing
+  useEffect(() => {
+    if (!isTimerRunning || secondsRemaining > 0) return;
+
+    setIsTimerRunning(false);
+    setCompletedBouts((c) => c + 1);
+
+    const endTime = new Date();
+    const startTime =
+      sessionStartRef.current ??
+      new Date(endTime.getTime() - Math.max(1, Math.round(sessionDurationMins)) * 60_000);
+    sessionStartRef.current = null;
+
+    void api
+      .logSedentarySession({
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        durationMinutes: Math.max(1, Math.round(sessionDurationMins)),
+        slouchCount: 0,
+        tooCloseCount: 0,
+        avgNeckRatio: 1.0,
+        breakCompleted: false,
+        breakDurationMins: 0,
+        verificationSource: "MANUAL_LOG",
+      })
+      .catch(() => {});
+
+    if (!osScreenLock.getState().isLocked) {
+      void osScreenLock.triggerLock(
+        "Waktu Sesi Fokus & Screen Time Habis — Wajib Peregangan Aktif"
+      );
+    }
+  }, [isTimerRunning, secondsRemaining, sessionDurationMins]);
 
   // Eye Break 20-Second Countdown Loop
   useEffect(() => {
@@ -438,6 +441,7 @@ export const FocusView: React.FC = () => {
   const progressAngleRad = ((progressPct / 100) * 360 - 90) * (Math.PI / 180);
   const knobX = 125 + radius * Math.cos(progressAngleRad);
   const knobY = 125 + radius * Math.sin(progressAngleRad);
+  const dailySessionTarget = Math.max(6, completedBouts + 1);
 
   return (
     <div className="w-full space-y-6 pb-12 font-sans">
@@ -528,9 +532,12 @@ export const FocusView: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT: Session Header, Presets & Action Controls */}
+          {/* RIGHT: Session Header, Presets, Action Controls & Daily Dots */}
           <div className="flex-1 min-w-0 w-full flex flex-col items-center lg:items-start text-center lg:text-left space-y-4">
             <div className="space-y-1.5">
+              <span className="font-heading text-xs font-bold tracking-[0.1em] text-[#4C5C4E] uppercase block">
+                SESI FOKUS KE-{completedBouts + 1}
+              </span>
               <h2 className="font-heading font-extrabold text-2xl sm:text-[1.75rem] text-[#1D3127] leading-snug tracking-tight max-w-xl">
                 {activeTask ? activeTask.text : "Tetap di sini, satu langkah lagi."}
               </h2>
@@ -624,6 +631,31 @@ export const FocusView: React.FC = () => {
                 <ShieldCheck className="w-4 h-4 text-[#2F3A2E]" />
                 <span>Mulai Jeda &amp; Kunci Layar</span>
               </button>
+            </div>
+
+            {/* Daily Session Progress Dots */}
+            <div className="flex items-center gap-2.5 pt-1">
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: dailySessionTarget }).map((_, idx) => {
+                  const isDone = idx < completedBouts;
+                  const isCurrent = idx === completedBouts;
+                  return (
+                    <span
+                      key={idx}
+                      className={`w-2.5 h-2.5 rounded-full transition-all ${
+                        isDone
+                          ? "bg-[#243B2E]"
+                          : isCurrent
+                          ? "border-[1.5px] border-dashed border-[#4C6352]"
+                          : "bg-[#B7C7AF]"
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+              <span className="text-xs font-semibold text-[#47594A]">
+                {completedBouts} dari {dailySessionTarget} sesi harian selesai
+              </span>
             </div>
           </div>
         </div>
@@ -1079,19 +1111,21 @@ export const FocusView: React.FC = () => {
               </div>
             )}
 
-            {/* MediaPipe Active Break Pose Component */}
-            <div className="space-y-3">
-              <VisionGuard
-                autoStartCamera={true}
-                onActiveBreakCompleted={() => {
-                  setActiveBreakSuccess(true);
-                  setTimeout(() => {
-                    setIsActiveBreakOpen(false);
-                    setActiveBreakSuccess(false);
-                  }, 2500);
-                }}
-              />
-            </div>
+            {/* MediaPipe Active Break Pose Component (skip if global OS Lock VisionGuard is already mounted) */}
+            {!osLock.isLocked && (
+              <div className="space-y-3">
+                <VisionGuard
+                  autoStartCamera={true}
+                  onActiveBreakCompleted={() => {
+                    setActiveBreakSuccess(true);
+                    setTimeout(() => {
+                      setIsActiveBreakOpen(false);
+                      setActiveBreakSuccess(false);
+                    }, 2500);
+                  }}
+                />
+              </div>
+            )}
 
             {/* Modal Footer Reassurance */}
             <div className="pt-2 flex items-center justify-between text-xs text-[#636B60]">

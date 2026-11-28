@@ -16,13 +16,12 @@ import { VisionLabView } from "@/components/pages/VisionLabView";
 import { ProfileView } from "@/components/pages/ProfileView";
 import { LandingPage } from "@/components/pages/LandingPage";
 import { MimiPetWidget } from "@/components/pet/MimiPetWidget";
-import { getMimiSvg } from "@/components/pet/mimiSvg";
 import { VisionGuard } from "@/components/vision/VisionGuard";
 import { screenTimeTracker } from "@/utils/screenTimeTracker";
 import { autoSleepTracker } from "@/utils/autoSleepTracker";
 import { osScreenLock, useOsScreenLock } from "@/utils/osScreenLock";
 import { api } from "@/lib/api";
-import { Lock, Play, Square } from "lucide-react";
+import { Lock, Play, ShieldAlert, Square, Timer } from "lucide-react";
 import type { TabKey, UserProfileDTO } from "@/types";
 
 export function App() {
@@ -140,15 +139,14 @@ export function App() {
           >
             <div className="flex items-center gap-3.5 flex-1 min-w-0">
               <div
-                className={`w-11 h-11 rounded-2xl p-1 overflow-hidden flex items-center justify-center shrink-0 ${
+                className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
                   osLock.isArmed
                     ? "bg-[#C8D4BC] text-[#2F3A2E]"
                     : "bg-[#D9E0D1] text-[#2F3A2E]"
                 }`}
-                dangerouslySetInnerHTML={{
-                  __html: getMimiSvg(1, osLock.isArmed ? "excited" : "happy"),
-                }}
-              />
+              >
+                {osLock.isArmed ? <Timer className="w-5 h-5 animate-spin" /> : <ShieldAlert className="w-5 h-5" />}
+              </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-heading font-extrabold text-sm text-[#2F3A2E]">

@@ -40,7 +40,41 @@ import {
 import { CLINICAL_CONSTANTS, type PostureBaseline, type SedentarySessionPayload } from "@/types";
 import { api } from "@/lib/api";
 import { osScreenLock, useOsScreenLock } from "@/utils/osScreenLock";
+import { getMimiSvg, STAGE_MAP } from "@/components/pet/mimiSvg";
 import { Lock } from "lucide-react";
+
+const LOCK_PET_CHATS = [
+  "Semangat hari ini! Jangan lupa peregangan sebentar ya!",
+  "Bahu mulai tegang tuh, yuk angkat kedua tangan tinggi-tinggi!",
+  "{name} temenin peregangan dulu ya, biar fokus lagi!",
+  "Istirahat sebentar bikin pikiran lebih segar lho!",
+  "Yuk gerak 3 repetisi dulu, habis itu kita lanjut belajar!",
+  "Mata dan leher butuh jeda. Angkat tanganmu pelan-pelan!",
+  "Pelan-pelan aja, {name} tunggu sampai layarnya kebuka!",
+  "Regangkan punggungmu dulu, sehat bareng {name}!",
+];
+
+function readUserPetSnapshot(): { petName: string; stageIndex: number; hasProgress: boolean } {
+  try {
+    const raw = localStorage.getItem("campusflow_mimi_pet_state");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const streak = typeof parsed.streak === "number" ? parsed.streak : 0;
+      const stageIndex =
+        streak >= 100 ? 4 : streak >= 50 ? 3 : streak >= 20 ? 2 : streak >= 10 ? 1 : 0;
+      const petName =
+        typeof parsed.petName === "string" && parsed.petName.trim()
+          ? parsed.petName.trim().slice(0, 20)
+          : "Mimi";
+      const questsDone = Array.isArray(parsed.questsDone) ? parsed.questsDone : [];
+      const hasProgress = questsDone.some(Boolean);
+      return { petName, stageIndex, hasProgress };
+    }
+  } catch {
+    // Fallback to default Mimi
+  }
+  return { petName: "Mimi", stageIndex: 0, hasProgress: false };
+}
 
 interface VisionGuardProps {
   onSessionComplete?: (payload: SedentarySessionPayload) => void;
@@ -161,6 +195,29 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
   const [isHoldingStretch, setIsHoldingStretch] = useState<boolean>(false);
   const [breakSuccessToast, setBreakSuccessToast] = useState<boolean>(false);
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
+  const [petSnapshot, setPetSnapshot] = useState(() => readUserPetSnapshot());
+  const [petLockChat, setPetLockChat] = useState<string>(() => {
+    const snap = readUserPetSnapshot();
+    const tpl = LOCK_PET_CHATS[Math.floor(Math.random() * LOCK_PET_CHATS.length)];
+    return tpl.replace(/\{name\}/g, snap.petName);
+  });
+
+  const pickNextPetChat = useCallback(() => {
+    const snap = readUserPetSnapshot();
+    setPetSnapshot(snap);
+    setPetLockChat((prev) => {
+      const candidates = LOCK_PET_CHATS.map((tpl) => tpl.replace(/\{name\}/g, snap.petName));
+      const filtered = candidates.filter((c) => c !== prev);
+      const pool = filtered.length > 0 ? filtered : candidates;
+      return pool[Math.floor(Math.random() * pool.length)];
+    });
+  }, []);
+
+  const repHoldRef = useRef<number>(0);
+  const breakRepsRef = useRef<number>(0);
+  const standAwayRef = useRef<number>(0);
+  const hasCompletedBreakRef = useRef<boolean>(false);
+  const sittingSecondsRef = useRef<number>(0);
 
   useEffect(() => {
     isBreakLockedRef.current = isBreakLocked;
@@ -168,7 +225,15 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
   // Synchronize with external forceBreakLock or global OS Screen Time Lock
   useEffect(() => {
-    if ((forceBreakLock || osLockState.isLocked) && !isBreakLocked) {
+    if (!forceBreakLock && !osLockState.isLocked) {
+      hasCompletedBreakRef.current = false;
+      return;
+    }
+    if ((forceBreakLock || osLockState.isLocked) && !isBreakLocked && !hasCompletedBreakRef.current) {
+      repHoldRef.current = 0;
+      breakRepsRef.current = 0;
+      standAwayRef.current = 0;
+      pickNextPetChat();
       setIsBreakLocked(true);
       isBreakLockedRef.current = true;
       setBreakRepsCompleted(0);
@@ -619,6 +684,12 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
   const triggerBreakLockNow = useCallback(
     (customReason?: string) => {
+      hasCompletedBreakRef.current = false;
+      repHoldRef.current = 0;
+      breakRepsRef.current = 0;
+      standAwayRef.current = 0;
+      sittingSecondsRef.current = sittingLimitSeconds;
+      pickNextPetChat();
       setSittingSeconds(sittingLimitSeconds);
       setIsBreakLocked(true);
       isBreakLockedRef.current = true;
@@ -691,13 +762,12 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
       // Increment sitting/screen time when user is sitting in front of camera OR working in another tab/app
       if (isTabInBackground || !ps || (ps.isPresent && !ps.isStandingUp)) {
-        setSittingSeconds((prev) => {
-          const next = prev + 1;
-          if (next >= sittingLimitSeconds) {
-            triggerBreakLockNow();
-          }
-          return next;
-        });
+        const nextSitting = sittingSecondsRef.current + 1;
+        sittingSecondsRef.current = nextSitting;
+        setSittingSeconds(nextSitting);
+        if (nextSitting >= sittingLimitSeconds) {
+          triggerBreakLockNow();
+        }
 
         if (!hasPoorPosture && ps?.isPresent) {
           setGoodPostureSeconds((prev) => prev + 1);
@@ -749,40 +819,45 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
     if (!isBreakLocked) return;
 
     const breakTimer = setInterval(() => {
+      if (hasCompletedBreakRef.current || !isBreakLockedRef.current) return;
       const ps = postureStateRef.current;
       if (!ps) return;
 
       // Option A: Overhead Arm Stretch hold (primary verification procedure)
       if (ps.isOverheadStretchValid) {
         setIsHoldingStretch(true);
-        setCurrentRepHoldSeconds((hold) => {
-          const nextHold = Number((hold + 0.1).toFixed(1));
-          if (nextHold >= targetHoldSeconds) {
-            sound.playRepComplete();
-            setBreakRepsCompleted((reps) => {
-              const nextReps = reps + 1;
-              if (nextReps >= targetReps) {
-                completeActiveBreak("POSE_CAMERA_AI");
-              }
-              return nextReps;
-            });
-            return 0;
+        const nextHold = Number((repHoldRef.current + 0.1).toFixed(1));
+        if (nextHold >= targetHoldSeconds) {
+          repHoldRef.current = 0;
+          setCurrentRepHoldSeconds(0);
+          sound.playRepComplete();
+          const nextReps = breakRepsRef.current + 1;
+          breakRepsRef.current = nextReps;
+          setBreakRepsCompleted(nextReps);
+          if (nextReps >= targetReps) {
+            hasCompletedBreakRef.current = true;
+            clearInterval(breakTimer);
+            completeActiveBreak("POSE_CAMERA_AI");
+            return;
           }
-          return nextHold;
-        });
+        } else {
+          repHoldRef.current = nextHold;
+          setCurrentRepHoldSeconds(nextHold);
+        }
       } else {
         setIsHoldingStretch(false);
       }
 
       // Option B: Standing up while visibly detected by camera (never unlocks if person is absent)
       if (ps.isPresent && ps.isStandingUp) {
-        setStandAwayDurationSecs((secs) => {
-          const nextSecs = Number((secs + 0.1).toFixed(1));
-          if (nextSecs >= targetStandAwaySeconds) {
-            completeActiveBreak("POSE_CAMERA_AI");
-          }
-          return nextSecs;
-        });
+        const nextSecs = Number((standAwayRef.current + 0.1).toFixed(1));
+        standAwayRef.current = nextSecs;
+        setStandAwayDurationSecs(nextSecs);
+        if (nextSecs >= targetStandAwaySeconds && !hasCompletedBreakRef.current) {
+          hasCompletedBreakRef.current = true;
+          clearInterval(breakTimer);
+          completeActiveBreak("POSE_CAMERA_AI");
+        }
       }
     }, 100);
 
@@ -796,9 +871,16 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
 
   // Complete Active Break & Emit Session Payload
   const completeActiveBreak = (verificationType: "POSE_CAMERA_AI" | "MANUAL_LOG") => {
+    if (!isBreakLockedRef.current) return;
+    isBreakLockedRef.current = false;
+    hasCompletedBreakRef.current = true;
+    repHoldRef.current = 0;
+    breakRepsRef.current = 0;
+    standAwayRef.current = 0;
+    sittingSecondsRef.current = 0;
+
     sound.playBreakUnlocked();
     setIsBreakLocked(false);
-    isBreakLockedRef.current = false;
     void osScreenLock.unlock(verificationType);
     if (demoMode) {
       setSessionActive(false);
@@ -1423,8 +1505,38 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
               </div>
             </div>
 
-            {/* Box 3: OS Lock Info Footer */}
-            <div className="relative z-10 space-y-2.5">
+            {/* Box 3: User's Pet Companion & Rotating Chat Bubble */}
+            <div className="relative z-10 space-y-2.5 pt-2">
+              <div className="flex items-center gap-3">
+                {/* Left: User's Pet Avatar (borderless, directly on panel) */}
+                <div
+                  className="w-24 h-24 shrink-0"
+                  dangerouslySetInnerHTML={{
+                    __html: getMimiSvg(
+                      STAGE_MAP[petSnapshot.stageIndex] ?? 0,
+                      isHoldingStretch ? "excited" : "happy",
+                      petSnapshot.hasProgress && petSnapshot.stageIndex === 0
+                    ),
+                  }}
+                />
+
+                {/* Right: Pet Speech Bubble */}
+                <div className="relative flex-1 min-w-0 bg-white rounded-2xl px-4 py-3 border border-[#EAE3D8] shadow-2xs">
+                  <span
+                    aria-hidden="true"
+                    className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-l border-b border-[#EAE3D8] rotate-45"
+                  />
+                  <div className="relative z-10 space-y-1">
+                    <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider text-[#4E8B57]">
+                      {petSnapshot.petName}
+                    </span>
+                    <p className="text-xs sm:text-[13px] font-semibold text-[#1D3127] leading-snug">
+                      {petLockChat}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Emergency Fallback ONLY if camera hardware fails */}
               {cameraPermissionError && (
                 <div className="pt-1 flex justify-center">
