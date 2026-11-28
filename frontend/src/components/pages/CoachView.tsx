@@ -639,35 +639,21 @@ export const CoachView: React.FC<CoachViewProps> = () => {
           {/* Left Sidebar Riwayat Obrolan (hanya tampil saat fase chat penuh) */}
           {isChatting && showHistoryPanel && (
             <aside className="w-full md:w-64 lg:w-72 shrink-0 bg-[#F6F8F3] border-b md:border-b-0 md:border-r border-[#E8DDCF] flex flex-col max-h-64 md:max-h-[760px]">
-              <div className="p-3.5 border-b border-[#E8DDCF] flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleResetSession}
-                  className="flex-1 px-3 py-2 rounded-xl bg-[#CFD8C4] hover:bg-[#BCC8AE] text-xs font-bold text-[#2F3A2E] flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-2xs active:scale-[0.98]"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Obrolan Baru</span>
-                </button>
+              <div className="px-3.5 py-3.5 border-b border-[#E8DDCF] flex items-center justify-between gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#636B60]">
+                  Riwayat Obrolan ({sessions.length})
+                </span>
                 <button
                   type="button"
                   onClick={() => setShowHistoryPanel(false)}
-                  className="md:hidden p-2 rounded-xl bg-white/80 hover:bg-white text-[#636B60] border border-[#E8DDCF] cursor-pointer"
+                  className="md:hidden p-1.5 rounded-lg bg-white/80 hover:bg-white text-[#636B60] border border-[#E8DDCF] cursor-pointer"
                   title="Tutup riwayat"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              <div className="px-3.5 pt-3 pb-1.5 flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#636B60]">
-                  Riwayat Obrolan
-                </span>
-                <span className="text-[11px] font-semibold text-[#636B60]">
-                  {sessions.length}
-                </span>
-              </div>
-
-              <div className="flex-1 overflow-y-auto px-2.5 pb-3 space-y-1">
+              <div className="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-1">
                 {sessions.length === 0 ? (
                   <p className="text-xs text-[#636B60] px-2 py-4 text-center leading-relaxed">
                     Belum ada riwayat obrolan. Mulai chat untuk menyimpannya otomatis.
@@ -762,6 +748,18 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                 >
                   <span>Lanjutkan Chat</span>
                   <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {isChatting && (
+                <button
+                  type="button"
+                  onClick={handleResetSession}
+                  className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white text-xs font-bold text-[#2F3A2E] transition-colors flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
+                  title="Mulai obrolan baru"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#2F3A2E]" />
+                  <span>Obrolan Baru</span>
                 </button>
               )}
 
