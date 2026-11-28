@@ -167,13 +167,14 @@ const POSTURE_CHECKLIST_ITEMS = [
     }
   }, [tasks]);
 
-  // 2. Study Soundscapes (Web Audio API Synthesizer)
+  // 2. Study Soundscapes (Audio Rekaman Bebas Lisensi + Web Audio API)
   const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
   const [soundscapeType, setSoundscapeType] = useState<"rain" | "alpha" | "white" | "cafe">("rain");
   const [audioVolume, setAudioVolume] = useState<number>(0.25);
   const audioContextRef = useRef<AudioContext | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
   const noiseSourceRef = useRef<AudioNode | null>(null);
+  const audioElementRef = useRef<HTMLAudioElement | null>(null);
 
   // 3. Ergonomic 20-20-20 Eye Rest Timer State
   const [isEyeBreakOpen, setIsEyeBreakOpen] = useState<boolean>(false);
@@ -249,6 +250,36 @@ const POSTURE_CHECKLIST_ITEMS = [
   // Web Audio Synthesizer Engine
   const startSoundscape = (type: "rain" | "alpha" | "white" | "cafe", volume: number) => {
     stopSoundscape();
+    const audioFiles: Partial<Record<"rain" | "alpha" | "white" | "cafe", string>> = {
+      rain: "/audio/rain.ogg",
+      cafe: "/audio/cafe.ogg",
+    };
+
+    const fileUrl = audioFiles[type];
+    if (fileUrl) {
+      try {
+        const el = new Audio(fileUrl);
+        el.loop = true;
+        el.volume = Math.max(0, Math.min(1, volume));
+        audioElementRef.current = el;
+        setIsAudioPlaying(true);
+        void el.play().catch((err) => {
+          console.warn("Audio file gagal diputar, fallback ke sintesis lokal:", err);
+          if (audioElementRef.current === el) {
+            audioElementRef.current = null;
+          }
+          startSynthesizedSoundscape(type, volume);
+        });
+        return;
+      } catch {
+        // Fallback ke sintesis Web Audio di bawah
+      }
+    }
+
+    startSynthesizedSoundscape(type, volume);
+  };
+
+  const startSynthesizedSoundscape = (type: "rain" | "alpha" | "white" | "cafe", volume: number) => {
     try {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!AudioCtx) return;
@@ -327,6 +358,13 @@ const POSTURE_CHECKLIST_ITEMS = [
   };
 
   const stopSoundscape = () => {
+    if (audioElementRef.current) {
+      try {
+        audioElementRef.current.pause();
+        audioElementRef.current.currentTime = 0;
+      } catch {}
+      audioElementRef.current = null;
+    }
     if (noiseSourceRef.current) {
       try {
         (noiseSourceRef.current as unknown as { stop?: () => void }).stop?.();
@@ -359,6 +397,9 @@ const POSTURE_CHECKLIST_ITEMS = [
 
   const handleVolumeChange = (vol: number) => {
     setAudioVolume(vol);
+    if (audioElementRef.current) {
+      audioElementRef.current.volume = Math.max(0, Math.min(1, vol));
+    }
     if (gainNodeRef.current && audioContextRef.current) {
       gainNodeRef.current.gain.setValueAtTime(vol, audioContextRef.current.currentTime);
     }
@@ -680,7 +721,7 @@ const POSTURE_CHECKLIST_ITEMS = [
                 )}
               </div>
               <p className="text-xs text-[#636B60]">
-                Audio sintesis lokal santai untuk meredam kebisingan sekitar.
+                Rekaman alam &amp; audio fokus bebas lisensi untuk meredam kebisingan sekitar.
               </p>
             </div>
           </div>
