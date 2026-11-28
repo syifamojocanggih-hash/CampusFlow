@@ -634,73 +634,9 @@ export const CoachView: React.FC<CoachViewProps> = () => {
         <div
           className={`${
             isChatting ? "lg:col-span-12" : "lg:col-span-8"
-          } w-full bg-white rounded-[1.75rem] shadow-xs border border-[#E8DDCF] overflow-hidden flex flex-col md:flex-row transition-all duration-300`}
+          } w-full bg-white rounded-[1.75rem] shadow-xs border border-[#E8DDCF] overflow-hidden flex flex-col transition-all duration-300`}
         >
-          {/* Left Sidebar Riwayat Obrolan (hanya tampil saat fase chat penuh) */}
-          {isChatting && showHistoryPanel && (
-            <aside className="w-full md:w-64 lg:w-72 shrink-0 bg-[#F6F8F3] border-b md:border-b-0 md:border-r border-[#E8DDCF] flex flex-col max-h-64 md:max-h-[760px]">
-              <div className="px-3.5 py-3.5 border-b border-[#E8DDCF] flex items-center justify-between gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#636B60]">
-                  Riwayat Obrolan ({sessions.length})
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowHistoryPanel(false)}
-                  className="md:hidden p-1.5 rounded-lg bg-white/80 hover:bg-white text-[#636B60] border border-[#E8DDCF] cursor-pointer"
-                  title="Tutup riwayat"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-1">
-                {sessions.length === 0 ? (
-                  <p className="text-xs text-[#636B60] px-2 py-4 text-center leading-relaxed">
-                    Belum ada riwayat obrolan. Mulai chat untuk menyimpannya otomatis.
-                  </p>
-                ) : (
-                  sessions.map((session) => {
-                    const isActive = session.id === activeSessionId && messages.length > 0;
-                    return (
-                      <div
-                        key={session.id}
-                        onClick={() => handleSelectHistorySession(session)}
-                        className={`group w-full rounded-xl px-2.5 py-2 flex items-center justify-between gap-2 transition-all cursor-pointer ${
-                          isActive
-                            ? "bg-[#E2EAD9] text-[#2F3A2E] border border-[#B8C6A9]"
-                            : "hover:bg-[#EBF0E4]/80 text-[#2F3A2E] border border-transparent"
-                        }`}
-                      >
-                        <div className="flex items-start gap-2 min-w-0 text-left">
-                          <MessageSquare className="w-3.5 h-3.5 text-[#636B60] mt-0.5 shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold text-[#2F3A2E] truncate">
-                              {session.title}
-                            </p>
-                            <p className="text-[10px] text-[#636B60] mt-0.5">
-                              {formatSessionDate(session.updatedAt)} · {session.messages.length} pesan
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={(e) => handleDeleteHistorySession(session.id, e)}
-                          className="p-1 rounded-lg text-[#636B60] md:opacity-0 md:group-hover:opacity-100 hover:text-red-600 hover:bg-red-50 transition-all shrink-0 cursor-pointer"
-                          title="Hapus riwayat ini"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </aside>
-          )}
-
-          {/* Main Right Chat Column */}
-          <div className="flex-1 flex flex-col min-w-0">
-          {/* Header Chat Panel */}
+          {/* Header Chat Panel (Full Width dari ujung kiri sampai kanan) */}
           <div className="bg-[#CFD8C4] px-5 sm:px-6 py-4 flex items-center justify-between border-b border-[#BCC8AE]">
             <div className="flex items-center gap-2.5 sm:gap-3">
               {isChatting && (
@@ -751,18 +687,6 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                 </button>
               )}
 
-              {isChatting && (
-                <button
-                  type="button"
-                  onClick={handleResetSession}
-                  className="px-3.5 py-1.5 rounded-full bg-white/90 hover:bg-white text-xs font-bold text-[#2F3A2E] transition-colors flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
-                  title="Mulai obrolan baru"
-                >
-                  <Plus className="w-3.5 h-3.5 text-[#2F3A2E]" />
-                  <span>Obrolan Baru</span>
-                </button>
-              )}
-
               <button
                 type="button"
                 onClick={handleResetSession}
@@ -778,6 +702,86 @@ export const CoachView: React.FC<CoachViewProps> = () => {
               </span>
             </div>
           </div>
+
+          {/* Body Split: Left Sidebar (hanya saat fase chat) + Right Chat Area */}
+          <div className="flex-1 flex flex-col md:flex-row min-h-0">
+            {isChatting && showHistoryPanel && (
+              <aside className="w-full md:w-64 lg:w-72 shrink-0 bg-[#F6F8F3] border-b md:border-b-0 md:border-r border-[#E8DDCF] flex flex-col max-h-64 md:max-h-[700px]">
+                <div className="p-3.5 border-b border-[#E8DDCF] flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetSession}
+                    className="flex-1 px-3 py-2 rounded-xl bg-[#CFD8C4] hover:bg-[#BCC8AE] text-xs font-bold text-[#2F3A2E] flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-2xs active:scale-[0.98]"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Obrolan Baru</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowHistoryPanel(false)}
+                    className="md:hidden p-2 rounded-xl bg-white/80 hover:bg-white text-[#636B60] border border-[#E8DDCF] cursor-pointer"
+                    title="Tutup riwayat"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="px-3.5 pt-3 pb-1.5 flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#636B60]">
+                    Riwayat Obrolan
+                  </span>
+                  <span className="text-[11px] font-semibold text-[#636B60]">
+                    {sessions.length}
+                  </span>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-2.5 pb-3 space-y-1">
+                  {sessions.length === 0 ? (
+                    <p className="text-xs text-[#636B60] px-2 py-4 text-center leading-relaxed">
+                      Belum ada riwayat obrolan. Mulai chat untuk menyimpannya otomatis.
+                    </p>
+                  ) : (
+                    sessions.map((session) => {
+                      const isActive = session.id === activeSessionId && messages.length > 0;
+                      return (
+                        <div
+                          key={session.id}
+                          onClick={() => handleSelectHistorySession(session)}
+                          className={`group w-full rounded-xl px-2.5 py-2 flex items-center justify-between gap-2 transition-all cursor-pointer ${
+                            isActive
+                              ? "bg-[#E2EAD9] text-[#2F3A2E] border border-[#B8C6A9]"
+                              : "hover:bg-[#EBF0E4]/80 text-[#2F3A2E] border border-transparent"
+                          }`}
+                        >
+                          <div className="flex items-start gap-2 min-w-0 text-left">
+                            <MessageSquare className="w-3.5 h-3.5 text-[#636B60] mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-[#2F3A2E] truncate">
+                                {session.title}
+                              </p>
+                              <p className="text-[10px] text-[#636B60] mt-0.5">
+                                {formatSessionDate(session.updatedAt)} · {session.messages.length} pesan
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteHistorySession(session.id, e)}
+                            className="p-1 rounded-lg text-[#636B60] md:opacity-0 md:group-hover:opacity-100 hover:text-red-600 hover:bg-red-50 transition-all shrink-0 cursor-pointer"
+                            title="Hapus riwayat ini"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </aside>
+            )}
+
+            {/* Main Right Chat Column */}
+            <div className="flex-1 flex flex-col min-w-0">
 
           {/* Chat Messages Body */}
           <div
@@ -989,6 +993,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
+          </div>
           </div>
           </div>
         </div>
