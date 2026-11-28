@@ -272,7 +272,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
             })}
           </nav>
 
-          {/* Right Action Buttons: Masuk (Login) & Daftar (Register) */}
+          {/* Right Action Button: Masuk (Login) */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleOpenAuth("login")}
@@ -281,15 +281,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginSuc
             >
               <LogIn className="w-3.5 h-3.5 text-[#2F3A2E]" />
               <span>Masuk</span>
-            </button>
-            <button
-              onClick={() => handleOpenAuth("register")}
-              className="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-[#CFD8C4] hover:bg-[#BCC8AE] text-[#2F3A2E] border border-[#BCC8AE] transition-colors shadow-xs active:scale-95 shrink-0 flex items-center gap-1.5 group cursor-pointer"
-              title="Daftar Akun Mahasiswa Baru"
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>Daftar</span>
-              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
             </button>
           </div>
         </div>

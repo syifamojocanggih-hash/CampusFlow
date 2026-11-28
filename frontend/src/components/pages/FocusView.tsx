@@ -438,7 +438,6 @@ export const FocusView: React.FC = () => {
   const progressAngleRad = ((progressPct / 100) * 360 - 90) * (Math.PI / 180);
   const knobX = 125 + radius * Math.cos(progressAngleRad);
   const knobY = 125 + radius * Math.sin(progressAngleRad);
-  const dailySessionTarget = Math.max(6, completedBouts + 1);
 
   return (
     <div className="w-full space-y-6 pb-12 font-sans">
@@ -529,12 +528,9 @@ export const FocusView: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT: Session Header, Presets, Action Controls & Daily Dots */}
+          {/* RIGHT: Session Header, Presets & Action Controls */}
           <div className="flex-1 min-w-0 w-full flex flex-col items-center lg:items-start text-center lg:text-left space-y-4">
             <div className="space-y-1.5">
-              <span className="font-heading text-xs font-bold tracking-[0.1em] text-[#4C5C4E] uppercase block">
-                SESI FOKUS KE-{completedBouts + 1}
-              </span>
               <h2 className="font-heading font-extrabold text-2xl sm:text-[1.75rem] text-[#1D3127] leading-snug tracking-tight max-w-xl">
                 {activeTask ? activeTask.text : "Tetap di sini, satu langkah lagi."}
               </h2>
@@ -628,31 +624,6 @@ export const FocusView: React.FC = () => {
                 <ShieldCheck className="w-4 h-4 text-[#2F3A2E]" />
                 <span>Mulai Jeda &amp; Kunci Layar</span>
               </button>
-            </div>
-
-            {/* Daily Session Progress Dots */}
-            <div className="flex items-center gap-2.5 pt-1">
-              <div className="flex items-center gap-1.5">
-                {Array.from({ length: dailySessionTarget }).map((_, idx) => {
-                  const isDone = idx < completedBouts;
-                  const isCurrent = idx === completedBouts;
-                  return (
-                    <span
-                      key={idx}
-                      className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        isDone
-                          ? "bg-[#243B2E]"
-                          : isCurrent
-                          ? "border-[1.5px] border-dashed border-[#4C6352]"
-                          : "bg-[#B7C7AF]"
-                      }`}
-                    />
-                  );
-                })}
-              </div>
-              <span className="text-xs font-semibold text-[#47594A]">
-                {completedBouts} dari {dailySessionTarget} sesi harian selesai
-              </span>
             </div>
           </div>
         </div>
