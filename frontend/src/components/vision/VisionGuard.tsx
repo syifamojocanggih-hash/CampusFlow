@@ -839,6 +839,12 @@ export const VisionGuard: React.FC<VisionGuardProps> = ({
       poseType: "OVERHEAD_STRETCH",
     }).catch((err) => console.warn("[VisionGuard] Error verifying active break:", err));
 
+    try {
+      const prev = Number(localStorage.getItem("campusflow_verified_breaks") || 0);
+      localStorage.setItem("campusflow_verified_breaks", String(prev + 1));
+      window.dispatchEvent(new CustomEvent("campusflow:active-break-completed", { detail: { count: prev + 1 } }));
+    } catch {}
+
     if (onActiveBreakCompleted) {
       onActiveBreakCompleted();
     }

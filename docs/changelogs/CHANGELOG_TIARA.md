@@ -21,6 +21,22 @@
 
 ---
 
+## [2026-11-28] — Integrasi Auto-Sync Misi Streak Mimi dengan Backend & Sensor API (`MimiPetWidget.tsx`)
+- **ID Tugas / Referensi:** `FE-1.88`
+- **Ringkasan:**
+  - Mengintegrasikan misi sehat harian maskot Mimi ("Gerak aktif 30 menit", "Istirahat mata 20-20-20", dan "Check-in PSS & Relaksasi") agar otomatis tersinkronisasi langsung dari backend API MySQL dan sensor browser tanpa memerlukan klik manual dari pengguna.
+  - Menghubungkan verifikasi Active Break (`api.getTodayActiveBreaks()`), status check-in harian (`api.getTodayWellbeing()`), dan total aktivitas fisik/pedometer (`api.getTriadDashboard()` & `api.getPhysicalActivities()`).
+  - Menambahkan listener event kustom (`campusflow:active-break-completed`, `campusflow:wellbeing-submitted`, `campusflow:activity-logged`) serta sinkronisasi dinamis 7 hari progres mingguan (Senin-Minggu) pada modal Mimi.
+- **Daftar File Diubah:**
+  - `frontend/src/components/pet/MimiPetWidget.tsx`
+  - `frontend/src/components/vision/VisionGuard.tsx`
+  - `frontend/src/components/pages/CheckinView.tsx`
+  - `frontend/src/components/sensor/PedometerCard.tsx`
+  - `docs/changelogs/CHANGELOG_TIARA.md`
+- **Verifikasi:** `npm --prefix frontend run build`, `npm run test:frontend`, `npm run test:shared`, dan `npm run guard` berhasil tanpa error.
+
+---
+
 ## [2026-11-25] — Penghapusan 15 Elemen UI Redundan & Status Pills Sesuai Permintaan Pengguna (`VisionGuard.tsx`, `FocusView.tsx`, `ActivityView.tsx`, `PedometerCard.tsx`) (Branch: `frontend`)
 - **ID Tugas / Referensi:** `FE-1.86`
 - **Ringkasan:**

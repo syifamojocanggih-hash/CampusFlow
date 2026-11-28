@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   X,
   Flame,
@@ -7,6 +7,7 @@ import {
   Pencil,
   Check,
 } from "lucide-react";
+import { api } from "@/lib/api";
 import {
   getMimiSvg,
   STAGE_MAP,
@@ -15,7 +16,6 @@ import {
   PET_CHATS,
   PetMood,
 } from "./mimiSvg";
-import { api } from "@/lib/api";
 
 interface Particle {
   id: number;
@@ -48,24 +48,8 @@ export const MimiPetWidget: React.FC = () => {
     return [false, false, false];
   });
 
-  // Sinkronkan streak & progres misi harian Mimi secara live dari database MySQL
-  useEffect(() => {
-    api
-      .getDailySummary()
-      .then((res) => {
-        const d = res?.data;
-        if (!d) return;
-        if (typeof d.user?.currentStreakDays === "number") {
-          setStreak(d.user.currentStreakDays);
-        }
-        setQuestsDone((prev) => [
-          prev[0] || Boolean(d.wellbeing?.checkedInToday),
-          prev[1] || (d.activeBreaks?.verifiedCount ?? 0) > 0,
-          prev[2] || (d.activity?.steps ?? 0) >= 1500 || (d.activity?.mvpaMinutes ?? 0) >= 15,
-        ]);
-      })
-      .catch(() => {});
-  }, []);
+  const [autoVerified, setAutoVerified] = useState<[boolean, boolean, boolean]>([false, false, false]);
+  const [completedHistoryDates, setCompletedHistoryDates] = useState<Set<string>>(new Set());
 
   const [freeze, setFreeze] = useState<number>(() => {
     try {
@@ -150,6 +134,176 @@ export const MimiPetWidget: React.FC = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Auto-sync missions and streak with backend API & local sensor status
+  const syncWithBackend = useCallback(async () => {
+    try {
+      const todayIso = new Date().toISOString().slice(0, 10);
+      let isBreakComplete = false;
+      let isCheckinComplete = false;
+      let isMovementComplete = false;
+      let backendStreak = 0;
+
+      // 0. Primary: Fetch unified daily summary from backend MySQL API
+      try {
+        const dailySummaryRes = await api.getDailySummary();
+        const d = dailySummaryRes?.data;
+        if (d) {
+          if (typeof d.user?.currentStreakDays === "number" && d.user.currentStreakDays > 0) {
+            backendStreak = d.user.currentStreakDays;
+          }
+          if ((d.activeBreaks?.verifiedCount ?? 0) > 0 || (d.burnout?.verifiedBreakCount ?? 0) > 0) {
+            isBreakComplete = true;
+          }
+          if (Boolean(d.wellbeing?.checkedInToday)) {
+            isCheckinComplete = true;
+          }
+          if ((d.activity?.steps ?? 0) >= 3000 || (d.activity?.mvpaMinutes ?? 0) >= 30) {
+            isMovementComplete = true;
+          }
+        }
+      } catch {}
+
+      // Fallback: Individual service calls if any mission is still not detected
+      const breaksPromise = !isBreakComplete ? api.getTodayActiveBreaks().catch(() => null) : null;
+      const wellbeingPromise = !isCheckinComplete ? api.getTodayWellbeing().catch(() => null) : null;
+      const activitiesPromise = !isMovementComplete ? api.getPhysicalActivities(7).catch(() => null) : null;
+      const triadPromise = api.getTriadDashboard(7).catch(() => null);
+
+      const [breaksRes, wellbeingRes, activitiesRes, triadRes] = await Promise.all([
+        breaksPromise,
+        wellbeingPromise,
+        activitiesPromise,
+        triadPromise,
+      ]);
+
+      // 1. Istirahat mata 20-20-20 (Verified Active Breaks >= 1)
+      if (!isBreakComplete) {
+        const verifiedBreaks = breaksRes?.data?.verifiedCount ?? 0;
+        let localBreaks = 0;
+        try {
+          const savedBreaks = localStorage.getItem("campusflow_verified_breaks");
+          if (savedBreaks) localBreaks = Number(savedBreaks) || 0;
+        } catch {}
+        isBreakComplete = verifiedBreaks >= 1 || localBreaks >= 1;
+      }
+
+      // 2. Check-in PSS & Relaksasi
+      if (!isCheckinComplete) {
+        let localCheckin = false;
+        try {
+          const savedCheckin = localStorage.getItem("campusflow_last_checkin_date");
+          if (savedCheckin === todayIso) localCheckin = true;
+        } catch {}
+        isCheckinComplete = Boolean(wellbeingRes?.data?.checkedInToday) || localCheckin;
+      }
+
+      // 3. Gerak aktif 30 menit (Physical activity duration >= 30m or steps >= 3000 or MVPA >= 30)
+      if (!isMovementComplete) {
+        const rawItems = Array.isArray(activitiesRes?.data?.items)
+          ? (activitiesRes.data.items as Array<{ activityDate?: string; durationMinutes?: number; stepsCount?: number }>)
+          : [];
+        const todayActivities = rawItems.filter((it) =>
+          String(it.activityDate || "").startsWith(todayIso)
+        );
+        const totalActivityMins = todayActivities.reduce(
+          (acc: number, it) => acc + (Number(it.durationMinutes) || 0),
+          0
+        );
+        const totalSteps = todayActivities.reduce(
+          (acc: number, it) => acc + (Number(it.stepsCount) || 0),
+          0
+        );
+        const triadMvpa = triadRes?.data?.today?.totalMvpaMinutes ?? 0;
+
+        let localSteps = 0;
+        try {
+          const savedSteps = localStorage.getItem("campusflow_pedometer_steps");
+          if (savedSteps) localSteps = Number(savedSteps) || 0;
+        } catch {}
+
+        isMovementComplete =
+          totalActivityMins >= 30 || totalSteps >= 3000 || triadMvpa >= 30 || localSteps >= 3000;
+      }
+
+      // Update streak from backend if available
+      if (backendStreak === 0 && typeof triadRes?.data?.weeklySummary?.currentStreakDays === "number") {
+        const tStreak = triadRes.data.weeklySummary.currentStreakDays;
+        if (tStreak > 0) backendStreak = tStreak;
+      }
+      if (backendStreak > 0) {
+        setStreak(backendStreak);
+      }
+
+      // Update 7-day completed history dates
+      if (Array.isArray(triadRes?.data?.history)) {
+        const dates = new Set<string>();
+        for (const h of triadRes.data.history) {
+          if (h.logDate) dates.add(h.logDate.slice(0, 10));
+        }
+        setCompletedHistoryDates(dates);
+      }
+
+      setAutoVerified([isMovementComplete, isBreakComplete, isCheckinComplete]);
+
+      setQuestsDone((prev) => {
+        const next: [boolean, boolean, boolean] = [
+          prev[0] || isMovementComplete,
+          prev[1] || isBreakComplete,
+          prev[2] || isCheckinComplete,
+        ];
+        if (next[0] !== prev[0] || next[1] !== prev[1] || next[2] !== prev[2]) {
+          return next;
+        }
+        return prev;
+      });
+    } catch (err) {
+      console.warn("[MimiPetWidget] Auto-sync error:", err);
+    }
+  }, []);
+
+  // Event listeners for real-time automatic quest completions
+  useEffect(() => {
+    void syncWithBackend();
+
+    const handleBreakDone = () => {
+      setAutoVerified((prev) => [prev[0], true, prev[2]]);
+      setQuestsDone((prev) => [prev[0], true, prev[2]]);
+      void syncWithBackend();
+    };
+
+    const handleCheckinDone = () => {
+      setAutoVerified((prev) => [prev[0], prev[1], true]);
+      setQuestsDone((prev) => [prev[0], prev[1], true]);
+      void syncWithBackend();
+    };
+
+    const handleActivityDone = () => {
+      void syncWithBackend();
+    };
+
+    window.addEventListener("campusflow:active-break-completed", handleBreakDone);
+    window.addEventListener("campusflow:wellbeing-submitted", handleCheckinDone);
+    window.addEventListener("campusflow:activity-logged", handleActivityDone);
+    window.addEventListener("focus", syncWithBackend);
+
+    const intervalId = setInterval(syncWithBackend, 15000);
+
+    return () => {
+      window.removeEventListener("campusflow:active-break-completed", handleBreakDone);
+      window.removeEventListener("campusflow:wellbeing-submitted", handleCheckinDone);
+      window.removeEventListener("campusflow:activity-logged", handleActivityDone);
+      window.removeEventListener("focus", syncWithBackend);
+      clearInterval(intervalId);
+    };
+  }, [syncWithBackend]);
+
+  // Re-sync whenever the pet modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      void syncWithBackend();
+    }
+  }, [isOpen, syncWithBackend]);
 
   // Compute stage
   const getStageIndex = (n: number) => {
@@ -386,7 +540,31 @@ export const MimiPetWidget: React.FC = () => {
     : 100;
 
   // Days of current week (Senin s.d Minggu)
-  const dayLabels = ["S", "M", "S", "R", "K", "J", "S"];
+  const weekDaysProgress = useMemo(() => {
+    const now = new Date();
+    // Monday is index 0, Sunday is index 6
+    const currentDayOfWeek = (now.getDay() + 6) % 7;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - currentDayOfWeek);
+
+    const labels = ["S", "M", "S", "R", "K", "J", "S"];
+    const todayIso = now.toISOString().slice(0, 10);
+
+    return labels.map((lbl, idx) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + idx);
+      const dateIso = d.toISOString().slice(0, 10);
+      const isToday = dateIso === todayIso;
+      const isCompleted =
+        completedHistoryDates.has(dateIso) || (isToday && completedCount > 0);
+      return {
+        label: lbl,
+        dateIso,
+        isToday,
+        isCompleted,
+      };
+    });
+  }, [completedHistoryDates, completedCount]);
 
   return (
     <>
@@ -604,21 +782,22 @@ export const MimiPetWidget: React.FC = () => {
 
                     {/* 7-Day History Badges */}
                     <div className="grid grid-cols-7 gap-1.5 mt-4 pt-3 border-t border-black/10">
-                      {dayLabels.map((lbl, i) => {
-                        const isDoneDay = i <= completedCount;
+                      {weekDaysProgress.map((day, i) => {
                         return (
                           <div key={i} className="flex flex-col items-center gap-1">
-                            <span className="text-[10px] font-bold text-[#2F3A2E]/60">
-                              {lbl}
+                            <span className={`text-[10px] font-bold ${day.isToday ? "text-[#1D3127]" : "text-[#2F3A2E]/60"}`}>
+                              {day.label}
                             </span>
                             <div
                               className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-extrabold border ${
-                                isDoneDay
+                                day.isCompleted
                                   ? "bg-[#CFD8C4] border-[#4A3B2C] text-[#2F3A2E] shadow-2xs"
+                                  : day.isToday
+                                  ? "bg-white border-2 border-[#4A3B2C] text-[#2F3A2E]"
                                   : "bg-white/50 border-dashed border-[#4A3B2C]/30 text-[#636B60]"
                               }`}
                             >
-                              {isDoneDay ? "✓" : ""}
+                              {day.isCompleted ? "✓" : day.isToday ? "•" : ""}
                             </div>
                           </div>
                         );
@@ -640,6 +819,7 @@ export const MimiPetWidget: React.FC = () => {
                     <div className="space-y-2">
                       {questsData.map((q, i) => {
                         const isDone = questsDone[i];
+                        const isAuto = autoVerified[i];
                         return (
                           <button
                             key={i}
@@ -648,26 +828,33 @@ export const MimiPetWidget: React.FC = () => {
                             disabled={isDone}
                             className={`w-full p-3.5 rounded-2xl border text-left transition-all flex items-center gap-3 ${
                               isDone
-                                ? "bg-[#CFD8C4] border-[#CFD8C4] text-[#2F3A2E]"
+                                ? "bg-[#CFD8C4] border-[#BCC8AE] text-[#2F3A2E]"
                                 : "bg-[#FAF6F0] border-[#E8DDCF] hover:border-[#4A3B2C] text-[#2F3A2E]"
                             }`}
                           >
                             <div
                               className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-extrabold text-xs shrink-0 ${
                                 isDone
-                                  ? "bg-[#CFD8C4] text-[#C9DCE6] border-[#4A3B2C]"
+                                  ? "bg-[#2F3A2E] text-white border-[#2F3A2E]"
                                   : "border-[#4A3B2C] text-transparent"
                               }`}
                             >
                               ✓
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-extrabold text-[#2F3A2E]">
-                                {q.title}
-                              </p>
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs font-extrabold text-[#2F3A2E]">
+                                  {q.title}
+                                </p>
+                                {isDone && (
+                                  <span className="text-[10px] font-bold text-[#1D3127] bg-[#BCC8AE]/60 px-2 py-0.5 rounded-full border border-[#BCC8AE] shrink-0">
+                                    {isAuto ? "Tersinkron Otomatis" : "Selesai"}
+                                  </span>
+                                )}
+                              </div>
                               <p
-                                className={`text-[11px] leading-tight ${
-                                   isDone ? "text-[#35505a]" : "text-[#636B60]"
+                                className={`text-[11px] leading-tight mt-0.5 ${
+                                   isDone ? "text-[#2F3A2E]/80" : "text-[#636B60]"
                                 }`}
                               >
                                 {q.desc}

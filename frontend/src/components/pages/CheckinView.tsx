@@ -54,6 +54,10 @@ export const CheckinView: React.FC<CheckinViewProps> = ({ embedded = false }) =>
       nonAcademicScreenHours: finalScreen,
       pss4Answers: pss4AnswersPayload,
     });
+    try {
+      localStorage.setItem("campusflow_last_checkin_date", new Date().toISOString().slice(0, 10));
+      window.dispatchEvent(new CustomEvent("campusflow:wellbeing-submitted"));
+    } catch {}
     setSubmitted(true);
   };
 

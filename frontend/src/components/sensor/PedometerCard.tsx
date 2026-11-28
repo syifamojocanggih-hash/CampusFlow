@@ -247,6 +247,11 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         source: "WEB_SENSOR_API",
         notes: `${name}: +${addSteps} langkah (${addMet} MET-menit)`,
       })
+      .then(() => {
+        try {
+          window.dispatchEvent(new CustomEvent("campusflow:activity-logged"));
+        } catch {}
+      })
       .catch((err) => console.warn("Gagal menyimpan aktivitas cepat ke DB:", err));
   };
 
@@ -262,6 +267,9 @@ export const PedometerCard: React.FC<PedometerCardProps> = ({
         source: "WEB_SENSOR_API",
         notes: `Pedometer: ${metMinutes.toFixed(1)} MET-menit`,
       });
+      try {
+        window.dispatchEvent(new CustomEvent("campusflow:activity-logged"));
+      } catch {}
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err) {
