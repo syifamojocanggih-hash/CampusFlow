@@ -207,6 +207,53 @@ export const CoachView: React.FC<CoachViewProps> = () => {
   const [showHistoryPanel, setShowHistoryPanel] = useState<boolean>(() =>
     typeof window !== "undefined" ? window.innerWidth >= 768 : true
   );
+  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
+    try {
+      const saved = Number(localStorage.getItem("campusflow_coach_sidebar_width_v1"));
+      if (Number.isFinite(saved) && saved >= 200 && saved <= 460) return saved;
+    } catch {
+      // Ignore
+    }
+    return 272;
+  });
+  const [isResizingSidebar, setIsResizingSidebar] = useState<boolean>(false);
+  const [isDesktopViewport, setIsDesktopViewport] = useState<boolean>(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 768 : true
+  );
+  const splitContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onResize = () => setIsDesktopViewport(window.innerWidth >= 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isResizingSidebar) return;
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = splitContainerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const next = Math.min(460, Math.max(200, Math.round(e.clientX - rect.left)));
+      setSidebarWidth(next);
+    };
+    const onMouseUp = () => {
+      setIsResizingSidebar(false);
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [isResizingSidebar]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("campusflow_coach_sidebar_width_v1", String(sidebarWidth));
+    } catch {
+      // Ignore
+    }
+  }, [sidebarWidth]);
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     if (cachedCoachMessages.length > 0) return cachedCoachMessages;
     try {
@@ -703,10 +750,19 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             </div>
           </div>
 
-          {/* Body Split: Left Sidebar (hanya saat fase chat) + Right Chat Area */}
-          <div className="flex-1 flex flex-col md:flex-row min-h-0">
+          {/* Body Split: Left Sidebar (hanya saat fase chat) + Resize Handle + Right Chat Area */}
+          <div
+            ref={splitContainerRef}
+            className={`flex-1 flex flex-col md:flex-row min-h-0 ${
+              isResizingSidebar ? "select-none" : ""
+            }`}
+          >
             {isChatting && showHistoryPanel && (
-              <aside className="w-full md:w-64 lg:w-72 shrink-0 bg-[#F6F8F3] border-b md:border-b-0 md:border-r border-[#E8DDCF] flex flex-col max-h-64 md:max-h-[700px]">
+              <>
+                <aside
+                  style={isDesktopViewport ? { width: `${sidebarWidth}px` } : undefined}
+                  className="w-full md:shrink-0 bg-[#F6F8F3] border-b md:border-b-0 border-[#E8DDCF] flex flex-col max-h-64 md:max-h-[700px]"
+                >
                 <div className="p-3.5 border-b border-[#E8DDCF] flex items-center gap-2">
                   <button
                     type="button"
@@ -778,6 +834,22 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                   )}
                 </div>
               </aside>
+              <div
+                role="separator"
+                aria-orientation="vertical"
+                title="Tarik untuk ubah lebar riwayat (klik ganda untuk reset)"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setIsResizingSidebar(true);
+                }}
+                onDoubleClick={() => setSidebarWidth(272)}
+                className={`hidden md:block w-1.5 shrink-0 cursor-col-resize transition-colors border-r border-[#E8DDCF] ${
+                  isResizingSidebar
+                    ? "bg-[#7C9473]/60"
+                    : "bg-transparent hover:bg-[#9FB196]/50"
+                }`}
+              />
+              </>
             )}
 
             {/* Main Right Chat Column */}
