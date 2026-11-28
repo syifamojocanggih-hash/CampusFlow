@@ -76,9 +76,57 @@ export const FocusView: React.FC = () => {
     }
   }, [isTimerRunning]);
 
+const POSTURE_CHECKLIST_KEY = "campusflow_posture_checklist_v1";
+const POSTURE_CHECKLIST_ITEMS = [
+  {
+    id: "eye-level",
+    label: "Bezel atas layar sejajar garis pandang mata (hindari menunduk).",
+  },
+  {
+    id: "shoulder-elbow",
+    label: "Bahu rileks & siku bertumpu membentuk sudut siku-siku (~90°).",
+  },
+  {
+    id: "feet-flat",
+    label: "Kedua telapak kaki menapak rata di lantai secara stabil.",
+  },
+] as const;
+
   // Active Break Incidental Modal State
   const [isActiveBreakOpen, setIsActiveBreakOpen] = useState<boolean>(false);
   const [activeBreakSuccess, setActiveBreakSuccess] = useState<boolean>(false);
+  const [postureChecked, setPostureChecked] = useState<Record<string, boolean>>(() => {
+    try {
+      const raw = localStorage.getItem(POSTURE_CHECKLIST_KEY);
+      if (raw) return JSON.parse(raw) as Record<string, boolean>;
+    } catch {
+      // Ignore
+    }
+    return {};
+  });
+
+  const togglePostureItem = (id: string) => {
+    setPostureChecked((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      try {
+        localStorage.setItem(POSTURE_CHECKLIST_KEY, JSON.stringify(next));
+      } catch {
+        // Ignore
+      }
+      return next;
+    });
+  };
+
+  const resetPostureChecklist = () => {
+    setPostureChecked({});
+    try {
+      localStorage.removeItem(POSTURE_CHECKLIST_KEY);
+    } catch {
+      // Ignore
+    }
+  };
+
+  const postureCheckedCount = POSTURE_CHECKLIST_ITEMS.filter((item) => postureChecked[item.id]).length;
 
   // 1. Task Checklist States (Synced with MySQL /api/v1/focus-tasks, localStorage cache as offline fallback)
   const [tasks, setTasks] = useState<FocusTask[]>(() => loadSavedFocusTasks());
@@ -849,50 +897,80 @@ export const FocusView: React.FC = () => {
           </button>
         </div>
 
-        {/* Card B: Checklist Postur Ergonomis */}
+        {/* Card B: Checklist Postur Ergonomis (Interaktif Mandiri) */}
         <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8DDCF] shadow-xs flex flex-col justify-between space-y-3">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center font-bold">
-                <ShieldCheck className="w-4 h-4" />
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#E8DDCF] text-[#2F3A2E] flex items-center justify-center font-bold">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-heading font-extrabold text-sm sm:text-base text-[#2F3A2E]">
+                    Checklist Postur Belajar Nyaman
+                  </h4>
+                  <span className="text-[10px] text-[#636B60]">
+                    Cek mandiri sebelum mulai fokus (tanpa kamera)
+                  </span>
+                </div>
               </div>
-              <div>
-                <h4 className="font-heading font-extrabold text-sm sm:text-base text-[#2F3A2E]">
-                  Checklist Postur Belajar Nyaman
-                </h4>
-                <span className="text-[10px] text-[#636B60]">Mencegah Kelelahan Leher &amp; Punggung</span>
-              </div>
+              <span
+                className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${
+                  postureCheckedCount === POSTURE_CHECKLIST_ITEMS.length
+                    ? "bg-[#CFD8C4] text-[#2F3A2E]"
+                    : "bg-[#FAF6F0] text-[#636B60] border border-[#E8DDCF]"
+                }`}
+              >
+                {postureCheckedCount}/{POSTURE_CHECKLIST_ITEMS.length}
+              </span>
             </div>
 
-            <div className="space-y-2 text-xs text-[#636B60] pt-1">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#CFD8C4]" />
-                <span>Bezel atas layar sejajar garis pandang mata (hindari menunduk).</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#CFD8C4]" />
-                <span>Bahu rileks &amp; siku bertumpu membentuk sudut siku-siku (~90&deg;).</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#CFD8C4]" />
-                <span>Kedua telapak kaki menapak rata di lantai secara stabil.</span>
-              </div>
+            <div className="space-y-1.5 text-xs pt-1">
+              {POSTURE_CHECKLIST_ITEMS.map((item) => {
+                const checked = Boolean(postureChecked[item.id]);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => togglePostureItem(item.id)}
+                    className={`w-full flex items-start gap-2.5 text-left px-2.5 py-2 rounded-xl border transition-colors cursor-pointer ${
+                      checked
+                        ? "bg-[#F3F6EE] border-[#BCC8AE] text-[#2F3A2E]"
+                        : "bg-white hover:bg-[#FAF6F0] border-transparent text-[#636B60]"
+                    }`}
+                  >
+                    <span
+                      className={`mt-0.5 w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                        checked
+                          ? "bg-[#2F3A2E] border-[#2F3A2E] text-white"
+                          : "border-[#C7BBA9] bg-white"
+                      }`}
+                    >
+                      {checked && <Check className="w-3 h-3 stroke-[2.5]" />}
+                    </span>
+                    <span className={checked ? "font-semibold" : ""}>{item.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="pt-1 text-[11px] text-[#636B60] flex items-center justify-between border-t border-[#E8DDCF]">
-            <span>Perlu evaluasi kamera?</span>
-            <button
-              type="button"
-              onClick={() =>
-                void osScreenLock.triggerLock(
-                  "Uji Active Break 2 Menit — Selesaikan 3 Repetisi Peregangan"
-                )
-              }
-              className="text-[#2F3A2E] font-bold underline hover:text-black cursor-pointer"
-            >
-              Uji Active Break 2 Menit
-            </button>
+          <div className="pt-2 text-[11px] text-[#636B60] flex items-center justify-between border-t border-[#E8DDCF]">
+            <span>
+              {postureCheckedCount === POSTURE_CHECKLIST_ITEMS.length
+                ? "Postur ergonomis siap — aman lanjut belajar."
+                : "Centang poin di atas untuk memastikan posisi duduk nyaman."}
+            </span>
+            {postureCheckedCount > 0 && (
+              <button
+                type="button"
+                onClick={resetPostureChecklist}
+                className="text-[#2F3A2E] font-bold hover:underline flex items-center gap-1 cursor-pointer shrink-0 ml-2"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
