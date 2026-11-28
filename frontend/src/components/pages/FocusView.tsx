@@ -19,7 +19,6 @@ import {
   Coffee,
 } from "lucide-react";
 import { VisionGuard } from "@/components/vision/VisionGuard";
-import { useOsScreenTime } from "@/utils/screenTimeTracker";
 import { osScreenLock, useOsScreenLock } from "@/utils/osScreenLock";
 import { api } from "@/lib/api";
 
@@ -58,11 +57,10 @@ function loadSavedFocusTasks(): FocusTask[] {
 
 export const FocusView: React.FC = () => {
   const osLock = useOsScreenLock();
-  // Focus Timer States (Clean default: 25:00 paused, completedBouts synced from MySQL)
+  // Focus Timer States (Clean default: 25:00 paused)
   const [sessionDurationMins, setSessionDurationMins] = useState<number>(25);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(25 * 60);
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
-  const [completedBouts, setCompletedBouts] = useState<number>(0);
   const sessionStartRef = useRef<Date | null>(null);
 
   useEffect(() => {
@@ -71,32 +69,12 @@ export const FocusView: React.FC = () => {
     }
   }, [osLock.isLocked]);
 
-  // Load today's real completed focus/sedentary sessions from MySQL
-  useEffect(() => {
-    const todayIso = new Date().toISOString().slice(0, 10);
-    api
-      .getSedentarySessions(1)
-      .then((res) => {
-        const list = Array.isArray(res?.data) ? res.data : [];
-        const todayCount = list.filter((s) => {
-          const rec = s as { startTime?: string };
-          return String(rec.startTime || "").startsWith(todayIso);
-        }).length;
-        setCompletedBouts(todayCount);
-      })
-      .catch(() => {});
-  }, []);
-
   // Track start time when user starts timer
   useEffect(() => {
     if (isTimerRunning && !sessionStartRef.current) {
       sessionStartRef.current = new Date();
     }
   }, [isTimerRunning]);
-
-  // OS-Level Screen Time State
-  const osScreenTime = useOsScreenTime();
-  const screenMinutes = osScreenTime.totalMinutes;
 
   // Active Break Incidental Modal State
   const [isActiveBreakOpen, setIsActiveBreakOpen] = useState<boolean>(false);
@@ -170,7 +148,6 @@ export const FocusView: React.FC = () => {
     if (!isTimerRunning || secondsRemaining > 0) return;
 
     setIsTimerRunning(false);
-    setCompletedBouts((c) => c + 1);
 
     const endTime = new Date();
     const startTime =
@@ -427,11 +404,6 @@ export const FocusView: React.FC = () => {
     )
   );
 
-  const totalCompletedMinutes = completedBouts * sessionDurationMins;
-  const formattedFocusHours = `${Math.floor(totalCompletedMinutes / 60)} j ${
-    (totalCompletedMinutes % 60).toString().padStart(2, "0")
-  } m`;
-
   const completedTaskCount = tasks.filter((t) => t.isCompleted).length;
   const activeTask = tasks.find((t) => t.id === activeTaskId);
 
@@ -441,7 +413,6 @@ export const FocusView: React.FC = () => {
   const progressAngleRad = ((progressPct / 100) * 360 - 90) * (Math.PI / 180);
   const knobX = 125 + radius * Math.cos(progressAngleRad);
   const knobY = 125 + radius * Math.sin(progressAngleRad);
-  const dailySessionTarget = Math.max(6, completedBouts + 1);
 
   return (
     <div className="w-full space-y-6 pb-12 font-sans">
@@ -532,12 +503,9 @@ export const FocusView: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT: Session Header, Presets, Action Controls & Daily Dots */}
+          {/* RIGHT: Session Header, Presets & Action Controls */}
           <div className="flex-1 min-w-0 w-full flex flex-col items-center lg:items-start text-center lg:text-left space-y-4">
             <div className="space-y-1.5">
-              <span className="font-heading text-xs font-bold tracking-[0.1em] text-[#4C5C4E] uppercase block">
-                SESI FOKUS KE-{completedBouts + 1}
-              </span>
               <h2 className="font-heading font-extrabold text-2xl sm:text-[1.75rem] text-[#1D3127] leading-snug tracking-tight max-w-xl">
                 {activeTask ? activeTask.text : "Tetap di sini, satu langkah lagi."}
               </h2>
@@ -631,31 +599,6 @@ export const FocusView: React.FC = () => {
                 <ShieldCheck className="w-4 h-4 text-[#2F3A2E]" />
                 <span>Mulai Jeda &amp; Kunci Layar</span>
               </button>
-            </div>
-
-            {/* Daily Session Progress Dots */}
-            <div className="flex items-center gap-2.5 pt-1">
-              <div className="flex items-center gap-1.5">
-                {Array.from({ length: dailySessionTarget }).map((_, idx) => {
-                  const isDone = idx < completedBouts;
-                  const isCurrent = idx === completedBouts;
-                  return (
-                    <span
-                      key={idx}
-                      className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        isDone
-                          ? "bg-[#243B2E]"
-                          : isCurrent
-                          ? "border-[1.5px] border-dashed border-[#4C6352]"
-                          : "bg-[#B7C7AF]"
-                      }`}
-                    />
-                  );
-                })}
-              </div>
-              <span className="text-xs font-semibold text-[#47594A]">
-                {completedBouts} dari {dailySessionTarget} sesi harian selesai
-              </span>
             </div>
           </div>
         </div>
@@ -955,69 +898,7 @@ export const FocusView: React.FC = () => {
       </div>
 
       {/* ========================================================
-          6. BOTTOM METRIC CARDS: RITME FOKUS HARI INI
-          ======================================================== */}
-      <div className="space-y-4 pt-1">
-        <h3 className="font-heading font-extrabold text-base sm:text-lg text-[#2F3A2E]">
-          Statistik Ringkasan Hari Ini
-        </h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          {/* Card 1: Total Durasi Fokus */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8DDCF] shadow-xs text-center flex flex-col justify-between">
-            <div className="space-y-1">
-              <h4 className="font-heading font-extrabold text-base text-[#2F3A2E]">
-                Total Waktu Fokus
-              </h4>
-              <p className="text-[11px] text-[#636B60] font-medium">
-                {sessionDurationMins} mnt / sesi
-              </p>
-            </div>
-            <div className="my-2">
-              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#2F3A2E] sensor-num tracking-tight">
-                {formattedFocusHours}
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2: Pomodoro Selesai */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8DDCF] shadow-xs text-center flex flex-col justify-between">
-            <div className="space-y-1">
-              <h4 className="font-heading font-extrabold text-base text-[#2F3A2E]">
-                Pomodoro Selesai
-              </h4>
-              <p className="text-[11px] text-[#636B60] font-medium">
-                Target harian 6 sesi
-              </p>
-            </div>
-            <div className="my-2">
-              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#2F3A2E] sensor-num tracking-tight">
-                {completedBouts} sesi
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Waktu Layar Pasif */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#E8DDCF] shadow-xs text-center flex flex-col justify-between">
-            <div className="space-y-1">
-              <h4 className="font-heading font-extrabold text-base text-[#2F3A2E]">
-                Waktu Layar Pasif
-              </h4>
-              <p className="text-[11px] text-[#636B60] font-medium">
-                Batas aman &le; 8 jam
-              </p>
-            </div>
-            <div className="my-2">
-              <div className="font-heading font-extrabold text-3xl sm:text-4xl text-[#2F3A2E] sensor-num tracking-tight">
-                {Math.floor(screenMinutes / 60)} jam
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================
-          7. MODAL JEDA MATA 20 DETIK (20-20-20 Rule Modal)
+          6. MODAL JEDA MATA 20 DETIK (20-20-20 Rule Modal)
           ======================================================== */}
       {isEyeBreakOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
