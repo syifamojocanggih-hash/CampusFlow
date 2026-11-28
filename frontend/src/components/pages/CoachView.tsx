@@ -636,8 +636,8 @@ export const CoachView: React.FC<CoachViewProps> = () => {
             isChatting ? "lg:col-span-12" : "lg:col-span-8"
           } w-full bg-white rounded-[1.75rem] shadow-xs border border-[#E8DDCF] overflow-hidden flex flex-col md:flex-row transition-all duration-300`}
         >
-          {/* Left Sidebar Riwayat Obrolan (ala ChatGPT/Claude) */}
-          {showHistoryPanel && (
+          {/* Left Sidebar Riwayat Obrolan (hanya tampil saat fase chat penuh) */}
+          {isChatting && showHistoryPanel && (
             <aside className="w-full md:w-64 lg:w-72 shrink-0 bg-[#F6F8F3] border-b md:border-b-0 md:border-r border-[#E8DDCF] flex flex-col max-h-64 md:max-h-[760px]">
               <div className="p-3.5 border-b border-[#E8DDCF] flex items-center gap-2">
                 <button
@@ -717,19 +717,21 @@ export const CoachView: React.FC<CoachViewProps> = () => {
           {/* Header Chat Panel */}
           <div className="bg-[#CFD8C4] px-5 sm:px-6 py-4 flex items-center justify-between border-b border-[#BCC8AE]">
             <div className="flex items-center gap-2.5 sm:gap-3">
-              <button
-                type="button"
-                onClick={() => setShowHistoryPanel((v) => !v)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center shadow-2xs transition-all active:scale-95 cursor-pointer shrink-0 ${
-                  showHistoryPanel
-                    ? "bg-[#2F3A2E] text-white"
-                    : "bg-white/85 hover:bg-white text-[#2F3A2E]"
-                }`}
-                title={showHistoryPanel ? "Sembunyikan sidebar riwayat" : "Tampilkan sidebar riwayat"}
-                aria-label="Toggle sidebar riwayat"
-              >
-                <PanelLeft className="w-4 h-4" />
-              </button>
+              {isChatting && (
+                <button
+                  type="button"
+                  onClick={() => setShowHistoryPanel((v) => !v)}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center shadow-2xs transition-all active:scale-95 cursor-pointer shrink-0 ${
+                    showHistoryPanel
+                      ? "bg-[#2F3A2E] text-white"
+                      : "bg-white/85 hover:bg-white text-[#2F3A2E]"
+                  }`}
+                  title={showHistoryPanel ? "Sembunyikan sidebar riwayat" : "Tampilkan sidebar riwayat"}
+                  aria-label="Toggle sidebar riwayat"
+                >
+                  <PanelLeft className="w-4 h-4" />
+                </button>
+              )}
               {isChatting && (
                 <button
                   type="button"
@@ -820,7 +822,7 @@ export const CoachView: React.FC<CoachViewProps> = () => {
                   ))}
                 </div>
 
-                {!showHistoryPanel && sessions.length > 0 && (
+                {sessions.length > 0 && (
                   <div className="w-full max-w-lg text-left pt-2 space-y-2">
                     <div className="flex items-center justify-between px-1">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-[#636B60]">
